@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import CreatePeermallModal from './CreatePeermallModal';
 import { Link } from 'react-router-dom';
 import { Search, User, Menu, Bell, Home, ShoppingBag, Users, Info, HelpCircle, LogIn, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 
 const Header = () => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isCreatePeermallModalOpen, setIsCreatePeermallModalOpen] = useState(false);
   const [notifications, setNotifications] = useState([
     { id: 1, type: 'message', content: '박성민님이 새로운 메시지를 보냈습니다.', time: '5분 전', read: false },
     { id: 2, type: 'purchase', content: '홍길동님이 디지털 아트워크를 구매했습니다.', time: '25분 전', read: false },
@@ -133,8 +135,13 @@ const Header = () => {
             </Button>
             
             {/* Create Peermall Button */}
-            <Button variant="default" size="sm" className="bg-primary-100 hover:bg-accent-100 text-text-100" asChild>
-              <Link to="/create">피어몰 만들기</Link>
+            <Button 
+              onClick={() => setIsCreatePeermallModalOpen(true)} 
+              variant="default" 
+              size="sm" 
+              className="bg-primary-100 hover:bg-accent-100 text-text-100"
+            >
+              피어몰 만들기
             </Button>
             
             {/* Dynamic Links Button */}
@@ -206,6 +213,12 @@ const Header = () => {
           </Drawer>
         </div>
       </div>
+
+      {/* Create Peermall Modal */}
+      <CreatePeermallModal 
+        isOpen={isCreatePeermallModalOpen}
+        onClose={() => setIsCreatePeermallModalOpen(false)}
+      />
     </header>
   );
 };

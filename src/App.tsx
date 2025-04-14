@@ -10,7 +10,6 @@ import CurationLinks from "./pages/CurationLinks";
 import Community from "./pages/Community";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
-import PeermallView from "./pages/PeermallView";
 import ServiceCardsSection from "./components/ServiceCardsSection";
 import Footer from "./components/Footer";
 
