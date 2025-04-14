@@ -139,7 +139,7 @@ const Index = () => {
       
       <main className="flex-grow bg-bg-100">
         <div className="container mx-auto px-4 py-6">
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <div className="col-span-1 md:col-span-2">
               <div className="bg-white rounded-lg shadow-md p-4 mb-4">
                 <div className="flex items-center justify-between mb-4">
@@ -179,6 +179,8 @@ const Index = () => {
                 title="인기 피어몰" 
                 malls={trendingMalls} 
               />
+
+              <CreatePeermall />
             </div>
             
             <div>
@@ -186,9 +188,9 @@ const Index = () => {
             </div>
           </section>
           
-          <QRFeature />
+          {/* <QRFeature /> */}
           
-          <section className="bg-white rounded-lg shadow-md p-6 my-8">
+          {/* <section className="bg-white rounded-lg shadow-md p-6 my-8">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-primary-300">피어 넘버</h2>
               
@@ -218,14 +220,12 @@ const Index = () => {
                   </svg>
                 </Link>
             </div>
-          </section>
+          </section> */}
           
           <PeermallGrid 
             title="최근 피어몰" 
             malls={recentMalls} 
           />
-          
-          <CreatePeermall />
           
           <PeermallGrid 
             title="추천 피어몰" 

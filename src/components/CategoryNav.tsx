@@ -28,13 +28,7 @@ const CategoryNav = () => {
               <span className="mt-1">{category.name}</span>
             </a>
           ))}
-          <a 
-            href="#"
-            className="flex items-center px-4 py-2 bg-primary-100 text-text-100 rounded-md hover:bg-accent-100 transition-colors whitespace-nowrap"
-          >
-            <Store className="h-5 w-5 mr-2" />
-            <span>피어몰 만들기</span>
-          </a>
+          
         </div>
       </div>
     </nav>
