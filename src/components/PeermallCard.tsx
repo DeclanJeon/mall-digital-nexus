@@ -2,6 +2,7 @@
 import React from 'react';
 import { Star, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 interface PeermallCardProps {
   title: string;
@@ -19,6 +20,7 @@ interface PeermallCardProps {
     address: string;
   };
   onOpenMap?: (location: { lat: number; lng: number; address: string; title: string }) => void;
+  id?: string; // Added ID for routing
 }
 
 const PeermallCard = ({ 
@@ -32,7 +34,8 @@ const PeermallCard = ({
   reviewCount, 
   featured,
   location,
-  onOpenMap
+  onOpenMap,
+  id = "sample-peermall" // Default ID if none provided
 }: PeermallCardProps) => {
   return (
     <div className={`bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow ${featured ? 'ring-2 ring-accent-100' : ''}`}>
@@ -92,8 +95,9 @@ const PeermallCard = ({
               variant="link" 
               size="sm" 
               className="text-accent-200 hover:text-accent-100 p-0"
+              asChild
             >
-              방문하기
+              <Link to={`/peermall/${id}`}>방문하기</Link>
             </Button>
           </div>
         </div>

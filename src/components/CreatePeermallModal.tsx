@@ -60,11 +60,13 @@ type FormValues = z.infer<typeof formSchema>;
 interface CreatePeermallModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: (peermallId: string) => void;
 }
 
 const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({ 
   isOpen, 
-  onClose 
+  onClose,
+  onSuccess
 }) => {
   const { toast } = useToast();
   
@@ -105,9 +107,19 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       description: "피어몰 생성이 요청되었습니다. 검토 후 승인됩니다.",
     });
     
-    // Reset the form and close the modal
+    // Generate a mock peermall ID based on the address
+    const peermallId = values.address.toLowerCase().replace(/\s+/g, '-');
+    
+    // Reset the form
     form.reset();
-    onClose();
+    
+    // Call onSuccess callback if provided
+    if (onSuccess) {
+      onSuccess(peermallId);
+    } else {
+      // Just close the modal if no callback provided
+      onClose();
+    }
   };
 
   return (

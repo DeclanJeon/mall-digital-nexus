@@ -2,10 +2,13 @@
 import React, { useState } from 'react';
 import { Store, ChevronRight, PenLine, LayoutTemplate, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import CreatePeermallModal from './CreatePeermallModal';
+import { toast } from '@/hooks/use-toast';
 
 const CreatePeermall = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
   
   const steps = [
     {
@@ -32,6 +35,22 @@ const CreatePeermall = () => {
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+
+  const handleCreateSuccess = (peermallId: string) => {
+    // Close modal
+    closeModal();
+    
+    // Show success message
+    toast({
+      title: "피어몰 생성 완료!",
+      description: "새로운 피어몰이 성공적으로 생성되었습니다.",
+    });
+    
+    // Navigate to the new Peermall
+    setTimeout(() => {
+      navigate(`/peermall/${peermallId}`);
+    }, 1000);
+  };
 
   return (
     <>
@@ -77,6 +96,7 @@ const CreatePeermall = () => {
       <CreatePeermallModal 
         isOpen={isModalOpen} 
         onClose={closeModal} 
+        onSuccess={handleCreateSuccess}
       />
     </>
   );
