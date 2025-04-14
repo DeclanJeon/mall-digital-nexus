@@ -11,6 +11,8 @@ import Community from "./pages/Community";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import PeermallView from "./pages/PeermallView";
+import ServiceCardsSection from "./components/ServiceCardsSection";
+import Footer from "./components/Footer";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +33,8 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <ServiceCardsSection />
+        <Footer />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
