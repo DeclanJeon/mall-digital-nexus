@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { QrCode, Smartphone, Mail, Users, Scan } from 'lucide-react';
+import { QrCode, Smartphone, Mail, Users, Link } from 'lucide-react';
 
 const QRFeature = () => {
   const features = [
@@ -12,17 +12,17 @@ const QRFeature = () => {
     {
       icon: <Users className="h-8 w-8 text-accent-100" />,
       title: '전화등록부 시스템',
-      description: 'QR 스캔으로 연락처를 자동 등록하고 효율적으로 관리하세요.'
+      description: '스캔으로 연락처를 자동 등록하고 효율적으로 관리하세요.'
     },
     {
       icon: <Mail className="h-8 w-8 text-accent-100" />,
-      title: '이메일 QR 서비스',
-      description: 'QR 코드를 스캔하여 즉시 이메일을 작성하고 전송할 수 있습니다.'
+      title: '이메일 서비스',
+      description: '스캔하여 즉시 이메일을 작성하고 전송할 수 있습니다.'
     },
     {
       icon: <QrCode className="h-8 w-8 text-accent-100" />,
-      title: '멀티 QR 솔루션',
-      description: '하나의 코드로 여러 기능을 제공하는 동적 QR 코드를 활용하세요.'
+      title: 'Dynamic Links',
+      description: '하나의 코드로 여러 기능을 제공하는 동적 연결 시스템을 활용하세요.'
     }
   ];
 
@@ -31,11 +31,11 @@ const QRFeature = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center mb-10">
           <div className="w-full md:w-1/2 mb-6 md:mb-0">
-            <h2 className="text-3xl font-bold text-primary-300 mb-4">QR 코드로 연결되는<br />스마트한 생활</h2>
-            <p className="text-text-200 mb-6">피어몰의 통합 QR 코드 시스템으로 온라인과 오프라인을 연결하고, 번거로운 작업을 간소화하세요.</p>
+            <h2 className="text-3xl font-bold text-primary-300 mb-4">하나의 링크로 연결되는<br />스마트한 생활</h2>
+            <p className="text-text-200 mb-6">피어몰의 통합 링크 시스템으로 온라인과 오프라인을 연결하고, 번거로운 작업을 간소화하세요.</p>
             <button className="btn-accent flex items-center">
-              <Scan className="h-5 w-5 mr-2" />
-              QR 서비스 시작하기
+              <Link className="h-5 w-5 mr-2" />
+              다이나믹 링크 시작하기
             </button>
           </div>
           <div className="w-full md:w-1/2 pl-0 md:pl-8">

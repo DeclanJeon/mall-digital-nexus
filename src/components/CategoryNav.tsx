@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, ShoppingBag, Users, MessageSquare, Info, HelpCircle, Store } from 'lucide-react';
+import { Home, ShoppingBag, Users, MessageSquare, Info, HelpCircle, Store, Hash } from 'lucide-react';
 
 const CategoryNav = () => {
   const categories = [

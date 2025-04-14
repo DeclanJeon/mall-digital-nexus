@@ -7,7 +7,8 @@ import PeermallGrid from '../components/PeermallGrid';
 import QRFeature from '../components/QRFeature';
 import CreatePeermall from '../components/CreatePeermall';
 import ActivityFeed from '../components/ActivityFeed';
-import { Filter, TrendingUp, Bell, MapPin } from 'lucide-react';
+import { Filter, TrendingUp, Bell, MapPin, Hash } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   // Mock data for trending peermalls
@@ -143,8 +144,8 @@ const Index = () => {
               <div className="bg-white rounded-lg shadow-md p-4 mb-4">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-bold flex items-center">
-                    <TrendingUp className="h-5 w-5 mr-2 text-accent-100" />
-                    인기 카테고리
+                    <Hash className="h-5 w-5 mr-2 text-accent-100" />
+                    인기 해시태그
                   </h2>
                   <div className="flex gap-2">
                     <button className="btn-outline text-xs py-1 px-2 flex items-center">
@@ -159,7 +160,7 @@ const Index = () => {
                 </div>
                 
                 <div className="flex flex-wrap gap-2 mb-2">
-                  {['전체', '디자인', '푸드', '패션', '테크', '아트', '라이프', '취미', '여행'].map((category, index) => (
+                  {['전체', '#디자인', '#푸드', '#패션', '#테크', '#아트', '#라이프', '#취미', '#여행'].map((category, index) => (
                     <button 
                       key={index}
                       className={`px-3 py-1 text-sm rounded-full transition-colors ${
@@ -186,6 +187,51 @@ const Index = () => {
           </section>
           
           <QRFeature />
+          
+          <section className="bg-white rounded-lg shadow-md p-6 my-8">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-primary-300">큐레이션 링크</h2>
+              <Link to="/curation-links" className="text-accent-200 hover:text-accent-100 flex items-center">
+                모든 링크 관리하기
+                <svg className="h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+            <p className="text-text-200 mb-4">여러분의 피어몰과 콘텐츠를 하나의 링크로 연결하고 관리하세요.</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-bg-100 rounded-lg p-4 hover-scale">
+                <h3 className="text-lg font-bold mb-2">간편한 링크 생성</h3>
+                <p className="text-sm text-text-200 mb-3">모든 피어몰을 하나의 링크로 연결하고 공유하세요.</p>
+                <Link to="/curation-links" className="text-accent-200 hover:text-accent-100 text-sm flex items-center">
+                  링크 만들기
+                  <svg className="h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+              <div className="bg-bg-100 rounded-lg p-4 hover-scale">
+                <h3 className="text-lg font-bold mb-2">실시간 통계</h3>
+                <p className="text-sm text-text-200 mb-3">방문자수, 클릭률 등 다양한 분석 데이터를 확인하세요.</p>
+                <Link to="/curation-links" className="text-accent-200 hover:text-accent-100 text-sm flex items-center">
+                  통계 보기
+                  <svg className="h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+              <div className="bg-bg-100 rounded-lg p-4 hover-scale">
+                <h3 className="text-lg font-bold mb-2">맞춤형 QR 코드</h3>
+                <p className="text-sm text-text-200 mb-3">모든 링크에 대한 맞춤형 QR 코드를 생성하세요.</p>
+                <Link to="/curation-links" className="text-accent-200 hover:text-accent-100 text-sm flex items-center">
+                  QR 코드 생성
+                  <svg className="h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+          </section>
           
           <PeermallGrid 
             title="최근 피어몰" 
