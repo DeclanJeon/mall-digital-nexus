@@ -190,46 +190,33 @@ const Index = () => {
           
           <section className="bg-white rounded-lg shadow-md p-6 my-8">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-primary-300">큐레이션 링크</h2>
-              <Link to="/curation-links" className="text-accent-200 hover:text-accent-100 flex items-center">
-                모든 링크 관리하기
-                <svg className="h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
+              <h2 className="text-2xl font-bold text-primary-300">피어 넘버</h2>
+              
             </div>
-            <p className="text-text-200 mb-4">여러분의 피어몰과 콘텐츠를 하나의 링크로 연결하고 관리하세요.</p>
+            <p className="text-text-200 mb-4">당신의 피어 넘버로, 피어몰 커뮤니티의 다른 피어들과 더 쉽고 간편하게 연결되고 소통을 시작해보세요!</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-bg-100 rounded-lg p-4 hover-scale">
-                <h3 className="text-lg font-bold mb-2">간편한 링크 생성</h3>
-                <p className="text-sm text-text-200 mb-3">모든 피어몰을 하나의 링크로 연결하고 공유하세요.</p>
-                <Link to="/curation-links" className="text-accent-200 hover:text-accent-100 text-sm flex items-center">
-                  링크 만들기
-                  <svg className="h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
+                <h3 className="text-lg font-bold mb-2">피어 넘버 하나로, 이제 당신은:</h3>
+                <p className="text-sm text-text-200 mb-3">피어와 장벽 없이, 바로 톡! 하세요.</p>
+                
               </div>
               <div className="bg-bg-100 rounded-lg p-4 hover-scale">
-                <h3 className="text-lg font-bold mb-2">실시간 통계</h3>
-                <p className="text-sm text-text-200 mb-3">방문자수, 클릭률 등 다양한 분석 데이터를 확인하세요.</p>
-                <Link to="/curation-links" className="text-accent-200 hover:text-accent-100 text-sm flex items-center">
-                  통계 보기
-                  <svg className="h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
+                <h3 className="text-lg font-bold mb-2">당신만의 공식 소통 주소를 가지세요.</h3>
+                <p className="text-sm text-text-200 mb-3">피어 넘버는 피어몰 커뮤니티에서 당신을 나타내는 고유한 주소입니다. 명함에, 프로필에 당신의 피어 넘버를 알려주세요. 다른 피어들이 당신을 쉽게 찾고 연결될 수 있습니다.</p>
               </div>
               <div className="bg-bg-100 rounded-lg p-4 hover-scale">
-                <h3 className="text-lg font-bold mb-2">맞춤형 QR 코드</h3>
-                <p className="text-sm text-text-200 mb-3">모든 링크에 대한 맞춤형 QR 코드를 생성하세요.</p>
-                <Link to="/curation-links" className="text-accent-200 hover:text-accent-100 text-sm flex items-center">
-                  QR 코드 생성
+                <h3 className="text-lg font-bold mb-2">다양한 서비스를 여는 열쇠로 사용하세요.</h3>
+                <p className="text-sm text-text-200 mb-3">피어몰의 새로운 기능과 서비스를 이용할 때, 피어 넘버는 당신을 인증하고 접근 권한을 부여하는 열쇠가 됩니다.</p>
+                
+              </div>
+
+
+              <Link to="/curation-links" className="text-accent-200 hover:text-accent-100 text-sm flex items-center">
+                  피어 넘버 만들기
                   <svg className="h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </Link>
-              </div>
             </div>
           </section>
           

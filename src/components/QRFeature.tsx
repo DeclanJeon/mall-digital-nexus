@@ -23,7 +23,8 @@ const QRFeature = () => {
       icon: <QrCode className="h-8 w-8 text-accent-100" />,
       title: '나만의 바로가기 허브',
       description: '흩어져 있던 북마크와 즐겨찾기를 한곳에 모아 나만의 디지털 지도처럼 활용하세요. 원하는 곳으로 빠르게 이동할 수 있습니다.'
-    }
+    },
+    
   ];
 
   return (
