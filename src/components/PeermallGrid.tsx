@@ -16,11 +16,17 @@ interface PeermallGridProps {
     reviewCount: number;
     featured?: boolean;
     type?: string;
+    location?: {
+      lat: number;
+      lng: number;
+      address: string;
+    };
   }[];
   viewMore?: boolean;
+  onOpenMap: (location: { lat: number; lng: number; address: string; title: string }) => void;
 }
 
-const PeermallGrid = ({ title, malls, viewMore = true }: PeermallGridProps) => {
+const PeermallGrid = ({ title, malls, viewMore = true, onOpenMap }: PeermallGridProps) => {
   return (
     <section className="my-8">
       <div className="flex items-center justify-between mb-4">
@@ -38,6 +44,7 @@ const PeermallGrid = ({ title, malls, viewMore = true }: PeermallGridProps) => {
           <PeermallCard
             key={index}
             {...mall}
+            onOpenMap={onOpenMap}
           />
         ))}
       </div>

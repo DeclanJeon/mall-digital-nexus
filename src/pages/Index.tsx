@@ -8,9 +8,16 @@ import { Filter, Hash, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import CommunicationWidget from '@/components/CommunicationWidget';
 import HashtagFilter, { HashtagFilterOption, PeermallType } from '@/components/HashtagFilter';
+import PeermallMap from '@/components/PeermallMap';
+
+interface Location {
+  lat: number;
+  lng: number;
+  address: string;
+  title: string;
+}
 
 const Index = () => {
-  // Define hashtag options
   const hashtagOptions: HashtagFilterOption[] = [
     { label: '전체', value: '전체' },
     { label: '#디자인', value: '#디자인' },
@@ -23,7 +30,6 @@ const Index = () => {
     { label: '#여행', value: '#여행' },
   ];
 
-  // Mock data for trending peermalls
   const trendingMalls = [
     {
       title: "디자인 스튜디오",
@@ -35,7 +41,12 @@ const Index = () => {
       rating: 4.9,
       reviewCount: 124,
       featured: true,
-      type: 'trending'
+      type: 'trending',
+      location: {
+        lat: 37.5665, 
+        lng: 126.9780, 
+        address: "서울시 중구 명동길 14"
+      }
     },
     {
       title: "친환경 생활용품",
@@ -72,7 +83,6 @@ const Index = () => {
     }
   ];
 
-  // Mock data for recent peermalls
   const recentMalls = [
     {
       title: "핸드메이드 액세서리",
@@ -83,7 +93,12 @@ const Index = () => {
       tags: ["#패션", "#핸드메이드"],
       rating: 4.5,
       reviewCount: 42,
-      type: 'recent'
+      type: 'recent',
+      location: {
+        lat: 37.5635, 
+        lng: 126.9845, 
+        address: "서울시 용산구 이태원로 45-8"
+      }
     },
     {
       title: "스마트 홈 솔루션",
@@ -120,7 +135,6 @@ const Index = () => {
     }
   ];
 
-  // Mock data for recommended peermalls
   const recommendedMalls = [
     {
       title: "건강한 식단",
@@ -131,7 +145,12 @@ const Index = () => {
       tags: ["#푸드", "#건강"],
       rating: 4.8,
       reviewCount: 86,
-      type: 'recommended'
+      type: 'recommended',
+      location: {
+        lat: 37.5115, 
+        lng: 127.0227, 
+        address: "서울시 강남구 테헤란로 152"
+      }
     },
     {
       title: "북 커뮤니티",
@@ -168,29 +187,34 @@ const Index = () => {
     }
   ];
 
-  // Combine all malls into one array for filtering
   const allMalls = [...trendingMalls, ...recentMalls, ...recommendedMalls];
 
-  // State for filtered malls
   const [filteredTrending, setFilteredTrending] = useState(trendingMalls);
   const [filteredRecent, setFilteredRecent] = useState(recentMalls);
   const [filteredRecommended, setFilteredRecommended] = useState(recommendedMalls);
   
-  // Filter function to be called when hashtags or types change
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+
+  const allLocations = allMalls
+    .filter(mall => mall.location)
+    .map(mall => ({
+      lat: mall.location!.lat,
+      lng: mall.location!.lng,
+      address: mall.location!.address,
+      title: mall.title
+    }));
+
   const handleFilterChange = useCallback((selectedHashtags: string[], selectedTypes: PeermallType[]) => {
-    // Filter logic
     const filterMalls = (malls: typeof trendingMalls, type: 'trending' | 'recent' | 'recommended') => {
-      // If 'all' is selected for types, include this type
       if (!selectedTypes.includes(type) && !selectedTypes.includes('all')) {
         return [];
       }
       
-      // If '전체' is selected for hashtags, show all malls of this type
       if (selectedHashtags.includes('전체')) {
         return malls;
       }
       
-      // Otherwise, filter by selected hashtags
       return malls.filter(mall => 
         mall.tags && mall.tags.some(tag => selectedHashtags.includes(tag))
       );
@@ -199,6 +223,15 @@ const Index = () => {
     setFilteredTrending(filterMalls(trendingMalls, 'trending'));
     setFilteredRecent(filterMalls(recentMalls, 'recent'));
     setFilteredRecommended(filterMalls(recommendedMalls, 'recommended'));
+  }, []);
+
+  const handleOpenMap = useCallback((location: Location) => {
+    setSelectedLocation(location);
+    setIsMapOpen(true);
+  }, []);
+
+  const handleCloseMap = useCallback(() => {
+    setIsMapOpen(false);
   }, []);
 
   return (
@@ -218,7 +251,8 @@ const Index = () => {
               {filteredTrending.length > 0 && (
                 <PeermallGrid 
                   title="인기 피어몰" 
-                  malls={filteredTrending} 
+                  malls={filteredTrending}
+                  onOpenMap={handleOpenMap}
                 />
               )}
 
@@ -233,7 +267,8 @@ const Index = () => {
           {filteredRecent.length > 0 && (
             <PeermallGrid 
               title="최근 피어몰" 
-              malls={filteredRecent} 
+              malls={filteredRecent}
+              onOpenMap={handleOpenMap}
             />
           )}
           
@@ -241,12 +276,20 @@ const Index = () => {
             <PeermallGrid 
               title="추천 피어몰" 
               malls={filteredRecommended}
+              onOpenMap={handleOpenMap}
             />
           )}
         </div>
       </main>
       
       <Footer />
+
+      <PeermallMap 
+        isOpen={isMapOpen}
+        onClose={handleCloseMap}
+        selectedLocation={selectedLocation}
+        allLocations={allLocations}
+      />
     </div>
   );
 };

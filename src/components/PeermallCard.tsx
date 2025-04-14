@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Star } from 'lucide-react';
+import { Star, MapPin } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface PeermallCardProps {
   title: string;
@@ -12,9 +13,27 @@ interface PeermallCardProps {
   rating: number;
   reviewCount: number;
   featured?: boolean;
+  location?: {
+    lat: number;
+    lng: number;
+    address: string;
+  };
+  onOpenMap?: (location: { lat: number; lng: number; address: string; title: string }) => void;
 }
 
-const PeermallCard = ({ title, description, owner, imageUrl, category, tags = [], rating, reviewCount, featured }: PeermallCardProps) => {
+const PeermallCard = ({ 
+  title, 
+  description, 
+  owner, 
+  imageUrl, 
+  category, 
+  tags = [], 
+  rating, 
+  reviewCount, 
+  featured,
+  location,
+  onOpenMap
+}: PeermallCardProps) => {
   return (
     <div className={`bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow ${featured ? 'ring-2 ring-accent-100' : ''}`}>
       <div className="relative h-48 overflow-hidden">
@@ -55,9 +74,28 @@ const PeermallCard = ({ title, description, owner, imageUrl, category, tags = []
         
         <div className="flex justify-between items-center mt-3">
           <span className="text-xs text-gray-500">{reviewCount}개 리뷰</span>
-          <button className="text-accent-200 hover:text-accent-100 text-sm">
-            방문하기
-          </button>
+          <div className="flex space-x-2">
+            {location && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => onOpenMap && onOpenMap({
+                  ...location,
+                  title
+                })}
+                className="p-1 text-primary-300 hover:text-primary-400"
+              >
+                <MapPin className="h-4 w-4" />
+              </Button>
+            )}
+            <Button 
+              variant="link" 
+              size="sm" 
+              className="text-accent-200 hover:text-accent-100 p-0"
+            >
+              방문하기
+            </Button>
+          </div>
         </div>
       </div>
     </div>

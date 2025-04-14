@@ -115,8 +115,6 @@ const HashtagFilter = ({ hashtags, onFilterChange }: HashtagFilterProps) => {
             className={`px-3 py-1 text-sm rounded-full ${
               selectedTypes.includes('all') ? 'bg-primary-300 text-white' : 'bg-bg-200 text-text-200'
             }`}
-            pressed={selectedTypes.includes('all')}
-            onPressedChange={() => handleTypeChange('all')}
           >
             전체
           </ToggleGroupItem>
@@ -126,8 +124,6 @@ const HashtagFilter = ({ hashtags, onFilterChange }: HashtagFilterProps) => {
             className={`px-3 py-1 text-sm rounded-full ${
               selectedTypes.includes('trending') ? 'bg-primary-300 text-white' : 'bg-bg-200 text-text-200'
             }`}
-            pressed={selectedTypes.includes('trending')}
-            onPressedChange={() => handleTypeChange('trending')}
           >
             인기 피어몰
           </ToggleGroupItem>
@@ -137,8 +133,6 @@ const HashtagFilter = ({ hashtags, onFilterChange }: HashtagFilterProps) => {
             className={`px-3 py-1 text-sm rounded-full ${
               selectedTypes.includes('recent') ? 'bg-primary-300 text-white' : 'bg-bg-200 text-text-200'
             }`}
-            pressed={selectedTypes.includes('recent')}
-            onPressedChange={() => handleTypeChange('recent')}
           >
             최근 피어몰
           </ToggleGroupItem>
@@ -148,8 +142,6 @@ const HashtagFilter = ({ hashtags, onFilterChange }: HashtagFilterProps) => {
             className={`px-3 py-1 text-sm rounded-full ${
               selectedTypes.includes('recommended') ? 'bg-primary-300 text-white' : 'bg-bg-200 text-text-200'
             }`}
-            pressed={selectedTypes.includes('recommended')}
-            onPressedChange={() => handleTypeChange('recommended')}
           >
             추천 피어몰
           </ToggleGroupItem>
