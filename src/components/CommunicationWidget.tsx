@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, Users, Phone, Video, X, ChevronUp, Send, Search, MoreHorizontal, User, Clock, Settings, Menu, Bell, Share2, Star, Paperclip, Smile, Mic, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar } from '@/components/ui/avatar';
-import { Tooltip } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -33,6 +34,17 @@ const CommunicationWidget = () => {
       status: i % 5 === 0 ? 'away' : i % 7 === 0 ? 'busy' : 'online'
     }))
   );
+
+  // Track window size for better responsive behavior
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isMobile = windowWidth < 768;
 
   const handleTabClick = (tab: string) => {
     setActiveTab(tab);
@@ -71,125 +83,174 @@ const CommunicationWidget = () => {
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      {/* 메인 토글 버튼 - 프리미엄 느낌의 그라데이션 적용 */}
+      {/* Main toggle button - premium gradient style */}
       <Button 
         onClick={() => setIsOpen(!isOpen)}
-        className="rounded-full w-14 h-14 p-0 shadow-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 ease-in-out"
+        className="rounded-full w-14 h-14 p-0 shadow-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 ease-in-out"
       >
         {isOpen ? <ChevronUp className="h-6 w-6 text-white" /> : <Users className="h-6 w-6 text-white" />}
       </Button>
 
-      {/* 확장된 위젯 내용 */}
+      {/* Expanded widget content with improved animation */}
       {isOpen && (
-        <div className="bg-white rounded-xl shadow-2xl p-5 mt-3 w-72 border border-gray-100 animate-fadeIn">
+        <div className="bg-white rounded-xl shadow-2xl p-5 mt-3 w-72 border border-gray-100 animate-in fade-in slide-in-from-bottom-5 duration-300">
           <div className="flex justify-between items-center mb-5">
             <h3 className="font-bold text-lg bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">통신 옵션</h3>
-            <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <Button 
+              onClick={() => setIsOpen(false)} 
+              className="text-gray-400 hover:text-gray-600 transition-colors" 
+              variant="ghost" 
+              size="sm"
+            >
               <X className="h-5 w-5" />
-            </button>
+            </Button>
           </div>
 
-          <div className="space-y-3">
-            {/* 1:1 채팅 */}
-            <div 
-              className={`p-4 rounded-lg cursor-pointer flex items-center transition-all duration-200 ${
-                activeTab === 'chat' 
-                  ? 'bg-gradient-to-r from-indigo-50 to-purple-50 border-l-4 border-indigo-500' 
-                  : 'hover:bg-gray-50'
-              }`}
-              onClick={() => handleTabClick('chat')}
-            >
-              <div className={`p-2 rounded-lg ${activeTab === 'chat' ? 'bg-indigo-100' : 'bg-gray-100'}`}>
-                <MessageSquare className={`h-5 w-5 ${activeTab === 'chat' ? 'text-indigo-600' : 'text-gray-500'}`} />
+          <Tabs defaultValue={activeTab || "live"} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid grid-cols-4 mb-4">
+              <TabsTrigger value="chat">채팅</TabsTrigger>
+              <TabsTrigger value="live">오픈</TabsTrigger>
+              <TabsTrigger value="voice">음성</TabsTrigger>
+              <TabsTrigger value="video">화상</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="chat" className="space-y-4">
+              <div className="space-y-2">
+                <div className="text-sm font-medium">피어 넘버 입력</div>
+                <Input
+                  placeholder="피어 넘버 입력"
+                  value={peerNumber}
+                  onChange={(e) => setPeerNumber(e.target.value)}
+                  className="border-indigo-200 focus:border-indigo-500 rounded-lg"
+                />
+                <Button className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-lg transition-colors">
+                  채팅 시작
+                </Button>
               </div>
-              <span className={`ml-3 font-medium ${activeTab === 'chat' ? 'text-indigo-700' : 'text-gray-700'}`}>1:1 채팅</span>
-            </div>
-
-            {/* 오픈 채팅방 */}
-            <div 
-              className={`p-4 rounded-lg cursor-pointer flex items-center transition-all duration-200 ${
-                activeTab === 'live' 
-                  ? 'bg-gradient-to-r from-indigo-50 to-purple-50 border-l-4 border-indigo-500' 
-                  : 'hover:bg-gray-50'
-              }`}
-              onClick={() => handleTabClick('live')}
-            >
-              <div className={`p-2 rounded-lg ${activeTab === 'live' ? 'bg-indigo-100' : 'bg-gray-100'}`}>
-                <Users className={`h-5 w-5 ${activeTab === 'live' ? 'text-indigo-600' : 'text-gray-500'}`} />
+              
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <div className="text-sm font-medium mb-2">최근 대화</div>
+                <div className="space-y-2">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="flex items-center p-2 hover:bg-gray-100 rounded-lg cursor-pointer">
+                      <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mr-2">
+                        {`U${i}`}
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">사용자 {i}</div>
+                        <div className="text-xs text-gray-500">5분 전</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="ml-3">
-                <span className={`font-medium ${activeTab === 'live' ? 'text-indigo-700' : 'text-gray-700'}`}>오픈 채팅방</span>
-                <span className="block text-xs text-indigo-400">현재 24명 참여 중</span>
+            </TabsContent>
+            
+            <TabsContent value="live" className="space-y-4">
+              <div className="text-center">
+                <p className="text-sm mb-3 text-gray-600">피어몰의 모든 이용자가 참여할 수 있는 오픈 채팅방입니다</p>
+                <Button 
+                  className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-lg transition-colors"
+                  onClick={() => setShowChatModal(true)}
+                >
+                  채팅방 입장
+                </Button>
               </div>
-            </div>
-
-            {/* 음성 통화 */}
-            <div 
-              className={`p-4 rounded-lg cursor-pointer flex items-center transition-all duration-200 ${
-                activeTab === 'voice' 
-                  ? 'bg-gradient-to-r from-indigo-50 to-purple-50 border-l-4 border-indigo-500' 
-                  : 'hover:bg-gray-50'
-              }`}
-              onClick={() => handleTabClick('voice')}
-            >
-              <div className={`p-2 rounded-lg ${activeTab === 'voice' ? 'bg-indigo-100' : 'bg-gray-100'}`}>
-                <Phone className={`h-5 w-5 ${activeTab === 'voice' ? 'text-indigo-600' : 'text-gray-500'}`} />
+              
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <div className="text-sm font-medium mb-2">활동 중인 채팅방</div>
+                <div className="space-y-2">
+                  {['디자인 토크', '개발자 모임', '마케팅 전략'].map((room, i) => (
+                    <div key={i} className="flex items-center p-2 hover:bg-gray-100 rounded-lg cursor-pointer">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center text-white mr-2">
+                        <Users className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">{room}</div>
+                        <div className="text-xs text-gray-500">12명 참여 중</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <span className={`ml-3 font-medium ${activeTab === 'voice' ? 'text-indigo-700' : 'text-gray-700'}`}>음성 통화</span>
-            </div>
-
-            {/* 화상 통화 */}
-            <div 
-              className={`p-4 rounded-lg cursor-pointer flex items-center transition-all duration-200 ${
-                activeTab === 'video' 
-                  ? 'bg-gradient-to-r from-indigo-50 to-purple-50 border-l-4 border-indigo-500' 
-                  : 'hover:bg-gray-50'
-              }`}
-              onClick={() => handleTabClick('video')}
-            >
-              <div className={`p-2 rounded-lg ${activeTab === 'video' ? 'bg-indigo-100' : 'bg-gray-100'}`}>
-                <Video className={`h-5 w-5 ${activeTab === 'video' ? 'text-indigo-600' : 'text-gray-500'}`} />
+            </TabsContent>
+            
+            <TabsContent value="voice" className="space-y-4">
+              <div className="space-y-2">
+                <div className="text-sm font-medium">피어 넘버 입력</div>
+                <Input
+                  placeholder="피어 넘버 입력"
+                  value={peerNumber}
+                  onChange={(e) => setPeerNumber(e.target.value)}
+                  className="border-indigo-200 focus:border-indigo-500 rounded-lg"
+                />
+                <Button 
+                  className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-lg transition-colors"
+                  onClick={() => setShowRequestDialog(true)}
+                >
+                  음성 통화 요청
+                </Button>
               </div>
-              <span className={`ml-3 font-medium ${activeTab === 'video' ? 'text-indigo-700' : 'text-gray-700'}`}>화상 통화</span>
-            </div>
-          </div>
-
-          {/* 선택된 탭에 따른 UI */}
-          {activeTab && (
-            <div className="mt-5 p-4 bg-gray-50 rounded-lg border border-gray-100">
-              {activeTab === 'chat' ? (
-                <>
-                  <Input
-                    placeholder="피어 넘버 입력"
-                    value={peerNumber}
-                    onChange={(e) => setPeerNumber(e.target.value)}
-                    className="mb-3 border-indigo-200 focus:border-indigo-500 rounded-lg"
-                  />
-                  <Button className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-lg transition-colors">
-                    채팅 시작
+              
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <div className="text-sm font-medium mb-2">음성 통화 기록</div>
+                <div className="space-y-2">
+                  {[1, 2].map(i => (
+                    <div key={i} className="flex items-center p-2 hover:bg-gray-100 rounded-lg cursor-pointer">
+                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-2">
+                        <Phone className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">사용자 {i}</div>
+                        <div className="text-xs text-gray-500">어제 {i === 1 ? '오후 3:14' : '오전 11:32'}</div>
+                      </div>
+                      <Button size="icon" variant="ghost" className="ml-auto">
+                        <Phone className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="video" className="space-y-4">
+              <div className="space-y-2">
+                <div className="text-sm font-medium">피어 넘버 입력</div>
+                <Input
+                  placeholder="피어 넘버 입력"
+                  value={peerNumber}
+                  onChange={(e) => setPeerNumber(e.target.value)}
+                  className="border-indigo-200 focus:border-indigo-500 rounded-lg"
+                />
+                <Button 
+                  className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-lg transition-colors"
+                  onClick={() => setShowRequestDialog(true)}
+                >
+                  화상 통화 요청
+                </Button>
+              </div>
+              
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <div className="text-sm text-center text-gray-500 py-2">
+                  화상 통화를 통해 실시간으로 소통하세요
+                </div>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <Button variant="outline" size="sm" className="flex items-center justify-center gap-1">
+                    <Video className="h-4 w-4" />
+                    <span>설정</span>
                   </Button>
-                </>
-              ) : activeTab === 'live' ? (
-                <div className="text-center">
-                  <p className="text-sm mb-3 text-gray-600">피어몰의 모든 이용자가 참여할 수 있는 오픈 채팅방입니다</p>
-                  <Button 
-                    className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-lg transition-colors"
-                    onClick={() => setShowChatModal(true)}
-                  >
-                    채팅방 입장
+                  <Button variant="outline" size="sm" className="flex items-center justify-center gap-1">
+                    <Users className="h-4 w-4" />
+                    <span>그룹</span>
                   </Button>
                 </div>
-              ) : (
-                <p className="text-sm text-gray-600">
-                  {activeTab === 'voice' ? '음성' : '화상'} 통화를 시작하려면 상대방의 동의가 필요합니다.
-                </p>
-              )}
-            </div>
-          )}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       )}
 
-      {/* 통화 요청 다이얼로그 */}
+      {/* Call Request Dialog */}
       <Dialog open={showRequestDialog} onOpenChange={setShowRequestDialog}>
         <DialogContent className="bg-white rounded-xl border-0 shadow-2xl max-w-md p-0 overflow-hidden">
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-4 text-white">
@@ -229,136 +290,147 @@ const CommunicationWidget = () => {
         </DialogContent>
       </Dialog>
       
-      {/* 오픈 채팅방 모달 - 프리미엄 디자인 */}
+      {/* Open Chat Room Modal - Premium Design */}
       <Dialog open={showChatModal} onOpenChange={setShowChatModal}>
-        <DialogContent className="max-w-5xl h-[85vh] p-0 rounded-xl border-0 shadow-2xl bg-white overflow-hidden">
+        <DialogContent className={`max-w-5xl ${isMobile ? 'h-screen' : 'h-[85vh]'} p-0 rounded-xl border-0 shadow-2xl bg-white overflow-hidden`}>
           <div className="flex h-full">
-            {/* 왼쪽 사이드바 - 채팅방 목록 */}
-            <div className="w-64 border-r border-gray-200 bg-gray-50 flex flex-col">
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-lg bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    피어 채팅
-                  </h3>
-                  <Button size="sm" variant="ghost" className="rounded-full h-8 w-8 p-0">
-                    <Settings className="h-4 w-4 text-gray-500" />
-                  </Button>
+            {/* Left sidebar - Chat room list */}
+            {!isMobile && (
+              <div className="w-64 border-r border-gray-200 bg-gray-50 flex flex-col">
+                <div className="p-4 border-b border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-lg bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      피어 채팅
+                    </h3>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="sm" variant="ghost" className="rounded-full h-8 w-8 p-0">
+                            <Settings className="h-4 w-4 text-gray-500" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>설정</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="검색"
+                      className="pl-9 bg-white rounded-lg text-sm border-gray-200"
+                    />
+                  </div>
                 </div>
-                <div className="relative">
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="검색"
-                    className="pl-9 bg-white rounded-lg text-sm border-gray-200"
-                  />
-                </div>
-              </div>
-              
-              <Tabs defaultValue="all" className="flex-1 flex flex-col">
-                <TabsList className="flex bg-transparent p-0 justify-between px-4 pt-2">
-                  <TabsTrigger 
-                    value="all" 
-                    className="flex-1 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-indigo-500 data-[state=active]:text-indigo-700 rounded-none text-sm font-medium"
-                  >
-                    전체
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="unread" 
-                    className="flex-1 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-indigo-500 data-[state=active]:text-indigo-700 rounded-none text-sm font-medium"
-                  >
-                    안 읽음
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="groups" 
-                    className="flex-1 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-indigo-500 data-[state=active]:text-indigo-700 rounded-none text-sm font-medium"
-                  >
-                    그룹
-                  </TabsTrigger>
-                </TabsList>
                 
-                <TabsContent value="all" className="flex-1 pt-2 m-0">
-                  <ScrollArea className="h-full">
-                    <div className="space-y-1 px-2">
-                      {Array.from({length: 5}).map((_, i) => (
-                        <div 
-                          key={i} 
-                          className={`p-3 rounded-lg cursor-pointer flex items-center ${i === 0 ? 'bg-indigo-50' : 'hover:bg-gray-100'}`}
-                        >
-                          <div className="relative">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 flex items-center justify-center text-white font-medium">
-                              {i === 0 ? "OP" : `U${i+1}`}
+                <Tabs defaultValue="all" className="flex-1 flex flex-col">
+                  <TabsList className="flex bg-transparent p-0 justify-between px-4 pt-2">
+                    <TabsTrigger 
+                      value="all" 
+                      className="flex-1 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-indigo-500 data-[state=active]:text-indigo-700 rounded-none text-sm font-medium"
+                    >
+                      전체
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="unread" 
+                      className="flex-1 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-indigo-500 data-[state=active]:text-indigo-700 rounded-none text-sm font-medium"
+                    >
+                      안 읽음
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="groups" 
+                      className="flex-1 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-indigo-500 data-[state=active]:text-indigo-700 rounded-none text-sm font-medium"
+                    >
+                      그룹
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="all" className="flex-1 pt-2 m-0">
+                    <ScrollArea className="h-full">
+                      <div className="space-y-1 px-2">
+                        {Array.from({length: 5}).map((_, i) => (
+                          <div 
+                            key={i} 
+                            className={`p-3 rounded-lg cursor-pointer flex items-center ${i === 0 ? 'bg-indigo-50' : 'hover:bg-gray-100'}`}
+                          >
+                            <div className="relative">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 flex items-center justify-center text-white font-medium">
+                                {i === 0 ? "OP" : `U${i+1}`}
+                              </div>
+                              <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${i % 3 === 0 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                             </div>
-                            <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${i % 3 === 0 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                            <div className="ml-3 flex-1 min-w-0">
+                              <div className="flex justify-between items-baseline">
+                                <h4 className="font-medium text-gray-900 truncate">
+                                  {i === 0 ? "오픈 채팅방" : `사용자${i + 1}`}
+                                </h4>
+                                <span className="text-xs text-gray-500">09:4{i}</span>
+                              </div>
+                              <p className="text-sm text-gray-500 truncate">
+                                {i === 0 ? "현재 24명 참여 중" : "안녕하세요! 반갑습니다."}
+                              </p>
+                            </div>
+                            {i % 2 === 0 && (
+                              <div className="ml-1 w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs">
+                                {i + 1}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </TabsContent>
+                  
+                  <TabsContent value="unread" className="flex-1 pt-2 m-0">
+                    <div className="h-full flex items-center justify-center text-gray-500">
+                      <p>안 읽은 메시지가 없습니다</p>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="groups" className="flex-1 pt-2 m-0">
+                    <ScrollArea className="h-full">
+                      <div className="space-y-1 px-2">
+                        <div className="p-3 rounded-lg cursor-pointer flex items-center bg-indigo-50">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 flex items-center justify-center text-white font-medium">
+                            OP
                           </div>
                           <div className="ml-3 flex-1 min-w-0">
                             <div className="flex justify-between items-baseline">
-                              <h4 className="font-medium text-gray-900 truncate">
-                                {i === 0 ? "오픈 채팅방" : `사용자${i + 1}`}
-                              </h4>
-                              <span className="text-xs text-gray-500">09:4{i}</span>
+                              <h4 className="font-medium text-gray-900 truncate">오픈 채팅방</h4>
+                              <span className="text-xs text-gray-500">지금</span>
                             </div>
-                            <p className="text-sm text-gray-500 truncate">
-                              {i === 0 ? "현재 24명 참여 중" : "안녕하세요! 반갑습니다."}
-                            </p>
+                            <p className="text-sm text-gray-500 truncate">현재 24명 참여 중</p>
                           </div>
-                          {i % 2 === 0 && (
-                            <div className="ml-1 w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs">
-                              {i + 1}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </TabsContent>
-                
-                <TabsContent value="unread" className="flex-1 pt-2 m-0">
-                  <div className="h-full flex items-center justify-center text-gray-500">
-                    <p>안 읽은 메시지가 없습니다</p>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="groups" className="flex-1 pt-2 m-0">
-                  <ScrollArea className="h-full">
-                    <div className="space-y-1 px-2">
-                      <div className="p-3 rounded-lg cursor-pointer flex items-center bg-indigo-50">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 flex items-center justify-center text-white font-medium">
-                          OP
-                        </div>
-                        <div className="ml-3 flex-1 min-w-0">
-                          <div className="flex justify-between items-baseline">
-                            <h4 className="font-medium text-gray-900 truncate">오픈 채팅방</h4>
-                            <span className="text-xs text-gray-500">지금</span>
+                          <div className="ml-1 w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs">
+                            3
                           </div>
-                          <p className="text-sm text-gray-500 truncate">현재 24명 참여 중</p>
-                        </div>
-                        <div className="ml-1 w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs">
-                          3
                         </div>
                       </div>
+                    </ScrollArea>
+                  </TabsContent>
+                </Tabs>
+                
+                <div className="p-4 border-t border-gray-200 mt-auto">
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-600 to-purple-700 flex items-center justify-center text-white font-bold">
+                      ME
                     </div>
-                  </ScrollArea>
-                </TabsContent>
-              </Tabs>
-              
-              <div className="p-4 border-t border-gray-200 mt-auto">
-                <div className="flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-600 to-purple-700 flex items-center justify-center text-white font-bold">
-                    ME
+                    <div className="ml-3">
+                      <h4 className="font-medium text-gray-900">내 계정</h4>
+                      <p className="text-xs text-gray-500">피어몰 이용자</p>
+                    </div>
+                    <Button size="sm" variant="ghost" className="ml-auto rounded-full h-8 w-8 p-0">
+                      <Menu className="h-4 w-4 text-gray-500" />
+                    </Button>
                   </div>
-                  <div className="ml-3">
-                    <h4 className="font-medium text-gray-900">내 계정</h4>
-                    <p className="text-xs text-gray-500">피어몰 이용자</p>
-                  </div>
-                  <Button size="sm" variant="ghost" className="ml-auto rounded-full h-8 w-8 p-0">
-                    <Menu className="h-4 w-4 text-gray-500" />
-                  </Button>
                 </div>
               </div>
-            </div>
+            )}
             
-            {/* 메인 채팅 영역 */}
+            {/* Main chat area */}
             <div className="flex-1 flex flex-col h-full">
-              {/* 채팅방 헤더 */}
+              {/* Chat room header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
                 <div className="flex items-center">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 flex items-center justify-center text-white font-medium">
@@ -377,26 +449,41 @@ const CommunicationWidget = () => {
                     </div>
                   </div>
                 </div>
+                
                 <div className="flex items-center space-x-1">
-                  <Button size="sm" variant="ghost" className="rounded-full h-9 w-9 p-0">
-                    <Search className="h-4 w-4 text-gray-500" />
-                  </Button>
-                  <Button size="sm" variant="ghost" className="rounded-full h-9 w-9 p-0">
-                    <Bell className="h-4 w-4 text-gray-500" />
-                  </Button>
-                  <Button size="sm" variant="ghost" className="rounded-full h-9 w-9 p-0">
-                    <Star className="h-4 w-4 text-gray-500" />
-                  </Button>
-                  <Button size="sm" variant="ghost" className="rounded-full h-9 w-9 p-0">
-                    <Share2 className="h-4 w-4 text-gray-500" />
-                  </Button>
-                  <Button size="sm" variant="ghost" className="rounded-full h-9 w-9 p-0">
-                    <MoreHorizontal className="h-4 w-4 text-gray-500" />
-                  </Button>
+                  {isMobile && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-9 w-9 rounded-full"
+                      onClick={() => setShowChatModal(false)}
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  )}
+                  {!isMobile && (
+                    <>
+                      <Button size="sm" variant="ghost" className="rounded-full h-9 w-9 p-0">
+                        <Search className="h-4 w-4 text-gray-500" />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="rounded-full h-9 w-9 p-0">
+                        <Bell className="h-4 w-4 text-gray-500" />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="rounded-full h-9 w-9 p-0">
+                        <Star className="h-4 w-4 text-gray-500" />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="rounded-full h-9 w-9 p-0">
+                        <Share2 className="h-4 w-4 text-gray-500" />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="rounded-full h-9 w-9 p-0">
+                        <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
               
-              {/* 채팅 메시지 영역 */}
+              {/* Chat messages area */}
               <ScrollArea className="flex-1 p-6">
                 <div className="space-y-4">
                   {messages.map((msg) => (
@@ -431,7 +518,7 @@ const CommunicationWidget = () => {
                 </div>
               </ScrollArea>
               
-              {/* 메시지 입력 영역 */}
+              {/* Message input area */}
               <div className="p-4 border-t border-gray-200">
                 <div className="flex items-end gap-2">
                   <div className="flex-1 bg-gray-100 rounded-2xl p-1">
@@ -473,67 +560,81 @@ const CommunicationWidget = () => {
               </div>
             </div>
             
-            {/* 오른쪽 사이드바 - 참여자 목록 */}
-            <div className="w-64 border-l border-gray-200 bg-gray-50 flex flex-col">
-              <div className="p-4 border-b border-gray-200">
-                <h3 className="font-bold text-gray-800 mb-2">참여자 (24)</h3>
-                <div className="relative">
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="참여자 검색"
-                    className="pl-9 bg-white rounded-lg text-sm border-gray-200"
-                  />
+            {/* Right sidebar - Participants list */}
+            {!isMobile && (
+              <div className="w-64 border-l border-gray-200 bg-gray-50 flex flex-col">
+                <div className="p-4 border-b border-gray-200">
+                  <h3 className="font-bold text-gray-800 mb-2">참여자 (24)</h3>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="참여자 검색"
+                      className="pl-9 bg-white rounded-lg text-sm border-gray-200"
+                    />
+                  </div>
                 </div>
-              </div>
-              
-              <ScrollArea className="flex-1 p-2">
-                <div className="space-y-1">
-                  <div className="px-3 py-2 text-xs font-semibold text-gray-500">온라인 - {participants.filter(p => p.online).length}</div>
-                                      {participants
-                    .filter(participant => participant.online)
-                    .map(participant => (
-                      <div key={participant.id} className="p-2 rounded-lg hover:bg-gray-100 cursor-pointer flex items-center">
-                        <div className="relative">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400 flex items-center justify-center text-white text-sm">
+                
+                <ScrollArea className="flex-1 p-2">
+                  <div className="space-y-1">
+                    <div className="px-3 py-2 text-xs font-semibold text-gray-500">온라인 - {participants.filter(p => p.online).length}</div>
+                    {participants
+                      .filter(participant => participant.online)
+                      .map(participant => (
+                        <div key={participant.id} className="p-2 rounded-lg hover:bg-gray-100 cursor-pointer flex items-center">
+                          <div className="relative">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400 flex items-center justify-center text-white text-sm">
+                              {participant.name.charAt(0)}
+                            </div>
+                            <div className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border-2 border-white ${
+                              participant.status === 'away' ? 'bg-yellow-400' : 
+                              participant.status === 'busy' ? 'bg-red-500' : 
+                              'bg-green-500'
+                            }`}></div>
+                          </div>
+                          <div className="ml-2 flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-700 truncate">{participant.name}</p>
+                          </div>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button size="sm" variant="ghost" className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100">
+                                  <MoreHorizontal className="h-3 w-3" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>옵션</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      ))}
+                      
+                    <div className="px-3 py-2 text-xs font-semibold text-gray-500 mt-2">오프라인 - {participants.filter(p => !p.online).length}</div>
+                    {participants
+                      .filter(participant => !participant.online)
+                      .map(participant => (
+                        <div key={participant.id} className="p-2 rounded-lg hover:bg-gray-100 cursor-pointer flex items-center opacity-60">
+                          <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-white text-sm">
                             {participant.name.charAt(0)}
                           </div>
-                          <div className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border-2 border-white ${
-                            participant.status === 'away' ? 'bg-yellow-400' : 
-                            participant.status === 'busy' ? 'bg-red-500' : 
-                            'bg-green-500'
-                          }`}></div>
+                          <div className="ml-2 flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-500 truncate">{participant.name}</p>
+                          </div>
                         </div>
-                        <div className="ml-2 flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-700 truncate">{participant.name}</p>
-                        </div>
-                      </div>
-                    ))}
-                    
-                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 mt-2">오프라인 - {participants.filter(p => !p.online).length}</div>
-                  {participants
-                    .filter(participant => !participant.online)
-                    .map(participant => (
-                      <div key={participant.id} className="p-2 rounded-lg hover:bg-gray-100 cursor-pointer flex items-center opacity-60">
-                        <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-white text-sm">
-                          {participant.name.charAt(0)}
-                        </div>
-                        <div className="ml-2 flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-500 truncate">{participant.name}</p>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                  </div>
+                </ScrollArea>
+                
+                <div className="p-4 border-t border-gray-200">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 group"
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    <span>친구 초대하기</span>
+                  </Button>
                 </div>
-              </ScrollArea>
-              
-              <div className="p-4 border-t border-gray-200">
-                <Button 
-                  className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 group"
-                >
-                  <User className="mr-2 h-4 w-4" />
-                  <span>친구 초대하기</span>
-                </Button>
               </div>
-            </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
