@@ -9,6 +9,7 @@ import CreatePeermall from '../components/CreatePeermall';
 import ActivityFeed from '../components/ActivityFeed';
 import { Filter, TrendingUp, Bell, MapPin, Hash } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import CommunicationWidget from '@/components/CommunicationWidget';
 
 const Index = () => {
   // Mock data for trending peermalls
@@ -184,7 +185,8 @@ const Index = () => {
             </div>
             
             <div>
-              <ActivityFeed />
+              {/* <ActivityFeed /> */}
+              <CommunicationWidget/>
             </div>
           </section>
           
@@ -232,6 +234,8 @@ const Index = () => {
             malls={recommendedMalls}
           />
         </div>
+
+        
       </main>
       
       <Footer />
