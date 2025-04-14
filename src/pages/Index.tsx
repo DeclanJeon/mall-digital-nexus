@@ -1,17 +1,28 @@
-
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import CategoryNav from '../components/CategoryNav';
 import PeermallGrid from '../components/PeermallGrid';
-import QRFeature from '../components/QRFeature';
 import CreatePeermall from '../components/CreatePeermall';
-import ActivityFeed from '../components/ActivityFeed';
-import { Filter, TrendingUp, Bell, MapPin, Hash } from 'lucide-react';
+import { Filter, Hash, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import CommunicationWidget from '@/components/CommunicationWidget';
+import HashtagFilter, { HashtagFilterOption, PeermallType } from '@/components/HashtagFilter';
 
 const Index = () => {
+  // Define hashtag options
+  const hashtagOptions: HashtagFilterOption[] = [
+    { label: '전체', value: '전체' },
+    { label: '#디자인', value: '#디자인' },
+    { label: '#푸드', value: '#푸드' },
+    { label: '#패션', value: '#패션' },
+    { label: '#테크', value: '#테크' },
+    { label: '#아트', value: '#아트' },
+    { label: '#라이프', value: '#라이프' },
+    { label: '#취미', value: '#취미' },
+    { label: '#여행', value: '#여행' },
+  ];
+
   // Mock data for trending peermalls
   const trendingMalls = [
     {
@@ -20,9 +31,11 @@ const Index = () => {
       owner: "김민지",
       imageUrl: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&q=80",
       category: "디자인",
+      tags: ["#디자인", "#그래픽", "#템플릿"],
       rating: 4.9,
       reviewCount: 124,
-      featured: true
+      featured: true,
+      type: 'trending'
     },
     {
       title: "친환경 생활용품",
@@ -30,8 +43,10 @@ const Index = () => {
       owner: "에코라이프",
       imageUrl: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80",
       category: "리빙",
+      tags: ["#라이프", "#친환경"],
       rating: 4.7,
-      reviewCount: 89
+      reviewCount: 89,
+      type: 'trending'
     },
     {
       title: "수제 베이커리",
@@ -39,8 +54,10 @@ const Index = () => {
       owner: "달콤한숲",
       imageUrl: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&q=80",
       category: "푸드",
+      tags: ["#푸드", "#베이커리"],
       rating: 4.8,
-      reviewCount: 156
+      reviewCount: 156,
+      type: 'trending'
     },
     {
       title: "디지털 아트 갤러리",
@@ -48,8 +65,10 @@ const Index = () => {
       owner: "아트스페이스",
       imageUrl: "https://images.unsplash.com/photo-1561838709-3acc98cf0d2d?auto=format&fit=crop&q=80",
       category: "아트",
+      tags: ["#아트", "#디지털"],
       rating: 4.6,
-      reviewCount: 73
+      reviewCount: 73,
+      type: 'trending'
     }
   ];
 
@@ -61,8 +80,10 @@ const Index = () => {
       owner: "손끝공방",
       imageUrl: "https://images.unsplash.com/photo-1619037961378-80713ad5edf4?auto=format&fit=crop&q=80",
       category: "패션",
+      tags: ["#패션", "#핸드메이드"],
       rating: 4.5,
-      reviewCount: 42
+      reviewCount: 42,
+      type: 'recent'
     },
     {
       title: "스마트 홈 솔루션",
@@ -70,8 +91,10 @@ const Index = () => {
       owner: "테크홈",
       imageUrl: "https://images.unsplash.com/photo-1558002038-1055908a4e4d?auto=format&fit=crop&q=80",
       category: "테크",
+      tags: ["#테크", "#스마트홈"],
       rating: 4.3,
-      reviewCount: 67
+      reviewCount: 67,
+      type: 'recent'
     },
     {
       title: "유기농 농장",
@@ -79,8 +102,10 @@ const Index = () => {
       owner: "초록농장",
       imageUrl: "https://images.unsplash.com/photo-1501226597177-87b1fa873152?auto=format&fit=crop&q=80",
       category: "식품",
+      tags: ["#푸드", "#유기농"],
       rating: 4.9,
-      reviewCount: 103
+      reviewCount: 103,
+      type: 'recent'
     },
     {
       title: "여행 콘텐츠",
@@ -88,8 +113,10 @@ const Index = () => {
       owner: "세계여행자",
       imageUrl: "https://images.unsplash.com/photo-1501446529957-6226bd447c46?auto=format&fit=crop&q=80",
       category: "여행",
+      tags: ["#여행", "#콘텐츠"],
       rating: 4.7,
-      reviewCount: 91
+      reviewCount: 91,
+      type: 'recent'
     }
   ];
 
@@ -101,8 +128,10 @@ const Index = () => {
       owner: "푸드닥터",
       imageUrl: "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80",
       category: "건강",
+      tags: ["#푸드", "#건강"],
       rating: 4.8,
-      reviewCount: 86
+      reviewCount: 86,
+      type: 'recommended'
     },
     {
       title: "북 커뮤니티",
@@ -110,8 +139,10 @@ const Index = () => {
       owner: "책향기",
       imageUrl: "https://images.unsplash.com/photo-1519682577862-22b62b24e493?auto=format&fit=crop&q=80",
       category: "문화",
+      tags: ["#취미", "#독서"],
       rating: 4.6,
-      reviewCount: 72
+      reviewCount: 72,
+      type: 'recommended'
     },
     {
       title: "홈가드닝",
@@ -119,8 +150,10 @@ const Index = () => {
       owner: "그린핑거",
       imageUrl: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&q=80",
       category: "취미",
+      tags: ["#취미", "#라이프"],
       rating: 4.7,
-      reviewCount: 58
+      reviewCount: 58,
+      type: 'recommended'
     },
     {
       title: "러닝 클럽",
@@ -128,10 +161,45 @@ const Index = () => {
       owner: "런앤펀",
       imageUrl: "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&q=80",
       category: "스포츠",
+      tags: ["#취미", "#스포츠"],
       rating: 4.5,
-      reviewCount: 63
+      reviewCount: 63,
+      type: 'recommended'
     }
   ];
+
+  // Combine all malls into one array for filtering
+  const allMalls = [...trendingMalls, ...recentMalls, ...recommendedMalls];
+
+  // State for filtered malls
+  const [filteredTrending, setFilteredTrending] = useState(trendingMalls);
+  const [filteredRecent, setFilteredRecent] = useState(recentMalls);
+  const [filteredRecommended, setFilteredRecommended] = useState(recommendedMalls);
+  
+  // Filter function to be called when hashtags or types change
+  const handleFilterChange = useCallback((selectedHashtags: string[], selectedTypes: PeermallType[]) => {
+    // Filter logic
+    const filterMalls = (malls: typeof trendingMalls, type: 'trending' | 'recent' | 'recommended') => {
+      // If 'all' is selected for types, include this type
+      if (!selectedTypes.includes(type) && !selectedTypes.includes('all')) {
+        return [];
+      }
+      
+      // If '전체' is selected for hashtags, show all malls of this type
+      if (selectedHashtags.includes('전체')) {
+        return malls;
+      }
+      
+      // Otherwise, filter by selected hashtags
+      return malls.filter(mall => 
+        mall.tags && mall.tags.some(tag => selectedHashtags.includes(tag))
+      );
+    };
+    
+    setFilteredTrending(filterMalls(trendingMalls, 'trending'));
+    setFilteredRecent(filterMalls(recentMalls, 'recent'));
+    setFilteredRecommended(filterMalls(recommendedMalls, 'recommended'));
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -142,100 +210,40 @@ const Index = () => {
         <div className="container mx-auto px-4 py-6">
           <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <div className="col-span-1 md:col-span-2">
-              <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-bold flex items-center">
-                    <Hash className="h-5 w-5 mr-2 text-accent-100" />
-                    인기 해시태그
-                  </h2>
-                  <div className="flex gap-2">
-                    <button className="btn-outline text-xs py-1 px-2 flex items-center">
-                      <Filter className="h-3 w-3 mr-1" />
-                      필터
-                    </button>
-                    <button className="btn-outline text-xs py-1 px-2 flex items-center">
-                      <MapPin className="h-3 w-3 mr-1" />
-                      지도
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {['전체', '#디자인', '#푸드', '#패션', '#테크', '#아트', '#라이프', '#취미', '#여행'].map((category, index) => (
-                    <button 
-                      key={index}
-                      className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                        index === 0 
-                          ? 'bg-accent-100 text-white' 
-                          : 'bg-bg-200 text-text-200 hover:bg-primary-100'
-                      }`}
-                    >
-                      {category}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <PeermallGrid 
-                title="인기 피어몰" 
-                malls={trendingMalls} 
+              <HashtagFilter 
+                hashtags={hashtagOptions} 
+                onFilterChange={handleFilterChange} 
               />
+
+              {filteredTrending.length > 0 && (
+                <PeermallGrid 
+                  title="인기 피어몰" 
+                  malls={filteredTrending} 
+                />
+              )}
 
               <CreatePeermall />
             </div>
             
             <div>
-              {/* <ActivityFeed /> */}
               <CommunicationWidget/>
             </div>
           </section>
           
-          {/* <QRFeature /> */}
+          {filteredRecent.length > 0 && (
+            <PeermallGrid 
+              title="최근 피어몰" 
+              malls={filteredRecent} 
+            />
+          )}
           
-          {/* <section className="bg-white rounded-lg shadow-md p-6 my-8">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-primary-300">피어 넘버</h2>
-              
-            </div>
-            <p className="text-text-200 mb-4">당신의 피어 넘버로, 피어몰 커뮤니티의 다른 피어들과 더 쉽고 간편하게 연결되고 소통을 시작해보세요!</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-bg-100 rounded-lg p-4 hover-scale">
-                <h3 className="text-lg font-bold mb-2">피어 넘버 하나로, 이제 당신은:</h3>
-                <p className="text-sm text-text-200 mb-3">피어와 장벽 없이, 바로 톡! 하세요.</p>
-                
-              </div>
-              <div className="bg-bg-100 rounded-lg p-4 hover-scale">
-                <h3 className="text-lg font-bold mb-2">당신만의 공식 소통 주소를 가지세요.</h3>
-                <p className="text-sm text-text-200 mb-3">피어 넘버는 피어몰 커뮤니티에서 당신을 나타내는 고유한 주소입니다. 명함에, 프로필에 당신의 피어 넘버를 알려주세요. 다른 피어들이 당신을 쉽게 찾고 연결될 수 있습니다.</p>
-              </div>
-              <div className="bg-bg-100 rounded-lg p-4 hover-scale">
-                <h3 className="text-lg font-bold mb-2">다양한 서비스를 여는 열쇠로 사용하세요.</h3>
-                <p className="text-sm text-text-200 mb-3">피어몰의 새로운 기능과 서비스를 이용할 때, 피어 넘버는 당신을 인증하고 접근 권한을 부여하는 열쇠가 됩니다.</p>
-                
-              </div>
-
-
-              <Link to="/curation-links" className="text-accent-200 hover:text-accent-100 text-sm flex items-center">
-                  피어 넘버 만들기
-                  <svg className="h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
-            </div>
-          </section> */}
-          
-          <PeermallGrid 
-            title="최근 피어몰" 
-            malls={recentMalls} 
-          />
-          
-          <PeermallGrid 
-            title="추천 피어몰" 
-            malls={recommendedMalls}
-          />
+          {filteredRecommended.length > 0 && (
+            <PeermallGrid 
+              title="추천 피어몰" 
+              malls={filteredRecommended}
+            />
+          )}
         </div>
-
-        
       </main>
       
       <Footer />

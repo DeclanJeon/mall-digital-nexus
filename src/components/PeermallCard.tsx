@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { User, MessageSquare, Heart, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
 
 interface PeermallCardProps {
   title: string;
@@ -8,62 +8,54 @@ interface PeermallCardProps {
   owner: string;
   imageUrl: string;
   category: string;
+  tags?: string[];
   rating: number;
   reviewCount: number;
   featured?: boolean;
 }
 
-const PeermallCard = ({
-  title,
-  description,
-  owner,
-  imageUrl,
-  category,
-  rating,
-  reviewCount,
-  featured = false
-}: PeermallCardProps) => {
+const PeermallCard = ({ title, description, owner, imageUrl, category, tags = [], rating, reviewCount, featured }: PeermallCardProps) => {
   return (
-    <div className={`peermall-card group cursor-pointer animate-enter ${
-      featured ? 'border-l-4 border-accent-100' : ''
-    }`}>
-      <div className="relative h-40 overflow-hidden">
+    <div className={`bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow ${featured ? 'ring-2 ring-accent-100' : ''}`}>
+      <div className="relative h-48 overflow-hidden">
         <img 
           src={imageUrl} 
           alt={title} 
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover transform hover:scale-105 transition-transform" 
         />
-        <div className="absolute top-2 left-2">
-          <span className="bg-bg-100 px-2 py-1 rounded text-xs font-medium text-text-200">
-            {category}
-          </span>
+        {featured && (
+          <div className="absolute top-2 right-2 bg-accent-100 text-white text-xs px-2 py-1 rounded-full">
+            인기
+          </div>
+        )}
+        <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/70 to-transparent p-3">
+          <span className="text-white text-xs font-semibold">{category}</span>
         </div>
-        <button className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full hover:bg-accent-100 hover:text-white transition-colors">
-          <Heart className="h-4 w-4" />
-        </button>
       </div>
       <div className="p-4">
-        <h3 className="text-lg font-bold line-clamp-1 group-hover:text-accent-200 transition-colors">{title}</h3>
-        <p className="text-sm text-text-200 mt-1 line-clamp-2">{description}</p>
-        
-        <div className="mt-3 flex items-center justify-between">
-          <div className="flex items-center text-sm">
-            <User className="h-4 w-4 mr-1" />
-            <span className="text-text-200">{owner}</span>
-          </div>
-          <div className="flex items-center text-sm">
-            <Star className="h-4 w-4 text-yellow-500 mr-1" />
-            <span className="text-text-200">{rating}</span>
-            <span className="text-text-200 ml-1">({reviewCount})</span>
+        <div className="flex justify-between items-start">
+          <h3 className="text-lg font-bold mb-1 text-primary-300">{title}</h3>
+          <div className="flex items-center text-yellow-500">
+            <Star className="h-4 w-4 fill-current" />
+            <span className="text-sm ml-1">{rating}</span>
           </div>
         </div>
+        <p className="text-gray-600 text-sm mb-2">{owner}</p>
+        <p className="text-text-200 text-sm h-10 overflow-hidden">{description}</p>
         
-        <div className="mt-3 flex justify-between items-center">
-          <button className="btn-outline text-xs py-1 px-3 flex items-center">
-            <MessageSquare className="h-3 w-3 mr-1" />
-            메시지
-          </button>
-          <button className="btn-primary text-xs py-1 px-3">
+        {tags && tags.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {tags.map((tag, index) => (
+              <span key={index} className="inline-block text-xs bg-bg-200 text-text-200 px-2 py-0.5 rounded-full">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+        
+        <div className="flex justify-between items-center mt-3">
+          <span className="text-xs text-gray-500">{reviewCount}개 리뷰</span>
+          <button className="text-accent-200 hover:text-accent-100 text-sm">
             방문하기
           </button>
         </div>

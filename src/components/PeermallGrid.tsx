@@ -11,9 +11,11 @@ interface PeermallGridProps {
     owner: string;
     imageUrl: string;
     category: string;
+    tags?: string[];
     rating: number;
     reviewCount: number;
     featured?: boolean;
+    type?: string;
   }[];
   viewMore?: boolean;
 }
@@ -23,7 +25,7 @@ const PeermallGrid = ({ title, malls, viewMore = true }: PeermallGridProps) => {
     <section className="my-8">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold text-primary-300">{title}</h2>
-        {viewMore && (
+        {viewMore && malls.length > 0 && (
           <a href="#" className="flex items-center text-accent-200 hover:text-accent-100 transition-colors">
             더보기 
             <ChevronRight className="h-4 w-4 ml-1" />
