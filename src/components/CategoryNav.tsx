@@ -1,9 +1,12 @@
 
 import React from 'react';
-import { Home, ShoppingBag, Users, Info, HelpCircle, Store, Hash } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Home, ShoppingBag, Users, Info, HelpCircle } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
 const CategoryNav = () => {
+  const location = useLocation();
+  const currentPath = location.pathname;
+  
   const categories = [
     { name: '홈', icon: <Home className="h-5 w-5" />, path: '/' },
     { name: '쇼핑', icon: <ShoppingBag className="h-5 w-5" />, path: '/shopping' },
@@ -21,7 +24,7 @@ const CategoryNav = () => {
               key={index} 
               to={category.path}
               className={`flex flex-col items-center px-4 py-2 text-sm whitespace-nowrap ${
-                index === 0 ? 'text-accent-200' : 'text-text-200 hover:text-accent-200'
+                currentPath === category.path ? 'text-accent-200' : 'text-text-200 hover:text-accent-200'
               } transition-colors`}
             >
               {category.icon}
