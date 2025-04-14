@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import CategoryNav from '../components/CategoryNav';
-import { Link, QrCode, Copy, Check, Plus, Trash2, ExternalLink } from 'lucide-react';
+import { Link, QrCode, Copy, Check, Plus, Trash2, ExternalLink, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const CurationLinks = () => {
@@ -123,10 +123,10 @@ const CurationLinks = () => {
                             {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
                             {copied ? '복사됨' : '링크 복사'}
                           </Button>
-                          <Button variant="outline" size="sm" as="a" href={selectedLink.url} target="_blank">
+                          <a href={selectedLink.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">
                             <ExternalLink className="h-4 w-4 mr-2" />
                             방문
-                          </Button>
+                          </a>
                         </div>
                       </div>
                       
@@ -201,11 +201,11 @@ const CurationLinks = () => {
           </section>
           
           <section className="bg-primary-100 rounded-lg p-8 text-center">
-            <h2 className="text-2xl font-bold mb-4">다이나믹 링크로 더 많은 기능을 활용하세요</h2>
+            <h2 className="text-2xl font-bold mb-4">큐레이션 링크로 더 많은 기능을 활용하세요</h2>
             <p className="text-lg mb-6 max-w-2xl mx-auto">이메일 서비스, 디지털 명함, 전화등록부 시스템 등 다양한 기능을 모두 하나의 링크로 통합하세요.</p>
             <Button size="lg" className="bg-accent-100 hover:bg-accent-200">
               <Link className="h-5 w-5 mr-2" />
-              다이나믹 링크 시작하기
+              큐레이션 링크 시작하기
             </Button>
           </section>
         </div>

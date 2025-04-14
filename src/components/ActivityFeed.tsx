@@ -42,7 +42,7 @@ const ActivityFeed = () => {
   const chatMessages = [
     { user: '김민지', message: '안녕하세요! 디자인 관련 질문이 있습니다.', time: '5분 전' },
     { user: '박서준', message: '새로 오픈한 피어몰 어떻게 생각하세요?', time: '10분 전' },
-    { user: '이지은', message: '다이나믹 링크 기능 정말 유용한 것 같아요!', time: '15분 전' },
+    { user: '이지은', message: '큐레이션 링크 기능 정말 유용한 것 같아요!', time: '15분 전' },
     { user: '최우진', message: '누구 지금 라이브 세션 참여중이신가요?', time: '20분 전' },
     { user: '정소민', message: '디지털 명함 서비스 사용법 공유해주세요!', time: '30분 전' }
   ];
