@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import CommunicationWidget from '@/components/CommunicationWidget';
 import HashtagFilter, { HashtagFilterOption, PeermallType } from '@/components/HashtagFilter';
 import PeermallMap from '@/components/PeermallMap';
+import ServiceCardsSection from '@/components/ServiceCardsSection';
 
 interface Location {
   lat: number;
@@ -292,6 +293,7 @@ const Index = () => {
             />
           )}
         </div>
+        <ServiceCardsSection />
       </main>
       
       <Footer />

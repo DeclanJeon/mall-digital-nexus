@@ -9,7 +9,7 @@ const ServiceCardsSection = () => {
     {
       icon: <Store className="w-12 h-12 text-primary-300" />,
       title: '피어몰 만들기',
-      description: '딱 본 안에 나만의 피어몰을 구축하고 온라인 비즈니스를 시작하세요. 쉽고 간편한 설정으로 빠르게 시작할 수 있습니다.',
+      description: '나만의 피어몰을 구축하고 당신의 세상을 만들어보세요. 쉽고 간편한 설정으로 빠르게 시작할 수 있습니다.',
       buttonText: '피어몰 만들기',
       buttonLink: '/create-peermall',
       iconBgColor: 'bg-blue-100',
@@ -17,19 +17,19 @@ const ServiceCardsSection = () => {
     },
     {
       icon: <ShoppingCart className="w-12 h-12 text-yellow-500" />,
-      title: '쇼핑하기',
-      description: '수많은 피어몰에서 다양한 제품을 발견하고 쇼핑해보세요. 독특한 아이템부터 일상 필수품까지 모두 만나볼 수 있습니다.',
-      buttonText: '쇼핑 시작하기',
-      buttonLink: '/shopping',
+      title: '나만의 바로가기 허브',
+      description: '흩어져 있던 북마크와 즐겨찾기를 한곳에 모아 나만의 디지털 지도처럼 활용하세요. 원하는 곳으로 빠르게 이동할 수 있습니다.',
+      buttonText: '시작하기',
+      buttonLink: '/peermall',
       iconBgColor: 'bg-yellow-100',
       buttonVariant: 'outline'
     },
     {
       icon: <Zap className="w-12 h-12 text-green-500" />,
-      title: 'VIP 혜택',
-      description: 'VIP 멤버십에 가입하고 특별한 혜택을 누리세요. 추가 할인, 특별 이벤트 초대, 프리미엄 고객 지원 서비스를 제공합니다.',
-      buttonText: 'VIP 가입하기',
-      buttonLink: '/vip-membership',
+      title: '피어와 장벽 없이, 바로 톡! 하세요.',
+      description: '궁금한 피어, 협업하고 싶은 동료에게 피어 넘버로 직접 1:1 통신을 하세요 이메일 주소나 복잡한 절차 없이, 즉시 연결되는 다이렉트 소통을 경험할 수 있습니다.',
+      buttonText: '피어넘버 발급받기',
+      buttonLink: '/create-peernumber',
       iconBgColor: 'bg-green-100',
       buttonVariant: 'default'
     }
@@ -39,9 +39,9 @@ const ServiceCardsSection = () => {
     <section className="py-16 bg-bg-100">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-3">피어몰에서 쇼핑을 시작하세요</h2>
+          <h2 className="text-3xl font-bold mb-3">피어몰에서 당신의 세상을 넓히세요!</h2>
           <p className="text-text-200 max-w-3xl mx-auto">
-            다양한 판매자들의 피어몰에서 특별한 제품을 발견하거나, 직접 피어몰을 만들어 판매를 시작해보세요.
+            당신의 세상을 더 체계적으로 관리하고, 피어들과 의미 있는 가치를 나누는 즐거움을 경험할 수 있습니다.
           </p>
         </div>
         
