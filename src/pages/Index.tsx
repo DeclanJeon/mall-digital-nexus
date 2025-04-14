@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -57,6 +58,7 @@ const Index = () => {
       tags: ["#라이프", "#친환경"],
       rating: 4.7,
       reviewCount: 89,
+      featured: false,
       type: 'trending'
     },
     {
@@ -68,6 +70,7 @@ const Index = () => {
       tags: ["#푸드", "#베이커리"],
       rating: 4.8,
       reviewCount: 156,
+      featured: false,
       type: 'trending'
     },
     {
@@ -79,6 +82,7 @@ const Index = () => {
       tags: ["#아트", "#디지털"],
       rating: 4.6,
       reviewCount: 73,
+      featured: false,
       type: 'trending'
     }
   ];
@@ -93,6 +97,7 @@ const Index = () => {
       tags: ["#패션", "#핸드메이드"],
       rating: 4.5,
       reviewCount: 42,
+      featured: false,
       type: 'recent',
       location: {
         lat: 37.5635, 
@@ -109,6 +114,7 @@ const Index = () => {
       tags: ["#테크", "#스마트홈"],
       rating: 4.3,
       reviewCount: 67,
+      featured: false,
       type: 'recent'
     },
     {
@@ -120,6 +126,7 @@ const Index = () => {
       tags: ["#푸드", "#유기농"],
       rating: 4.9,
       reviewCount: 103,
+      featured: false,
       type: 'recent'
     },
     {
@@ -131,6 +138,7 @@ const Index = () => {
       tags: ["#여행", "#콘텐츠"],
       rating: 4.7,
       reviewCount: 91,
+      featured: false,
       type: 'recent'
     }
   ];
@@ -145,6 +153,7 @@ const Index = () => {
       tags: ["#푸드", "#건강"],
       rating: 4.8,
       reviewCount: 86,
+      featured: false,
       type: 'recommended',
       location: {
         lat: 37.5115, 
@@ -161,6 +170,7 @@ const Index = () => {
       tags: ["#취미", "#독서"],
       rating: 4.6,
       reviewCount: 72,
+      featured: false,
       type: 'recommended'
     },
     {
@@ -172,6 +182,7 @@ const Index = () => {
       tags: ["#취미", "#라이프"],
       rating: 4.7,
       reviewCount: 58,
+      featured: false,
       type: 'recommended'
     },
     {
@@ -183,6 +194,7 @@ const Index = () => {
       tags: ["#취미", "#스포츠"],
       rating: 4.5,
       reviewCount: 63,
+      featured: false,
       type: 'recommended'
     }
   ];
