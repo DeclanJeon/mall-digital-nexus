@@ -138,9 +138,9 @@ const Header = () => {
             </Button>
             
             {/* Dynamic Links Button */}
-            <Button variant="outline" size="sm" asChild>
+            {/* <Button variant="outline" size="sm" asChild>
               <Link to="/curation-links">큐레이션 링크</Link>
-            </Button>
+            </Button> */}
           </div>
         </nav>
 
@@ -197,9 +197,9 @@ const Header = () => {
                     <Link to="/create">피어몰 만들기</Link>
                   </Button>
                   
-                  <Button variant="outline" className="w-full mt-2" asChild>
+                  {/* <Button variant="outline" className="w-full mt-2" asChild>
                     <Link to="/curation-links">큐레이션 링크</Link>
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             </DrawerContent>

@@ -27,7 +27,6 @@ const App = () => (
           <Route path="/community" element={<Community />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Navigate to="/login" replace />} />
-          <Route path="/peermall/:peermallId" element={<PeermallView />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
