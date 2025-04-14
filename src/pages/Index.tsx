@@ -11,6 +11,7 @@ import CommunicationWidget from '@/components/CommunicationWidget';
 import HashtagFilter, { HashtagFilterOption, PeermallType } from '@/components/HashtagFilter';
 import PeermallMap from '@/components/PeermallMap';
 import ServiceCardsSection from '@/components/ServiceCardsSection';
+import FavoriteServicesSection from '@/components/FavoriteServicesSection'; // 추가
 
 interface Location {
   lat: number;
@@ -256,9 +257,12 @@ const Index = () => {
         <div className="container mx-auto px-4 py-6">
           <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <div className="col-span-1 md:col-span-2">
-              <HashtagFilter 
-                hashtags={hashtagOptions} 
-                onFilterChange={handleFilterChange} 
+              {/* 즐겨찾는 서비스 섹션 추가 */}
+              <FavoriteServicesSection />
+
+              <HashtagFilter
+                hashtags={hashtagOptions}
+                onFilterChange={handleFilterChange}
               />
 
               {filteredTrending.length > 0 && (
