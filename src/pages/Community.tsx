@@ -1,8 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Header from '@/components/CategoryNav';
 import Footer from '@/components/Footer';
 import ForumList from '@/components/community/ForumList';
 import GroupDiscussions from '@/components/community/GroupDiscussions';
@@ -17,10 +15,9 @@ const Community = () => {
         <h1 className="text-3xl font-bold mb-6">커뮤니티</h1>
         
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-3 mb-8">
+          <TabsList className="grid grid-cols-2 mb-8">
             <TabsTrigger value="chat">그룹 채팅</TabsTrigger>
             <TabsTrigger value="forum">포럼 게시판</TabsTrigger>
-            <TabsTrigger value="groups">그룹 게시판</TabsTrigger>
           </TabsList>
           
           <TabsContent value="chat">
@@ -29,10 +26,6 @@ const Community = () => {
 
           <TabsContent value="forum">
             <ForumList />
-          </TabsContent>
-          
-          <TabsContent value="groups">
-            <GroupDiscussions />
           </TabsContent>
         </Tabs>
       </main>
