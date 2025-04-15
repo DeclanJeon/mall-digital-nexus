@@ -1,35 +1,41 @@
 
 import React from 'react';
-import { Store, ShoppingCart, Zap } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Users, Bookmark, MessageCircle, // Store, ShoppingCart, Zap - 기존 아이콘 대신 추가
+        Store, ShoppingCart, Zap } from 'lucide-react'; // 예시: lucide-react 라이브러리 사용 가정
+
 
 const ServiceCardsSection = () => {
   const services = [
     {
-      icon: <Store className="w-12 h-12 text-primary-300" />,
-      title: '피어몰 만들기',
-      description: '나만의 피어몰을 구축하고 당신의 세상을 만들어보세요. 쉽고 간편한 설정으로 빠르게 시작할 수 있습니다.',
-      buttonText: '피어몰 만들기',
-      buttonLink: '/create-peermall',
+      // icon: <Store className="w-12 h-12 text-primary-300" />, // 기존 아이콘
+      icon: <Users className="w-12 h-12 text-primary-300" />, // 변경된 아이콘: Users
+      title: '피어 스퀘어',
+      description: '지금 바로 피어 스퀘어에 참여하여 당신의 목소리를 내고, 다른 피어들의 이야기에 귀 기울여 보세요! 함께 만들어가는 활기찬 피어몰 커뮤니티가 당신을 기다립니다!',
+      buttonText: '함께하기',
+      buttonLink: '/community', // 링크는 실제 커뮤니티 페이지로 변경하는 것이 좋습니다.
       iconBgColor: 'bg-blue-100',
       buttonVariant: 'outline'
     },
     {
-      icon: <ShoppingCart className="w-12 h-12 text-yellow-500" />,
-      title: '나만의 바로가기 허브',
+      // icon: <ShoppingCart className="w-12 h-12 text-yellow-500" />, // 기존 아이콘
+      icon: <Bookmark className="w-12 h-12 text-yellow-500" />, // 변경된 아이콘: Bookmark
+      title: '나만의 바로가기 허브', // 또는 '큐레이션 링크'
       description: '흩어져 있던 북마크와 즐겨찾기를 한곳에 모아 나만의 디지털 지도처럼 활용하세요. 원하는 곳으로 빠르게 이동할 수 있습니다.',
       buttonText: '시작하기',
-      buttonLink: '/peermall',
+      buttonLink: '/curation-link', // 링크는 실제 기능 페이지로 변경하는 것이 좋습니다.
       iconBgColor: 'bg-yellow-100',
       buttonVariant: 'outline'
     },
     {
-      icon: <Zap className="w-12 h-12 text-green-500" />,
-      title: '피어와 장벽 없이, 바로 톡! 하세요.',
+      // icon: <Zap className="w-12 h-12 text-green-500" />, // 기존 아이콘
+      icon: <MessageCircle className="w-12 h-12 text-green-500" />, // 변경된 아이콘: MessageCircle
+      title: '피어와 장벽 없이, 바로 톡! 하세요.', // 또는 '피어 넘버'
       description: '궁금한 피어, 협업하고 싶은 동료에게 피어 넘버로 직접 1:1 통신을 하세요 이메일 주소나 복잡한 절차 없이, 즉시 연결되는 다이렉트 소통을 경험할 수 있습니다.',
-      buttonText: '피어넘버 발급받기',
-      buttonLink: '/create-peernumber',
+      buttonText: '피어넘버 확인하기', // '발급받기' 보다는 '확인하기'가 더 적절할 수 있습니다.
+      buttonLink: '/peer-number', // 링크는 실제 기능 페이지로 변경하는 것이 좋습니다.
       iconBgColor: 'bg-green-100',
       buttonVariant: 'default'
     }
