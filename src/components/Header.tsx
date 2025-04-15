@@ -1,16 +1,17 @@
 
 import React, { useState } from 'react';
 import CreatePeermallModal from './CreatePeermallModal';
+import PeermallMap from './PeermallMap'; // PeermallMap import 추가
 import { Link } from 'react-router-dom';
-import { Search, User, Menu, Bell, Home, ShoppingBag, Users, Info, HelpCircle, LogIn, X, Layers } from 'lucide-react'; // Layers 아이콘 추가
+import { Search, User, Menu, Bell, Home, ShoppingBag, Users, Info, HelpCircle, LogIn, X, Layers, Map } from 'lucide-react'; // Layers 아이콘 추가
 import { Button } from '@/components/ui/button';
-import { Avatar } from '@/components/ui/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 
 const Header = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [isCreatePeermallModalOpen, setIsCreatePeermallModalOpen] = useState(false);
+  const [isMapOpen, setIsMapOpen] = useState(false); // 지도 상태 추가
   const [notifications, setNotifications] = useState([
     { id: 1, type: 'message', content: '박성민님이 새로운 메시지를 보냈습니다.', time: '5분 전', read: false },
     { id: 2, type: 'purchase', content: '홍길동님이 디지털 아트워크를 구매했습니다.', time: '25분 전', read: false },
@@ -30,6 +31,17 @@ const Header = () => {
   const markAllAsRead = () => {
     setNotifications(notifications.map(notification => ({ ...notification, read: true })));
   };
+
+  // 지도 열기/닫기 핸들러
+  const handleOpenMap = () => setIsMapOpen(true);
+  const handleCloseMap = () => setIsMapOpen(false);
+
+  // 임시 위치 데이터 (실제 데이터로 교체 필요)
+  const selectedLocation = null; // 예: { lat: 37.5665, lng: 126.9780, address: '서울 시청', title: '서울 시청' };
+  const allLocations = [ // 예시 데이터, 실제로는 API 등에서 가져와야 함
+      { lat: 37.5665, lng: 126.9780, address: '서울 시청', title: '서울 시청' },
+      { lat: 37.5796, lng: 126.9770, address: '경복궁', title: '경복궁' },
+  ];
 
   const navigationItems = [
     { name: '홈', icon: <Home className="h-5 w-5" />, path: '/' },
@@ -67,16 +79,19 @@ const Header = () => {
           <div className="flex items-center gap-2">
             {/* Notifications */}
             <Popover open={showNotifications} onOpenChange={setShowNotifications}>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
+            <PopoverTrigger asChild>
+              {/* Wrap Button's children in a single element */}
+              <Button variant="ghost" size="icon" className="relative">
+                <span> 
                   <Bell className="h-5 w-5" />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                       {unreadCount}
                     </span>
                   )}
-                </Button>
-              </PopoverTrigger>
+                </span>
+              </Button>
+            </PopoverTrigger>
               <PopoverContent className="w-80 p-0" align="end">
                 <div className="bg-white rounded-lg shadow-lg max-h-96">
                   <div className="flex items-center justify-between p-4 border-b">
@@ -126,6 +141,11 @@ const Header = () => {
                 </div>
               </PopoverContent>
             </Popover>
+
+            {/* Peer map Button */}
+            <Button variant="outline" size="sm" onClick={handleOpenMap}> {/* onClick 핸들러 추가 */}
+              <Map className="h-4 w-4 mr-2"/> 피어맵
+            </Button>
             
             {/* Login Button */}
             <Button variant="outline" size="sm" asChild>
@@ -220,6 +240,16 @@ const Header = () => {
         isOpen={isCreatePeermallModalOpen}
         onClose={() => setIsCreatePeermallModalOpen(false)}
       />
+
+      {/* PeermallMap 컴포넌트 조건부 렌더링 */}
+      {isMapOpen && (
+        <PeermallMap 
+          isOpen={isMapOpen}
+          onClose={handleCloseMap}
+          selectedLocation={selectedLocation}
+          allLocations={allLocations}
+        />
+      )}
     </header>
   );
 };
