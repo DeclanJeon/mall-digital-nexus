@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { 
   MapContainer, 
@@ -364,13 +365,13 @@ const RoutingControl = ({
             ]
           },
           lineOptions: {
-            extendToWaypoints: false,
-            missingRouteTolerance: 0,
             styles: [
               { color: 'black', opacity: 0.15, weight: 9 },
               { color: 'white', opacity: 0.8, weight: 6 },
               { color: '#3388ff', opacity: 0.5, weight: 4 }
-            ]
+            ],
+            extendToWaypoints: false,
+            missingRouteTolerance: 0
           },
           addWaypoints: false,
           draggableWaypoints: true,
