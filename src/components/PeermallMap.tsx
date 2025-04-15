@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { 
   MapContainer, 
@@ -149,7 +148,7 @@ const LocationMarker = () => {
         iconAnchor: [8, 8]
       })}
     >
-      <Popup>현재 위���</Popup>
+      <Popup>현재 위����</Popup>
     </Marker>
   );
 };
@@ -366,11 +365,9 @@ const RoutingControl = ({
           },
           lineOptions: {
             styles: [
-              { color: 'black', opacity: 0.15, weight: 9 },
-              { color: 'white', opacity: 0.8, weight: 6 },
-              { color: '#3388ff', opacity: 0.5, weight: 4 }
+              { color: '#6366F1', opacity: 0.8, weight: 5 }
             ],
-            extendToWaypoints: false,
+            extendToWaypoints: true,
             missingRouteTolerance: 0
           },
           addWaypoints: false,
