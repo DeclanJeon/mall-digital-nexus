@@ -10,6 +10,7 @@ import CurationLinks from "./pages/CurationLinks";
 import Community from "./pages/Community";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import ServicePage from "./pages/Service"; // 서비스 페이지 임포트 추가
 import ServiceCardsSection from "./components/ServiceCardsSection";
 import Footer from "./components/Footer";
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/community" element={<Community />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Navigate to="/login" replace />} />
+          <Route path="/service" element={<ServicePage />} /> 서비스 페이지 라우트 추가
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

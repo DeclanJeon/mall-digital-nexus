@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import CreatePeermallModal from './CreatePeermallModal';
 import { Link } from 'react-router-dom';
-import { Search, User, Menu, Bell, Home, ShoppingBag, Users, Info, HelpCircle, LogIn, X } from 'lucide-react';
+import { Search, User, Menu, Bell, Home, ShoppingBag, Users, Info, HelpCircle, LogIn, X, Layers } from 'lucide-react'; // Layers 아이콘 추가
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -35,6 +35,7 @@ const Header = () => {
     { name: '홈', icon: <Home className="h-5 w-5" />, path: '/' },
     { name: '쇼핑', icon: <ShoppingBag className="h-5 w-5" />, path: '/shopping' },
     { name: '커뮤니티', icon: <Users className="h-5 w-5" />, path: '/community' },
+    { name: '서비스', icon: <Layers className="h-5 w-5" />, path: '/service' }, // 서비스 링크 추가
     { name: '소개', icon: <Info className="h-5 w-5" />, path: '/about' },
     { name: '고객센터', icon: <HelpCircle className="h-5 w-5" />, path: '/help' },
   ];
