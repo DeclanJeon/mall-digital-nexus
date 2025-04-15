@@ -1,18 +1,17 @@
 
 import React, { useState, useCallback } from 'react';
-import Header from '../components/Header';
+
 import Footer from '../components/Footer';
-import CategoryNav from '../components/CategoryNav';
+
 import PeermallGrid from '../components/PeermallGrid';
 import CreatePeermall from '../components/CreatePeermall';
-import { Filter, Hash, MapPin } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import CommunicationWidget from '@/components/CommunicationWidget';
 import HashtagFilter, { HashtagFilterOption, PeermallType } from '@/components/HashtagFilter';
 import PeermallMap from '@/components/PeermallMap';
 import ServiceCardsSection from '@/components/ServiceCardsSection';
 import FavoriteServicesSection from '@/components/FavoriteServicesSection'; // 추가
-import ActivityFeed from '@/components/ActivityFeed';
+import Header from '@/components/Header';
+import CategoryNav from '@/components/CategoryNav';
 
 interface Location {
   lat: number;
@@ -251,9 +250,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
-      <CategoryNav />
-
       <main className="flex-grow bg-bg-100">
         <div className="container mx-auto px-4 py-6">
           <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -298,8 +294,7 @@ const Index = () => {
         </div>
         <ServiceCardsSection />
       </main>
-      <Footer />
-
+      
       <CommunicationWidget />
 
       <PeermallMap 

@@ -36,8 +36,8 @@ const Header = () => {
     { name: '쇼핑', icon: <ShoppingBag className="h-5 w-5" />, path: '/shopping' },
     { name: '커뮤니티', icon: <Users className="h-5 w-5" />, path: '/community' },
     { name: '서비스', icon: <Layers className="h-5 w-5" />, path: '/service' }, // 서비스 링크 추가
-    { name: '소개', icon: <Info className="h-5 w-5" />, path: '/about' },
-    { name: '고객센터', icon: <HelpCircle className="h-5 w-5" />, path: '/help' },
+    // { name: '소개', icon: <Info className="h-5 w-5" />, path: '/about' },
+    // { name: '고객센터', icon: <HelpCircle className="h-5 w-5" />, path: '/help' },
   ];
 
   return (

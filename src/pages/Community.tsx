@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Header from '@/components/Header';
+import Header from '@/components/CategoryNav';
 import Footer from '@/components/Footer';
 import ForumList from '@/components/community/ForumList';
 import GroupDiscussions from '@/components/community/GroupDiscussions';
@@ -15,8 +15,6 @@ const Community = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <Header />
-      
       <main className="flex-grow container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">커뮤니티</h1>
         
@@ -50,8 +48,6 @@ const Community = () => {
           </TabsContent>
         </Tabs>
       </main>
-      
-      <Footer />
     </div>
   );
 };

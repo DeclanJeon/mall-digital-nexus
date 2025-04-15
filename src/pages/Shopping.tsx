@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback } from 'react';
-import Header from '@/components/Header';
+import Header from '@/components/CategoryNav';
 import Footer from '@/components/Footer';
 import CategoryNav from '@/components/CategoryNav';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -203,9 +203,6 @@ const Shopping = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
-      <CategoryNav />
-      
       <main className="flex-grow bg-bg-100">
         <div className="container mx-auto px-4 py-6">
           <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
@@ -337,8 +334,6 @@ const Shopping = () => {
           </div>
         </div>
       </main>
-      
-      <Footer />
     </div>
   );
 };

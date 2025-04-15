@@ -11,8 +11,9 @@ import Community from "./pages/Community";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import ServicePage from "./pages/Service"; // 서비스 페이지 임포트 추가
-import ServiceCardsSection from "./components/ServiceCardsSection";
 import Footer from "./components/Footer";
+import Header from "./components/Header";
+import CategoryNav from "./components/CategoryNav";
 
 const queryClient = new QueryClient();
 
@@ -22,18 +23,19 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <Header />
+        <CategoryNav />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/shopping" element={<Shopping />} />
           <Route path="/curation-links" element={<CurationLinks />} />
           <Route path="/community" element={<Community />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Navigate to="/login" replace />} />
           <Route path="/service" element={<ServicePage />} /> 서비스 페이지 라우트 추가
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-        
+        <Footer />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import Header from '@/components/Header';
+import Header from '@/components/CategoryNav';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -100,8 +100,6 @@ const Login = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <Header />
-      
       <main className="flex-grow flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <Card className="border-0 shadow-lg">
@@ -217,8 +215,6 @@ const Login = () => {
           </Card>
         </div>
       </main>
-      
-      <Footer />
     </div>
   );
 };

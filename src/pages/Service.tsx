@@ -1,5 +1,5 @@
 import React from 'react';
-import Header from '@/components/Header';
+import Header from '@/components/CategoryNav';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { QrCode, Smartphone, Mail, Link2, Layers } from 'lucide-react';
@@ -35,7 +35,6 @@ const ServicePage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
       <main className="flex-grow bg-bg-100 py-12">
         <div className="container mx-auto px-4">
           <h1 className="text-3xl font-bold text-center mb-10 text-primary-300">피어몰 서비스 소개</h1>
@@ -59,7 +58,6 @@ const ServicePage = () => {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };
