@@ -11,7 +11,7 @@ import VoiceChat from '@/components/community/VoiceChat';
 import VideoChat from '@/components/community/VideoChat';
 
 const Community = () => {
-  const [activeTab, setActiveTab] = useState("forum");
+  const [activeTab, setActiveTab] = useState("chat");
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -20,13 +20,25 @@ const Community = () => {
         
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-5 mb-8">
-            <TabsTrigger value="forum">포럼 게시판</TabsTrigger>
-            <TabsTrigger value="groups">그룹 게시판</TabsTrigger>
             <TabsTrigger value="chat">그룹 채팅</TabsTrigger>
             <TabsTrigger value="voice">음성 채팅</TabsTrigger>
             <TabsTrigger value="video">화상 채팅</TabsTrigger>
+            <TabsTrigger value="forum">포럼 게시판</TabsTrigger>
+            <TabsTrigger value="groups">그룹 게시판</TabsTrigger>
           </TabsList>
           
+          <TabsContent value="chat">
+            <GroupChat />
+          </TabsContent>
+
+          <TabsContent value="voice">
+            <VoiceChat />
+          </TabsContent>
+          
+          <TabsContent value="video">
+            <VideoChat />
+          </TabsContent>
+
           <TabsContent value="forum">
             <ForumList />
           </TabsContent>
@@ -35,17 +47,7 @@ const Community = () => {
             <GroupDiscussions />
           </TabsContent>
           
-          <TabsContent value="chat">
-            <GroupChat />
-          </TabsContent>
           
-          <TabsContent value="voice">
-            <VoiceChat />
-          </TabsContent>
-          
-          <TabsContent value="video">
-            <VideoChat />
-          </TabsContent>
         </Tabs>
       </main>
     </div>
