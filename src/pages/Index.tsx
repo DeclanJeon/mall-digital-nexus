@@ -256,7 +256,7 @@ const Index = () => {
 
       <main className="flex-grow bg-bg-100">
         <div className="container mx-auto px-4 py-6">
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <div className="col-span-1 md:col-span-2">
               {/* 즐겨찾는 서비스 섹션 추가 */}
               <FavoriteServicesSection />
@@ -273,7 +273,7 @@ const Index = () => {
                 />
               )}
             </div>
-            <ActivityFeed />
+            {/* <ActivityFeed /> */}
           </section>
 
           <section>

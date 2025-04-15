@@ -72,6 +72,7 @@ const ActivityFeed = () => {
         </TabsList>
         
         <TabsContent value="chat" className="flex flex-col">
+          {/* 채팅 메시지 목록에 최대 높이(max-h-96)를 추가하여 스크롤 생성 */}
           <div className="flex-1 overflow-y-auto mb-3 space-y-3">
             {chatMessages.map((msg, index) => (
               <div key={index} className="flex items-start">
