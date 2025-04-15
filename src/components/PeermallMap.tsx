@@ -148,7 +148,7 @@ const LocationMarker = () => {
         iconAnchor: [8, 8]
       })}
     >
-      <Popup>현재 위치</Popup>
+      <Popup>현재 위���</Popup>
     </Marker>
   );
 };

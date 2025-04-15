@@ -12,6 +12,7 @@ import OpenChat from "./pages/OpenChat";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import ServicePage from "./pages/Service";
+import PeerMap from "./pages/PeerMap";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import CategoryNav from "./components/CategoryNav";
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/curation-links" element={<CurationLinks />} />
           <Route path="/community" element={<Community />} />
           <Route path="/openchat" element={<OpenChat />} />
+          <Route path="/peermap" element={<PeerMap />} />
           <Route path="/login" element={<Login />} />
           <Route path="/service" element={<ServicePage />} /> 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
