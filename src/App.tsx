@@ -8,9 +8,10 @@ import Index from "./pages/Index";
 import Shopping from "./pages/Shopping";
 import CurationLinks from "./pages/CurationLinks";
 import Community from "./pages/Community";
+import OpenChat from "./pages/OpenChat";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
-import ServicePage from "./pages/Service"; // 서비스 페이지 임포트 추가
+import ServicePage from "./pages/Service";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import CategoryNav from "./components/CategoryNav";
@@ -30,8 +31,9 @@ const App = () => (
           <Route path="/shopping" element={<Shopping />} />
           <Route path="/curation-links" element={<CurationLinks />} />
           <Route path="/community" element={<Community />} />
+          <Route path="/openchat" element={<OpenChat />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/service" element={<ServicePage />} /> 서비스 페이지 라우트 추가
+          <Route path="/service" element={<ServicePage />} /> 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

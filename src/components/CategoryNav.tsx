@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, ShoppingBag, Users, Info, HelpCircle, Layers } from 'lucide-react';
+import { Home, ShoppingBag, Users, Info, HelpCircle, Layers, MessageSquare } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const CategoryNav = () => {
@@ -9,8 +9,9 @@ const CategoryNav = () => {
   
   const categories = [
     { name: '홈', icon: <Home className="h-5 w-5" />, path: '/' },
-    { name: '서비스', icon: <Layers className="h-5 w-5" />, path: '/service' }, // 서비스 링크 추가
+    { name: '서비스', icon: <Layers className="h-5 w-5" />, path: '/service' },
     { name: '쇼핑', icon: <ShoppingBag className="h-5 w-5" />, path: '/shopping' },
+    { name: '오픈채팅', icon: <MessageSquare className="h-5 w-5" />, path: '/openchat' },
     { name: '커뮤니티', icon: <Users className="h-5 w-5" />, path: '/community' },
     // { name: '소개', icon: <Info className="h-5 w-5" />, path: '/about' },
     // { name: '고객센터', icon: <HelpCircle className="h-5 w-5" />, path: '/help' },
