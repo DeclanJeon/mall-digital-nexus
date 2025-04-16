@@ -17,7 +17,8 @@ import {
   Globe,
   Eye,
   EyeOff,
-  Bookmark
+  Bookmark,
+  AlertCircle
 } from 'lucide-react';
 
 import {
@@ -36,6 +37,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 
 import { Input } from '@/components/ui/input';
@@ -46,7 +48,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,6 +58,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import PeermallMap from './PeermallMap';
 
 // Define the form schema with validation
 const formSchema = z.object({
@@ -69,7 +71,7 @@ const formSchema = z.object({
   imageUrl: z.string().min(1, { message: '대표 이미지를 선택해주세요' }),
   representativeName: z.string().min(1, { message: '대표자 이름을 입력해주세요' }),
   contact: z.string().min(1, { message: '연락처를 입력해주세요' }),
-  mapAddress: z.string().min(1, { message: '지도상 주소를 입력해주세요' }),
+  mapAddress: z.string().optional(),
   referralCode: z.string().optional(),
   hasReferral: z.boolean().default(false),
   isPublic: z.boolean().default(true),
@@ -92,6 +94,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
   const [activeTab, setActiveTab] = useState("basic");
   const [mapMarkerMode, setMapMarkerMode] = useState(false);
   const [showMapHelpDialog, setShowMapHelpDialog] = useState(false);
+  const [showMapDialog, setShowMapDialog] = useState(false);
   
   // Initialize form
   const form = useForm<FormValues>({
@@ -126,22 +129,17 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
 
   // Handle map marker selection
   const handleMapMarkerSelect = () => {
-    setMapMarkerMode(true);
-    // In a real implementation, this would open the map interface for marker selection
-    toast({
-      title: "지도 마커 선택",
-      description: "지도에서 위치를 선택해주세요.",
-    });
+    setShowMapDialog(true);
+  };
 
-    // Mock map marker selection (would be replaced with actual map integration)
-    setTimeout(() => {
-      form.setValue('mapAddress', '서울시 강남구 테헤란로 123');
-      setMapMarkerMode(false);
-      toast({
-        title: "위치 선택 완료",
-        description: "선택한 위치가 등록되었습니다.",
-      });
-    }, 2000);
+  const handleLocationSelect = (location: { address: string; lat: number; lng: number }) => {
+    form.setValue('mapAddress', location.address);
+    setShowMapDialog(false);
+    
+    toast({
+      title: "위치 선택 완료",
+      description: "선택한 위치가 등록되었습니다.",
+    });
   };
 
   // Form submission handler
@@ -174,6 +172,14 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
     }
   };
 
+  // Helper component for required field label
+  const RequiredLabel: React.FC<{children: React.ReactNode}> = ({ children }) => (
+    <div className="flex items-center gap-1">
+      {children}
+      <span className="text-red-500">*</span>
+    </div>
+  );
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -185,6 +191,10 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
             </DialogTitle>
             <DialogDescription className="text-base">
               새로운 피어몰을 생성하기 위한 정보를 입력해주세요.
+              <div className="mt-2 text-sm flex items-center gap-1 text-red-500">
+                <AlertCircle className="h-4 w-4" /> 
+                <span className="font-medium">표시는 필수 입력 항목입니다.</span>
+              </div>
             </DialogDescription>
           </DialogHeader>
           
@@ -197,9 +207,24 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                 className="w-full"
               >
                 <TabsList className="grid grid-cols-3 mb-4">
-                  <TabsTrigger value="basic">기본 정보</TabsTrigger>
-                  <TabsTrigger value="appearance">디자인</TabsTrigger>
-                  <TabsTrigger value="advanced">고급 설정</TabsTrigger>
+                  <TabsTrigger value="basic" className="relative">
+                    <span className="flex items-center">
+                      기본 정보
+                      <span className="text-red-500 ml-1">*</span>
+                    </span>
+                  </TabsTrigger>
+                  <TabsTrigger value="appearance">
+                    <span className="flex items-center">
+                      디자인
+                      <span className="text-gray-400 text-xs ml-1">(선택사항)</span>
+                    </span>
+                  </TabsTrigger>
+                  <TabsTrigger value="advanced">
+                    <span className="flex items-center">
+                      고급 설정
+                      <span className="text-gray-400 text-xs ml-1">(선택사항)</span>
+                    </span>
+                  </TabsTrigger>
                 </TabsList>
                 
                 {/* 기본 정보 탭 */}
@@ -213,7 +238,8 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="flex items-center gap-1">
-                              <Globe className="h-4 w-4 text-accent-100" /> 피어몰 주소
+                              <Globe className="h-4 w-4 text-accent-100" /> 
+                              <RequiredLabel>피어몰 주소</RequiredLabel>
                             </FormLabel>
                             <FormControl>
                               <div className="flex items-center">
@@ -233,7 +259,8 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="flex items-center gap-1">
-                              <Store className="h-4 w-4 text-accent-100" /> 피어몰 이름
+                              <Store className="h-4 w-4 text-accent-100" /> 
+                              <RequiredLabel>피어몰 이름</RequiredLabel>
                             </FormLabel>
                             <FormControl>
                               <Input placeholder="내 멋진 피어몰" {...field} />
@@ -250,7 +277,8 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="flex items-center gap-1">
-                              <FileText className="h-4 w-4 text-accent-100" /> 피어몰 설명
+                              <FileText className="h-4 w-4 text-accent-100" /> 
+                              <RequiredLabel>피어몰 설명</RequiredLabel>
                             </FormLabel>
                             <FormControl>
                               <Textarea 
@@ -272,6 +300,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                           <FormItem>
                             <FormLabel className="flex items-center gap-1">
                               <Hash className="h-4 w-4 text-accent-100" /> 해시태그 (쉼표로 구분)
+                              <span className="text-gray-400 text-xs ml-1">(선택사항)</span>
                             </FormLabel>
                             <FormControl>
                               <Input placeholder="예: #맛집, #핸드메이드, #서울" {...field} />
@@ -292,7 +321,8 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="flex items-center gap-1">
-                              <User className="h-4 w-4 text-accent-100" /> 대표자 이름
+                              <User className="h-4 w-4 text-accent-100" /> 
+                              <RequiredLabel>대표자 이름</RequiredLabel>
                             </FormLabel>
                             <FormControl>
                               <Input placeholder="홍길동" {...field} />
@@ -309,10 +339,67 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="flex items-center gap-1">
-                              <Phone className="h-4 w-4 text-accent-100" /> 연락처
+                              <Phone className="h-4 w-4 text-accent-100" /> 
+                              <RequiredLabel>연락처</RequiredLabel>
                             </FormLabel>
                             <FormControl>
                               <Input placeholder="이메일 또는 전화번호" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+
+                  {/* 대표 이미지 */}
+                  <Card>
+                    <CardContent className="pt-4">
+                      <FormField
+                        control={form.control}
+                        name="imageUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-1">
+                              <ImageIcon className="h-4 w-4 text-accent-100" /> 
+                              <RequiredLabel>대표 이미지</RequiredLabel>
+                            </FormLabel>
+                            <FormControl>
+                              <div className="flex flex-col gap-2">
+                                <Input
+                                  id="imageUpload"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handleImageUpload(e, 'imageUrl')}
+                                  className="hidden"
+                                />
+                                <div className="flex items-center gap-4">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => document.getElementById('imageUpload')?.click()}
+                                  >
+                                    이미지 업로드
+                                  </Button>
+                                  {field.value && (
+                                    <div className="relative">
+                                      <img 
+                                        src={field.value} 
+                                        alt="Preview" 
+                                        className="w-20 h-20 object-cover rounded-md"
+                                      />
+                                      <button
+                                        type="button"
+                                        className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1"
+                                        onClick={() => form.setValue('imageUrl', '')}
+                                      >
+                                        <X className="h-3 w-3 text-white" />
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                                <input type="hidden" {...field} />
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -324,6 +411,11 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                 
                 {/* 디자인 탭 */}
                 <TabsContent value="appearance" className="space-y-4">
+                  <div className="flex items-center p-2 bg-blue-50 rounded-md border border-blue-100 mb-2">
+                    <div className="text-blue-600 text-sm">
+                      디자인 설정은 선택사항입니다. 나중에 언제든지 수정할 수 있습니다.
+                    </div>
+                  </div>
                   <Card>
                     <CardContent className="pt-4 space-y-4">
                       {/* 로고 이미지 */}
@@ -427,63 +519,17 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                           </FormItem>
                         )}
                       />
-
-                      {/* 대표 이미지 */}
-                      <FormField
-                        control={form.control}
-                        name="imageUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-1">
-                              <ImageIcon className="h-4 w-4 text-accent-100" /> 대표 이미지
-                            </FormLabel>
-                            <FormControl>
-                              <div className="flex flex-col gap-2">
-                                <Input
-                                  id="imageUpload"
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => handleImageUpload(e, 'imageUrl')}
-                                  className="hidden"
-                                />
-                                <div className="flex items-center gap-4">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => document.getElementById('imageUpload')?.click()}
-                                  >
-                                    이미지 업로드
-                                  </Button>
-                                  {field.value && (
-                                    <div className="relative">
-                                      <img 
-                                        src={field.value} 
-                                        alt="Preview" 
-                                        className="w-20 h-20 object-cover rounded-md"
-                                      />
-                                      <button
-                                        type="button"
-                                        className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1"
-                                        onClick={() => form.setValue('imageUrl', '')}
-                                      >
-                                        <X className="h-3 w-3 text-white" />
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                                <input type="hidden" {...field} />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                     </CardContent>
                   </Card>
                 </TabsContent>
                 
                 {/* 고급 설정 탭 */}
                 <TabsContent value="advanced" className="space-y-4">
+                  <div className="flex items-center p-2 bg-blue-50 rounded-md border border-blue-100 mb-2">
+                    <div className="text-blue-600 text-sm">
+                      고급 설정은 선택사항입니다. 나중에 언제든지 수정할 수 있습니다.
+                    </div>
+                  </div>
                   <Card>
                     <CardContent className="pt-4 space-y-4">
                       {/* 맵 주소 */}
@@ -494,6 +540,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                           <FormItem>
                             <FormLabel className="flex items-center gap-1">
                               <Map className="h-4 w-4 text-accent-100" /> 지도상 주소
+                              <span className="text-gray-400 text-xs ml-1">(선택사항)</span>
                             </FormLabel>
                             <FormControl>
                               <div className="flex gap-2">
@@ -506,7 +553,6 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                                   type="button"
                                   variant="secondary"
                                   onClick={handleMapMarkerSelect}
-                                  disabled={mapMarkerMode}
                                 >
                                   <MapPin className="h-4 w-4 mr-2" />
                                   지도에서 선택
@@ -521,6 +567,9 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                                 </Button>
                               </div>
                             </FormControl>
+                            <FormDescription className="text-xs text-gray-500 mt-1">
+                              지도에 표시할 위치를 직접 입력하거나 지도에서 선택할 수 있습니다.
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -640,6 +689,15 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 지도 선택 모달 */}
+      {showMapDialog && (
+        <PeermallMap 
+          isOpen={showMapDialog} 
+          onClose={() => setShowMapDialog(false)}
+          onLocationSelect={handleLocationSelect}
+        />
+      )}
     </>
   );
 };

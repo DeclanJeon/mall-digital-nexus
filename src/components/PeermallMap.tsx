@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { 
   MapContainer, 
@@ -104,6 +105,7 @@ interface PeermallMapProps {
   onClose: () => void;
   selectedLocation?: Location | null;
   allLocations?: Location[];
+  onLocationSelect?: (location: {address: string; lat: number; lng: number}) => void;
 }
 
 // Component to handle map center changes
@@ -148,7 +150,7 @@ const LocationMarker = () => {
         iconAnchor: [8, 8]
       })}
     >
-      <Popup>현재 위����</Popup>
+      <Popup>현재 위치</Popup>
     </Marker>
   );
 };
@@ -456,21 +458,31 @@ const MeasureControl = ({ isActive }: { isActive: boolean }) => {
 };
 
 // 지도 이벤트 감시하는 컴포넌트
-const MapEventHandler = ({ onRouteEndChange, isRoutingActive, routeStart }: {
+const MapEventHandler = ({ onRouteEndChange, isRoutingActive, routeStart, onMapClick }: {
   onRouteEndChange: (end: [number, number]) => void;
   isRoutingActive: boolean;
   routeStart: [number, number] | null;
+  onMapClick?: (latlng: {lat: number, lng: number}, address: string) => void;
 }) => {
   useMapEvents({
-    click: (e) => {
+    click: async (e) => {
       if (isRoutingActive && routeStart) {
         onRouteEndChange([e.latlng.lat, e.latlng.lng]);
       }
-    },
-    locationfound: (e) => {
-      // 위치 찾기는 유지 (라우팅을 위해)
-      if (isRoutingActive) {
-        // 부모 컴포넌트의 상태를 업데이트하는 함수가 필요하면 추가
+      
+      if (onMapClick) {
+        try {
+          // Reverse geocode the clicked location
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.latlng.lat}&lon=${e.latlng.lng}&zoom=18&addressdetails=1`
+          );
+          const data = await response.json();
+          const address = data.display_name || "알 수 없는 위치";
+          onMapClick({lat: e.latlng.lat, lng: e.latlng.lng}, address);
+        } catch (error) {
+          console.error('위치 정보를 가져오는 중 오류가 발생했습니다:', error);
+          onMapClick({lat: e.latlng.lat, lng: e.latlng.lng}, "알 수 없는 위치");
+        }
       }
     }
   });
@@ -478,7 +490,7 @@ const MapEventHandler = ({ onRouteEndChange, isRoutingActive, routeStart }: {
 };
 
 // Main Map Component
-const PeermallMap = ({ isOpen, onClose, selectedLocation, allLocations = [] }: PeermallMapProps) => {
+const PeermallMap = ({ isOpen, onClose, selectedLocation, allLocations = [], onLocationSelect }: PeermallMapProps) => {
   // 모든 Hook을 최상위에 정의
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -492,6 +504,7 @@ const PeermallMap = ({ isOpen, onClose, selectedLocation, allLocations = [] }: P
   const [routeStart, setRouteStart] = useState<[number, number] | null>(null);
   const [routeEnd, setRouteEnd] = useState<[number, number] | null>(null);
   const [mapReady, setMapReady] = useState(false);
+  const [selectedMarker, setSelectedMarker] = useState<Location | null>(null);
 
   // 메모이제이션된 이벤트 핸들러
   const handleMapRef = useCallback((map: L.Map) => {
@@ -501,15 +514,15 @@ const PeermallMap = ({ isOpen, onClose, selectedLocation, allLocations = [] }: P
   }, []);
 
   // 내 위치 찾기 함수 수정
-const handleLocateMe = () => {
-  if (mapInstance && typeof mapInstance.locate === 'function') {
-    mapInstance.locate({setView: true, maxZoom: 16});
-  } else {
-    console.warn("지도 위치 찾기 기능을 사용할 수 없습니다.");
-    // 대안으로 현재 위치를 표시하는 메시지를 보여줄 수 있습니다
-    alert("현재 위치를 찾을 수 없습니다. 브라우저의 위치 권한을 확인해주세요.");
-  }
-};
+  const handleLocateMe = () => {
+    if (mapInstance && typeof mapInstance.locate === 'function') {
+      mapInstance.locate({setView: true, maxZoom: 16});
+    } else {
+      console.warn("지도 위치 찾기 기능을 사용할 수 없습니다.");
+      // 대안으로 현재 위치를 표시하는 메시지를 보여줄 수 있습니다
+      alert("현재 위치를 찾을 수 없습니다. 브라우저의 위치 권한을 확인해주세요.");
+    }
+  };
 
   const handleToggleRouting = useCallback(() => {
     setIsRoutingActive((prev) => !prev);
@@ -548,11 +561,68 @@ const handleLocateMe = () => {
     setActiveLocation(null);
   }, []);
 
+  // 지도 클릭 핸들러
+  const handleMapClick = useCallback((latlng: {lat: number, lng: number}, address: string) => {
+    const newLocation: Location = {
+      id: `selected-${Date.now()}`,
+      lat: latlng.lat,
+      lng: latlng.lng,
+      title: "선택한 위치",
+      address: address,
+      type: "default"
+    };
+    
+    setSelectedMarker(newLocation);
+    setActiveLocation(newLocation);
+    
+    // 선택한 위치 정보를 부모 컴포넌트로 전달
+    if (onLocationSelect) {
+      onLocationSelect({
+        lat: latlng.lat,
+        lng: latlng.lng,
+        address: address
+      });
+    }
+  }, [onLocationSelect]);
+
   // 조건문은 Hook 정의 이후에 배치
   if (!isOpen) return null;
 
   // 선택된 위치와 모든 위치에 대한 마커를 렌더링하는 함수
   const renderMarkers = () => {
+    // 선택된 마커가 있으면 그것만 표시
+    if (selectedMarker) {
+      return (
+        <Marker
+          position={[selectedMarker.lat, selectedMarker.lng]}
+          icon={DefaultIcon}
+        >
+          <Popup>
+            <div>
+              <strong>{selectedMarker.title}</strong>
+              <p>{selectedMarker.address}</p>
+              <button 
+                className="px-2 py-1 bg-accent-100 text-white rounded mt-2 text-xs"
+                onClick={() => {
+                  if (onLocationSelect) {
+                    onLocationSelect({
+                      lat: selectedMarker.lat,
+                      lng: selectedMarker.lng,
+                      address: selectedMarker.address
+                    });
+                    onClose();
+                  }
+                }}
+              >
+                이 위치로 선택하기
+              </button>
+            </div>
+          </Popup>
+        </Marker>
+      );
+    }
+    
+    // 그렇지 않으면 전체 위치 목록 표시
     if (!allLocations.length) return null;
 
     return (
@@ -611,8 +681,31 @@ const handleLocateMe = () => {
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-6xl h-[90vh] flex flex-col">
         <div className="p-4 border-b flex justify-between items-center">
-          <h2 className="text-xl font-bold">{selectedLocation?.title || '지도'}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 p-2">✕</button>
+          <h2 className="text-xl font-bold">지도에서 위치 선택</h2>
+          <div className="flex items-center gap-2">
+            {selectedMarker && (
+              <Button
+                onClick={() => {
+                  if (onLocationSelect && selectedMarker) {
+                    onLocationSelect({
+                      lat: selectedMarker.lat,
+                      lng: selectedMarker.lng,
+                      address: selectedMarker.address
+                    });
+                    onClose();
+                  }
+                }}
+                className="bg-accent-100 hover:bg-accent-100/90 text-white text-sm"
+              >
+                이 위치로 선택
+              </Button>
+            )}
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 p-2">✕</button>
+          </div>
+        </div>
+
+        <div className="p-4 border-b bg-blue-50">
+          <p className="text-sm text-blue-800">지도를 클릭하여 피어몰의 위치를 지정할 수 있습니다.</p>
         </div>
 
         <div className="flex-grow relative overflow-hidden">
@@ -650,6 +743,7 @@ const handleLocateMe = () => {
               onRouteEndChange={handleRouteEndChange}
               isRoutingActive={isRoutingActive}
               routeStart={routeStart}
+              onMapClick={handleMapClick}
             />
             <LocationMarker />
             {renderMarkers()}
