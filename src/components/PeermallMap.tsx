@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog"
 import { Slider } from "@/components/ui/slider"
@@ -21,8 +22,8 @@ import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import 'leaflet-control-geocoder';
 import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 
-// Leaflet 이미지 경로 설정 (webpack 사용 시 필요)
-delete L.Icon.Default.prototype._getIconUrl;
+// Fix for Leaflet icon paths
+// Instead of trying to delete a non-existent property, directly set the icon options
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
   iconUrl: require('leaflet/dist/images/marker-icon.png'),
@@ -226,13 +227,14 @@ const PeermallMap: React.FC<PeermallMapProps> = ({ isOpen, onClose, selectedLoca
         mapInstance.removeControl(routingControl);
       }
 
+      // Fix for the routing control options - removed useMapbox and modified the geocoder initialization
       const newRoutingControl = L.Routing.control({
         waypoints: [startLatLng, destinationLatLng],
         routeWhileDragging: false,
         showAlternatives: false,
-        useMapbox: false,
         lineOptions: routeOptions,
-        geocoder: L.Control.Geocoder.nominatim(),
+        // Create a proper geocoder instance
+        geocoder: L.Control.Geocoder && L.Control.Geocoder.nominatim()
       });
 
       newRoutingControl.addTo(mapInstance);
