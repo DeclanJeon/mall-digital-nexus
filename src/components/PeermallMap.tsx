@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog"
 import { Slider } from "@/components/ui/slider"
@@ -30,6 +29,16 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png')
 });
 
+// Add type declaration for the Geocoder
+declare module 'leaflet' {
+  namespace Control {
+    // Define the Geocoder interface
+    namespace Geocoder {
+      function nominatim(options?: any): any;
+    }
+  }
+}
+
 interface PeermallMapProps {
   isOpen: boolean;
   onClose: () => void;
@@ -43,11 +52,11 @@ const PeermallMap: React.FC<PeermallMapProps> = ({ isOpen, onClose, selectedLoca
   const [startAddress, setStartAddress] = useState('');
   const [destinationAddress, setDestinationAddress] = useState('');
   const [distance, setDistance] = useState<number | null>(null);
-	const [duration, setDuration] = useState<number | null>(null);
+  const [duration, setDuration] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isRouteCalculated, setIsRouteCalculated] = useState(false);
   const [isStartAddressValid, setIsStartAddressValid] = useState(true);
-  const [isDestinationAddressValid, setIsDestinationAddressValid] = useState(true);
+  const [isDestinationAddressValid, setIsDestinationAddressValid] = useState(false);
   const [searchRadius, setSearchRadius] = useState(1);
   const [filteredLocations, setFilteredLocations] = useState(allLocations);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -172,7 +181,7 @@ const PeermallMap: React.FC<PeermallMapProps> = ({ isOpen, onClose, selectedLoca
 
   const calculateRoute = useCallback(async () => {
     setIsStartAddressValid(true);
-    setIsDestinationAddressValid(true);
+    setIsDestinationAddressValid(false);
 
     if (!startAddress) {
       setIsStartAddressValid(false);
@@ -227,14 +236,14 @@ const PeermallMap: React.FC<PeermallMapProps> = ({ isOpen, onClose, selectedLoca
         mapInstance.removeControl(routingControl);
       }
 
-      // Fix for the routing control options - removed useMapbox and modified the geocoder initialization
+      // Fix for the routing control options - properly handle the geocoder initialization
       const newRoutingControl = L.Routing.control({
         waypoints: [startLatLng, destinationLatLng],
         routeWhileDragging: false,
         showAlternatives: false,
         lineOptions: routeOptions,
-        // Create a proper geocoder instance
-        geocoder: L.Control.Geocoder && L.Control.Geocoder.nominatim()
+        // Create a proper geocoder instance safely
+        geocoder: L.Control.Geocoder ? L.Control.Geocoder.nominatim() : undefined
       });
 
       newRoutingControl.addTo(mapInstance);
