@@ -269,33 +269,7 @@ const ServicePage = () => {
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="bg-gradient-to-r from-accent-200 to-primary-300 rounded-2xl p-12 text-center relative overflow-hidden">
-          <div className="absolute inset-0 overflow-hidden z-0">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full opacity-10 transform translate-x-1/3 -translate-y-1/3"></div>
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white rounded-full opacity-10 transform -translate-x-1/3 translate-y-1/3"></div>
-          </div>
-          
-          <div className="relative z-10 max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold mb-6 text-white">
-              지금 바로 피어몰과 함께 시작하세요
-            </h2>
-            <p className="text-white/90 text-lg mb-8">
-              더 나은 디지털 경험을 위한 첫걸음, 피어몰이 함께합니다.<br />
-              여러분만의 특별한 온라인 공간을 만들어보세요.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" variant="default" className="bg-white text-accent-200 hover:bg-bg-100">
-                무료로 시작하기
-              </Button>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                서비스 둘러보기
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      
     </div>
   );
 };

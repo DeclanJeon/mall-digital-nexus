@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -12,7 +11,8 @@ import {
   Phone, 
   Map, 
   Ticket, 
-  X 
+  X,
+  Hash // Import Hash icon
 } from 'lucide-react';
 import {
   Dialog,
@@ -30,13 +30,14 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+// Select components are imported but not used, consider removing if not needed later
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,7 @@ const formSchema = z.object({
   address: z.string().min(1, { message: '피어몰 주소를 입력해주세요' }),
   name: z.string().min(2, { message: '피어몰 이름은 2자 이상이어야 합니다' }),
   description: z.string().min(10, { message: '설명은 10자 이상이어야 합니다' }),
+  hashtags: z.string().optional(), // Add hashtags field (optional string)
   imageUrl: z.string().min(1, { message: '대표 이미지를 선택해주세요' }),
   representativeName: z.string().min(1, { message: '대표자 이름을 입력해주세요' }),
   contact: z.string().min(1, { message: '연락처를 입력해주세요' }),
@@ -77,6 +79,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       address: '',
       name: '',
       description: '',
+      hashtags: '', // Add default value for hashtags
       imageUrl: '',
       representativeName: '',
       contact: '',
@@ -99,7 +102,12 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
 
   // Form submission handler
   const onSubmit = (values: FormValues) => {
-    console.log('피어몰 생성 데이터:', values);
+    // Process hashtags (split string into array, trim whitespace)
+    const processedValues = {
+      ...values,
+      hashtags: values.hashtags?.split(',').map(tag => tag.trim()).filter(tag => tag !== '') || [],
+    };
+    console.log('피어몰 생성 데이터:', processedValues);
     
     // In a real implementation, you would send the data to a server
     toast({
@@ -189,6 +197,23 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                       className="min-h-[100px]"
                       {...field} 
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* 해시태그 */}
+            <FormField
+              control={form.control}
+              name="hashtags"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1">
+                    <Hash className="h-4 w-4" /> 해시태그 (쉼표로 구분)
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="예: #맛집, #핸드메이드, #서울" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

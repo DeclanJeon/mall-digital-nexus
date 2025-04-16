@@ -31,14 +31,28 @@ const FavoriteServicesSection: React.FC = () => {
     setIsModalOpen(false);
   };
 
-  const handleAddService = (name: string, link: string) => {
+  // 외부 서비스 추가 핸들러
+  const handleAddExternalService = (name: string, link: string) => {
     const newService: FavoriteService = {
-      id: Date.now(), // 임시 ID
+      id: Date.now(), 
       name,
-      link,
+      link, // 외부 서비스는 링크를 가짐
     };
     setServices([...services, newService]);
   };
+
+  // 내부 서비스 추가 핸들러 (임시 구현)
+  const handleAddInternalServices = (serviceIds: string[]) => {
+    // 실제 구현에서는 serviceIds를 사용하여 서비스 정보를 조회해야 함
+    const newInternalServices: FavoriteService[] = serviceIds.map((id, index) => ({
+      id: Date.now() + index, // 임시 ID
+      name: `내부 서비스 ${id.replace('service', '')}`, // 임시 이름
+      link: `/service/${id}`, // 내부 서비스 링크 (예시)
+      // iconUrl: getInternalServiceIcon(id) // 아이콘 URL 가져오는 로직 (필요시 구현)
+    }));
+    setServices([...services, ...newInternalServices]);
+  };
+
 
   return (
     <section className="mb-8">
@@ -83,7 +97,8 @@ const FavoriteServicesSection: React.FC = () => {
       <AddServiceModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onAddService={handleAddService}
+        onAddExternalService={handleAddExternalService} // 외부 서비스 추가 함수 전달
+        onAddInternalServices={handleAddInternalServices} // 내부 서비스 추가 함수 전달
       />
     </section>
   );

@@ -1,17 +1,19 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CreatePeermallModal from './CreatePeermallModal';
-import PeermallMap from './PeermallMap'; // PeermallMap import 추가
-import { Link } from 'react-router-dom';
-import { Search, User, Menu, Bell, Home, ShoppingBag, Users, Info, HelpCircle, LogIn, X, Layers, Map } from 'lucide-react'; // Layers 아이콘 추가
+import PeermallMap from './PeermallMap'; 
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, Menu, Bell, Home, ShoppingBag, Users, Layers, Map, UserCircle, LogOut, Settings, MessageSquare, LogIn, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
+import axios from 'axios';
 
 const Header = () => {
+  const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isCreatePeermallModalOpen, setIsCreatePeermallModalOpen] = useState(false);
-  const [isMapOpen, setIsMapOpen] = useState(false); // 지도 상태 추가
+  const [isMapOpen, setIsMapOpen] = useState(false); 
   const [notifications, setNotifications] = useState([
     { id: 1, type: 'message', content: '박성민님이 새로운 메시지를 보냈습니다.', time: '5분 전', read: false },
     { id: 2, type: 'purchase', content: '홍길동님이 디지털 아트워크를 구매했습니다.', time: '25분 전', read: false },
@@ -22,7 +24,7 @@ const Header = () => {
 
   const unreadCount = notifications.filter(notification => !notification.read).length;
 
-  const markAsRead = (id) => {
+  const markAsRead = (id: number) => {
     setNotifications(notifications.map(notification => 
       notification.id === id ? { ...notification, read: true } : notification
     ));
@@ -32,13 +34,11 @@ const Header = () => {
     setNotifications(notifications.map(notification => ({ ...notification, read: true })));
   };
 
-  // 지도 열기/닫기 핸들러
   const handleOpenMap = () => setIsMapOpen(true);
   const handleCloseMap = () => setIsMapOpen(false);
 
-  // 임시 위치 데이터 (실제 데이터로 교체 필요)
-  const selectedLocation = null; // 예: { lat: 37.5665, lng: 126.9780, address: '서울 시청', title: '서울 시청' };
-  const allLocations = [ // 예시 데이터, 실제로는 API 등에서 가져와야 함
+  const selectedLocation = null; 
+  const allLocations = [ 
       { lat: 37.5665, lng: 126.9780, address: '서울 시청', title: '서울 시청' },
       { lat: 37.5796, lng: 126.9770, address: '경복궁', title: '경복궁' },
   ];
@@ -47,10 +47,43 @@ const Header = () => {
     { name: '홈', icon: <Home className="h-5 w-5" />, path: '/' },
     { name: '쇼핑', icon: <ShoppingBag className="h-5 w-5" />, path: '/shopping' },
     { name: '커뮤니티', icon: <Users className="h-5 w-5" />, path: '/community' },
-    { name: '서비스', icon: <Layers className="h-5 w-5" />, path: '/service' }, // 서비스 링크 추가
-    // { name: '소개', icon: <Info className="h-5 w-5" />, path: '/about' },
-    // { name: '고객센터', icon: <HelpCircle className="h-5 w-5" />, path: '/help' },
+    { name: '서비스', icon: <Layers className="h-5 w-5" />, path: '/service' }, 
   ];
+
+  // Check login status on component mount
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) {
+          setIsLoggedIn(false);
+          return;
+        }
+        const response = await axios.get('http://localhost:9393/v1/users/find/myMalls', {
+          headers: {
+            Authorization: `Bearer ${accessToken.trim()}` // Trim the token to remove any whitespace
+          }
+        });
+        setIsLoggedIn(true);
+      } catch (error) {
+        console.error('Error checking login status:', error);
+        setIsLoggedIn(false);
+      }
+    };
+    checkLoginStatus();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      // Remove tokens from local storage or context
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      setIsLoggedIn(false);
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white shadow-sm">
@@ -80,7 +113,6 @@ const Header = () => {
             {/* Notifications */}
             <Popover open={showNotifications} onOpenChange={setShowNotifications}>
             <PopoverTrigger asChild>
-              {/* Wrap Button's children in a single element */}
               <Button variant="ghost" size="icon" className="relative">
                 <span> 
                   <Bell className="h-5 w-5" />
@@ -143,19 +175,56 @@ const Header = () => {
             </Popover>
 
             {/* Peer map Button */}
-            <Button variant="outline" size="sm" onClick={handleOpenMap}> {/* onClick 핸들러 추가 */}
+            <Button variant="outline" size="sm" onClick={handleOpenMap}> 
               <Map className="h-4 w-4 mr-2"/> 피어맵
             </Button>
             
-            {/* Login Button */}
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/login" className="flex items-center">
-                <LogIn className="h-4 w-4 mr-2" />
-                로그인
-              </Link>
-            </Button>
+            {/* Conditional Login/Profile Button */}
+            {isLoggedIn ? (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <UserCircle className="h-6 w-6" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48" align="end">
+                  <div className="flex flex-col gap-1">
+                    <Button 
+                      variant="ghost" 
+                      className="justify-start gap-2"
+                      onClick={() => navigate('/my-info')}
+                    >
+                      <Settings className="h-4 w-4" />
+                      내정보관리
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      className="justify-start gap-2"
+                      onClick={() => navigate('/messages')}
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      쪽지함
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      className="justify-start gap-2 text-red-600 hover:text-red-700"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4" />
+                      로그아웃
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/login" className="flex items-center">
+                  <LogIn className="h-4 w-4 mr-2" />
+                  로그인
+                </Link>
+              </Button>
+            )}
             
-            {/* Create Peermall Button */}
             <Button 
               onClick={() => setIsCreatePeermallModalOpen(true)} 
               variant="default" 
@@ -165,10 +234,6 @@ const Header = () => {
               피어몰 만들기
             </Button>
             
-            {/* Dynamic Links Button */}
-            {/* <Button variant="outline" size="sm" asChild>
-              <Link to="/curation-links">큐레이션 링크</Link>
-            </Button> */}
           </div>
         </nav>
 
@@ -199,12 +264,22 @@ const Header = () => {
               <div className="p-4 space-y-4">
                 <div className="flex items-center justify-between border-b pb-4">
                   <h2 className="text-xl font-bold">메뉴</h2>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to="/login" className="flex items-center">
-                      <LogIn className="h-4 w-4 mr-2" />
-                      로그인
-                    </Link>
-                  </Button>
+                  {/* Mobile Login/Profile */}
+                  {isLoggedIn ? (
+                     <Button variant="ghost" size="sm" asChild>
+                       <Link to="/my-info" className="flex items-center">
+                         <UserCircle className="h-5 w-5 mr-2" />
+                         내 정보
+                       </Link>
+                     </Button>
+                  ) : (
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link to="/login" className="flex items-center">
+                        <LogIn className="h-4 w-4 mr-2" />
+                        로그인
+                      </Link>
+                    </Button>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -218,16 +293,51 @@ const Header = () => {
                       <span className="ml-3">{item.name}</span>
                     </Link>
                   ))}
+                  
+                  {isLoggedIn ? (
+                    <div className="border-t pt-4 space-y-2">
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start gap-2"
+                        onClick={() => navigate('/my-info')}
+                      >
+                        <Settings className="h-4 w-4" />
+                        내정보관리
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start gap-2"
+                        onClick={() => navigate('/messages')}
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                        쪽지함
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start gap-2 text-red-600 hover:text-red-700"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="h-4 w-4" />
+                        로그아웃
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => navigate('/login')}
+                    >
+                      <LogIn className="h-4 w-4 mr-2" />
+                      로그인
+                    </Button>
+                  )}
+                  
                 </div>
                 
                 <div className="border-t pt-4">
-                  <Button className="w-full" asChild>
-                    <Link to="/create">피어몰 만들기</Link>
+                  <Button className="w-full" onClick={() => setIsCreatePeermallModalOpen(true)}>
+                    피어몰 만들기
                   </Button>
-                  
-                  {/* <Button variant="outline" className="w-full mt-2" asChild>
-                    <Link to="/curation-links">큐레이션 링크</Link>
-                  </Button> */}
                 </div>
               </div>
             </DrawerContent>
