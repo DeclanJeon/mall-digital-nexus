@@ -1,24 +1,21 @@
-
 import React, { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { 
-  MapPin, 
   Store, 
   FileText, 
   Image as ImageIcon, 
   User, 
   Phone, 
-  Map, 
-  Ticket, 
   X,
   Hash,
   Globe,
   Eye,
   EyeOff,
   Bookmark,
-  AlertCircle
+  AlertCircle,
+  Ticket
 } from 'lucide-react';
 
 import {
@@ -58,7 +55,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import PeermallMap from './PeermallMap';
 
 // Define the form schema with validation
 const formSchema = z.object({
@@ -71,7 +67,6 @@ const formSchema = z.object({
   imageUrl: z.string().min(1, { message: '대표 이미지를 선택해주세요' }),
   representativeName: z.string().min(1, { message: '대표자 이름을 입력해주세요' }),
   contact: z.string().min(1, { message: '연락처를 입력해주세요' }),
-  mapAddress: z.string().optional(),
   referralCode: z.string().optional(),
   hasReferral: z.boolean().default(false),
   isPublic: z.boolean().default(true),
@@ -92,9 +87,6 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
 }) => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("basic");
-  const [mapMarkerMode, setMapMarkerMode] = useState(false);
-  const [showMapHelpDialog, setShowMapHelpDialog] = useState(false);
-  const [showMapDialog, setShowMapDialog] = useState(false);
   
   // Initialize form
   const form = useForm<FormValues>({
@@ -109,7 +101,6 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       imageUrl: '',
       representativeName: '',
       contact: '',
-      mapAddress: '',
       referralCode: '',
       hasReferral: false,
       isPublic: true,
@@ -125,21 +116,6 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       const fakeImageUrl = URL.createObjectURL(file);
       form.setValue(fieldName, fakeImageUrl);
     }
-  };
-
-  // Handle map marker selection
-  const handleMapMarkerSelect = () => {
-    setShowMapDialog(true);
-  };
-
-  const handleLocationSelect = (location: { address: string; lat: number; lng: number }) => {
-    form.setValue('mapAddress', location.address);
-    setShowMapDialog(false);
-    
-    toast({
-      title: "위치 선택 완료",
-      description: "선택한 위치가 등록되었습니다.",
-    });
   };
 
   // Form submission handler
@@ -532,49 +508,6 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                   </div>
                   <Card>
                     <CardContent className="pt-4 space-y-4">
-                      {/* 맵 주소 */}
-                      <FormField
-                        control={form.control}
-                        name="mapAddress"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-1">
-                              <Map className="h-4 w-4 text-accent-100" /> 지도상 주소
-                              <span className="text-gray-400 text-xs ml-1">(선택사항)</span>
-                            </FormLabel>
-                            <FormControl>
-                              <div className="flex gap-2">
-                                <Input 
-                                  placeholder="서울시 강남구 테헤란로" 
-                                  {...field}
-                                  className="flex-1" 
-                                />
-                                <Button 
-                                  type="button"
-                                  variant="secondary"
-                                  onClick={handleMapMarkerSelect}
-                                >
-                                  <MapPin className="h-4 w-4 mr-2" />
-                                  지도에서 선택
-                                </Button>
-                                <Button 
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => setShowMapHelpDialog(true)}
-                                >
-                                  ?
-                                </Button>
-                              </div>
-                            </FormControl>
-                            <FormDescription className="text-xs text-gray-500 mt-1">
-                              지도에 표시할 위치를 직접 입력하거나 지도에서 선택할 수 있습니다.
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
                       {/* 추천인 코드 */}
                       <FormField
                         control={form.control}
@@ -667,37 +600,6 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
           </Form>
         </DialogContent>
       </Dialog>
-
-      {/* 지도 마커 도움말 다이얼로그 */}
-      <AlertDialog open={showMapHelpDialog} onOpenChange={setShowMapHelpDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>지도 마커 등록 안내</AlertDialogTitle>
-            <AlertDialogDescription>
-              피어몰의 위치를 지도에 등록하는 두 가지 방법이 있습니다:
-              <ul className="list-disc pl-5 mt-2 space-y-1">
-                <li>직접 주소를 입력</li>
-                <li>'지도에서 선택' 버튼을 클릭하여 지도에 마커 표시</li>
-              </ul>
-              <p className="mt-2">
-                지도에 등록된 피어몰은 사용자들이 지도 검색으로 쉽게 찾을 수 있습니다.
-              </p>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction>확인</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* 지도 선택 모달 */}
-      {showMapDialog && (
-        <PeermallMap 
-          isOpen={showMapDialog} 
-          onClose={() => setShowMapDialog(false)}
-          onLocationSelect={handleLocationSelect}
-        />
-      )}
     </>
   );
 };
