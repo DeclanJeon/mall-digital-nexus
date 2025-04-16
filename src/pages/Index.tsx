@@ -1,17 +1,16 @@
-
 import React, { useState, useCallback } from 'react';
-
 import Footer from '../components/Footer';
-
 import PeermallGrid from '../components/PeermallGrid';
 import CreatePeermall from '../components/CreatePeermall';
 import CommunicationWidget from '@/components/CommunicationWidget';
 import HashtagFilter, { HashtagFilterOption, PeermallType } from '@/components/HashtagFilter';
 import PeermallMap from '@/components/PeermallMap';
 import ServiceCardsSection from '@/components/ServiceCardsSection';
-import FavoriteServicesSection from '@/components/FavoriteServicesSection'; // 추가
-import Header from '@/components/Header';
-import CategoryNav from '@/components/CategoryNav';
+import FavoriteServicesSection from '@/components/FavoriteServicesSection';
+import EcosystemMap from '@/components/EcosystemMap';
+import TrendingSlider from '@/components/TrendingSlider';
+import CommunityHighlights from '@/components/CommunityHighlights';
+import InfoHub from '@/components/InfoHub';
 
 interface Location {
   lat: number;
@@ -203,9 +202,7 @@ const Index = () => {
 
   const allMalls = [...trendingMalls, ...recentMalls, ...recommendedMalls];
 
-  const [filteredTrending, setFilteredTrending] = useState(trendingMalls);
-  const [filteredRecent, setFilteredRecent] = useState(recentMalls);
-  const [filteredRecommended, setFilteredRecommended] = useState(recommendedMalls);
+  const [filteredMalls, setFilteredMalls] = useState(allMalls);
   
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
@@ -220,24 +217,25 @@ const Index = () => {
     }));
 
   const handleFilterChange = useCallback((selectedHashtags: string[], selectedTypes: PeermallType[]) => {
-    const filterMalls = (malls: typeof trendingMalls, type: 'trending' | 'recent' | 'recommended') => {
-      if (!selectedTypes.includes(type) && !selectedTypes.includes('all')) {
-        return [];
-      }
-      
-      if (selectedHashtags.includes('전체')) {
-        return malls;
-      }
-      
-      return malls.filter(mall => 
+    if (selectedHashtags.includes('전체') && (selectedTypes.includes('all') || selectedTypes.length === 0)) {
+      setFilteredMalls(allMalls);
+      return;
+    }
+    
+    let filtered = allMalls;
+    
+    if (selectedTypes.length > 0 && !selectedTypes.includes('all')) {
+      filtered = filtered.filter(mall => selectedTypes.includes(mall.type as PeermallType));
+    }
+    
+    if (selectedHashtags.length > 0 && !selectedHashtags.includes('전체')) {
+      filtered = filtered.filter(mall => 
         mall.tags && mall.tags.some(tag => selectedHashtags.includes(tag))
       );
-    };
+    }
     
-    setFilteredTrending(filterMalls(trendingMalls, 'trending'));
-    setFilteredRecent(filterMalls(recentMalls, 'recent'));
-    setFilteredRecommended(filterMalls(recommendedMalls, 'recommended'));
-  }, []);
+    setFilteredMalls(filtered);
+  }, [allMalls]);
 
   const handleOpenMap = useCallback((location: Location) => {
     setSelectedLocation(location);
@@ -252,46 +250,44 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <main className="flex-grow bg-bg-100">
         <div className="container mx-auto px-4 py-6">
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <div className="col-span-1 md:col-span-2">
-              {/* 즐겨찾는 서비스 섹션 추가 */}
-              <FavoriteServicesSection />
-              <HashtagFilter
-                hashtags={hashtagOptions}
-                onFilterChange={handleFilterChange}
-              />
-
-              {filteredTrending.length > 0 && (
-                <PeermallGrid 
-                  title="인기 피어몰" 
-                  malls={filteredTrending}
-                  onOpenMap={handleOpenMap}
-                />
-              )}
-            </div>
-            {/* <ActivityFeed /> */}
+          <section className="mb-8">
+            <FavoriteServicesSection />
+            <HashtagFilter
+              hashtags={hashtagOptions}
+              onFilterChange={handleFilterChange}
+            />
           </section>
-
-          <section>
+          
+          <TrendingSlider />
+          
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div className="md:col-span-2">
+              <PeermallGrid 
+                title="피어몰 탐색" 
+                malls={filteredMalls}
+                onOpenMap={handleOpenMap}
+                viewMore={false}
+              />
+            </div>
+            
+            <div className="md:col-span-1">
+              <EcosystemMap />
+            </div>
+          </section>
+          
+          <section className="mb-12">
             <CreatePeermall />
           </section>
           
-          {filteredRecent.length > 0 && (
-            <PeermallGrid 
-              title="최근 피어몰" 
-              malls={filteredRecent}
-              onOpenMap={handleOpenMap}
-            />
-          )}
+          <section className="mb-12">
+            <InfoHub />
+          </section>
           
-          {filteredRecommended.length > 0 && (
-            <PeermallGrid 
-              title="추천 피어몰" 
-              malls={filteredRecommended}
-              onOpenMap={handleOpenMap}
-            />
-          )}
+          <section className="mb-12">
+            <CommunityHighlights />
+          </section>
         </div>
+        
         <ServiceCardsSection />
       </main>
       

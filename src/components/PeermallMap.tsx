@@ -1,779 +1,513 @@
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog"
+import { Slider } from "@/components/ui/slider"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Search } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Button } from "@/components/ui/button";
 
-import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { 
-  MapContainer, 
-  TileLayer, 
-  Marker, 
-  Popup, 
-  useMap,
-  ZoomControl,
-  LayersControl,
-  FeatureGroup,
-  Circle,
-  Polyline,
-  useMapEvents
-} from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-routing-machine';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
-import 'leaflet-measure/dist/leaflet-measure.css';
-import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import MarkerClusterGroup from 'react-leaflet-cluster';
+import 'leaflet-control-geocoder';
+import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 
-// Fix for Leaflet default marker icons
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-import iconRetina from 'leaflet/dist/images/marker-icon-2x.png';
-
-// Custom markers
-const restaurantIcon = '/markers/restaurant-marker.png';
-const hotelIcon = '/markers/hotel-marker.png';
-const attractionIcon = '/markers/attraction-marker.png';
-
-// Set up default icons
-const DefaultIcon = L.icon({
-  iconUrl: icon,
-  iconRetinaUrl: iconRetina,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-  shadowSize: [41, 41]
+// Leaflet 이미지 경로 설정 (webpack 사용 시 필요)
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png')
 });
-
-L.Marker.prototype.options.icon = DefaultIcon;
-
-// Custom icons for different location types
-const icons = {
-  restaurant: L.icon({
-    iconUrl: restaurantIcon || icon,
-    shadowUrl: iconShadow,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32]
-  }),
-  hotel: L.icon({
-    iconUrl: hotelIcon || icon,
-    shadowUrl: iconShadow,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32]
-  }),
-  attraction: L.icon({
-    iconUrl: attractionIcon || icon,
-    shadowUrl: iconShadow,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32]
-  }),
-  default: DefaultIcon
-};
-
-// Define interface for Nominatim search results
-interface NominatimResult {
-  place_id: number;
-  licence: string;
-  osm_type: string;
-  osm_id: number;
-  boundingbox: string[];
-  lat: string;
-  lon: string;
-  display_name: string;
-  class: string;
-  type: string;
-  importance: number;
-  icon?: string;
-}
-
-interface Location {
-  id?: string;
-  lat: number;
-  lng: number;
-  address: string;
-  title: string;
-  type?: 'restaurant' | 'hotel' | 'attraction' | 'default';
-  description?: string;
-  phone?: string;
-  website?: string;
-  openingHours?: string;
-}
 
 interface PeermallMapProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedLocation?: Location | null;
-  allLocations?: Location[];
-  onLocationSelect?: (location: {address: string; lat: number; lng: number}) => void;
+  selectedLocation: { lat: number; lng: number; address: string; title: string } | null;
+  allLocations: { lat: number; lng: number; address: string; title: string }[];
 }
 
-// Component to handle map center changes
-const ChangeView = ({ center, zoom }: { center: [number, number], zoom: number }) => {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, zoom);
-  }, [center, map, zoom]);
-  return null;
-};
-
-// Current location component
-const LocationMarker = () => {
-  const [position, setPosition] = useState<L.LatLng | null>(null);
-  const map = useMapEvents({
-    locationfound(e) {
-      setPosition(e.latlng);
-      map.flyTo(e.latlng, map.getZoom());
-    }
-  });
-
-  useEffect(() => {
-    map.locate();
-  }, [map]);
-
-  return position === null ? null : (
-    <Marker 
-      position={position}
-      icon={L.divIcon({
-        html: `
-          <div style="
-            background-color: #4285F4;
-            border: 2px solid white;
-            border-radius: 50%;
-            height: 16px;
-            width: 16px;
-            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.3), 0 0 10px rgba(66, 133, 244, 0.5);
-          "></div>
-        `,
-        className: "current-location-marker",
-        iconSize: [16, 16],
-        iconAnchor: [8, 8]
-      })}
-    >
-      <Popup>현재 위치</Popup>
-    </Marker>
-  );
-};
-
-// Search component using Nominatim - 메모이제이션 적용
-const SearchBox = memo(({ onSelectLocation }: { onSelectLocation: (location: Location) => void }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [results, setResults] = useState<NominatimResult[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-
-  const handleSearch = async () => {
-    if (searchTerm.length < 3) return;
-    
-    setIsSearching(true);
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchTerm)}`
-      );
-      const data: NominatimResult[] = await response.json();
-      setResults(data);
-      setShowResults(true);
-    } catch (error) {
-      console.error('검색 중 오류가 발생했습니다:', error);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const handleSelect = (result: NominatimResult) => {
-    onSelectLocation({
-      id: `search-${result.place_id}`,
-      lat: parseFloat(result.lat),
-      lng: parseFloat(result.lon),
-      title: result.display_name.split(',')[0],
-      address: result.display_name,
-      type: 'default'
-    });
-    setShowResults(false);
-    setSearchTerm('');
-  };
-
-  return (
-    <div className="absolute top-4 left-4 z-10 w-72">
-      <div className="relative">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-          placeholder="위치 검색..."
-          className="w-full px-4 py-2 rounded-lg shadow-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          onClick={handleSearch}
-          disabled={isSearching}
-          className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
-        >
-          {isSearching ? '검색 중...' : '🔍'}
-        </button>
-      </div>
-      
-      {showResults && results.length > 0 && (
-        <div className="mt-2 bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto">
-          {results.map((result) => (
-            <div
-              key={result.place_id}
-              onClick={() => handleSelect(result)}
-              className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0"
-            >
-              <div className="font-medium">{result.display_name.split(',')[0]}</div>
-              <div className="text-sm text-gray-500 truncate">{result.display_name}</div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-});
-
-// Control panel component - 메모이제이션 적용
-const ControlPanel = ({
-  onLocateMe,
-  onToggleRouting,
-  onToggleMeasure,
-  isRoutingActive,
-  isMeasureActive
-}: {
-  onLocateMe: () => void;
-  onToggleRouting: () => void;
-  onToggleMeasure: () => void;
-  isRoutingActive: boolean;
-  isMeasureActive: boolean;
-}) => {
-  return (
-    <div className="absolute bottom-4 left-4 z-10 bg-white rounded-lg shadow-md">
-      <div className="flex flex-col p-2">
-        <button
-          onClick={onLocateMe}
-          className="mb-2 p-2 rounded hover:bg-gray-100 flex items-center"
-          title="내 위치 찾기"
-        >
-          <span role="img" aria-label="내 위치">📍</span>
-          <span className="ml-2">내 위치</span>
-        </button>
-        
-        {/* <button
-          onClick={onToggleRouting}
-          className={`mb-2 p-2 rounded hover:bg-gray-100 flex items-center ${isRoutingActive ? 'bg-blue-100' : ''}`}
-          title="경로 찾기"
-        >
-          <span role="img" aria-label="경로">🔄</span>
-          <span className="ml-2">경로 찾기</span>
-        </button> */}
-        
-        {/* <button
-          onClick={onToggleMeasure}
-          className={`p-2 rounded hover:bg-gray-100 flex items-center ${isMeasureActive ? 'bg-blue-100' : ''}`}
-          title="거리 측정"
-        >
-          <span role="img" aria-label="측정">📏</span>
-          <span className="ml-2">거리 측정</span>
-        </button> */}
-      </div>
-    </div>
-  );
-};
-
-// InfoPanel component - 메모이제이션 적용 및 닫기 버튼 추가
-const InfoPanel = memo(({ location, onClose }: { location: Location | null; onClose: () => void }) => {
-  if (!location) return null;
-  
-  return (
-    <div className="absolute top-4 right-4 z-10 bg-white rounded-lg shadow-md p-4 w-72">
-      <button 
-        onClick={onClose} 
-        className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-400"
-        aria-label="정보 패널 닫기"
-      >
-        ✕
-      </button>
-      <h3 className="text-lg font-bold mb-2 pr-6">{location.title}</h3> {/* 제목과 닫기 버튼 겹침 방지 */}
-      <p className="text-sm text-gray-600 mb-2">{location.address}</p>
-      
-      {location.description && (
-        <p className="text-sm mb-2">{location.description}</p>
-      )}
-      
-      {location.phone && (
-        <div className="flex items-center mb-1">
-          <span role="img" aria-label="전화" className="mr-2">📞</span>
-          <a href={`tel:${location.phone}`} className="text-blue-500 hover:underline">{location.phone}</a>
-        </div>
-      )}
-      
-      {location.website && (
-        <div className="flex items-center mb-1">
-          <span role="img" aria-label="웹사이트" className="mr-2">🌐</span>
-          <a href={location.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">웹사이트 방문</a>
-        </div>
-      )}
-      
-      {location.openingHours && (
-        <div className="flex items-center">
-          <span role="img" aria-label="영업시간" className="mr-2">🕒</span>
-          <span>{location.openingHours}</span>
-        </div>
-      )}
-    </div>
-  );
-});
-
-// Routing control component
-const RoutingControl = ({ 
-  start, 
-  end, 
-  isActive 
-}: { 
-  start: [number, number] | null; 
-  end: [number, number] | null; 
-  isActive: boolean;
-}) => {
-  const map = useMap();
-  const routingControlRef = useRef<L.Routing.Control | null>(null); 
-  
-  useEffect(() => {
-    if (!isActive || !start || !end) {
-      if (routingControlRef.current) {
-        try {
-          routingControlRef.current.remove();
-        } catch (error) {
-          console.error('Error removing routing control:', error);
-        }
-        routingControlRef.current = null;
-      }
-      return;
-    }
-
-    try {
-      if (!routingControlRef.current && L.Routing && typeof L.Routing.control === 'function') { 
-        routingControlRef.current = L.Routing.control({
-          waypoints: [
-            L.latLng(start[0], start[1]),
-            L.latLng(end[0], end[1])
-          ],
-          routeWhileDragging: true,
-          showAlternatives: true,
-          altLineOptions: {
-            styles: [
-              { color: 'black', opacity: 0.15, weight: 9 },
-              { color: 'white', opacity: 0.8, weight: 6 },
-              { color: 'blue', opacity: 0.5, weight: 2 }
-            ]
-          },
-          lineOptions: {
-            styles: [
-              { color: '#6366F1', opacity: 0.8, weight: 5 }
-            ],
-            extendToWaypoints: true,
-            missingRouteTolerance: 0
-          },
-          addWaypoints: false,
-          draggableWaypoints: true,
-          fitSelectedRoutes: true,
-          show: false
-        }).addTo(map);
-      } else if (routingControlRef.current) {
-        routingControlRef.current.setWaypoints([
-          L.latLng(start[0], start[1]),
-          L.latLng(end[0], end[1])
-        ]);
-      }
-    } catch (error) {
-      console.error('Error with routing control:', error);
-    }
-
-    return () => {
-      if (routingControlRef.current) {
-        try {
-          routingControlRef.current.remove();
-        } catch (error) {
-          console.error('Error removing routing control:', error);
-        }
-        routingControlRef.current = null;
-      }
-    };
-  }, [map, start, end, isActive]);
-
-  return null;
-};
-
-// Measure 컨트롤 수정
-const MeasureControl = ({ isActive }: { isActive: boolean }) => {
-  const map = useMap();
-  const measureControlRef = useRef<any>(null);
-
-  useEffect(() => {
-    // 먼저 L.Control.Measure가 존재하는지 확인
-    const hasMeasureControl = L.Control && (L.Control as any).Measure;
-    
-    if (!isActive) {
-      if (measureControlRef.current) {
-        try {
-          map.removeControl(measureControlRef.current);
-        } catch (error) {
-          console.error('Error removing measure control:', error);
-        }
-        measureControlRef.current = null;
-      }
-      return;
-    }
-
-    if (!measureControlRef.current && hasMeasureControl) {
-      try {
-        measureControlRef.current = new (L.Control as any).Measure({
-          position: 'topright',
-          primaryLengthUnit: 'meters',
-          secondaryLengthUnit: 'kilometers',
-          primaryAreaUnit: 'sqmeters',
-          secondaryAreaUnit: 'hectares',
-          activeColor: '#3388ff',
-          completedColor: '#33cc33',
-          captureZIndex: 10000
-        }).addTo(map);
-      } catch (error) {
-        console.error('Error initializing measure control:', error);
-      }
-    } else if (!hasMeasureControl) {
-      console.warn('거리 측정 기능을 사용할 수 없습니다.');
-    }
-
-    return () => {
-      if (measureControlRef.current) {
-        try {
-          map.removeControl(measureControlRef.current);
-        } catch (error) {
-          console.error('Error removing measure control:', error);
-        }
-        measureControlRef.current = null;
-      }
-    };
-  }, [map, isActive]);
-
-  return null;
-};
-
-// 지도 이벤트 감시하는 컴포넌트
-const MapEventHandler = ({ onRouteEndChange, isRoutingActive, routeStart, onMapClick }: {
-  onRouteEndChange: (end: [number, number]) => void;
-  isRoutingActive: boolean;
-  routeStart: [number, number] | null;
-  onMapClick?: (latlng: {lat: number, lng: number}, address: string) => void;
-}) => {
-  useMapEvents({
-    click: async (e) => {
-      if (isRoutingActive && routeStart) {
-        onRouteEndChange([e.latlng.lat, e.latlng.lng]);
-      }
-      
-      if (onMapClick) {
-        try {
-          // Reverse geocode the clicked location
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.latlng.lat}&lon=${e.latlng.lng}&zoom=18&addressdetails=1`
-          );
-          const data = await response.json();
-          const address = data.display_name || "알 수 없는 위치";
-          onMapClick({lat: e.latlng.lat, lng: e.latlng.lng}, address);
-        } catch (error) {
-          console.error('위치 정보를 가져오는 중 오류가 발생했습니다:', error);
-          onMapClick({lat: e.latlng.lat, lng: e.latlng.lng}, "알 수 없는 위치");
-        }
-      }
-    }
-  });
-  return null;
-};
-
-// Main Map Component
-const PeermallMap = ({ isOpen, onClose, selectedLocation, allLocations = [], onLocationSelect }: PeermallMapProps) => {
-  // 모든 Hook을 최상위에 정의
+const PeermallMap: React.FC<PeermallMapProps> = ({ isOpen, onClose, selectedLocation, allLocations }) => {
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
-  const mapRef = useRef<L.Map | null>(null);
-  const [mapCenter, setMapCenter] = useState<[number, number]>(
-    selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : [37.5665, 126.9780]
-  );
-  const [mapZoom, setMapZoom] = useState(13);
-  const [activeLocation, setActiveLocation] = useState<Location | null>(selectedLocation);
-  const [isRoutingActive, setIsRoutingActive] = useState(false);
-  const [isMeasureActive, setIsMeasureActive] = useState(false);
-  const [routeStart, setRouteStart] = useState<[number, number] | null>(null);
-  const [routeEnd, setRouteEnd] = useState<[number, number] | null>(null);
-  const [mapReady, setMapReady] = useState(false);
-  const [selectedMarker, setSelectedMarker] = useState<Location | null>(null);
+  const [routingControl, setRoutingControl] = useState<L.Routing.Control | null>(null);
+  const [startAddress, setStartAddress] = useState('');
+  const [destinationAddress, setDestinationAddress] = useState('');
+  const [distance, setDistance] = useState<number | null>(null);
+	const [duration, setDuration] = useState<number | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isRouteCalculated, setIsRouteCalculated] = useState(false);
+  const [isStartAddressValid, setIsStartAddressValid] = useState(true);
+  const [isDestinationAddressValid, setIsDestinationAddressValid] = useState(true);
+  const [searchRadius, setSearchRadius] = useState(1);
+  const [filteredLocations, setFilteredLocations] = useState(allLocations);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
+  const [isRouteDialogOpen, setIsRouteDialogOpen] = useState(false);
+  const [isRadiusDialogOpen, setIsRadiusDialogOpen] = useState(false);
+  const [isAddressSearchDialogOpen, setIsAddressSearchDialogOpen] = useState(false);
+  const [addressSearchResult, setAddressSearchResult] = useState<any>(null);
+  const [addressSearchQuery, setAddressSearchQuery] = useState('');
+  const [isAddressSearchResultValid, setIsAddressSearchResultValid] = useState(true);
+  const [isAddressSearchLoading, setIsAddressSearchLoading] = useState(false);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast()
 
-  // 메모이제이션된 이벤트 핸들러
-  const handleMapRef = useCallback((map: L.Map) => {
-    mapRef.current = map;
-    setMapInstance(map);
-    setMapReady(true);
-  }, []);
+  const categories = [
+    { value: '전체', label: '전체' },
+    { value: '음식점', label: '음식점' },
+    { value: '카페', label: '카페' },
+    { value: '미용실', label: '미용실' },
+    { value: '병원', label: '병원' },
+    { value: '약국', label: '약국' },
+    { value: '편의점', label: '편의점' },
+    { value: '마트', label: '마트' },
+    { value: '주차장', label: '주차장' },
+    { value: '기타', label: '기타' },
+  ];
 
-  // 내 위치 찾기 함수 수정
-  const handleLocateMe = () => {
-    if (mapInstance && typeof mapInstance.locate === 'function') {
-      mapInstance.locate({setView: true, maxZoom: 16});
-    } else {
-      console.warn("지도 위치 찾기 기능을 사용할 수 없습니다.");
-      // 대안으로 현재 위치를 표시하는 메시지를 보여줄 수 있습니다
-      alert("현재 위치를 찾을 수 없습니다. 브라우저의 위치 권한을 확인해주세요.");
-    }
+  const routeOptions = {
+    styles: [
+      { color: 'black', opacity: 0.15, weight: 9 },
+      { color: 'white', opacity: 0.8, weight: 6 },
+      { color: '#4A90E2', opacity: 1, weight: 3 }
+    ],
+    extendToWaypoints: true,
+    missingRouteTolerance: 1
   };
 
-  const handleToggleRouting = useCallback(() => {
-    setIsRoutingActive((prev) => !prev);
-    if (!isRoutingActive) {
-      setRouteStart(mapCenter);
-      setRouteEnd(selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : null);
-      setIsMeasureActive(false);
-    }
-  }, [isRoutingActive, mapCenter, selectedLocation]);
+  const isValidCoordinates = (lat: number, lng: number) => {
+    return typeof lat === 'number' && !isNaN(lat) && typeof lng === 'number' && !isNaN(lng);
+  };
 
-  const handleToggleMeasure = useCallback(() => {
-    setIsMeasureActive((prev) => !prev);
-    if (!isMeasureActive) {
-      setIsRoutingActive(false);
-    }
-  }, [isMeasureActive]);
+  const handleAddressSearch = async () => {
+    setIsAddressSearchLoading(true);
+    setIsAddressSearchResultValid(true);
+    try {
+      const geocodingUrl = `https://nominatim.openstreetmap.org/search?q=${addressSearchQuery}&format=jsonv2`;
+      const response = await fetch(geocodingUrl);
+      const data = await response.json();
 
-  const handleSelectLocation = useCallback(
-    (location: Location) => {
-      setActiveLocation(location);
-      setMapCenter([location.lat, location.lng]);
-      setMapZoom(16);
-      if (isRoutingActive) {
-        setRouteEnd([location.lat, location.lng]);
+      if (data && data.length > 0) {
+        setAddressSearchResult({
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon),
+          address: data[0].display_name
+        });
+        setIsAddressSearchDialogOpen(false);
+      } else {
+        setAddressSearchResult(null);
+        setIsAddressSearchResultValid(false);
       }
-    },
-    [isRoutingActive]
-  );
+    } catch (error) {
+      console.error('Error during address search:', error);
+      setAddressSearchResult(null);
+      setIsAddressSearchResultValid(false);
+    } finally {
+      setIsAddressSearchLoading(false);
+    }
+  };
 
-  const handleRouteEndChange = useCallback((end: [number, number]) => {
-    setRouteEnd(end);
-  }, []);
+  const handleRadiusChange = (value: number[]) => {
+    setSearchRadius(value[0]);
+  };
 
-  // InfoPanel 닫기 핸들러
-  const handleCloseInfoPanel = useCallback(() => {
-    setActiveLocation(null);
-  }, []);
+  const filterLocationsByRadius = useCallback(() => {
+    if (!addressSearchResult || !mapInstance) {
+      return;
+    }
 
-  // 지도 클릭 핸들러
-  const handleMapClick = useCallback((latlng: {lat: number, lng: number}, address: string) => {
-    const newLocation: Location = {
-      id: `selected-${Date.now()}`,
-      lat: latlng.lat,
-      lng: latlng.lng,
-      title: "선택한 위치",
-      address: address,
-      type: "default"
-    };
-    
-    setSelectedMarker(newLocation);
-    setActiveLocation(newLocation);
-    
-    // 선택한 위치 정보를 부모 컴포넌트로 전달
-    if (onLocationSelect) {
-      onLocationSelect({
-        lat: latlng.lat,
-        lng: latlng.lng,
-        address: address
+    const center = L.latLng(addressSearchResult.lat, addressSearchResult.lng);
+
+    const filtered = allLocations.filter(location => {
+      const locationLatLng = L.latLng(location.lat, location.lng);
+      const distance = center.distanceTo(locationLatLng); // meters
+
+      return distance <= searchRadius * 1000; // Convert km to meters
+    });
+
+    setFilteredLocations(filtered);
+  }, [addressSearchResult, allLocations, searchRadius, mapInstance]);
+
+  useEffect(() => {
+    if (addressSearchResult) {
+      filterLocationsByRadius();
+    }
+  }, [addressSearchResult, filterLocationsByRadius]);
+
+  const handleCategoryChange = (category: string | null) => {
+    setSelectedCategory(category);
+    setIsCategoryDialogOpen(false);
+  };
+
+  const filterLocationsByCategory = useCallback(() => {
+    if (!selectedCategory || selectedCategory === '전체') {
+      return allLocations;
+    }
+
+    // 여기에 카테고리 필터링 로직을 추가하세요.
+    // 예를 들어, 각 location 객체에 category 속성이 있다고 가정합니다.
+    const filtered = allLocations.filter(location => {
+      // location.category가 selectedCategory와 일치하는지 확인
+      return true;
+    });
+
+    return filtered;
+  }, [allLocations, selectedCategory]);
+
+  useEffect(() => {
+    const filtered = filterLocationsByCategory();
+    setFilteredLocations(filtered);
+  }, [filterLocationsByCategory]);
+
+  const calculateRoute = useCallback(async () => {
+    setIsStartAddressValid(true);
+    setIsDestinationAddressValid(true);
+
+    if (!startAddress) {
+      setIsStartAddressValid(false);
+      return;
+    }
+
+    if (!destinationAddress) {
+      setIsDestinationAddressValid(false);
+      return;
+    }
+
+    try {
+      const startGeocodingUrl = `https://nominatim.openstreetmap.org/search?q=${startAddress}&format=jsonv2`;
+      const destinationGeocodingUrl = `https://nominatim.openstreetmap.org/search?q=${destinationAddress}&format=jsonv2`;
+
+      const startResponse = await fetch(startGeocodingUrl);
+      const destinationResponse = await fetch(destinationGeocodingUrl);
+
+      const startData = await startResponse.json();
+      const destinationData = await destinationResponse.json();
+
+      if (!startData || startData.length === 0) {
+        setIsStartAddressValid(false);
+        return;
+      }
+
+      if (!destinationData || destinationData.length === 0) {
+        setIsDestinationAddressValid(false);
+        return;
+      }
+
+      const startLatLng = L.latLng(parseFloat(startData[0].lat), parseFloat(startData[0].lon));
+      const destinationLatLng = L.latLng(parseFloat(destinationData[0].lat), parseFloat(destinationData[0].lon));
+
+      if (!isValidCoordinates(startLatLng.lat, startLatLng.lng) || !isValidCoordinates(destinationLatLng.lat, destinationLatLng.lng)) {
+        toast({
+          title: "경로 계산 실패",
+          description: "잘못된 좌표입니다.",
+        })
+        return;
+      }
+
+      if (!mapInstance) {
+        toast({
+          title: "경로 계산 실패",
+          description: "지도 인스턴스를 불러오지 못했습니다.",
+        })
+        return;
+      }
+
+      if (routingControl) {
+        mapInstance.removeControl(routingControl);
+      }
+
+      const newRoutingControl = L.Routing.control({
+        waypoints: [startLatLng, destinationLatLng],
+        routeWhileDragging: false,
+        showAlternatives: false,
+        useMapbox: false,
+        lineOptions: routeOptions,
+        geocoder: L.Control.Geocoder.nominatim(),
       });
+
+      newRoutingControl.addTo(mapInstance);
+
+      newRoutingControl.on('routesfound', (e) => {
+        const route = e.routes[0];
+        setDistance(route.summary.totalDistance / 1000);
+        setDuration(route.summary.totalTime / 60);
+        setIsRouteCalculated(true);
+      });
+
+      newRoutingControl.on('routingerror', (e) => {
+        toast({
+          title: "경로 계산 실패",
+          description: "경로를 찾을 수 없습니다. 주소를 다시 확인해주세요.",
+        })
+      });
+
+      setRoutingControl(newRoutingControl);
+      setIsRouteCalculated(true);
+      setIsRouteDialogOpen(false);
+    } catch (error) {
+      console.error('Error during geocoding or routing:', error);
+      toast({
+        title: "경로 계산 실패",
+        description: "주소를 불러오는 도중 오류가 발생했습니다.",
+      })
     }
-  }, [onLocationSelect]);
+  }, [startAddress, destinationAddress, mapInstance, routingControl, toast]);
 
-  // 조건문은 Hook 정의 이후에 배치
-  if (!isOpen) return null;
+  const initializeMap = useCallback(() => {
+    if (!mapRef.current || mapInstance) return;
 
-  // 선택된 위치와 모든 위치에 대한 마커를 렌더링하는 함수
-  const renderMarkers = () => {
-    // 선택된 마커가 있으면 그것만 표시
-    if (selectedMarker) {
-      return (
-        <Marker
-          position={[selectedMarker.lat, selectedMarker.lng]}
-          icon={DefaultIcon}
-        >
-          <Popup>
-            <div>
-              <strong>{selectedMarker.title}</strong>
-              <p>{selectedMarker.address}</p>
-              <button 
-                className="px-2 py-1 bg-accent-100 text-white rounded mt-2 text-xs"
-                onClick={() => {
-                  if (onLocationSelect) {
-                    onLocationSelect({
-                      lat: selectedMarker.lat,
-                      lng: selectedMarker.lng,
-                      address: selectedMarker.address
-                    });
-                    onClose();
-                  }
-                }}
-              >
-                이 위치로 선택하기
-              </button>
-            </div>
-          </Popup>
-        </Marker>
-      );
+    const newMapInstance = L.map(mapRef.current, {
+      center: [37.5665, 126.9780],
+      zoom: 12,
+      zoomControl: false,
+      attributionControl: false,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(newMapInstance);
+
+    setMapInstance(newMapInstance);
+  }, [mapInstance]);
+
+  useEffect(() => {
+    if (isOpen) {
+      initializeMap();
+    } else if (mapInstance) {
+      mapInstance.remove();
+      setMapInstance(null);
+      setRoutingControl(null);
     }
-    
-    // 그렇지 않으면 전체 위치 목록 표시
-    if (!allLocations.length) return null;
+  }, [isOpen, initializeMap, mapInstance]);
 
-    return (
-      <MarkerClusterGroup>
-        {allLocations.map((location, index) => {
-          const isSelected = selectedLocation && 
-            location.lat === selectedLocation.lat && 
-            location.lng === selectedLocation.lng;
-          
-          const locationType = location.type || 'default';
-          const markerIcon = icons[locationType] || DefaultIcon;
-          
-          return (
-            <Marker
-              key={location.id || `location-${index}`}
-              position={[location.lat, location.lng]}
-              icon={markerIcon}
-              eventHandlers={{
-                click: () => handleSelectLocation(location)
-              }}
-            >
-              <Popup>
-                <div>
-                  <strong>{location.title}</strong>
-                  <p>{location.address}</p>
-                  {location.description && <p>{location.description}</p>}
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
-      </MarkerClusterGroup>
-    );
-  };
+  useEffect(() => {
+    if (!mapInstance) return;
 
-  // 선택된 위치 주변의 원을 그리는 함수 (500m 반경)
-  const renderCircle = () => {
-    if (!selectedLocation) return null;
-    
-    return (
-      <FeatureGroup>
-        <Circle
-          center={[selectedLocation.lat, selectedLocation.lng]}
-          radius={500}
-          pathOptions={{
-            color: '#3388ff',
-            fillColor: '#3388ff',
-            fillOpacity: 0.1
-          }}
-        />
-      </FeatureGroup>
-    );
-  };
+    const markers: L.Marker[] = [];
+
+    allLocations.forEach(location => {
+      const marker = L.marker([location.lat, location.lng]).addTo(mapInstance);
+      marker.bindPopup(`<b>${location.title}</b><br>${location.address}`);
+      markers.push(marker);
+    });
+
+    return () => {
+      markers.forEach(marker => mapInstance.removeLayer(marker));
+    };
+  }, [mapInstance, allLocations]);
+
+  useEffect(() => {
+    if (!mapInstance) return;
+
+    if (selectedLocation) {
+      mapInstance.flyTo([selectedLocation.lat, selectedLocation.lng], 15);
+    }
+
+    return () => {
+    };
+  }, [mapInstance, selectedLocation]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-6xl h-[90vh] flex flex-col">
-        <div className="p-4 border-b flex justify-between items-center">
-          <h2 className="text-xl font-bold">지도에서 위치 선택</h2>
-          <div className="flex items-center gap-2">
-            {selectedMarker && (
-              <Button
-                onClick={() => {
-                  if (onLocationSelect && selectedMarker) {
-                    onLocationSelect({
-                      lat: selectedMarker.lat,
-                      lng: selectedMarker.lng,
-                      address: selectedMarker.address
-                    });
-                    onClose();
-                  }
-                }}
-                className="bg-accent-100 hover:bg-accent-100/90 text-white text-sm"
-              >
-                이 위치로 선택
-              </Button>
-            )}
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 p-2">✕</button>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[825px] h-[700px]">
+        <DialogHeader>
+          <DialogTitle>피어맵</DialogTitle>
+          <DialogDescription>
+            피어몰의 위치를 확인하고, 길찾기를 할 수 있습니다.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex h-full">
+          <div className="w-2/3">
+            <div ref={mapRef} className="h-[600px]" />
+          </div>
+
+          <div className="w-1/3 p-4 flex flex-col">
+            <Button onClick={() => setIsSearchDialogOpen(true)} className="mb-2">
+              주소로 검색
+            </Button>
+            <Button onClick={() => setIsCategoryDialogOpen(true)} className="mb-2">
+              카테고리로 검색
+            </Button>
+            <Button onClick={() => setIsRadiusDialogOpen(true)} className="mb-2">
+              반경으로 검색
+            </Button>
+            <Button onClick={() => setIsRouteDialogOpen(true)} className="mb-2">
+              길찾기
+            </Button>
           </div>
         </div>
 
-        <div className="p-4 border-b bg-blue-50">
-          <p className="text-sm text-blue-800">지도를 클릭하여 피어몰의 위치를 지정할 수 있습니다.</p>
-        </div>
+        <DialogFooter>
+          <Button type="submit" onClick={onClose}>닫기</Button>
+        </DialogFooter>
+      </DialogContent>
 
-        <div className="flex-grow relative overflow-hidden">
-          <MapContainer
-            center={mapCenter}
-            zoom={mapZoom}
-            style={{ height: '100%', width: '100%', zIndex: 1 }}
-            zoomControl={false}
-            ref={(mapRef) => {
-              if (mapRef) {
-                setMapInstance(mapRef);
-                setMapReady(true);
-              }
-            }}
-          >
-            <ChangeView center={mapCenter} zoom={mapZoom} />
-            <ZoomControl position="bottomright" />
-            
-            <LayersControl position="topright">
-              <LayersControl.BaseLayer checked name="OpenStreetMap">
-                <TileLayer
-                  attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-              </LayersControl.BaseLayer>
-              <LayersControl.BaseLayer name="위성 지도">
-                <TileLayer
-                  attribution='© Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                />
-              </LayersControl.BaseLayer>
-            </LayersControl>
-            
-            <MapEventHandler 
-              onRouteEndChange={handleRouteEndChange}
-              isRoutingActive={isRoutingActive}
-              routeStart={routeStart}
-              onMapClick={handleMapClick}
-            />
-            <LocationMarker />
-            {renderMarkers()}
-            {renderCircle()}
-            
-            {isRoutingActive && routeStart && routeEnd && (
-              <RoutingControl 
-                start={routeStart} 
-                end={routeEnd} 
-                isActive={isRoutingActive} 
+      {/* 주소 검색 Dialog */}
+      <Dialog open={isSearchDialogOpen} onOpenChange={setIsSearchDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>주소 검색</DialogTitle>
+            <DialogDescription>
+              원하는 주소를 검색하여 지도를 이동합니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="address" className="text-right">
+                주소
+              </Label>
+              <Input id="address" value={addressSearchQuery} onChange={(e) => setAddressSearchQuery(e.target.value)} className="col-span-3" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" onClick={handleAddressSearch} disabled={isAddressSearchLoading}>
+              {isAddressSearchLoading ? "검색 중..." : "검색"}
+            </Button>
+          </DialogFooter>
+          {!isAddressSearchResultValid && (
+            <p className="text-red-500 mt-2">검색 결과가 없습니다. 다른 주소를 입력해주세요.</p>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* 카테고리 선택 Dialog */}
+      <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>카테고리 선택</DialogTitle>
+            <DialogDescription>
+              원하는 카테고리를 선택하여 피어몰을 검색합니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Select onValueChange={handleCategoryChange}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="카테고리 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category.value} value={category.value}>
+                    {category.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button type="submit" onClick={() => setIsCategoryDialogOpen(false)}>
+              취소
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 반경 검색 Dialog */}
+      <Dialog open={isRadiusDialogOpen} onOpenChange={setIsRadiusDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>반경 검색</DialogTitle>
+            <DialogDescription>
+              중심 주소를 기준으로 반경 내의 피어몰을 검색합니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="address" className="text-right">
+                주소
+              </Label>
+              <Input id="address" value={addressSearchQuery} onChange={(e) => setAddressSearchQuery(e.target.value)} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="radius" className="text-right">
+                반경 (km)
+              </Label>
+              <Slider
+                id="radius"
+                defaultValue={[1]}
+                max={10}
+                step={1}
+                onValueChange={handleRadiusChange}
+                className="col-span-3"
               />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" onClick={handleAddressSearch} disabled={isAddressSearchLoading}>
+              {isAddressSearchLoading ? "검색 중..." : "검색"}
+            </Button>
+          </DialogFooter>
+          {!isAddressSearchResultValid && (
+            <p className="text-red-500 mt-2">검색 결과가 없습니다. 다른 주소를 입력해주세요.</p>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* 길찾기 Dialog */}
+      <Dialog open={isRouteDialogOpen} onOpenChange={setIsRouteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>길찾기</DialogTitle>
+            <DialogDescription>
+              출발지와 목적지를 입력하여 길찾기를 합니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="startAddress" className="text-right">
+                출발지
+              </Label>
+              <Input
+                type="text"
+                id="startAddress"
+                value={startAddress}
+                onChange={(e) => setStartAddress(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            {!isStartAddressValid && (
+              <p className="text-red-500 mt-2">출발지를 입력해주세요.</p>
             )}
-            
-            {isMeasureActive && (
-              <MeasureControl isActive={isMeasureActive} />
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="destinationAddress" className="text-right">
+                목적지
+              </Label>
+              <Input
+                type="text"
+                id="destinationAddress"
+                value={destinationAddress}
+                onChange={(e) => setDestinationAddress(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            {!isDestinationAddressValid && (
+              <p className="text-red-500 mt-2">목적지를 입력해주세요.</p>
             )}
-          </MapContainer>
-          
-          <SearchBox onSelectLocation={handleSelectLocation} />
-          <InfoPanel location={activeLocation} onClose={handleCloseInfoPanel} />
-          <ControlPanel 
-            onLocateMe={handleLocateMe}
-            onToggleRouting={handleToggleRouting}
-            onToggleMeasure={handleToggleMeasure}
-            isRoutingActive={isRoutingActive}
-            isMeasureActive={isMeasureActive}
-          />
-        </div>
-      </div>
-    </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" onClick={calculateRoute}>
+              길찾기
+            </Button>
+          </DialogFooter>
+          {isRouteCalculated && distance !== null && duration !== null && (
+            <div className="mt-4">
+              <p>총 거리: {distance.toFixed(2)} km</p>
+              <p>총 소요 시간: {duration.toFixed(2)} 분</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </Dialog>
   );
 };
 
