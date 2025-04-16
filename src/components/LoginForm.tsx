@@ -167,7 +167,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                className="pl-10 w-full bg-[#fffefb]/20 border-[#d4eaf7]/30 text-[#f5f4f1] py-3 focus:border-[#71c4ef] focus:ring-1 focus:ring-[#71c4ef] rounded-md" // Adjusted padding
+                className="pl-10 w-full bg-[#fffefb]/20 border-[#d4eaf7]/30 py-3 focus:border-[#71c4ef] focus:ring-1 focus:ring-[#71c4ef] rounded-md" // Adjusted padding
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
@@ -201,8 +201,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             <Mail className="h-8 w-8 text-[#71c4ef]" />
           </div>
           <h3 className="text-lg font-medium mb-2 text-[#fffefb]">이메일을 확인해주세요</h3>
-          <p className="text-[#f5f4f1]/80 mb-6">
-            <span className="font-semibold text-[#d4eaf7]">{email}</span>(으)로 인증코드를 발송했습니다.
+          <p className="text-[#333]/80 mb-6">
+            <span className="font-semibold text-[#71c4ef]">{email}</span>(으)로 인증코드를 발송했습니다.
           </p>
           <div className="space-y-3">
             <Button
@@ -215,7 +215,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1 border-[#d4eaf7]/30 text-[#f5f4f1] hover:bg-[#d4eaf7]/10 hover:text-[#f5f4f1] transition-colors duration-300 py-3 rounded-md" // Adjusted padding
+                className="flex-1 border-[#d4eaf7] text-[#333] hover:bg-[#d4eaf7]/10 hover:text-[#66dffd] transition-colors duration-300 py-3 rounded-md" // Adjusted padding
                 onClick={handleResendCode}
                 disabled={resendLoading}
               >
@@ -233,8 +233,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               </Button>
               <Button
                 type="button"
-                variant="ghost"
-                className="flex-1 text-[#cccbc8] hover:bg-[#d4eaf7]/10 hover:text-[#f5f4f1] transition-colors duration-300 py-3 rounded-md" // Adjusted padding
+                variant="outline"
+                className="flex-1 border-[#d4eaf7] text-[#333] hover:bg-[#d4eaf7]/10 hover:text-[#66dffd] transition-colors duration-300 py-3 rounded-md" // Adjusted padding
                 onClick={handleBackToEmail}
               >
                 이메일 다시 입력
@@ -256,13 +256,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 autoComplete="one-time-code"
                 containerClassName="justify-center"
               >
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} className="bg-[#fffefb]/20 border-[#d4eaf7]/30 text-[#f5f4f1] focus:border-[#71c4ef] focus:ring-1 focus:ring-[#71c4ef] w-12 h-14 rounded-md text-lg" />
-                  <InputOTPSlot index={1} className="bg-[#fffefb]/20 border-[#d4eaf7]/30 text-[#f5f4f1] focus:border-[#71c4ef] focus:ring-1 focus:ring-[#71c4ef] w-12 h-14 rounded-md text-lg" />
-                  <InputOTPSlot index={2} className="bg-[#fffefb]/20 border-[#d4eaf7]/30 text-[#f5f4f1] focus:border-[#71c4ef] focus:ring-1 focus:ring-[#71c4ef] w-12 h-14 rounded-md text-lg" />
-                  <InputOTPSlot index={3} className="bg-[#fffefb]/20 border-[#d4eaf7]/30 text-[#f5f4f1] focus:border-[#71c4ef] focus:ring-1 focus:ring-[#71c4ef] w-12 h-14 rounded-md text-lg" />
-                  <InputOTPSlot index={4} className="bg-[#fffefb]/20 border-[#d4eaf7]/30 text-[#f5f4f1] focus:border-[#71c4ef] focus:ring-1 focus:ring-[#71c4ef] w-12 h-14 rounded-md text-lg" />
-                  <InputOTPSlot index={5} className="bg-[#fffefb]/20 border-[#d4eaf7]/30 text-[#f5f4f1] focus:border-[#71c4ef] focus:ring-1 focus:ring-[#71c4ef] w-12 h-14 rounded-md text-lg" />
+                <InputOTPGroup className="gap-2">
+                  <InputOTPSlot index={0} className="bg-[#fffefb]/20 border-[#333] focus:border-[#71c4ef] focus:ring-1 focus:ring-[#71c4ef] w-12 h-14 rounded-md text-lg" />
+                  <InputOTPSlot index={1} className="bg-[#fffefb]/20 border-[#333] focus:border-[#71c4ef] focus:ring-1 focus:ring-[#71c4ef] w-12 h-14 rounded-md text-lg" />
+                  <InputOTPSlot index={2} className="bg-[#fffefb]/20 border-[#333] focus:border-[#71c4ef] focus:ring-1 focus:ring-[#71c4ef] w-12 h-14 rounded-md text-lg" />
+                  <InputOTPSlot index={3} className="bg-[#fffefb]/20 border-[#333] focus:border-[#71c4ef] focus:ring-1 focus:ring-[#71c4ef] w-12 h-14 rounded-md text-lg" />
+                  <InputOTPSlot index={4} className="bg-[#fffefb]/20 border-[#333] focus:border-[#71c4ef] focus:ring-1 focus:ring-[#71c4ef] w-12 h-14 rounded-md text-lg" />
+                  <InputOTPSlot index={5} className="bg-[#fffefb]/20 border-[#333] focus:border-[#71c4ef] focus:ring-1 focus:ring-[#71c4ef] w-12 h-14 rounded-md text-lg" />
                 </InputOTPGroup>
               </InputOTP>
             </div>
@@ -296,7 +296,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               variant="outline"
               onClick={handleBackToEmail}
               disabled={isLoading || resendLoading}
-              className="w-full sm:w-auto border-[#d4eaf7]/30 text-[#f5f4f1] hover:bg-[#d4eaf7]/10 hover:text-[#f5f4f1] transition-colors duration-300 py-3 rounded-md" // Adjusted padding
+              className="w-full sm:w-auto border-[#d4eaf7] text-[#333] hover:bg-[#d4eaf7]/10 hover:text-[#00668c] transition-colors duration-300 py-3 rounded-md" // Adjusted padding
             >
               이메일 변경
             </Button>
