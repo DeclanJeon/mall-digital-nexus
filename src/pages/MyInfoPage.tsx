@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { Store, Mail, UserCircle as UserProfileIcon, FileText, MapPin, Users, Briefcase, Megaphone } from 'lucide-react'; // Use specific icon names
+import { Store, Mail, UserCircle as UserProfileIcon, FileText, MapPin, Users, Briefcase, Megaphone, History, Shield } from 'lucide-react'; // Use specific icon names
 
 const MyInfoPage = () => {
   // Placeholder data and functions - replace with actual logic later
@@ -93,10 +93,10 @@ const MyInfoPage = () => {
             </CardHeader>
             <CardContent className="space-y-2">
               {userPosts.length > 0 ? userPosts.map(post => (
-                 <div key={post.id} className="flex justify-between items-center p-2 rounded hover:bg-muted">
-                   <span className="text-sm text-foreground">{post.title} ({post.createdAt})</span>
-                   <Button variant="ghost" size="sm" onClick={() => handleManagePost(post.id)}>관리</Button>
-                 </div>
+                <div key={post.id} className="flex justify-between items-center p-2 rounded hover:bg-muted">
+                  <span className="text-sm text-foreground">{post.title} ({post.createdAt})</span>
+                  <Button variant="ghost" size="sm" onClick={() => handleManagePost(post.id)}>관리</Button>
+                </div>
               )) : <p className="text-sm text-muted-foreground">작성한 게시글이 없습니다.</p>}
             </CardContent>
           </Card>
