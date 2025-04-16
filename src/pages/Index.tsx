@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import Footer from '../components/Footer';
 import PeermallGrid from '../components/PeermallGrid';
-import CreatePeermall from '../components/CreatePeermall';
 import CommunicationWidget from '@/components/CommunicationWidget';
 import HashtagFilter, { HashtagFilterOption, PeermallType } from '@/components/HashtagFilter';
 import PeermallMap from '@/components/PeermallMap';
@@ -250,15 +249,15 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <main className="flex-grow bg-bg-100">
         <div className="container mx-auto px-4 py-6">
-          <section className="mb-8">
-            <FavoriteServicesSection />
-            <HashtagFilter
-              hashtags={hashtagOptions}
-              onFilterChange={handleFilterChange}
-            />
-          </section>
           
           <TrendingSlider />
+          <section className="mb-8">
+            <FavoriteServicesSection />
+          </section>
+          <HashtagFilter
+            hashtags={hashtagOptions}
+            onFilterChange={handleFilterChange}
+          />
           
           <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             <div className="md:col-span-2">
@@ -273,10 +272,6 @@ const Index = () => {
             <div className="md:col-span-1">
               <EcosystemMap />
             </div>
-          </section>
-          
-          <section className="mb-12">
-            <CreatePeermall />
           </section>
           
           <section className="mb-12">

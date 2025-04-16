@@ -119,6 +119,9 @@ importers:
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
+      leaflet-control-geocoder:
+        specifier: ^3.1.0
+        version: 3.1.0(leaflet@1.9.4)
       leaflet-measure:
         specifier: ^3.1.0
         version: 3.1.0(leaflet@1.9.4)
@@ -2270,6 +2273,11 @@ packages:
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
 
+  leaflet-control-geocoder@3.1.0:
+    resolution: {integrity: sha512-0YlcjBmVq6/9vozpjMCNhxReHaZoCfoRwxKNXQXwjdfYr3TMRQi0YFmpN/dWbqOVc0fWbY1EsoV8r11G2SZ9eA==}
+    peerDependencies:
+      leaflet: ^1.6.0
+
   leaflet-measure@3.1.0:
     resolution: {integrity: sha512-ln5c9UNaWDEd24tIzDt9hwnpb8OaCPBfSWNBg2H8rb9SA3cbXW9+NqohA6/8TdsNDGJZr36woXMrqRq07Pcl3w==}
     peerDependencies:
@@ -2405,6 +2413,9 @@ packages:
   object-hash@3.0.0:
     resolution: {integrity: sha512-RSn9F68PjH9HqtltsSnqYC1XXoWe9Bju5+213R98cNGttag9q9yAOTzdbsqvIa7aNm5WffBZFpWYr2aWrklWAw==}
     engines: {node: '>= 6'}
+
+  open-location-code@1.0.3:
+    resolution: {integrity: sha512-DBm14BSn40Ee241n80zIFXIT6+y8Tb0I+jTdosLJ8Sidvr2qONvymwqymVbHV2nS+1gkDZ5eTNpnOIVV0Kn2fw==}
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -4869,6 +4880,12 @@ snapshots:
     dependencies:
       json-buffer: 3.0.1
 
+  leaflet-control-geocoder@3.1.0(leaflet@1.9.4):
+    dependencies:
+      leaflet: 1.9.4
+    optionalDependencies:
+      open-location-code: 1.0.3
+
   leaflet-measure@3.1.0(leaflet@1.9.4):
     dependencies:
       '@turf/area': 5.1.5
@@ -4990,6 +5007,9 @@ snapshots:
   object-assign@4.1.1: {}
 
   object-hash@3.0.0: {}
+
+  open-location-code@1.0.3:
+    optional: true
 
   optionator@0.9.4:
     dependencies:
