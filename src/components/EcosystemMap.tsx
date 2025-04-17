@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -37,8 +36,8 @@ const ReviewSection = ({ location }: { location: Location | null }) => {
     );
   }
 
-  // Only show up to 2 reviews as requested
-  const displayedReviews = location.reviews.slice(0, 2);
+  // Change from 2 to 3 reviews
+  const displayedReviews = location.reviews.slice(0, 3);
   
   // Calculate average rating
   const avgRating = location.reviews.reduce((sum, review) => sum + review.rating, 0) / location.reviews.length;
@@ -404,7 +403,7 @@ const EcosystemMap = () => {
   // 내 위치 찾기
   const findMyLocation = () => {
     if (!mapInstance.current) return;
-
+    
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
