@@ -27,8 +27,9 @@ const CategoryNav = () => {
       icon: <Users className="h-5 w-5" />, 
       path: '/community',
       subcategories: [
-        { name: '채팅방', icon: <MessageSquare className="h-4 w-4" />, path: '/community/chat' },
-        { name: '오픈 채팅', icon: <MessageSquare className="h-4 w-4" />, path: '/community/open-chat' },
+        { name: '그룹 채팅', icon: <MessageSquare className="h-4 w-4" />, path: '/community?tab=chat' },
+        { name: '포럼 게시판', icon: <MessageSquare className="h-4 w-4" />, path: '/community?tab=forum' },
+        { name: '오픈 채팅', icon: <MessageSquare className="h-4 w-4" />, path: '/community?tab=openchat' },
         { name: '음성채팅', icon: <Mic className="h-4 w-4" />, path: '/community/voice' },
         { name: '영상채팅', icon: <Video className="h-4 w-4" />, path: '/community/video' }
       ]
