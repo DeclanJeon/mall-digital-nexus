@@ -31,7 +31,7 @@ interface Location {
 const ReviewSection = ({ location }: { location: Location | null }) => {
   if (!location || !location.reviews || location.reviews.length === 0) {
     return (
-      <div className="bg-white p-4 border-t">
+      <div className="bg-white p-4 border-t mt-4 rounded-b-lg shadow-md">
         <h3 className="font-bold text-lg mb-3">피어몰 리뷰</h3>
         <p className="text-gray-500 text-sm">선택한 피어몰의 리뷰가 없습니다.</p>
       </div>
@@ -63,7 +63,7 @@ const ReviewSection = ({ location }: { location: Location | null }) => {
   };
 
   return (
-    <div className="bg-white p-4 border-t">
+    <div className="bg-white p-4 border-t mt-4 rounded-b-lg shadow-md">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-bold text-lg">{location.title} 리뷰</h3>
         <div className="flex items-center gap-2">
@@ -223,493 +223,6 @@ const EcosystemMap = () => {
             service: 66,
             valueForMoney: 69
           }
-        },
-        {
-          author: "김서연",
-          rating: 5,
-          text: "피어몰의 서비스가 정말 마음에 들어요. 상품 품질이 좋고 가격도 합리적이에요. 특히 배송이 빨라서 놀랐어요!",
-          likes: 18,
-          dislikes: 1,
-          date: "2025-04-08",
-          stats: {
-            satisfaction: 95,
-            quality: 82,
-            service: 78,
-            valueForMoney: 74
-          }
-        },
-        {
-          author: "이지원",
-          rating: 4.7,
-          text: "여러 피어몰을 이용해봤는데 이곳이 제일 마음에 들어요. 상품 퀄리티가 우수하고 고객 서비스도 좋아요.",
-          likes: 14,
-          dislikes: 0,
-          date: "2025-03-29",
-          stats: {
-            satisfaction: 94,
-            quality: 88,
-            service: 85,
-            valueForMoney: 80
-          }
-        }
-      ]
-    },
-    {
-      lat: 37.5796,
-      lng: 126.9770, 
-      title: "광화문 피어몰",
-      address: "서울특별시 종로구 율곡로 99",
-      phone: "02-2345-6789",
-      reviews: [
-        {
-          author: "박지민",
-          rating: 4.2,
-          text: "광화문 피어몰은 위치가 정말 좋아요. 접근성이 뛰어나고 다양한 상품을 구경할 수 있어서 좋았습니다. 직원분들도 친절하시고 매장 분위기도 좋았어요.",
-          likes: 15,
-          dislikes: 2,
-          date: "2025-04-12",
-          stats: {
-            satisfaction: 84,
-            quality: 68,
-            service: 72,
-            valueForMoney: 65
-          }
-        },
-        {
-          author: "최민지",
-          rating: 4.0,
-          text: "상품 종류가 다양해서 좋았어요. 하지만 가격대가 조금 높은 편이라 아쉬웠습니다.",
-          likes: 8,
-          dislikes: 3,
-          date: "2025-04-05",
-          stats: {
-            satisfaction: 80,
-            quality: 75,
-            service: 70,
-            valueForMoney: 60
-          }
-        },
-        {
-          author: "정우진",
-          rating: 4.5,
-          text: "매장 분위기가 좋고 직원들이 정말 친절해요. 질문에 상세히 답해주시고 추천도 잘해주세요.",
-          likes: 12,
-          dislikes: 1,
-          date: "2025-03-28",
-          stats: {
-            satisfaction: 90,
-            quality: 85,
-            service: 88,
-            valueForMoney: 75
-          }
-        }
-      ]
-    },
-    {
-      lat: 37.5635,
-      lng: 126.9845,
-      title: "핸드메이드 액세서리",
-      address: "서울시 용산구 이태원로 45-8",
-      phone: "02-3456-7890",
-      reviews: [
-        {
-          author: "최유진",
-          rating: 4.5,
-          text: "정성이 가득 담긴 액세서리들을 만나볼 수 있어요. 특히 귀걸이 컬렉션이 다양해서 좋았습니다. 직접 제작하시는 모습도 볼 수 있어 특별한 경험이었어요.",
-          likes: 12,
-          dislikes: 1,
-          date: "2025-04-05",
-          stats: {
-            satisfaction: 90,
-            quality: 85,
-            service: 75,
-            valueForMoney: 70
-          }
-        },
-        {
-          author: "이민수",
-          rating: 4.3,
-          text: "선물용으로 구매했는데 포장도 예쁘고 받는 사람이 매우 좋아했어요. 다만 가격이 조금 높은 편입니다.",
-          likes: 8,
-          dislikes: 2,
-          date: "2025-03-28",
-          stats: {
-            satisfaction: 86,
-            quality: 88,
-            service: 79,
-            valueForMoney: 62
-          }
-        },
-        {
-          author: "김태희",
-          rating: 4.8,
-          text: "맞춤 제작 서비스가 정말 좋아요. 원하는 디자인을 완벽하게 구현해주셨어요.",
-          likes: 15,
-          dislikes: 0,
-          date: "2025-03-20",
-          stats: {
-            satisfaction: 96,
-            quality: 90,
-            service: 85,
-            valueForMoney: 78
-          }
-        }
-      ]
-    },
-    {
-      lat: 37.5115,
-      lng: 127.0227,
-      title: "건강한 식단",
-      address: "서울시 강남구 테헤란로 152",
-      phone: "02-4567-8901",
-      reviews: [
-        {
-          author: "정다윤",
-          rating: 4.8,
-          text: "건강을 생각하는 식단이 정말 맛있어요! 칼로리와 영양소가 균형있게 구성되어 있어 다이어트 중에도 부담없이 즐길 수 있었습니다.",
-          likes: 22,
-          dislikes: 0,
-          date: "2025-04-15",
-          stats: {
-            satisfaction: 96,
-            quality: 92,
-            service: 88,
-            valueForMoney: 82
-          }
-        },
-        {
-          author: "한지훈",
-          rating: 4.7,
-          text: "매일 배송되는 신선한 식단이 일상의 활력소가 됩니다. 다양한 메뉴로 질리지 않고 건강하게 식사할 수 있어 좋습니다.",
-          likes: 16,
-          dislikes: 1,
-          date: "2025-04-02",
-          stats: {
-            satisfaction: 94,
-            quality: 90,
-            service: 85,
-            valueForMoney: 80
-          }
-        },
-        {
-          author: "박소연",
-          rating: 4.9,
-          text: "맞춤형 식단을 제공해주셔서 정말 만족스러워요. 영양사분의 상담도 큰 도움이 되었습니다.",
-          likes: 19,
-          dislikes: 0,
-          date: "2025-03-25",
-          stats: {
-            satisfaction: 98,
-            quality: 95,
-            service: 92,
-            valueForMoney: 85
-          }
-        }
-      ]
-    },
-    {
-      lat: 37.5565,
-      lng: 126.9340,
-      title: "디자인 스튜디오",
-      address: "서울시 마포구 양화로 45",
-      phone: "02-5678-9012",
-      reviews: [
-        {
-          author: "송태환",
-          rating: 4.9,
-          text: "전문적인 디자인 서비스에 매우 만족합니다. 요구사항을 정확히 이해하고 기대 이상의 결과물을 제공해 주셨어요.",
-          likes: 31,
-          dislikes: 0,
-          date: "2025-04-14",
-          stats: {
-            satisfaction: 98,
-            quality: 95,
-            service: 92,
-            valueForMoney: 88
-          }
-        },
-        {
-          author: "임수정",
-          rating: 4.7,
-          text: "회사 로고와 브랜딩 작업을 맡겼는데 세련되고 차별화된 디자인을 받았습니다. 수정 요청도 빠르게 반영해주셨어요.",
-          likes: 24,
-          dislikes: 1,
-          date: "2025-04-05",
-          stats: {
-            satisfaction: 94,
-            quality: 92,
-            service: 90,
-            valueForMoney: 86
-          }
-        },
-        {
-          author: "강동현",
-          rating: 4.6,
-          text: "웹사이트 디자인이 정말 훌륭합니다. 사용자 경험을 고려한 디자인이 인상적이었어요.",
-          likes: 18,
-          dislikes: 2,
-          date: "2025-03-22",
-          stats: {
-            satisfaction: 92,
-            quality: 90,
-            service: 88,
-            valueForMoney: 84
-          }
-        }
-      ]
-    },
-    {
-      lat: 37.5432,
-      lng: 127.0376,
-      title: "친환경 생활용품",
-      address: "서울시 성동구 성수일로 10-3",
-      phone: "02-6789-0123",
-      reviews: [
-        {
-          author: "홍길동",
-          rating: 4.7,
-          text: "환경을 생각하는 제품들이 다양하게 구비되어 있어요. 특히 생분해성 주방용품이 실용적이면서도 디자인이 예뻐서 좋았습니다.",
-          likes: 20,
-          dislikes: 1,
-          date: "2025-04-13",
-          stats: {
-            satisfaction: 94,
-            quality: 88,
-            service: 82,
-            valueForMoney: 78
-          }
-        },
-        {
-          author: "김미라",
-          rating: 4.5,
-          text: "플라스틱 프리 제품들이 많아서 좋았어요. 포장도 최소화해서 환경에 좋은 점이 마음에 듭니다.",
-          likes: 15,
-          dislikes: 2,
-          date: "2025-04-03",
-          stats: {
-            satisfaction: 90,
-            quality: 85,
-            service: 80,
-            valueForMoney: 75
-          }
-        },
-        {
-          author: "이준호",
-          rating: 4.6,
-          text: "제로웨이스트 입문자로서 많은 도움을 받았어요. 직원분들이 친절하게 설명해주셔서 좋았습니다.",
-          likes: 17,
-          dislikes: 1,
-          date: "2025-03-28",
-          stats: {
-            satisfaction: 92,
-            quality: 87,
-            service: 89,
-            valueForMoney: 80
-          }
-        }
-      ]
-    },
-    {
-      lat: 37.5844,
-      lng: 126.9860,
-      title: "수제 베이커리",
-      address: "서울시 종로구 삼청로 106",
-      phone: "02-7890-1234",
-      reviews: [
-        {
-          author: "박지영",
-          rating: 4.8,
-          text: "매일 아침 구워내는 빵의 향기가 정말 좋아요. 특히 치즈 베이글이 제일 맛있어요!",
-          likes: 25,
-          dislikes: 1,
-          date: "2025-04-15",
-          stats: {
-            satisfaction: 96,
-            quality: 94,
-            service: 88,
-            valueForMoney: 84
-          }
-        },
-        {
-          author: "윤서준",
-          rating: 4.9,
-          text: "유기농 재료로 만든 빵들이 건강하면서도 맛있어요. 가격도 퀄리티에 비해 합리적입니다.",
-          likes: 22,
-          dislikes: 0,
-          date: "2025-04-10",
-          stats: {
-            satisfaction: 98,
-            quality: 96,
-            service: 90,
-            valueForMoney: 86
-          }
-        },
-        {
-          author: "최은주",
-          rating: 4.7,
-          text: "글루텐 프리 빵도 구매할 수 있어서 좋아요. 알레르기가 있는 친구 선물용으로 완벽했습니다.",
-          likes: 18,
-          dislikes: 1,
-          date: "2025-04-02",
-          stats: {
-            satisfaction: 94,
-            quality: 92,
-            service: 86,
-            valueForMoney: 82
-          }
-        }
-      ]
-    },
-    {
-      lat: 37.4969,
-      lng: 127.0378,
-      title: "디지털 아트 갤러리",
-      address: "서울시 강남구 논현로 164길 17",
-      phone: "02-8901-2345",
-      reviews: [
-        {
-          author: "조현우",
-          rating: 4.6,
-          text: "디지털 ���트의 새로운 세계를 경험할 수 있는 곳이에요. 인터랙티브 전시가 특히 인상적이었습니다.",
-          likes: 19,
-          dislikes: 2,
-          date: "2025-04-12",
-          stats: {
-            satisfaction: 92,
-            quality: 90,
-            service: 85,
-            valueForMoney: 80
-          }
-        },
-        {
-          author: "이하은",
-          rating: 4.8,
-          text: "NFT 작품을 실물로 볼 수 있어서 신기했어요. 디지털 아트에 관심 있는 분들에게 추천합니다.",
-          likes: 21,
-          dislikes: 1,
-          date: "2025-04-05",
-          stats: {
-            satisfaction: 96,
-            quality: 94,
-            service: 88,
-            valueForMoney: 82
-          }
-        },
-        {
-          author: "김도윤",
-          rating: 4.7,
-          text: "전문 가이드의 설명을 들으며 관람하니 더 깊이 이해할 수 있었어요. 정기적으로 방문하고 싶은 갤러리입니다.",
-          likes: 16,
-          dislikes: 0,
-          date: "2025-03-30",
-          stats: {
-            satisfaction: 94,
-            quality: 92,
-            service: 90,
-            valueForMoney: 86
-          }
-        }
-      ]
-    },
-    {
-      lat: 37.5260,
-      lng: 127.0406,
-      title: "북 커뮤니티",
-      address: "서울시 강남구 선릉로 93길 26",
-      phone: "02-9012-3456",
-      reviews: [
-        {
-          author: "정민석",
-          rating: 4.6,
-          text: "독서 모임이 활발하게 운영되고 있어요. 다양한 사람들과 책에 대한 생각을 나눌 수 있어 좋습니다.",
-          likes: 17,
-          dislikes: 1,
-          date: "2025-04-14",
-          stats: {
-            satisfaction: 92,
-            quality: 88,
-            service: 86,
-            valueForMoney: 84
-          }
-        },
-        {
-          author: "송하늘",
-          rating: 4.7,
-          text: "조용하고 아늑한 분위기에서 책을 읽을 수 있어요. 커피도 맛있고 와이파이도 잘 터집니다.",
-          likes: 19,
-          dislikes: 0,
-          date: "2025-04-08",
-          stats: {
-            satisfaction: 94,
-            quality: 90,
-            service: 88,
-            valueForMoney: 86
-          }
-        },
-        {
-          author: "이태양",
-          rating: 4.5,
-          text: "작가와의 만남 이벤트가 정기적으로 열려서 좋아요. 독특한 큐레이션 서비스도 만족스럽습니다.",
-          likes: 15,
-          dislikes: 2,
-          date: "2025-03-30",
-          stats: {
-            satisfaction: 90,
-            quality: 86,
-            service: 84,
-            valueForMoney: 82
-          }
-        }
-      ]
-    },
-    {
-      lat: 37.5578,
-      lng: 126.9252,
-      title: "홈가드닝",
-      address: "서울시 마포구 월드컵로 35",
-      phone: "02-0123-4567",
-      reviews: [
-        {
-          author: "임성호",
-          rating: 4.7,
-          text: "도시 농부를 위한 다양한 식물과 가드닝 도구를 구비하고 있어요. 초보자를 위한 클래스도 좋았습니다.",
-          likes: 20,
-          dislikes: 1,
-          date: "2025-04-15",
-          stats: {
-            satisfaction: 94,
-            quality: 90,
-            service: 88,
-            valueForMoney: 84
-          }
-        },
-        {
-          author: "김유미",
-          rating: 4.9,
-          text: "희귀 식물도 많이 구비되어 있어요. 직원분들이 식물 관리법을 친절하게 알려주셔서 좋았습니다.",
-          likes: 24,
-          dislikes: 0,
-          date: "2025-04-07",
-          stats: {
-            satisfaction: 98,
-            quality: 96,
-            service: 94,
-            valueForMoney: 88
-          }
-        },
-        {
-          author: "박준영",
-          rating: 4.6,
-          text: "화분과 흙, 비료 등 가드닝에 필요한 모든 것을 �� 곳에서 구매할 수 있어 편리해요.",
-          likes: 18,
-          dislikes: 1,
-          date: "2025-03-29",
-          stats: {
-            satisfaction: 92,
-            quality: 88,
-            service: 86,
-            valueForMoney: 84
-          }
         }
       ]
     }
@@ -745,7 +258,7 @@ const EcosystemMap = () => {
           </div>
         `)
         .on('popupopen', (e) => {
-          const button = document.querySelector('.view-reviews');
+          const button = e.popup.getElement().querySelector('.view-reviews');
           if (button) {
             button.addEventListener('click', () => {
               setSelectedLocation(loc);
@@ -769,7 +282,7 @@ const EcosystemMap = () => {
     if (!mapInstance.current) return;
 
     mapInstance.current.eachLayer(layer => {
-      if (layer._url?.includes('openstreetmap') || layer._url?.includes('arcgisonline')) {
+      if (layer instanceof L.TileLayer) {
         mapInstance.current.removeLayer(layer);
       }
     });
@@ -804,7 +317,7 @@ const EcosystemMap = () => {
           L.marker([latitude, longitude], {
             icon: L.divIcon({
               className: 'my-location-marker',
-              html: '<div style="background-color: #4285F4; width: 20px; height: 20px; border-radius of 50%; border: 2px solid white;"></div>',
+              html: '<div style="background-color: #4285F4; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white;"></div>',
               iconSize: [24, 24],
               iconAnchor: [12, 12]
             })
@@ -840,7 +353,7 @@ const EcosystemMap = () => {
   };
 
   return (
-    <>
+    <div className="relative">
       <div className="relative w-full h-[400px] rounded-lg shadow-md overflow-hidden">
         <div 
           ref={mapRef} 
@@ -862,45 +375,47 @@ const EcosystemMap = () => {
           </button>
         </div>
         
-        <div className="absolute top-14 right-4 z-[1000] bg-white p-3 rounded-lg shadow-md flex flex-col gap-2">
-          <div className="flex gap-2">
+        {showControls && (
+          <div className="absolute top-14 right-4 z-[1000] bg-white p-3 rounded-lg shadow-md flex flex-col gap-2">
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setMapType('street')}
+                className={`px-3 py-1 rounded text-sm ${mapType === 'street' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+              >
+                일반지도
+              </button>
+              <button 
+                onClick={() => setMapType('satellite')}
+                className={`px-3 py-1 rounded text-sm ${mapType === 'satellite' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+              >
+                위성지도
+              </button>
+            </div>
+            
             <button 
-              onClick={() => setMapType('street')}
-              className={`px-3 py-1 rounded text-sm ${mapType === 'street' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+              onClick={findMyLocation}
+              className="px-3 py-1 bg-green-500 text-white rounded text-sm"
             >
-              일반지도
+              내 위치
             </button>
-            <button 
-              onClick={() => setMapType('satellite')}
-              className={`px-3 py-1 rounded text-sm ${mapType === 'satellite' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
-            >
-              위성지도
-            </button>
+            
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="피어몰 이름 검색"
+                className="flex-1 border rounded px-2 py-1 text-sm"
+              />
+              <button 
+                onClick={searchPeermall}
+                className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
+              >
+                검색
+              </button>
+            </div>
           </div>
-          
-          <button 
-            onClick={findMyLocation}
-            className="px-3 py-1 bg-green-500 text-white rounded text-sm"
-          >
-            내 위치
-          </button>
-          
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="피어몰 이름 검색"
-              className="flex-1 border rounded px-2 py-1 text-sm"
-            />
-            <button 
-              onClick={searchPeermall}
-              className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
-            >
-              검색
-            </button>
-          </div>
-        </div>
+        )}
         
         <div className="absolute bottom-4 left-4 z-[900] bg-white bg-opacity-80 px-3 py-1 rounded-md shadow-sm">
           <div className="flex items-center text-xs text-gray-700">
@@ -909,9 +424,9 @@ const EcosystemMap = () => {
           </div>
         </div>
       </div>
-
+      
       <ReviewSection location={selectedLocation} />
-    </>
+    </div>
   );
 };
 

@@ -261,7 +261,7 @@ const Index = () => {
       <main className="flex-grow bg-bg-100">
         <div className="container mx-auto px-4 py-6">
           
-          <TrendingSlider />
+          {/* <TrendingSlider /> */}
           <section className="mb-8">
             <FavoriteServicesSection />
           </section>
