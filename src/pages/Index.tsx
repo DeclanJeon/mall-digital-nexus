@@ -274,9 +274,9 @@ const Index = () => {
             </div>
           </section>
           
-          <section className="mb-12">
+          {/* <section className="mb-12">
             <InfoHub />
-          </section>
+          </section> */}
           
           <section className="mb-12">
             <CommunityHighlights />
