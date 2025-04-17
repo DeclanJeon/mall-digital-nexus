@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Star, ChevronUp, ChevronDown, MapPin } from 'lucide-react';
+import { Star, ChevronUp, ChevronDown, MapPin, Phone, MessageSquare, Navigation } from 'lucide-react';
+import { Button } from './ui/button';
 
 interface StoreReview {
   author: string;
@@ -24,6 +25,7 @@ interface Location {
   title: string;
   address: string;
   reviews?: StoreReview[];
+  phone?: string;
 }
 
 const ReviewSection = ({ location }: { location: Location | null }) => {
@@ -42,6 +44,24 @@ const ReviewSection = ({ location }: { location: Location | null }) => {
   const formattedRating = avgRating.toFixed(1);
   const reviewCount = location.reviews.length.toLocaleString();
 
+  const handleCall = () => {
+    if (location.phone) {
+      window.location.href = `tel:${location.phone}`;
+    } else {
+      alert('전화번호가 등록되지 않았습니다.');
+    }
+  };
+
+  const handleMessage = () => {
+    alert(`${location.title}에 메시지를 보냅니다.`);
+  };
+
+  const handleNavigate = () => {
+    if (location.lat && location.lng) {
+      window.open(`https://maps.google.com/maps?q=${location.lat},${location.lng}`, '_blank');
+    }
+  };
+
   return (
     <div className="bg-white p-4 border-t">
       <div className="flex items-center justify-between mb-4">
@@ -58,6 +78,21 @@ const ReviewSection = ({ location }: { location: Location | null }) => {
           <span className="font-bold">{formattedRating}</span>
           <span className="text-gray-500 text-sm">({reviewCount})</span>
         </div>
+      </div>
+      
+      <div className="flex gap-2 mb-4">
+        <Button variant="outline" size="sm" onClick={handleCall} className="flex items-center gap-1">
+          <Phone className="h-4 w-4" />
+          <span>통화</span>
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleMessage} className="flex items-center gap-1">
+          <MessageSquare className="h-4 w-4" />
+          <span>메시지</span>
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleNavigate} className="flex items-center gap-1">
+          <Navigation className="h-4 w-4" />
+          <span>길찾기</span>
+        </Button>
       </div>
       
       {displayedReviews.map((review, index) => (
@@ -173,6 +208,7 @@ const EcosystemMap = () => {
       lng: 126.9780,
       title: "서울시청 피어몰",
       address: "서울특별시 중구 세종대로 110",
+      phone: "02-1234-5678",
       reviews: [
         {
           author: "GPT카이",
@@ -223,6 +259,7 @@ const EcosystemMap = () => {
       lng: 126.9770, 
       title: "광화문 피어몰",
       address: "서울특별시 종로구 율곡로 99",
+      phone: "02-2345-6789",
       reviews: [
         {
           author: "박지민",
@@ -273,6 +310,7 @@ const EcosystemMap = () => {
       lng: 126.9845,
       title: "핸드메이드 액세서리",
       address: "서울시 용산구 이태원로 45-8",
+      phone: "02-3456-7890",
       reviews: [
         {
           author: "최유진",
@@ -323,6 +361,7 @@ const EcosystemMap = () => {
       lng: 127.0227,
       title: "건강한 식단",
       address: "서울시 강남구 테헤란로 152",
+      phone: "02-4567-8901",
       reviews: [
         {
           author: "정다윤",
@@ -373,6 +412,7 @@ const EcosystemMap = () => {
       lng: 126.9340,
       title: "디자인 스튜디오",
       address: "서울시 마포구 양화로 45",
+      phone: "02-5678-9012",
       reviews: [
         {
           author: "송태환",
@@ -423,6 +463,7 @@ const EcosystemMap = () => {
       lng: 127.0376,
       title: "친환경 생활용품",
       address: "서울시 성동구 성수일로 10-3",
+      phone: "02-6789-0123",
       reviews: [
         {
           author: "홍길동",
@@ -473,6 +514,7 @@ const EcosystemMap = () => {
       lng: 126.9860,
       title: "수제 베이커리",
       address: "서울시 종로구 삼청로 106",
+      phone: "02-7890-1234",
       reviews: [
         {
           author: "박지영",
@@ -523,11 +565,12 @@ const EcosystemMap = () => {
       lng: 127.0378,
       title: "디지털 아트 갤러리",
       address: "서울시 강남구 논현로 164길 17",
+      phone: "02-8901-2345",
       reviews: [
         {
           author: "조현우",
           rating: 4.6,
-          text: "디지털 아트의 새로운 세계를 경험할 수 있는 곳이에요. 인터랙티브 전시가 특히 인상적이었습니다.",
+          text: "디지털 ���트의 새로운 세계를 경험할 수 있는 곳이에요. 인터랙티브 전시가 특히 인상적이었습니다.",
           likes: 19,
           dislikes: 2,
           date: "2025-04-12",
@@ -573,6 +616,7 @@ const EcosystemMap = () => {
       lng: 127.0406,
       title: "북 커뮤니티",
       address: "서울시 강남구 선릉로 93길 26",
+      phone: "02-9012-3456",
       reviews: [
         {
           author: "정민석",
@@ -623,6 +667,7 @@ const EcosystemMap = () => {
       lng: 126.9252,
       title: "홈가드닝",
       address: "서울시 마포구 월드컵로 35",
+      phone: "02-0123-4567",
       reviews: [
         {
           author: "임성호",
@@ -655,7 +700,7 @@ const EcosystemMap = () => {
         {
           author: "박준영",
           rating: 4.6,
-          text: "화분과 흙, 비료 등 가드닝에 필요한 모든 것을 한 곳에서 구매할 수 있어 편리해요.",
+          text: "화분과 흙, 비료 등 가드닝에 필요한 모든 것을 �� 곳에서 구매할 수 있어 편리해요.",
           likes: 18,
           dislikes: 1,
           date: "2025-03-29",
