@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Star } from 'lucide-react';
+import { Star, ChevronUp, ChevronDown, MapPin } from 'lucide-react';
 
 interface StoreReview {
   author: string;
@@ -168,7 +168,9 @@ const EcosystemMap = () => {
   const [mapType, setMapType] = useState('street');
   const [userLocation, setUserLocation] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [showControls, setShowControls] = useState(true);
 
+  // All locations matching the peermall list
   const locations: Location[] = [
     {
       lat: 37.5665,
@@ -203,20 +205,6 @@ const EcosystemMap = () => {
             service: 78,
             valueForMoney: 74
           }
-        },
-        {
-          author: "이준호",
-          rating: 4,
-          text: "대체로 만족스러웠습니다. 다만 몇몇 상품은 가격이 조금 비싼 감이 있어요.",
-          likes: 12,
-          dislikes: 3,
-          date: "2025-04-05",
-          stats: {
-            satisfaction: 85,
-            quality: 70,
-            service: 68,
-            valueForMoney: 60
-          }
         }
       ]
     },
@@ -238,6 +226,100 @@ const EcosystemMap = () => {
             quality: 68,
             service: 72,
             valueForMoney: 65
+          }
+        }
+      ]
+    },
+    {
+      lat: 37.5635,
+      lng: 126.9845,
+      title: "핸드메이드 액세서리",
+      address: "서울시 용산구 이태원로 45-8",
+      reviews: [
+        {
+          author: "최유진",
+          rating: 4.5,
+          text: "정성이 가득 담긴 액세서리들을 만나볼 수 있어요. 특히 귀걸이 컬렉션이 다양해서 좋았습니다. 직접 제작하시는 모습도 볼 수 있어 특별한 경험이었어요.",
+          likes: 12,
+          dislikes: 1,
+          date: "2025-04-05",
+          stats: {
+            satisfaction: 90,
+            quality: 85,
+            service: 75,
+            valueForMoney: 70
+          }
+        },
+        {
+          author: "이민수",
+          rating: 4.3,
+          text: "선물용으로 구매했는데 포장도 예쁘고 받는 사람이 매우 좋아했어요. 다만 가격이 조금 높은 편입니다.",
+          likes: 8,
+          dislikes: 2,
+          date: "2025-03-28",
+          stats: {
+            satisfaction: 86,
+            quality: 88,
+            service: 79,
+            valueForMoney: 62
+          }
+        }
+      ]
+    },
+    {
+      lat: 37.5115,
+      lng: 127.0227,
+      title: "건강한 식단",
+      address: "서울시 강남구 테헤란로 152",
+      reviews: [
+        {
+          author: "정다윤",
+          rating: 4.8,
+          text: "건강을 생각하는 식단이 정말 맛있어요! 칼로리와 영양소가 균형있게 구성되어 있어 다이어트 중에도 부담없이 즐길 수 있었습니다.",
+          likes: 22,
+          dislikes: 0,
+          date: "2025-04-15",
+          stats: {
+            satisfaction: 96,
+            quality: 92,
+            service: 88,
+            valueForMoney: 82
+          }
+        },
+        {
+          author: "한지훈",
+          rating: 4.7,
+          text: "매일 배송되는 신선한 식단이 일상의 활력소가 됩니다. 다양한 메뉴로 질리지 않고 건강하게 식사할 수 있어 좋습니다.",
+          likes: 16,
+          dislikes: 1,
+          date: "2025-04-02",
+          stats: {
+            satisfaction: 94,
+            quality: 90,
+            service: 85,
+            valueForMoney: 80
+          }
+        }
+      ]
+    },
+    {
+      lat: 37.5565,
+      lng: 126.9340,
+      title: "디자인 스튜디오",
+      address: "서울시 마포구 양화로 45",
+      reviews: [
+        {
+          author: "송태환",
+          rating: 4.9,
+          text: "전문적인 디자인 서비스에 매우 만족합니다. 요구사항을 정확히 이해하고 기대 이상의 결과물을 제공해 주셨어요.",
+          likes: 31,
+          dislikes: 0,
+          date: "2025-04-14",
+          stats: {
+            satisfaction: 98,
+            quality: 95,
+            service: 92,
+            valueForMoney: 88
           }
         }
       ]
@@ -373,6 +455,11 @@ const EcosystemMap = () => {
     }
   };
 
+  // 컨트롤 위젯 토글
+  const toggleControls = () => {
+    setShowControls(!showControls);
+  };
+
   return (
     <>
       <div className="relative w-full h-[400px] rounded-lg shadow-md overflow-hidden">
@@ -382,43 +469,69 @@ const EcosystemMap = () => {
           style={{backgroundColor: '#f5f5f5'}}
         />
         
-        <div className="absolute top-4 right-4 z-[1000] bg-white p-3 rounded-lg shadow-md flex flex-col gap-2">
-          <div className="flex gap-2">
-            <button 
-              onClick={() => setMapType('street')}
-              className={`px-3 py-1 rounded text-sm ${mapType === 'street' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
-            >
-              일반지도
-            </button>
-            <button 
-              onClick={() => setMapType('satellite')}
-              className={`px-3 py-1 rounded text-sm ${mapType === 'satellite' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
-            >
-              위성지도
-            </button>
-          </div>
-          
-          <button 
-            onClick={findMyLocation}
-            className="px-3 py-1 bg-green-500 text-white rounded text-sm"
+        {/* 컨트롤 토글 버튼 */}
+        <div className="absolute top-4 right-4 z-[1000]">
+          <button
+            onClick={toggleControls}
+            className="bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition-colors mb-2 flex items-center justify-center"
+            title={showControls ? "컨트롤 숨기기" : "컨트롤 표시하기"}
           >
-            내 위치
+            {showControls ? (
+              <ChevronUp className="h-5 w-5 text-gray-600" />
+            ) : (
+              <ChevronDown className="h-5 w-5 text-gray-600" />
+            )}
           </button>
-          
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="피어몰 이름 검색"
-              className="flex-1 border rounded px-2 py-1 text-sm"
-            />
+        </div>
+        
+        {/* 지도 컨트롤 위젯 */}
+        {showControls && (
+          <div className="absolute top-14 right-4 z-[1000] bg-white p-3 rounded-lg shadow-md flex flex-col gap-2">
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setMapType('street')}
+                className={`px-3 py-1 rounded text-sm ${mapType === 'street' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+              >
+                일반지도
+              </button>
+              <button 
+                onClick={() => setMapType('satellite')}
+                className={`px-3 py-1 rounded text-sm ${mapType === 'satellite' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+              >
+                위성지도
+              </button>
+            </div>
+            
             <button 
-              onClick={searchPeermall}
-              className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
+              onClick={findMyLocation}
+              className="px-3 py-1 bg-green-500 text-white rounded text-sm"
             >
-              검색
+              내 위치
             </button>
+            
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="피어몰 이름 검색"
+                className="flex-1 border rounded px-2 py-1 text-sm"
+              />
+              <button 
+                onClick={searchPeermall}
+                className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
+              >
+                검색
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* 피어몰 표시 레이블 */}
+        <div className="absolute bottom-4 left-4 z-[900] bg-white bg-opacity-80 px-3 py-1 rounded-md shadow-sm">
+          <div className="flex items-center text-xs text-gray-700">
+            <MapPin className="h-3 w-3 mr-1 text-red-500" />
+            <span>표시된 피어몰: {locations.length}개</span>
           </div>
         </div>
       </div>
