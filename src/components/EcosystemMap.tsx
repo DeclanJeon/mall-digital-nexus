@@ -1,29 +1,162 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { Star } from 'lucide-react';
 
-const ReviewSection = ({ locations }) => {
+interface StoreReview {
+  author: string;
+  rating: number;
+  text: string;
+  likes: number;
+  dislikes: number;
+  date: string;
+  stats: {
+    satisfaction: number;
+    quality: number;
+    service: number;
+    valueForMoney: number;
+  };
+}
+
+interface Location {
+  lat: number;
+  lng: number;
+  title: string;
+  address: string;
+  reviews?: StoreReview[];
+}
+
+const ReviewSection = ({ location }: { location: Location | null }) => {
+  if (!location || !location.reviews || location.reviews.length === 0) {
+    return (
+      <div className="bg-white p-4 border-t">
+        <h3 className="font-bold text-lg mb-3">피어몰 리뷰</h3>
+        <p className="text-gray-500 text-sm">선택한 피어몰의 리뷰가 없습니다.</p>
+      </div>
+    );
+  }
+
+  // Only show up to 2 reviews as requested
+  const displayedReviews = location.reviews.slice(0, 2);
+  
+  // Calculate average rating
+  const avgRating = location.reviews.reduce((sum, review) => sum + review.rating, 0) / location.reviews.length;
+  const formattedRating = avgRating.toFixed(1);
+  const reviewCount = location.reviews.length.toLocaleString();
+
   return (
     <div className="bg-white p-4 border-t">
-      <h3 className="font-bold text-lg mb-3">피어몰 리뷰 요약</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {locations.map(location => (
-          <div key={location.title} className="bg-gray-50 p-3 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="font-medium">{location.title}</h4>
-              <div className="flex items-center">
-                <span className="text-yellow-500">★★★★☆</span>
-                <span className="text-sm ml-1">(4.2)</span>
-              </div>
-            </div>
-            <div className="text-sm space-y-2">
-              <p className="line-clamp-2">"이 피어몰에서 정말 좋은 경험을 했어요. 직원들이 친절했고..."</p>
-              <p className="text-gray-500 text-xs">- 최근 리뷰 3개 중</p>
-            </div>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-bold text-lg">{location.title} 리뷰</h3>
+        <div className="flex items-center gap-2">
+          <div className="flex text-yellow-500">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star 
+                key={star} 
+                className={`w-4 h-4 ${star <= Math.round(avgRating) ? "fill-yellow-500" : "fill-gray-200"}`} 
+              />
+            ))}
           </div>
-        ))}
+          <span className="font-bold">{formattedRating}</span>
+          <span className="text-gray-500 text-sm">({reviewCount})</span>
+        </div>
       </div>
       
+      {displayedReviews.map((review, index) => (
+        <div key={index} className="mb-4 pb-4 border-b last:border-b-0 last:pb-0">
+          <div className="flex justify-between items-start mb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-red-400 rounded-full text-white flex items-center justify-center">
+                {review.author.slice(0, 1)}
+              </div>
+              <div>
+                <div className="font-medium">{review.author}</div>
+                <div className="text-sm text-gray-500">{review.date}</div>
+              </div>
+            </div>
+            <div className="flex text-yellow-500">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star 
+                  key={star} 
+                  className={`w-4 h-4 ${star <= review.rating ? "fill-yellow-500" : "fill-gray-200"}`} 
+                />
+              ))}
+            </div>
+          </div>
+          
+          <p className="text-sm mb-4">{review.text}</p>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <div className="text-sm font-medium">만족도</div>
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-red-500 rounded-full" 
+                    style={{ width: `${review.stats.satisfaction}%` }} 
+                  ></div>
+                </div>
+                <span className="text-sm text-red-500 font-bold">{review.stats.satisfaction}%</span>
+              </div>
+            </div>
+            
+            <div className="flex justify-between">
+              <div className="text-sm font-medium">상품 품질</div>
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-red-500 rounded-full" 
+                    style={{ width: `${review.stats.quality}%` }} 
+                  ></div>
+                </div>
+                <span className="text-sm text-gray-500">{review.stats.quality}%</span>
+              </div>
+            </div>
+            
+            <div className="flex justify-between">
+              <div className="text-sm font-medium">서비스</div>
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-red-500 rounded-full" 
+                    style={{ width: `${review.stats.service}%` }} 
+                  ></div>
+                </div>
+                <span className="text-sm text-gray-500">{review.stats.service}%</span>
+              </div>
+            </div>
+            
+            <div className="flex justify-between">
+              <div className="text-sm font-medium">가격 대비 만족도</div>
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-red-500 rounded-full" 
+                    style={{ width: `${review.stats.valueForMoney}%` }} 
+                  ></div>
+                </div>
+                <span className="text-sm text-gray-500">{review.stats.valueForMoney}%</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex justify-end items-center gap-4 mt-3">
+            <button className="flex items-center gap-1 text-sm text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+              </svg>
+              <span>{review.likes}</span>
+            </button>
+            <button className="flex items-center gap-1 text-sm text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+              </svg>
+              <span>{review.dislikes}</span>
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
@@ -34,19 +167,80 @@ const EcosystemMap = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [mapType, setMapType] = useState('street');
   const [userLocation, setUserLocation] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
 
-  const locations = [
+  const locations: Location[] = [
     {
       lat: 37.5665,
       lng: 126.9780,
       title: "서울시청 피어몰",
-      address: "서울특별시 중구 세종대로 110"
+      address: "서울특별시 중구 세종대로 110",
+      reviews: [
+        {
+          author: "GPT카이",
+          rating: 4.6,
+          text: "최근 3개월의 리뷰를 모아봤어요. 이 서비스는 정말 편하고 직관적인 UI를 가지고 있어서 사용하기 쉬웠습니다. 특히 피어몰에서 제공하는 상품들의 품질이 우수하고 배송도 빨라서 만족스러웠습니다. 고객센터의 응대도 친절하고 문의사항에 빠르게 답변해 주셔서 좋았어요.",
+          likes: 24,
+          dislikes: 3,
+          date: "2025-04-10",
+          stats: {
+            satisfaction: 93,
+            quality: 74,
+            service: 66,
+            valueForMoney: 69
+          }
+        },
+        {
+          author: "김서연",
+          rating: 5,
+          text: "피어몰의 서비스가 정말 마음에 들어요. 상품 품질이 좋고 가격도 합리적이에요. 특히 배송이 빨라서 놀랐어요!",
+          likes: 18,
+          dislikes: 1,
+          date: "2025-04-08",
+          stats: {
+            satisfaction: 95,
+            quality: 82,
+            service: 78,
+            valueForMoney: 74
+          }
+        },
+        {
+          author: "이준호",
+          rating: 4,
+          text: "대체로 만족스러웠습니다. 다만 몇몇 상품은 가격이 조금 비싼 감이 있어요.",
+          likes: 12,
+          dislikes: 3,
+          date: "2025-04-05",
+          stats: {
+            satisfaction: 85,
+            quality: 70,
+            service: 68,
+            valueForMoney: 60
+          }
+        }
+      ]
     },
     {
       lat: 37.5796,
       lng: 126.9770, 
       title: "광화문 피어몰",
-      address: "서울특별시 종로구 율곡로 99"
+      address: "서울특별시 종로구 율곡로 99",
+      reviews: [
+        {
+          author: "박지민",
+          rating: 4.2,
+          text: "광화문 피어몰은 위치가 정말 좋아요. 접근성이 뛰어나고 다양한 상품을 구경할 수 있어서 좋았습니다. 직원분들도 친절하시고 매장 분위기도 좋았어요.",
+          likes: 15,
+          dislikes: 2,
+          date: "2025-04-12",
+          stats: {
+            satisfaction: 84,
+            quality: 68,
+            service: 72,
+            valueForMoney: 65
+          }
+        }
+      ]
     }
   ];
 
@@ -79,8 +273,19 @@ const EcosystemMap = () => {
           <div class="p-2">
             <h3 class="font-bold">${loc.title}</h3>
             <p class="text-sm">${loc.address}</p>
+            <button class="view-reviews text-sm text-blue-500 mt-1">리뷰 보기</button>
           </div>
-        `);
+        `)
+        .on('popupopen', (e) => {
+          // Find the button inside the popup and add click handler
+          const button = document.querySelector('.view-reviews');
+          if (button) {
+            button.addEventListener('click', () => {
+              setSelectedLocation(loc);
+              e.popup.closePopup();
+            });
+          }
+        });
     });
 
     mapInstance.current = map;
@@ -162,6 +367,7 @@ const EcosystemMap = () => {
     
     if (found) {
       mapInstance.current.flyTo([found.lat, found.lng], 15);
+      setSelectedLocation(found);
     } else {
       alert('해당하는 피어몰을 찾을 수 없습니다.');
     }
@@ -169,7 +375,7 @@ const EcosystemMap = () => {
 
   return (
     <>
-      <div className="relative w-full h-[600px] rounded-lg shadow-md overflow-hidden">
+      <div className="relative w-full h-[400px] rounded-lg shadow-md overflow-hidden">
         <div 
           ref={mapRef} 
           className="w-full h-full"
@@ -180,13 +386,13 @@ const EcosystemMap = () => {
           <div className="flex gap-2">
             <button 
               onClick={() => setMapType('street')}
-              className={`px-3 py-1 rounded ${mapType === 'street' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+              className={`px-3 py-1 rounded text-sm ${mapType === 'street' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
             >
               일반지도
             </button>
             <button 
               onClick={() => setMapType('satellite')}
-              className={`px-3 py-1 rounded ${mapType === 'satellite' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+              className={`px-3 py-1 rounded text-sm ${mapType === 'satellite' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
             >
               위성지도
             </button>
@@ -194,7 +400,7 @@ const EcosystemMap = () => {
           
           <button 
             onClick={findMyLocation}
-            className="px-3 py-1 bg-green-500 text-white rounded"
+            className="px-3 py-1 bg-green-500 text-white rounded text-sm"
           >
             내 위치
           </button>
@@ -209,7 +415,7 @@ const EcosystemMap = () => {
             />
             <button 
               onClick={searchPeermall}
-              className="px-3 py-1 bg-blue-500 text-white rounded"
+              className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
             >
               검색
             </button>
@@ -217,7 +423,7 @@ const EcosystemMap = () => {
         </div>
       </div>
 
-      <ReviewSection locations={locations} />
+      <ReviewSection location={selectedLocation} />
     </>
   );
 };
