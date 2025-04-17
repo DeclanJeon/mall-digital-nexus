@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -26,6 +26,7 @@ interface ChatRoom {
 }
 
 const OpenChatRooms = () => {
+  const navigate = useNavigate();
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([
     {
       id: '1',
@@ -66,17 +67,15 @@ const OpenChatRooms = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
   
-  // New room form state
   const [newRoom, setNewRoom] = useState<Omit<ChatRoom, 'id' | 'participantsCount' | 'timestamp'>>({
     name: '',
     type: 'text',
     description: '',
-    creator: '익명 사용자', // Default creator name
+    creator: '익명 사용자',
     isPrivate: false,
     features: []
   });
 
-  // Filtered rooms based on search and type filter
   const filteredRooms = chatRooms.filter(room => {
     const matchesSearch = room.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          room.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -84,7 +83,6 @@ const OpenChatRooms = () => {
     return matchesSearch && matchesType;
   });
 
-  // Handle creating a new room
   const handleCreateRoom = () => {
     if (!newRoom.name.trim()) {
       toast.error("채팅방 이름을 입력해주세요.");
@@ -94,7 +92,7 @@ const OpenChatRooms = () => {
     const createdRoom: ChatRoom = {
       ...newRoom,
       id: Math.random().toString(36).substring(2, 9),
-      participantsCount: 1, // Creator starts as the only participant
+      participantsCount: 1,
       timestamp: new Date(),
     };
 
@@ -102,7 +100,6 @@ const OpenChatRooms = () => {
     setCreateDialogOpen(false);
     toast.success(`'${createdRoom.name}' 채팅방이 생성되었습니다.`);
     
-    // Reset the form for next use
     setNewRoom({
       name: '',
       type: 'text',
@@ -113,13 +110,11 @@ const OpenChatRooms = () => {
     });
   };
 
-  // Handle joining a room
   const handleJoinRoom = (room: ChatRoom) => {
-    // In a real application, this would navigate to the room or open a connection
     toast.success(`'${room.name}' 채팅방에 입장합니다.`);
+    navigate(`/community/chat/${room.id}`, { state: { room } });
   };
 
-  // Toggle feature selection when creating a room
   const toggleFeature = (feature: string) => {
     setNewRoom(prev => {
       if (prev.features.includes(feature)) {
@@ -136,7 +131,6 @@ const OpenChatRooms = () => {
     });
   };
 
-  // Get icon based on room type
   const getRoomTypeIcon = (type: string) => {
     switch (type) {
       case 'voice':
@@ -148,7 +142,6 @@ const OpenChatRooms = () => {
     }
   };
 
-  // Format timestamp to relative time
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
@@ -258,7 +251,6 @@ const OpenChatRooms = () => {
         </div>
       </ScrollArea>
       
-      {/* Create New Chat Room Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>

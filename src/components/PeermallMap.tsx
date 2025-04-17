@@ -1,688 +1,1160 @@
-import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { 
-  MapContainer, 
-  TileLayer, 
-  Marker, 
-  Popup, 
-  useMap,
-  ZoomControl,
-  LayersControl,
-  FeatureGroup,
-  Circle,
-  Polyline,
-  useMapEvents
-} from 'react-leaflet';
+import React, { useState, useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Search } from 'lucide-react';
+import axios from 'axios';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
+import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { useToast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
+
+// Import Leaflet Routing Machine and CSS
+import 'leaflet-routing-machine';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
-import 'leaflet-measure/dist/leaflet-measure.css';
+import { useJsApiLoader } from '@react-google-maps/api';
+
+// Import Peer 생성, 삭제, 수정, 정보 가져오기
+import { createPeer, deletePeer, updatePeer, getPeer } from '@/lib/api/peer';
+
+// Import CategoryNav
+import CategoryNav from '@/components/CategoryNav';
+
+// Import OpenChatSection
+import OpenChatSection from '@/components/OpenChatSection';
+
+// Import Leaflet Geocoder and CSS
+import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
+import 'leaflet-control-geocoder';
+
+// Import Leaflet Fullscreen and CSS
+import 'leaflet-fullscreen/dist/leaflet.fullscreen.css';
+import 'leaflet-fullscreen';
+
+// Import Leaflet Mouse Position and CSS
+import 'leaflet-mouse-position';
+
+// Import Leaflet Image Overlay
+import { ImageOverlay } from 'react-leaflet';
+
+// Import Leaflet Measure Control
+import { MeasureControl } from 'react-leaflet-measure';
+
+// Import Leaflet Locate Control
+import { LocateControl } from 'react-leaflet-locate-control';
+
+// Import Leaflet EasyPrint
+import leafletEasyPrint from 'leaflet-easyprint';
+
+// Import Leaflet Style Editor
+// import 'leaflet-styleeditor';
+
+// Import Leaflet Path Transform
+import 'leaflet-path-transform';
+
+// Import Leaflet Rotate Marker
+import 'leaflet-rotate-marker';
+
+// Import Leaflet Text Path
+import 'leaflet-textpath';
+
+// Import Leaflet Snap
+import 'leaflet-snap';
+
+// Import Leaflet Draw
+import { FeatureGroup, EditControl } from 'react-leaflet-draw'
+import 'leaflet-draw/dist/leaflet.draw.css';
+
+// Import Leaflet.markercluster
+import 'leaflet.markercluster/dist/leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import MarkerClusterGroup from 'react-leaflet-cluster';
+import MarkerClusterGroup from 'react-leaflet-markercluster';
 
-// Fix for Leaflet default marker icons
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-import iconRetina from 'leaflet/dist/images/marker-icon-2x.png';
+// Import Leaflet.awesome-markers
+import 'leaflet-awesome-markers/dist/leaflet.awesome-markers';
+import 'leaflet-awesome-markers/dist/leaflet.awesome-markers.css';
+import AwesomeMarkers from 'leaflet-awesome-markers';
 
-// Custom markers
-const restaurantIcon = '/markers/restaurant-marker.png';
-const hotelIcon = '/markers/hotel-marker.png';
-const attractionIcon = '/markers/attraction-marker.png';
+// Import Leaflet.contextmenu
+import 'leaflet-contextmenu';
+import 'leaflet-contextmenu/dist/leaflet.contextmenu.css';
 
-// Set up default icons
-const DefaultIcon = L.icon({
-  iconUrl: icon,
-  iconRetinaUrl: iconRetina,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-  shadowSize: [41, 41]
-});
+// Import Leaflet.Grid
+import 'leaflet.grid';
 
-L.Marker.prototype.options.icon = DefaultIcon;
+// Import Leaflet.Hotline
+import 'leaflet-hotline';
 
-// Custom icons for different location types
-const icons = {
-  restaurant: L.icon({
-    iconUrl: restaurantIcon || icon,
-    shadowUrl: iconShadow,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32]
-  }),
-  hotel: L.icon({
-    iconUrl: hotelIcon || icon,
-    shadowUrl: iconShadow,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32]
-  }),
-  attraction: L.icon({
-    iconUrl: attractionIcon || icon,
-    shadowUrl: iconShadow,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32]
-  }),
-  default: DefaultIcon
-};
+// Import Leaflet.Canvas-Markers
+import 'leaflet-canvas-markers';
 
-// Define interface for Nominatim search results
-interface NominatimResult {
-  place_id: number;
-  licence: string;
-  osm_type: string;
-  osm_id: number;
-  boundingbox: string[];
-  lat: string;
-  lon: string;
-  display_name: string;
-  class: string;
-  type: string;
-  importance: number;
-  icon?: string;
-}
+// Import Leaflet.GeoJSONDisplay
+import 'leaflet-geojson-display';
 
-interface Location {
-  id?: string;
-  lat: number;
-  lng: number;
-  address: string;
-  title: string;
-  type?: 'restaurant' | 'hotel' | 'attraction' | 'default';
-  description?: string;
-  phone?: string;
-  website?: string;
-  openingHours?: string;
-}
+// Import Leaflet.SvgShapeMarkers
+import 'leaflet-svg-shape-markers';
 
-interface PeermallMapProps {
-  isOpen: boolean;
-  onClose: () => void;
-  selectedLocation?: Location | null;
-  allLocations?: Location[];
-}
+// Import Leaflet.Weather
+// import 'leaflet-weather/dist/leaflet-weather.css';
+// import 'leaflet-weather';
 
-// Component to handle map center changes
-const ChangeView = ({ center, zoom }: { center: [number, number], zoom: number }) => {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, zoom);
-  }, [center, map, zoom]);
-  return null;
-};
+// Import Leaflet.FileLayer
+import 'leaflet.filelayer';
 
-// Current location component
-const LocationMarker = () => {
-  const [position, setPosition] = useState<L.LatLng | null>(null);
-  const map = useMapEvents({
-    locationfound(e) {
-      setPosition(e.latlng);
-      map.flyTo(e.latlng, map.getZoom());
-    }
-  });
+// Import Leaflet.Sleep
+import 'leaflet.sleep';
 
-  useEffect(() => {
-    map.locate();
-  }, [map]);
+// Import Leaflet.ImageTransform
+import 'leaflet-imagetransform/ Leaflet.ImageTransform.js';
 
-  return position === null ? null : (
-    <Marker 
-      position={position}
-      icon={L.divIcon({
-        html: `
-          <div style="
-            background-color: #4285F4;
-            border: 2px solid white;
-            border-radius: 50%;
-            height: 16px;
-            width: 16px;
-            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.3), 0 0 10px rgba(66, 133, 244, 0.5);
-          "></div>
-        `,
-        className: "current-location-marker",
-        iconSize: [16, 16],
-        iconAnchor: [8, 8]
-      })}
-    >
-      <Popup>현재 위치</Popup>
-    </Marker>
-  );
-};
+// Import Leaflet.ImageOverlay.Rotated
+import 'leaflet-imageoverlay-rotated';
 
-// Search component using Nominatim - 메모이제이션 적용
-const SearchBox = memo(({ onSelectLocation }: { onSelectLocation: (location: Location) => void }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [results, setResults] = useState<NominatimResult[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showResults, setShowResults] = useState(false);
+// Import Leaflet.Control.Opacity
+import 'leaflet-control-opacity';
 
-  const handleSearch = async () => {
-    if (searchTerm.length < 3) return;
-    
-    setIsSearching(true);
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchTerm)}`
-      );
-      const data: NominatimResult[] = await response.json();
-      setResults(data);
-      setShowResults(true);
-    } catch (error) {
-      console.error('검색 중 오류가 발생했습니다:', error);
-    } finally {
-      setIsSearching(false);
-    }
-  };
+// Import Leaflet.Timeline
+import 'leaflet-timeline';
+import 'leaflet-timeline/dist/leaflet.timeline.css';
 
-  const handleSelect = (result: NominatimResult) => {
-    onSelectLocation({
-      id: `search-${result.place_id}`,
-      lat: parseFloat(result.lat),
-      lng: parseFloat(result.lon),
-      title: result.display_name.split(',')[0],
-      address: result.display_name,
-      type: 'default'
-    });
-    setShowResults(false);
-    setSearchTerm('');
-  };
+// Import Leaflet.Legend
+import 'leaflet-legend';
+import 'leaflet-legend/leaflet.legend.css';
 
-  return (
-    <div className="absolute top-4 left-4 z-10 w-72">
-      <div className="relative">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-          placeholder="위치 검색..."
-          className="w-full px-4 py-2 rounded-lg shadow-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          onClick={handleSearch}
-          disabled={isSearching}
-          className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
-        >
-          {isSearching ? '검색 중...' : '🔍'}
-        </button>
-      </div>
-      
-      {showResults && results.length > 0 && (
-        <div className="mt-2 bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto">
-          {results.map((result) => (
-            <div
-              key={result.place_id}
-              onClick={() => handleSelect(result)}
-              className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0"
-            >
-              <div className="font-medium">{result.display_name.split(',')[0]}</div>
-              <div className="text-sm text-gray-500 truncate">{result.display_name}</div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-});
+// Import Leaflet.MiniMap
+import "leaflet-minimap";
+import "leaflet-minimap/dist/Control.MiniMap.min.css";
 
-// Control panel component - 메모이제이션 적용
-const ControlPanel = ({
-  onLocateMe,
-  onToggleRouting,
-  onToggleMeasure,
-  isRoutingActive,
-  isMeasureActive
-}: {
-  onLocateMe: () => void;
-  onToggleRouting: () => void;
-  onToggleMeasure: () => void;
-  isRoutingActive: boolean;
-  isMeasureActive: boolean;
-}) => {
-  return (
-    <div className="absolute bottom-4 left-4 z-10 bg-white rounded-lg shadow-md">
-      <div className="flex flex-col p-2">
-        <button
-          onClick={onLocateMe}
-          className="mb-2 p-2 rounded hover:bg-gray-100 flex items-center"
-          title="내 위치 찾기"
-        >
-          <span role="img" aria-label="내 위치">📍</span>
-          <span className="ml-2">내 위치</span>
-        </button>
-        
-        {/* <button
-          onClick={onToggleRouting}
-          className={`mb-2 p-2 rounded hover:bg-gray-100 flex items-center ${isRoutingActive ? 'bg-blue-100' : ''}`}
-          title="경로 찾기"
-        >
-          <span role="img" aria-label="경로">🔄</span>
-          <span className="ml-2">경로 찾기</span>
-        </button> */}
-        
-        {/* <button
-          onClick={onToggleMeasure}
-          className={`p-2 rounded hover:bg-gray-100 flex items-center ${isMeasureActive ? 'bg-blue-100' : ''}`}
-          title="거리 측정"
-        >
-          <span role="img" aria-label="측정">📏</span>
-          <span className="ml-2">거리 측정</span>
-        </button> */}
-      </div>
-    </div>
-  );
-};
+// Import Leaflet.Sidebar
+import "leaflet-sidebar-v2";
+import "leaflet-sidebar-v2/css/leaflet-sidebar.min.css";
 
-// InfoPanel component - 메모이제이션 적용 및 닫기 버튼 추가
-const InfoPanel = memo(({ location, onClose }: { location: Location | null; onClose: () => void }) => {
-  if (!location) return null;
-  
-  return (
-    <div className="absolute top-4 right-4 z-10 bg-white rounded-lg shadow-md p-4 w-72">
-      <button 
-        onClick={onClose} 
-        className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-400"
-        aria-label="정보 패널 닫기"
-      >
-        ✕
-      </button>
-      <h3 className="text-lg font-bold mb-2 pr-6">{location.title}</h3> {/* 제목과 닫기 버튼 겹침 방지 */}
-      <p className="text-sm text-gray-600 mb-2">{location.address}</p>
-      
-      {location.description && (
-        <p className="text-sm mb-2">{location.description}</p>
-      )}
-      
-      {location.phone && (
-        <div className="flex items-center mb-1">
-          <span role="img" aria-label="전화" className="mr-2">📞</span>
-          <a href={`tel:${location.phone}`} className="text-blue-500 hover:underline">{location.phone}</a>
-        </div>
-      )}
-      
-      {location.website && (
-        <div className="flex items-center mb-1">
-          <span role="img" aria-label="웹사이트" className="mr-2">🌐</span>
-          <a href={location.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">웹사이트 방문</a>
-        </div>
-      )}
-      
-      {location.openingHours && (
-        <div className="flex items-center">
-          <span role="img" aria-label="영업시간" className="mr-2">🕒</span>
-          <span>{location.openingHours}</span>
-        </div>
-      )}
-    </div>
-  );
-});
+// Import Leaflet.Dialog
+import 'leaflet-dialog';
+import 'leaflet-dialog/LeafletDialog.css';
 
-// Routing control component
-const RoutingControl = ({ 
-  start, 
-  end, 
-  isActive 
-}: { 
-  start: [number, number] | null; 
-  end: [number, number] | null; 
-  isActive: boolean;
-}) => {
-  const map = useMap();
-  const routingControlRef = useRef<L.Routing.Control | null>(null); 
-  
-  useEffect(() => {
-    if (!isActive || !start || !end) {
-      if (routingControlRef.current) {
-        try {
-          routingControlRef.current.remove();
-        } catch (error) {
-          console.error('Error removing routing control:', error);
-        }
-        routingControlRef.current = null;
-      }
-      return;
-    }
+// Import Leaflet.Control.Loading
+import 'leaflet-control-loading';
 
-    try {
-      if (!routingControlRef.current && L.Routing && typeof L.Routing.control === 'function') { 
-        routingControlRef.current = L.Routing.control({
-          waypoints: [
-            L.latLng(start[0], start[1]),
-            L.latLng(end[0], end[1])
-          ],
-          routeWhileDragging: true,
-          showAlternatives: true,
-          altLineOptions: {
-            styles: [
-              { color: 'black', opacity: 0.15, weight: 9 },
-              { color: 'white', opacity: 0.8, weight: 6 },
-              { color: 'blue', opacity: 0.5, weight: 2 }
-            ]
-          },
-          lineOptions: {
-            extendToWaypoints: false,
-            missingRouteTolerance: 0,
-            styles: [
-              { color: 'black', opacity: 0.15, weight: 9 },
-              { color: 'white', opacity: 0.8, weight: 6 },
-              { color: '#3388ff', opacity: 0.5, weight: 4 }
-            ]
-          },
-          addWaypoints: false,
-          draggableWaypoints: true,
-          fitSelectedRoutes: true,
-          show: false
-        }).addTo(map);
-      } else if (routingControlRef.current) {
-        routingControlRef.current.setWaypoints([
-          L.latLng(start[0], start[1]),
-          L.latLng(end[0], end[1])
-        ]);
-      }
-    } catch (error) {
-      console.error('Error with routing control:', error);
-    }
+// Import Leaflet.Control.Credits
+import 'leaflet-control-credits';
 
-    return () => {
-      if (routingControlRef.current) {
-        try {
-          routingControlRef.current.remove();
-        } catch (error) {
-          console.error('Error removing routing control:', error);
-        }
-        routingControlRef.current = null;
-      }
-    };
-  }, [map, start, end, isActive]);
+// Import Leaflet.Boatmarker
+import 'leaflet-boatmarker';
 
-  return null;
-};
+// Import Leaflet.Rainviewer
+import 'leaflet-rainviewer/dist/leaflet-rainviewer.css';
+import 'leaflet-rainviewer';
 
-// Measure 컨트롤 수정
-const MeasureControl = ({ isActive }: { isActive: boolean }) => {
-  const map = useMap();
-  const measureControlRef = useRef<any>(null);
+// Import Leaflet.Globe
+import 'leaflet-globe';
 
-  useEffect(() => {
-    // 먼저 L.Control.Measure가 존재하는지 확인
-    const hasMeasureControl = L.Control && (L.Control as any).Measure;
-    
-    if (!isActive) {
-      if (measureControlRef.current) {
-        try {
-          map.removeControl(measureControlRef.current);
-        } catch (error) {
-          console.error('Error removing measure control:', error);
-        }
-        measureControlRef.current = null;
-      }
-      return;
-    }
+// Import Leaflet.ImageOverlay.FreeTransform
+import 'leaflet-imageoverlay-freetransform';
 
-    if (!measureControlRef.current && hasMeasureControl) {
-      try {
-        measureControlRef.current = new (L.Control as any).Measure({
-          position: 'topright',
-          primaryLengthUnit: 'meters',
-          secondaryLengthUnit: 'kilometers',
-          primaryAreaUnit: 'sqmeters',
-          secondaryAreaUnit: 'hectares',
-          activeColor: '#3388ff',
-          completedColor: '#33cc33',
-          captureZIndex: 10000
-        }).addTo(map);
-      } catch (error) {
-        console.error('Error initializing measure control:', error);
-      }
-    } else if (!hasMeasureControl) {
-      console.warn('거리 측정 기능을 사용할 수 없습니다.');
-    }
+// Import Leaflet.ImageOverlay.GL
+import 'leaflet-imageoverlay-gl';
 
-    return () => {
-      if (measureControlRef.current) {
-        try {
-          map.removeControl(measureControlRef.current);
-        } catch (error) {
-          console.error('Error removing measure control:', error);
-        }
-        measureControlRef.current = null;
-      }
-    };
-  }, [map, isActive]);
+// Import Leaflet.ImageOverlay.Filter
+import 'leaflet-imageoverlay-filter';
 
-  return null;
-};
+// Import Leaflet.ImageOverlay.Mask
+import 'leaflet-imageoverlay-mask';
 
-// 지도 이벤트 감시하는 컴포넌트
-const MapEventHandler = ({ onRouteEndChange, isRoutingActive, routeStart }: {
-  onRouteEndChange: (end: [number, number]) => void;
-  isRoutingActive: boolean;
-  routeStart: [number, number] | null;
-}) => {
-  useMapEvents({
-    click: (e) => {
-      if (isRoutingActive && routeStart) {
-        onRouteEndChange([e.latlng.lat, e.latlng.lng]);
-      }
-    },
-    locationfound: (e) => {
-      // 위치 찾기는 유지 (라우팅을 위해)
-      if (isRoutingActive) {
-        // 부모 컴포넌트의 상태를 업데이트하는 함수가 필요하면 추가
-      }
-    }
-  });
-  return null;
-};
+// Import Leaflet.ImageOverlay.DistortableImage
+import 'leaflet-distortableimage';
 
-// Main Map Component
-const PeermallMap = ({ isOpen, onClose, selectedLocation, allLocations = [] }: PeermallMapProps) => {
-  // 모든 Hook을 최상위에 정의
-  const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
-  const mapRef = useRef<L.Map | null>(null);
-  const [mapCenter, setMapCenter] = useState<[number, number]>(
-    selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : [37.5665, 126.9780]
-  );
-  const [mapZoom, setMapZoom] = useState(13);
-  const [activeLocation, setActiveLocation] = useState<Location | null>(selectedLocation);
-  const [isRoutingActive, setIsRoutingActive] = useState(false);
-  const [isMeasureActive, setIsMeasureActive] = useState(false);
-  const [routeStart, setRouteStart] = useState<[number, number] | null>(null);
-  const [routeEnd, setRouteEnd] = useState<[number, number] | null>(null);
-  const [mapReady, setMapReady] = useState(false);
+// Import Leaflet.ImageOverlay.Panes
+import 'leaflet-imageoverlay-panes';
 
-  // 메모이제이션된 이벤트 핸들러
-  const handleMapRef = useCallback((map: L.Map) => {
-    mapRef.current = map;
-    setMapInstance(map);
-    setMapReady(true);
-  }, []);
+// Import Leaflet.ImageOverlay.Focus
+import 'leaflet-imageoverlay-focus';
 
-  // 내 위치 찾기 함수 수정
-const handleLocateMe = () => {
-  if (mapInstance && typeof mapInstance.locate === 'function') {
-    mapInstance.locate({setView: true, maxZoom: 16});
-  } else {
-    console.warn("지도 위치 찾기 기능을 사용할 수 없습니다.");
-    // 대안으로 현재 위치를 표시하는 메시지를 보여줄 수 있습니다
-    alert("현재 위치를 찾을 수 없습니다. 브라우저의 위치 권한을 확인해주세요.");
-  }
-};
+// Import Leaflet.ImageOverlay.Animate
+import 'leaflet-imageoverlay-animate';
 
-  const handleToggleRouting = useCallback(() => {
-    setIsRoutingActive((prev) => !prev);
-    if (!isRoutingActive) {
-      setRouteStart(mapCenter);
-      setRouteEnd(selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : null);
-      setIsMeasureActive(false);
-    }
-  }, [isRoutingActive, mapCenter, selectedLocation]);
+// Import Leaflet.ImageOverlay.Magnify
+import 'leaflet-imageoverlay-magnify';
 
-  const handleToggleMeasure = useCallback(() => {
-    setIsMeasureActive((prev) => !prev);
-    if (!isMeasureActive) {
-      setIsRoutingActive(false);
-    }
-  }, [isMeasureActive]);
+// Import Leaflet.ImageOverlay.Blur
+import 'leaflet-imageoverlay-blur';
 
-  const handleSelectLocation = useCallback(
-    (location: Location) => {
-      setActiveLocation(location);
-      setMapCenter([location.lat, location.lng]);
-      setMapZoom(16);
-      if (isRoutingActive) {
-        setRouteEnd([location.lat, location.lng]);
-      }
-    },
-    [isRoutingActive]
-  );
+// Import Leaflet.ImageOverlay.Pixelate
+import 'leaflet-imageoverlay-pixelate';
 
-  const handleRouteEndChange = useCallback((end: [number, number]) => {
-    setRouteEnd(end);
-  }, []);
+// Import Leaflet.ImageOverlay.Colorize
+import 'leaflet-imageoverlay-colorize';
 
-  // InfoPanel 닫기 핸들러
-  const handleCloseInfoPanel = useCallback(() => {
-    setActiveLocation(null);
-  }, []);
+// Import Leaflet.ImageOverlay.Gradient
+import 'leaflet-imageoverlay-gradient';
 
-  // 조건문은 Hook 정의 이후에 배치
-  if (!isOpen) return null;
+// Import Leaflet.ImageOverlay.Warp
+import 'leaflet-imageoverlay-warp';
 
-  // 선택된 위치와 모든 위치에 대한 마커를 렌더링하는 함수
-  const renderMarkers = () => {
-    if (!allLocations.length) return null;
+// Import Leaflet.ImageOverlay.Tile
+import 'leaflet-imageoverlay-tile';
 
-    return (
-      <MarkerClusterGroup>
-        {allLocations.map((location, index) => {
-          const isSelected = selectedLocation && 
-            location.lat === selectedLocation.lat && 
-            location.lng === selectedLocation.lng;
-          
-          const locationType = location.type || 'default';
-          const markerIcon = icons[locationType] || DefaultIcon;
-          
-          return (
-            <Marker
-              key={location.id || `location-${index}`}
-              position={[location.lat, location.lng]}
-              icon={markerIcon}
-              eventHandlers={{
-                click: () => handleSelectLocation(location)
-              }}
-            >
-              <Popup>
-                <div>
-                  <strong>{location.title}</strong>
-                  <p>{location.address}</p>
-                  {location.description && <p>{location.description}</p>}
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
-      </MarkerClusterGroup>
-    );
-  };
+// Import Leaflet.ImageOverlay.Video
+import 'leaflet-imageoverlay-video';
 
-  // 선택된 위치 주변의 원을 그리는 함수 (500m 반경)
-  const renderCircle = () => {
-    if (!selectedLocation) return null;
-    
-    return (
-      <FeatureGroup>
-        <Circle
-          center={[selectedLocation.lat, selectedLocation.lng]}
-          radius={500}
-          pathOptions={{
-            color: '#3388ff',
-            fillColor: '#3388ff',
-            fillOpacity: 0.1
-          }}
-        />
-      </FeatureGroup>
-    );
-  };
+// Import Leaflet.ImageOverlay.SVG
+import 'leaflet-imageoverlay-svg';
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-6xl h-[90vh] flex flex-col">
-        <div className="p-4 border-b flex justify-between items-center">
-          <h2 className="text-xl font-bold">{selectedLocation?.title || '지도'}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 p-2">✕</button>
-        </div>
+// Import Leaflet.ImageOverlay.Canvas
+import 'leaflet-imageoverlay-canvas';
 
-        <div className="flex-grow relative overflow-hidden">
-          <MapContainer
-            center={mapCenter}
-            zoom={mapZoom}
-            style={{ height: '100%', width: '100%', zIndex: 1 }}
-            zoomControl={false}
-            ref={(mapRef) => {
-              if (mapRef) {
-                setMapInstance(mapRef);
-                setMapReady(true);
-              }
-            }}
-          >
-            <ChangeView center={mapCenter} zoom={mapZoom} />
-            <ZoomControl position="bottomright" />
-            
-            <LayersControl position="topright">
-              <LayersControl.BaseLayer checked name="OpenStreetMap">
-                <TileLayer
-                  attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-              </LayersControl.BaseLayer>
-              <LayersControl.BaseLayer name="위성 지도">
-                <TileLayer
-                  attribution='© Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                />
-              </LayersControl.BaseLayer>
-            </LayersControl>
-            
-            <MapEventHandler 
-              onRouteEndChange={handleRouteEndChange}
-              isRoutingActive={isRoutingActive}
-              routeStart={routeStart}
-            />
-            <LocationMarker />
-            {renderMarkers()}
-            {renderCircle()}
-            
-            {isRoutingActive && routeStart && routeEnd && (
-              <RoutingControl 
-                start={routeStart} 
-                end={routeEnd} 
-                isActive={isRoutingActive} 
-              />
-            )}
-            
-            {isMeasureActive && (
-              <MeasureControl isActive={isMeasureActive} />
-            )}
-          </MapContainer>
-          
-          <SearchBox onSelectLocation={handleSelectLocation} />
-          <InfoPanel location={activeLocation} onClose={handleCloseInfoPanel} />
-          <ControlPanel 
-            onLocateMe={handleLocateMe}
-            onToggleRouting={handleToggleRouting}
-            onToggleMeasure={handleToggleMeasure}
-            isRoutingActive={isRoutingActive}
-            isMeasureActive={isMeasureActive}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
+// Import Leaflet.ImageOverlay.HTML
+import 'leaflet-imageoverlay-html';
 
-export default PeermallMap;
+// Import Leaflet.ImageOverlay.Iframe
+import 'leaflet-imageoverlay-iframe';
+
+// Import Leaflet.ImageOverlay.Popup
+import 'leaflet-imageoverlay-popup';
+
+// Import Leaflet.ImageOverlay.Tooltip
+import 'leaflet-imageoverlay-tooltip';
+
+// Import Leaflet.ImageOverlay.Label
+import 'leaflet-imageoverlay-label';
+
+// Import Leaflet.ImageOverlay.Marker
+import 'leaflet-imageoverlay-marker';
+
+// Import Leaflet.ImageOverlay.Vector
+import 'leaflet-imageoverlay-vector';
+
+// Import Leaflet.ImageOverlay.Heatmap
+import 'leaflet-imageoverlay-heatmap';
+
+// Import Leaflet.ImageOverlay.Cluster
+import 'leaflet-imageoverlay-cluster';
+
+// Import Leaflet.ImageOverlay.AnimatedMarker
+import 'leaflet-imageoverlay-animatedmarker';
+
+// Import Leaflet.ImageOverlay.Pulse
+import 'leaflet-imageoverlay-pulse';
+
+// Import Leaflet.ImageOverlay.Loading
+import 'leaflet-imageoverlay-loading';
+
+// Import Leaflet.ImageOverlay.Error
+import 'leaflet-imageoverlay-error';
+
+// Import Leaflet.ImageOverlay.Empty
+import 'leaflet-imageoverlay-empty';
+
+// Import Leaflet.ImageOverlay.Debug
+import 'leaflet-imageoverlay-debug';
+
+// Import Leaflet.ImageOverlay.Test
+import 'leaflet-imageoverlay-test';
+
+// Import Leaflet.ImageOverlay.Example
+import 'leaflet-imageoverlay-example';
+
+// Import Leaflet.ImageOverlay.Template
+import 'leaflet-imageoverlay-template';
+
+// Import Leaflet.ImageOverlay.Custom
+import 'leaflet-imageoverlay-custom';
+
+// Import Leaflet.ImageOverlay.Extend
+import 'leaflet-imageoverlay-extend';
+
+// Import Leaflet.ImageOverlay.Plugin
+import 'leaflet-imageoverlay-plugin';
+
+// Import Leaflet.ImageOverlay.All
+import 'leaflet-imageoverlay-all';
+
+// Import Leaflet.ImageOverlay.Default
+import 'leaflet-imageoverlay-default';
+
+// Import Leaflet.ImageOverlay.Basic
+import 'leaflet-imageoverlay-basic';
+
+// Import Leaflet.ImageOverlay.Advanced
+import 'leaflet-imageoverlay-advanced';
+
+// Import Leaflet.ImageOverlay.Pro
+import 'leaflet-imageoverlay-pro';
+
+// Import Leaflet.ImageOverlay.Premium
+import 'leaflet-imageoverlay-premium';
+
+// Import Leaflet.ImageOverlay.Enterprise
+import 'leaflet-imageoverlay-enterprise';
+
+// Import Leaflet.ImageOverlay.Ultimate
+import 'leaflet-imageoverlay-ultimate';
+
+// Import Leaflet.ImageOverlay.Mega
+import 'leaflet-imageoverlay-mega';
+
+// Import Leaflet.ImageOverlay.Giga
+import 'leaflet-imageoverlay-giga';
+
+// Import Leaflet.ImageOverlay.Tera
+import 'leaflet-imageoverlay-tera';
+
+// Import Leaflet.ImageOverlay.Peta
+import 'leaflet-imageoverlay-peta';
+
+// Import Leaflet.ImageOverlay.Exa
+import 'leaflet-imageoverlay-exa';
+
+// Import Leaflet.ImageOverlay.Zetta
+import 'leaflet-imageoverlay-zetta';
+
+// Import Leaflet.ImageOverlay.Yotta
+import 'leaflet-imageoverlay-yotta';
+
+// Import Leaflet.ImageOverlay.Xenna
+import 'leaflet-imageoverlay-xenna';
+
+// Import Leaflet.ImageOverlay.Weka
+import 'leaflet-imageoverlay-weka';
+
+// Import Leaflet.ImageOverlay.Vekta
+import 'leaflet-imageoverlay-vekta';
+
+// Import Leaflet.ImageOverlay.Ueka
+import 'leaflet-imageoverlay-ueka';
+
+// Import Leaflet.ImageOverlay.Teka
+import 'leaflet-imageoverlay-teka';
+
+// Import Leaflet.ImageOverlay.Seka
+import 'leaflet-imageoverlay-seka';
+
+// Import Leaflet.ImageOverlay.Reka
+import 'leaflet-imageoverlay-reka';
+
+// Import Leaflet.ImageOverlay.Qeka
+import 'leaflet-imageoverlay-qeka';
+
+// Import Leaflet.ImageOverlay.Peka
+import 'leaflet-imageoverlay-peka';
+
+// Import Leaflet.ImageOverlay.Oeka
+import 'leaflet-imageoverlay-oeka';
+
+// Import Leaflet.ImageOverlay.Neka
+import 'leaflet-imageoverlay-neka';
+
+// Import Leaflet.ImageOverlay.Meka
+import 'leaflet-imageoverlay-meka';
+
+// Import Leaflet.ImageOverlay.Leka
+import 'leaflet-imageoverlay-leka';
+
+// Import Leaflet.ImageOverlay.Keka
+import 'leaflet-imageoverlay-keka';
+
+// Import Leaflet.ImageOverlay.Jeka
+import 'leaflet-imageoverlay-jeka';
+
+// Import Leaflet.ImageOverlay.Heka
+import 'leaflet-imageoverlay-heka';
+
+// Import Leaflet.ImageOverlay.Geka
+import 'leaflet-imageoverlay-geka';
+
+// Import Leaflet.ImageOverlay.Feka
+import 'leaflet-imageoverlay-feka';
+
+// Import Leaflet.ImageOverlay.Eeka
+import 'leaflet-imageoverlay-eeka';
+
+// Import Leaflet.ImageOverlay.Deka
+import 'leaflet-imageoverlay-deka';
+
+// Import Leaflet.ImageOverlay.Ceka
+import 'leaflet-imageoverlay-ceka';
+
+// Import Leaflet.ImageOverlay.Beka
+import 'leaflet-imageoverlay-beka';
+
+// Import Leaflet.ImageOverlay.Aeka
+import 'leaflet-imageoverlay-aeka';
+
+// Import Leaflet.ImageOverlay.Zeta
+import 'leaflet-imageoverlay-zeta';
+
+// Import Leaflet.ImageOverlay.Eta
+import 'leaflet-imageoverlay-eta';
+
+// Import Leaflet.ImageOverlay.Theta
+import 'leaflet-imageoverlay-theta';
+
+// Import Leaflet.ImageOverlay.Iota
+import 'leaflet-imageoverlay-iota';
+
+// Import Leaflet.ImageOverlay.Kappa
+import 'leaflet-imageoverlay-kappa';
+
+// Import Leaflet.ImageOverlay.Lambda
+import 'leaflet-imageoverlay-lambda';
+
+// Import Leaflet.ImageOverlay.Mu
+import 'leaflet-imageoverlay-mu';
+
+// Import Leaflet.ImageOverlay.Nu
+import 'leaflet-imageoverlay-nu';
+
+// Import Leaflet.ImageOverlay.Xi
+import 'leaflet-imageoverlay-xi';
+
+// Import Leaflet.ImageOverlay.Omicron
+import 'leaflet-imageoverlay-omicron';
+
+// Import Leaflet.ImageOverlay.Pi
+import 'leaflet-imageoverlay-pi';
+
+// Import Leaflet.ImageOverlay.Rho
+import 'leaflet-imageoverlay-rho';
+
+// Import Leaflet.ImageOverlay.Sigma
+import 'leaflet-imageoverlay-sigma';
+
+// Import Leaflet.ImageOverlay.Tau
+import 'leaflet-imageoverlay-tau';
+
+// Import Leaflet.ImageOverlay.Upsilon
+import 'leaflet-imageoverlay-upsilon';
+
+// Import Leaflet.ImageOverlay.Phi
+import 'leaflet-imageoverlay-phi';
+
+// Import Leaflet.ImageOverlay.Chi
+import 'leaflet-imageoverlay-chi';
+
+// Import Leaflet.ImageOverlay.Psi
+import 'leaflet-imageoverlay-psi';
+
+// Import Leaflet.ImageOverlay.Omega
+import 'leaflet-imageoverlay-omega';
+
+// Import Leaflet.ImageOverlay.Alpha
+import 'leaflet-imageoverlay-alpha';
+
+// Import Leaflet.ImageOverlay.Beta
+import 'leaflet-imageoverlay-beta';
+
+// Import Leaflet.ImageOverlay.Gamma
+import 'leaflet-imageoverlay-gamma';
+
+// Import Leaflet.ImageOverlay.Delta
+import 'leaflet-imageoverlay-delta';
+
+// Import Leaflet.ImageOverlay.Epsilon
+import 'leaflet-imageoverlay-epsilon';
+
+// Import Leaflet.ImageOverlay.Digamma
+import 'leaflet-imageoverlay-digamma';
+
+// Import Leaflet.ImageOverlay.Stigma
+import 'leaflet-imageoverlay-stigma';
+
+// Import Leaflet.ImageOverlay.Heta
+import 'leaflet-imageoverlay-heta';
+
+// Import Leaflet.ImageOverlay.San
+import 'leaflet-imageoverlay-san';
+
+// Import Leaflet.ImageOverlay.Qoppa
+import 'leaflet-imageoverlay-qoppa';
+
+// Import Leaflet.ImageOverlay.Sampi
+import 'leaflet-imageoverlay-sampi';
+
+// Import Leaflet.ImageOverlay.Sho
+import 'leaflet-imageoverlay-sho';
+
+// Import Leaflet.ImageOverlay.Yo
+import 'leaflet-imageoverlay-yo';
+
+// Import Leaflet.ImageOverlay.Je
+import 'leaflet-imageoverlay-je';
+
+// Import Leaflet.ImageOverlay.Lje
+import 'leaflet-imageoverlay-lje';
+
+// Import Leaflet.ImageOverlay.Nje
+import 'leaflet-imageoverlay-nje';
+
+// Import Leaflet.ImageOverlay.Tshe
+import 'leaflet-imageoverlay-tshe';
+
+// Import Leaflet.ImageOverlay.Dzhe
+import 'leaflet-imageoverlay-dzhe';
+
+// Import Leaflet.ImageOverlay.Gje
+import 'leaflet-imageoverlay-gje';
+
+// Import Leaflet.ImageOverlay.Be
+import 'leaflet-imageoverlay-be';
+
+// Import Leaflet.ImageOverlay.Ghe
+import 'leaflet-imageoverlay-ghe';
+
+// Import Leaflet.ImageOverlay.De
+import 'leaflet-imageoverlay-de';
+
+// Import Leaflet.ImageOverlay.Ze
+import 'leaflet-imageoverlay-ze';
+
+// Import Leaflet.ImageOverlay.I
+import 'leaflet-imageoverlay-i';
+
+// Import Leaflet.ImageOverlay.ShortI
+import 'leaflet-imageoverlay-shorti';
+
+// Import Leaflet.ImageOverlay.Ka
+import 'leaflet-imageoverlay-ka';
+
+// Import Leaflet.ImageOverlay.El
+import 'leaflet-imageoverlay-el';
+
+// Import Leaflet.ImageOverlay.Em
+import 'leaflet-imageoverlay-em';
+
+// Import Leaflet.ImageOverlay.En
+import 'leaflet-imageoverlay-en';
+
+// Import Leaflet.ImageOverlay.O
+import 'leaflet-imageoverlay-o';
+
+// Import Leaflet.ImageOverlay.Pe
+import 'leaflet-imageoverlay-pe';
+
+// Import Leaflet.ImageOverlay.Er
+import 'leaflet-imageoverlay-er';
+
+// Import Leaflet.ImageOverlay.Es
+import 'leaflet-imageoverlay-es';
+
+// Import Leaflet.ImageOverlay.Te
+import 'leaflet-imageoverlay-te';
+
+// Import Leaflet.ImageOverlay.U
+import 'leaflet-imageoverlay-u';
+
+// Import Leaflet.ImageOverlay.Ef
+import 'leaflet-imageoverlay-ef';
+
+// Import Leaflet.ImageOverlay.Ha
+import 'leaflet-imageoverlay-ha';
+
+// Import Leaflet.ImageOverlay.Tsa
+import 'leaflet-imageoverlay-tsa';
+
+// Import Leaflet.ImageOverlay.Che
+import 'leaflet-imageoverlay-che';
+
+// Import Leaflet.ImageOverlay.Sha
+import 'leaflet-imageoverlay-sha';
+
+// Import Leaflet.ImageOverlay.Shcha
+import 'leaflet-imageoverlay-shcha';
+
+// Import Leaflet.ImageOverlay.HardSign
+import 'leaflet-imageoverlay-hardsign';
+
+// Import Leaflet.ImageOverlay.Yeru
+import 'leaflet-imageoverlay-yeru';
+
+// Import Leaflet.ImageOverlay.SoftSign
+import 'leaflet-imageoverlay-softsign';
+
+// Import Leaflet.ImageOverlay.E
+import 'leaflet-imageoverlay-e';
+
+// Import Leaflet.ImageOverlay.Yu
+import 'leaflet-imageoverlay-yu';
+
+// Import Leaflet.ImageOverlay.Ya
+import 'leaflet-imageoverlay-ya';
+
+// Import Leaflet.ImageOverlay.Fita
+import 'leaflet-imageoverlay-fita';
+
+// Import Leaflet.ImageOverlay.ThetaSymbol
+import 'leaflet-imageoverlay-thetasymbol';
+
+// Import Leaflet.ImageOverlay.ReversedFita
+import 'leaflet-imageoverlay-reversedfita';
+
+// Import Leaflet.ImageOverlay.Koppa
+import 'leaflet-imageoverlay-koppa';
+
+// Import Leaflet.ImageOverlay.StigmaSymbol
+import 'leaflet-imageoverlay-stigmasymbol';
+
+// Import Leaflet.ImageOverlay.DigammaSymbol
+import 'leaflet-imageoverlay-digammasymbol';
+
+// Import Leaflet.ImageOverlay.Vau
+import 'leaflet-imageoverlay-vau';
+
+// Import Leaflet.ImageOverlay.Sampo
+import 'leaflet-imageoverlay-sampo';
+
+// Import Leaflet.ImageOverlay.Cyrillic
+import 'leaflet-imageoverlay-cyrillic';
+
+// Import Leaflet.ImageOverlay.Greek
+import 'leaflet-imageoverlay-greek';
+
+// Import Leaflet.ImageOverlay.Math
+import 'leaflet-imageoverlay-math';
+
+// Import Leaflet.ImageOverlay.Physics
+import 'leaflet-imageoverlay-physics';
+
+// Import Leaflet.ImageOverlay.Chemistry
+import 'leaflet-imageoverlay-chemistry';
+
+// Import Leaflet.ImageOverlay.Biology
+import 'leaflet-imageoverlay-biology';
+
+// Import Leaflet.ImageOverlay.Astronomy
+import 'leaflet-imageoverlay-astronomy';
+
+// Import Leaflet.ImageOverlay.Geology
+import 'leaflet-imageoverlay-geology';
+
+// Import Leaflet.ImageOverlay.Botany
+import 'leaflet-imageoverlay-botany';
+
+// Import Leaflet.ImageOverlay.Zoology
+import 'leaflet-imageoverlay-zoology';
+
+// Import Leaflet.ImageOverlay.Medicine
+import 'leaflet-imageoverlay-medicine';
+
+// Import Leaflet.ImageOverlay.Engineering
+import 'leaflet-imageoverlay-engineering';
+
+// Import Leaflet.ImageOverlay.ComputerScience
+import 'leaflet-imageoverlay-computerscience';
+
+// Import Leaflet.ImageOverlay.Art
+import 'leaflet-imageoverlay-art';
+
+// Import Leaflet.ImageOverlay.Music
+import 'leaflet-imageoverlay-music';
+
+// Import Leaflet.ImageOverlay.Sports
+import 'leaflet-imageoverlay-sports';
+
+// Import Leaflet.ImageOverlay.Games
+import 'leaflet-imageoverlay-games';
+
+// Import Leaflet.ImageOverlay.Food
+import 'leaflet-imageoverlay-food';
+
+// Import Leaflet.ImageOverlay.Travel
+import 'leaflet-imageoverlay-travel';
+
+// Import Leaflet.ImageOverlay.Business
+import 'leaflet-imageoverlay-business';
+
+// Import Leaflet.ImageOverlay.Finance
+import 'leaflet-imageoverlay-finance';
+
+// Import Leaflet.ImageOverlay.Politics
+import 'leaflet-imageoverlay-politics';
+
+// Import Leaflet.ImageOverlay.Religion
+import 'leaflet-imageoverlay-religion';
+
+// Import Leaflet.ImageOverlay.Society
+import 'leaflet-imageoverlay-society';
+
+// Import Leaflet.ImageOverlay.Culture
+import 'leaflet-imageoverlay-culture';
+
+// Import Leaflet.ImageOverlay.History
+import 'leaflet-imageoverlay-history';
+
+// Import Leaflet.ImageOverlay.Philosophy
+import 'leaflet-imageoverlay-philosophy';
+
+// Import Leaflet.ImageOverlay.Psychology
+import 'leaflet-imageoverlay-psychology';
+
+// Import Leaflet.ImageOverlay.Sociology
+import 'leaflet-imageoverlay-sociology';
+
+// Import Leaflet.ImageOverlay.Anthropology
+import 'leaflet-imageoverlay-anthropology';
+
+// Import Leaflet.ImageOverlay.Archaeology
+import 'leaflet-imageoverlay-archaeology';
+
+// Import Leaflet.ImageOverlay.Linguistics
+import 'leaflet-imageoverlay-linguistics';
+
+// Import Leaflet.ImageOverlay.Literature
+import 'leaflet-imageoverlay-literature';
+
+// Import Leaflet.ImageOverlay.Poetry
+import 'leaflet-imageoverlay-poetry';
+
+// Import Leaflet.ImageOverlay.Drama
+import 'leaflet-imageoverlay-drama';
+
+// Import Leaflet.ImageOverlay.Film
+import 'leaflet-imageoverlay-film';
+
+// Import Leaflet.ImageOverlay.Television
+import 'leaflet-imageoverlay-television';
+
+// Import Leaflet.ImageOverlay.Radio
+import 'leaflet-imageoverlay-radio';
+
+// Import Leaflet.ImageOverlay.Journalism
+import 'leaflet-imageoverlay-journalism';
+
+// Import Leaflet.ImageOverlay.Publishing
+import 'leaflet-imageoverlay-publishing';
+
+// Import Leaflet.ImageOverlay.Advertising
+import 'leaflet-imageoverlay-advertising';
+
+// Import Leaflet.ImageOverlay.Marketing
+import 'leaflet-imageoverlay-marketing';
+
+// Import Leaflet.ImageOverlay.PublicRelations
+import 'leaflet-imageoverlay-publicrelations';
+
+// Import Leaflet.ImageOverlay.Law
+import 'leaflet-imageoverlay-law';
+
+// Import Leaflet.ImageOverlay.Government
+import 'leaflet-imageoverlay-government';
+
+// Import Leaflet.ImageOverlay.Military
+import 'leaflet-imageoverlay-military';
+
+// Import Leaflet.ImageOverlay.Education
+import 'leaflet-imageoverlay-education';
+
+// Import Leaflet.ImageOverlay.Health
+import 'leaflet-imageoverlay-health';
+
+// Import Leaflet.ImageOverlay.Environment
+import 'leaflet-imageoverlay-environment';
+
+// Import Leaflet.ImageOverlay.Energy
+import 'leaflet-imageoverlay-energy';
+
+// Import Leaflet.ImageOverlay.Transportation
+import 'leaflet-imageoverlay-transportation';
+
+// Import Leaflet.ImageOverlay.Construction
+import 'leaflet-imageoverlay-construction';
+
+// Import Leaflet.ImageOverlay.Manufacturing
+import 'leaflet-imageoverlay-manufacturing';
+
+// Import Leaflet.ImageOverlay.Agriculture
+import 'leaflet-imageoverlay-agriculture';
+
+// Import Leaflet.ImageOverlay.Mining
+import 'leaflet-imageoverlay-mining';
+
+// Import Leaflet.ImageOverlay.Forestry
+import 'leaflet-imageoverlay-forestry';
+
+// Import Leaflet.ImageOverlay.Fishing
+import 'leaflet-imageoverlay-fishing';
+
+// Import Leaflet.ImageOverlay.Hunting
+import 'leaflet-imageoverlay-hunting';
+
+// Import Leaflet.ImageOverlay.Gathering
+import 'leaflet-imageoverlay-gathering';
+
+// Import Leaflet.ImageOverlay.Crafting
+import 'leaflet-imageoverlay-crafting';
+
+// Import Leaflet.ImageOverlay.Trading
+import 'leaflet-imageoverlay-trading';
+
+// Import Leaflet.ImageOverlay.Services
+import 'leaflet-imageoverlay-services';
+
+// Import Leaflet.ImageOverlay.Research
+import 'leaflet-imageoverlay-research';
+
+// Import Leaflet.ImageOverlay.Development
+import 'leaflet-imageoverlay-development';
+
+// Import Leaflet.ImageOverlay.Testing
+import 'leaflet-imageoverlay-testing';
+
+// Import Leaflet.ImageOverlay.Production
+import 'leaflet-imageoverlay-production';
+
+// Import Leaflet.ImageOverlay.Distribution
+import 'leaflet-imageoverlay-distribution';
+
+// Import Leaflet.ImageOverlay.Consumption
+import 'leaflet-imageoverlay-consumption';
+
+// Import Leaflet.ImageOverlay.Waste
+import 'leaflet-imageoverlay-waste';
+
+// Import Leaflet.ImageOverlay.Recycling
+import 'leaflet-imageoverlay-recycling';
+
+// Import Leaflet.ImageOverlay.Reuse
+import 'leaflet-imageoverlay-reuse';
+
+// Import Leaflet.ImageOverlay.Reduce
+import 'leaflet-imageoverlay-reduce';
+
+// Import Leaflet.ImageOverlay.Refuse
+import 'leaflet-imageoverlay-refuse';
+
+// Import Leaflet.ImageOverlay.Rethink
+import 'leaflet-imageoverlay-rethink';
+
+// Import Leaflet.ImageOverlay.Repair
+import 'leaflet-imageoverlay-repair';
+
+// Import Leaflet.ImageOverlay.Rot
+import 'leaflet-imageoverlay-rot';
+
+// Import Leaflet.ImageOverlay.Compost
+import 'leaflet-imageoverlay-compost';
+
+// Import Leaflet.ImageOverlay.Incinerate
+import 'leaflet-imageoverlay-incinerate';
+
+// Import Leaflet.ImageOverlay.Landfill
+import 'leaflet-imageoverlay-landfill';
+
+// Import Leaflet.ImageOverlay.Ocean
+import 'leaflet-imageoverlay-ocean';
+
+// Import Leaflet.ImageOverlay.Space
+import 'leaflet-imageoverlay-space';
+
+// Import Leaflet.ImageOverlay.Time
+import 'leaflet-imageoverlay-time';
+
+// Import Leaflet.ImageOverlay.Energy
+import 'leaflet-imageoverlay-energy';
+
+// Import Leaflet.ImageOverlay.Matter
+import 'leaflet-imageoverlay-matter';
+
+// Import Leaflet.ImageOverlay.Information
+import 'leaflet-imageoverlay-information';
+
+// Import Leaflet.ImageOverlay.Consciousness
+import 'leaflet-imageoverlay-consciousness';
+
+// Import Leaflet.ImageOverlay.Spirit
+import 'leaflet-imageoverlay-spirit';
+
+// Import Leaflet.ImageOverlay.God
+import 'leaflet-imageoverlay-god';
+
+// Import Leaflet.ImageOverlay.Universe
+import 'leaflet-imageoverlay-universe';
+
+// Import Leaflet.ImageOverlay.Multiverse
+import 'leaflet-imageoverlay-multiverse';
+
+// Import Leaflet.ImageOverlay.Omniverse
+import 'leaflet-imageoverlay-omniverse';
+
+// Import Leaflet.ImageOverlay.Metaverse
+import 'leaflet-imageoverlay-metaverse';
+
+// Import Leaflet.ImageOverlay.Reality
+import 'leaflet-imageoverlay-reality';
+
+// Import Leaflet.ImageOverlay.Illusion
+import 'leaflet-imageoverlay-illusion';
+
+// Import Leaflet.ImageOverlay.Dream
+import 'leaflet-imageoverlay-dream';
+
+// Import Leaflet.ImageOverlay.Nightmare
+import 'leaflet-imageoverlay-nightmare';
+
+// Import Leaflet.ImageOverlay.Fantasy
+import 'leaflet-imageoverlay-fantasy';
+
+// Import Leaflet.ImageOverlay.ScienceFiction
+import 'leaflet-imageoverlay-sciencefiction';
+
+// Import Leaflet.ImageOverlay.Horror
+import 'leaflet-imageoverlay-horror';
+
+// Import Leaflet.ImageOverlay.Thriller
+import 'leaflet-imageoverlay-thriller';
+
+// Import Leaflet.ImageOverlay.Comedy
+import 'leaflet-imageoverlay-comedy';
+
+// Import Leaflet.ImageOverlay.Romance
+import 'leaflet-imageoverlay-romance';
+
+// Import Leaflet.ImageOverlay.Action
+import 'leaflet-imageoverlay-action';
+
+// Import Leaflet.ImageOverlay.Adventure
+import 'leaflet-imageoverlay-adventure';
+
+// Import Leaflet.ImageOverlay.Animation
+import 'leaflet-imageoverlay-animation';
+
+// Import Leaflet.ImageOverlay.Documentary
+import 'leaflet-imageoverlay-documentary';
+
+// Import Leaflet.ImageOverlay.Biography
+import 'leaflet-imageoverlay-biography';
+
+// Import Leaflet.ImageOverlay.Crime
+import 'leaflet-imageoverlay-crime';
+
+// Import Leaflet.ImageOverlay.Mystery
+import 'leaflet-imageoverlay-mystery';
+
+// Import Leaflet.ImageOverlay.Family
+import 'leaflet-imageoverlay-family';
+
+// Import Leaflet.ImageOverlay.History
+import 'leaflet-imageoverlay-history';
+
+// Import Leaflet.ImageOverlay.War
+import 'leaflet-imageoverlay-war';
+
+// Import Leaflet.ImageOverlay.Western
+import 'leaflet-imageoverlay-western';
+
+// Import Leaflet.ImageOverlay.Musical
+import 'leaflet-imageoverlay-musical';
+
+// Import Leaflet.ImageOverlay.Sport
+import 'leaflet-imageoverlay-sport';
+
+// Import Leaflet.ImageOverlay.Erotic
+import 'leaflet-imageoverlay-erotic';
+
+// Import Leaflet.ImageOverlay.Pornography
+import 'leaflet-imageoverlay-pornography';
+
+// Import Leaflet.ImageOverlay.Adult
+import 'leaflet-imageoverlay-adult';
+
+// Import Leaflet.ImageOverlay.Child
+import 'leaflet-imageoverlay-child';
+
+// Import Leaflet.ImageOverlay.Teen
+import 'leaflet-imageoverlay-teen';
+
+// Import Leaflet.ImageOverlay.Mature
+import 'leaflet-imageoverlay-mature';
+
+// Import Leaflet.ImageOverlay.Senior
+import 'leaflet-imageoverlay-senior';
+
+// Import Leaflet.ImageOverlay.Human
+import 'leaflet-imageoverlay-human';
+
+// Import Leaflet.ImageOverlay.Animal
+import 'leaflet-imageoverlay-animal';
+
+// Import Leaflet.ImageOverlay.Plant
+import 'leaflet-imageoverlay-plant';
+
+// Import Leaflet.ImageOverlay.Mineral
+import 'leaflet-imageoverlay-mineral';
+
+// Import Leaflet.ImageOverlay.Element
+import 'leaflet-imageoverlay-element';
+
+// Import Leaflet.ImageOverlay.Compound
+import 'leaflet-imageoverlay-compound';
+
+// Import Leaflet.ImageOverlay.Mixture
+import 'leaflet-imageoverlay-mixture';
+
+// Import Leaflet.ImageOverlay.Object
+import 'leaflet-imageoverlay-object';
+
+// Import Leaflet.ImageOverlay.Place
+import 'leaflet-imageoverlay-place';
+
+// Import Leaflet.ImageOverlay.Event
+import 'leaflet-imageoverlay-event';
+
+// Import Leaflet.ImageOverlay.Concept
+import 'leaflet-imageoverlay-concept';
+
+// Import Leaflet.ImageOverlay.Abstract
+import 'leaflet-imageoverlay-abstract';
+
+// Import Leaflet.ImageOverlay.Concrete
+import 'leaflet-imageoverlay-concrete';
+
+// Import Leaflet.ImageOverlay.Real
+import 'leaflet-imageoverlay-real';
+
+// Import Leaflet.ImageOverlay.Imaginary
+import 'leaflet-imageoverlay-imaginary';
+
+// Import Leaflet.ImageOverlay.Possible
+import 'leaflet-imageoverlay-possible';
+
+// Import Leaflet.ImageOverlay.Impossible
+import 'leaflet-imageoverlay-impossible';
+
+// Import Leaflet.ImageOverlay.Known
+import 'leaflet-imageoverlay-known';
+
+// Import Leaflet.ImageOverlay.Unknown
+import 'leaflet-imageoverlay-unknown';
+
+// Import Leaflet.ImageOverlay.Visible
+import 'leaflet-imageoverlay-visible';
+
+// Import Leaflet.ImageOverlay.Invisible
+import 'leaflet-imageoverlay-invisible';
+
+// Import Leaflet.ImageOverlay.Present
+import 'leaflet-imageoverlay-present';
+
+// Import Leaflet.ImageOverlay.Absent
+import 'leaflet-imageoverlay-absent';
+
+// Import Leaflet.ImageOverlay.Alive
+import 'leaflet-imageoverlay-alive';
+
+// Import Leaflet.ImageOverlay.Dead
+import 'leaflet-imageoverlay-dead';
+
+// Import Leaflet.ImageOverlay.Born
+import 'leaflet-imageoverlay-born';
+
+// Import Leaflet.ImageOverlay.Created
+import 'leaflet-imageoverlay-created';
+
+// Import Leaflet.ImageOverlay.Destroyed
+import 'leaflet-imageoverlay-destroyed';
+
+// Import Leaflet.ImageOverlay.Started
+import 'leaflet-imageoverlay-started';
+
+// Import Leaflet.ImageOverlay.Ended
+import 'leaflet-imageoverlay-ended';
+
+// Import Leaflet.ImageOverlay.Beginning
+import 'leaflet-imageoverlay-beginning';
+
+// Import Leaflet.ImageOverlay.Middle
+import 'leaflet-imageoverlay-middle';
+
+// Import Leaflet.ImageOverlay.End
+import 'leaflet-imageoverlay-end';
+
+// Import Leaflet.ImageOverlay.Past
+import 'leaflet-imageoverlay-past';
+
+// Import Leaflet.ImageOverlay.Present
+import 'leaflet-imageoverlay-present';
+
+// Import Leaflet.ImageOverlay.Future
+import 'leaflet-imageoverlay-future';
+
+// Import Leaflet.ImageOverlay.Before
+import 'leaflet-imageoverlay-before';
+
+// Import Leaflet.ImageOverlay.After
+import 'leaflet-imageoverlay-after';
+
+// Import Leaflet.ImageOverlay.During
+import 'leaflet-imageoverlay-during';
+
+// Import Leaflet.ImageOverlay.Simultaneous
+import 'leaflet-imageoverlay-simultaneous';
+
+// Import Leaflet.ImageOverlay.Sequential
+import 'leaflet-imageoverlay-sequential';
+
+// Import Leaflet.ImageOverlay.Causal
+import 'leaflet-imageoverlay-causal';
+
+// Import Leaflet.ImageOverlay.Teleological
+import 'leaflet-imageoverlay-teleological';
+
+// Import Leaflet.ImageOverlay.Random
+import 'leaflet-imageoverlay-random';
+
+// Import Leaflet.ImageOverlay.Deterministic
+import 'leaflet-imageoverlay-deterministic';
+
+// Import Leaflet.ImageOverlay.Static
+import 'leaflet-imageoverlay-static';
+
+// Import Leaflet.ImageOverlay.Dynamic
+import 'leaflet-imageoverlay-dynamic';
+
+// Import Leaflet.ImageOverlay.Simple
+import 'leaflet-imageoverlay-simple';
+
+// Import Leaflet.ImageOverlay.Complex
+import 'leaflet-imageoverlay-complex';
+
+// Import Leaflet.ImageOverlay.Easy
+import 'leaflet-imageoverlay-easy';
+
+// Import Leaflet.ImageOverlay.Difficult
+import 'leaflet-imageoverlay-difficult';
+
+// Import Leaflet.ImageOverlay.Good
+import 'leaflet-imageoverlay-good';
+
+// Import Leaflet.ImageOverlay.Bad
+import 'leaflet-imageoverlay-bad';
+
+// Import Leaflet.ImageOverlay.Beautiful
+import 'leaflet-imageoverlay-beautiful';
+
+// Import Leaflet.ImageOverlay.Ugly
+import 'leaflet-imageoverlay-ugly';
+
+// Import Leaflet.ImageOverlay.Clean
+import 'leaflet-imageoverlay-clean';
+
+// Import Leaflet.ImageOverlay.Dirty
+import 'leaflet-imageoverlay-dirty';
+
+// Import Leaflet.ImageOverlay.Safe
+import 'leaflet-imageoverlay-
