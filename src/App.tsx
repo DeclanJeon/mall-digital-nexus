@@ -16,6 +16,7 @@ import MyInfoPage from "./pages/MyInfoPage";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import CategoryNav from "./components/CategoryNav";
+import OpenChatRoom from "./components/community/OpenChatRoom";
 
 const queryClient = new QueryClient();
 
@@ -32,11 +33,13 @@ const AppContent = () => {
         <Route path="/shopping" element={<Shopping />} />
         <Route path="/curation-links" element={<CurationLinks />} />
         <Route path="/community" element={<Community />} />
-        <Route path="/openchat" element={<OpenChat />} />
         <Route path="/login" element={<Login />} />
         <Route path="/service" element={<ServicePage />} />
         <Route path="/my-info" element={<MyInfoPage />} />
         <Route path="*" element={<NotFound />} />
+
+        <Route path="/community/chat/:id" element={<OpenChatRoom />} />
+
       </Routes>
       {!hideLayout && <Footer />}
     </>

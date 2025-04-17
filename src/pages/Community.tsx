@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Outlet } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ForumList from '@/components/community/ForumList';
 import GroupChat from '@/components/community/GroupChat';
@@ -40,10 +40,9 @@ const Community = () => {
                   <OpenChatRooms />
                 </TabsContent>
               </Tabs>
+              <Outlet />
             </>
           } />
-          
-          <Route path="/chat/:id" element={<OpenChatRoom />} />
         </Routes>
       </main>
     </div>

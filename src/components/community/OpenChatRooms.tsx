@@ -23,6 +23,7 @@ interface ChatRoom {
   password?: string;
   features: string[];
   timestamp: Date;
+  members?: string[]; // 멤버 목록 추가
 }
 
 const OpenChatRooms = () => {
@@ -111,8 +112,18 @@ const OpenChatRooms = () => {
   };
 
   const handleJoinRoom = (room: ChatRoom) => {
+    navigate(`/community/chat/${room.id}`, { 
+      state: { 
+        room: {
+          ...room,
+          creator: room.creator || '시스템',
+          participantsCount: room.participantsCount || 1,
+          members: room.members || ['기본참여자'],
+          features: room.features || []
+        }
+      }
+    });
     toast.success(`'${room.name}' 채팅방에 입장합니다.`);
-    navigate(`/community/chat/${room.id}`, { state: { room } });
   };
 
   const toggleFeature = (feature: string) => {

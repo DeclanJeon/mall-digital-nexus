@@ -109,7 +109,6 @@ const CommunicationWidget = () => {
           <Tabs defaultValue={activeTab || "live"} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-4 mb-4">
               <TabsTrigger value="chat">채팅</TabsTrigger>
-              <TabsTrigger value="live">오픈</TabsTrigger>
               <TabsTrigger value="voice">음성</TabsTrigger>
               <TabsTrigger value="video">화상</TabsTrigger>
             </TabsList>
@@ -139,35 +138,6 @@ const CommunicationWidget = () => {
                       <div>
                         <div className="text-sm font-medium">사용자 {i}</div>
                         <div className="text-xs text-gray-500">5분 전</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="live" className="space-y-4">
-              <div className="text-center">
-                <p className="text-sm mb-3 text-gray-600">피어몰의 모든 이용자가 참여할 수 있는 오픈 채팅방입니다</p>
-                <Button 
-                  className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-lg transition-colors"
-                  onClick={() => setShowChatModal(true)}
-                >
-                  채팅방 입장
-                </Button>
-              </div>
-              
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="text-sm font-medium mb-2">활동 중인 채팅방</div>
-                <div className="space-y-2">
-                  {['디자인 토크', '개발자 모임', '마케팅 전략'].map((room, i) => (
-                    <div key={i} className="flex items-center p-2 hover:bg-gray-100 rounded-lg cursor-pointer">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center text-white mr-2">
-                        <Users className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium">{room}</div>
-                        <div className="text-xs text-gray-500">12명 참여 중</div>
                       </div>
                     </div>
                   ))}
