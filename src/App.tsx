@@ -8,7 +8,7 @@ import Index from "./pages/Index";
 import Shopping from "./pages/Shopping";
 import CurationLinks from "./pages/CurationLinks";
 import Community from "./pages/Community";
-import OpenChat from "./pages/OpenChat";
+import OpenChat from "./components/OpenChatSection";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import ServicePage from "./pages/Service";

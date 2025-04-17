@@ -1,6 +1,17 @@
 
 import React from 'react';
-import { Home, ShoppingBag, Users, Info, HelpCircle, Layers, MessageSquare, Map } from 'lucide-react';
+import { 
+  Home, 
+  ShoppingBag, 
+  Users, 
+  Info, 
+  HelpCircle, 
+  Layers, 
+  MessageSquare, 
+  Map, 
+  Mic, 
+  Video 
+} from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const CategoryNav = () => {
@@ -11,8 +22,17 @@ const CategoryNav = () => {
     { name: '홈', icon: <Home className="h-5 w-5" />, path: '/' },
     { name: '서비스', icon: <Layers className="h-5 w-5" />, path: '/service' },
     { name: '쇼핑', icon: <ShoppingBag className="h-5 w-5" />, path: '/shopping' },
-    { name: '오픈채팅', icon: <MessageSquare className="h-5 w-5" />, path: '/openchat' },
-    { name: '커뮤니티', icon: <Users className="h-5 w-5" />, path: '/community' },
+    { 
+      name: '커뮤니티', 
+      icon: <Users className="h-5 w-5" />, 
+      path: '/community',
+      subcategories: [
+        { name: '채팅방', icon: <MessageSquare className="h-4 w-4" />, path: '/community/chat' },
+        { name: '오픈 채팅', icon: <MessageSquare className="h-4 w-4" />, path: '/community/open-chat' },
+        { name: '음성채팅', icon: <Mic className="h-4 w-4" />, path: '/community/voice' },
+        { name: '영상채팅', icon: <Video className="h-4 w-4" />, path: '/community/video' }
+      ]
+    },
     // { name: '소개', icon: <Info className="h-5 w-5" />, path: '/about' },
     // { name: '고객센터', icon: <HelpCircle className="h-5 w-5" />, path: '/help' },
   ];

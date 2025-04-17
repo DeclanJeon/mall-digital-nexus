@@ -31,6 +31,11 @@ const Index = () => {
     { label: '#여행', value: '#여행' },
   ];
 
+  // 날짜 포맷팅 함수
+  const formatDate = (daysAgo: number) => {
+    return `${daysAgo}일 전`;
+  };
+
   const trendingMalls = [
     {
       title: "디자인 스튜디오",
@@ -42,6 +47,8 @@ const Index = () => {
       rating: 4.9,
       reviewCount: 124,
       featured: true,
+      feedDate: formatDate(1),
+      recommended: false,
       type: 'trending',
       location: {
         lat: 37.5665, 
@@ -59,6 +66,8 @@ const Index = () => {
       rating: 4.7,
       reviewCount: 89,
       featured: false,
+      feedDate: formatDate(3),
+      recommended: false,
       type: 'trending'
     },
     {
@@ -71,6 +80,8 @@ const Index = () => {
       rating: 4.8,
       reviewCount: 156,
       featured: false,
+      feedDate: formatDate(5),
+      recommended: false,
       type: 'trending'
     },
     {

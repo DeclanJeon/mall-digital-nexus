@@ -157,7 +157,7 @@ const ACTIVE_MEMBERS = [
   { name: "참여자2", status: "away", avatar: "https://api.dicebear.com/7.x/personas/svg?seed=user6" },
 ];
 
-const OpenChat = () => {
+const OpenChatComponent = () => {
   const [activeTab, setActiveTab] = useState("chats");
   const [chatGroups, setChatGroups] = useState(MOCK_CHAT_ROOMS);
   const [activeGroup, setActiveGroup] = useState(chatGroups[0]);
@@ -504,4 +504,4 @@ const OpenChat = () => {
   );
 };
 
-export default OpenChat;
+export default OpenChatComponent;

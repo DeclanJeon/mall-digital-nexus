@@ -14,6 +14,8 @@ interface PeermallCardProps {
   rating: number;
   reviewCount: number;
   featured?: boolean;
+  feedDate?: string;
+  recommended?: boolean;
   location?: {
     lat: number;
     lng: number;
@@ -33,6 +35,8 @@ const PeermallCard = ({
   rating, 
   reviewCount, 
   featured,
+  feedDate,
+  recommended,
   location,
   onOpenMap,
   id = "sample-peermall" // Default ID if none provided
@@ -45,11 +49,18 @@ const PeermallCard = ({
           alt={title} 
           className="w-full h-full object-cover transform hover:scale-105 transition-transform" 
         />
-        {featured && (
-          <div className="absolute top-2 right-2 bg-accent-100 text-white text-xs px-2 py-1 rounded-full">
-            인기
-          </div>
-        )}
+        <div className="absolute top-2 right-2 flex flex-col gap-1">
+          {featured && (
+            <div className="bg-accent-100 text-white text-xs px-2 py-1 rounded-full">
+              인기
+            </div>
+          )}
+          {recommended && (
+            <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+              추천
+            </div>
+          )}
+        </div>
         <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/70 to-transparent p-3">
           <span className="text-white text-xs font-semibold">{category}</span>
         </div>

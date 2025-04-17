@@ -16,6 +16,8 @@ interface PeermallGridProps {
     reviewCount: number;
     featured?: boolean;
     type?: string;
+    feedDate?: string;
+    recommended?: boolean;
     location?: {
       lat: number;
       lng: number;
