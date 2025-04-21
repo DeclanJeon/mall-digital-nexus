@@ -1,5 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
+import { Content } from '@/components/peer-space/types';
+import PeerSpaceTopBar from '@/components/peer-space/PeerSpaceTopBar';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -38,7 +40,7 @@ const peerSpaceData = {
 };
 
 // Featured content for the Peer Space
-const featuredContent = [
+const featuredContent: Content[] = [
   {
     id: 'content1',
     title: '디자인 포트폴리오',
@@ -240,8 +242,28 @@ const referenceLinks = [
   { id: 'ref4', title: '타이포그래피 기초', url: 'https://example.com/typography', type: 'tutorial' }
 ];
 
-// Event and quest data
-const eventsAndQuests = [
+interface Event {
+  id: string;
+  title: string;
+  date: string;
+  location: string;
+  description: string;
+  imageUrl: string;
+  participants: number;
+  maxParticipants: number;
+}
+
+interface Quest {
+  id: string;
+  title: string;
+  deadline: string;
+  description: string;
+  reward: string;
+  participants: number;
+}
+
+// Event data
+const events: Event[] = [
   { 
     id: 'event1', 
     title: '디자인 워크샵', 
@@ -251,7 +273,11 @@ const eventsAndQuests = [
     imageUrl: 'https://images.unsplash.com/photo-1675466583534-1755fbb2797b?auto=format&fit=crop&q=80',
     participants: 8,
     maxParticipants: 12
-  },
+  }
+];
+
+// Quest data
+const quests: Quest[] = [
   { 
     id: 'quest1', 
     title: '브랜드 아이덴티티 챌린지', 
@@ -283,7 +309,7 @@ const PeerSpace = () => {
   const [qrUrl, setQrUrl] = useState(`https://peermall.com/peer-space/${peerSpaceData.id}`);
   
   // For content detail modal
-  const [selectedContent, setSelectedContent] = useState<any>(null);
+  const [selectedContent, setSelectedContent] = useState<Content | null>(null);
   const [showContentDetailModal, setShowContentDetailModal] = useState(false);
   
   // For adding new content
@@ -347,7 +373,7 @@ const PeerSpace = () => {
     });
   };
 
-  const handleContentClick = (content: any) => {
+  const handleContentClick = (content: Content) => {
     setSelectedContent(content);
     setShowContentDetailModal(true);
   };
@@ -656,94 +682,18 @@ const PeerSpace = () => {
 
   return (
     <div className="min-h-screen bg-bg-100">
-      {/* Top Bar with Peer Space Info and Actions */}
-      <div className="bg-gradient-to-r from-primary-200 to-primary-300 text-white">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between">
-            <div className="flex items-center mb-4 sm:mb-0">
-              <Avatar className="h-12 w-12 mr-4 border-2 border-white">
-                <AvatarImage src={peerSpaceData.profileImage} alt={peerSpaceData.owner} />
-                <AvatarFallback>{peerSpaceData.owner.substring(0, 2)}</AvatarFallback>
-              </Avatar>
-              <div>
-                <h1 className="text-xl font-bold">{peerSpaceData.title}</h1>
-                <div className="flex items-center text-sm">
-                  <span>{peerSpaceData.owner}</span>
-                  <div className="mx-2">•</div>
-                  <span>Peer #{peerSpaceData.peerNumber}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex space-x-2">
-              {!isOwner && (
-                <>
-                  <Button 
-                    variant="secondary" 
-                    size="sm" 
-                    className={`rounded-full ${isFollowing ? 'bg-white text-primary-300' : ''}`}
-                    onClick={handleFollow}
-                  >
-                    <Star className="h-4 w-4 mr-1" />
-                    {isFollowing ? '팔로우됨' : '팔로우'}
-                  </Button>
-                  <Button 
-                    variant="secondary" 
-                    size="sm" 
-                    className="rounded-full"
-                    onClick={() => handleContactClick('message')}
-                  >
-                    <MessageSquare className="h-4 w-4 mr-1" />
-                    메시지
-                  </Button>
-                </>
-              )}
-              
-              <Button 
-                variant="secondary" 
-                size="sm" 
-                className="rounded-full"
-                onClick={handleQRGenerate}
-              >
-                <QrCode className="h-4 w-4 mr-1" />
-                QR 코드
-              </Button>
-              
-              {isOwner && (
-                <Button 
-                  variant="secondary" 
-                  size="sm" 
-                  className="rounded-full"
-                  onClick={() => toast({
-                    title: '설정',
-                    description: '피어 스페이스 설정 화면으로 이동합니다.',
-                  })}
-                >
-                  <Settings className="h-4 w-4 mr-1" />
-                  설정
-                </Button>
-              )}
-            </div>
-          </div>
-          
-          {/* Badges Row */}
-          <div className="flex flex-wrap items-center mt-2 gap-2">
-            {peerSpaceData.badges.map((badge, index) => (
-              <Badge key={index} variant="secondary" className="bg-white/20 text-white">
-                {badge}
-              </Badge>
-            ))}
-            <div className="flex items-center ml-2">
-              <Star className="h-4 w-4 text-yellow-300 mr-1" />
-              <span className="text-sm">{peerSpaceData.recommendations} 추천</span>
-            </div>
-            <div className="flex items-center ml-2">
-              <User className="h-4 w-4 mr-1" />
-              <span className="text-sm">{peerSpaceData.followers} 팔로워</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PeerSpaceTopBar
+        data={peerSpaceData}
+        isOwner={isOwner}
+        isFollowing={isFollowing}
+        onFollow={handleFollow}
+        onMessage={() => handleContactClick('message')}
+        onQRGenerate={handleQRGenerate}
+        onSettings={() => toast({
+          title: '설정',
+          description: '피어 스페이스 설정 화면으로 이동합니다.',
+        })}
+      />
       
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
@@ -1499,7 +1449,7 @@ const PeerSpace = () => {
             <div className="space-y-6">
               <h3 className="text-xl font-semibold text-primary-300">진행중인 이벤트</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {eventsAndQuests.filter(item => 'location' in item).map((event: any) => (
+                {events.map((event) => (
                   <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
                     <div className="flex flex-col md:flex-row h-full">
                       <div className="md:w-1/3 h-40 md:h-auto relative">
@@ -1537,7 +1487,7 @@ const PeerSpace = () => {
               
               <h3 className="text-xl font-semibold text-primary-300 mt-10">진행중인 퀘스트</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {eventsAndQuests.filter(item => 'reward' in item).map((quest: any) => (
+                {quests.map((quest) => (
                   <Card key={quest.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start mb-3">
