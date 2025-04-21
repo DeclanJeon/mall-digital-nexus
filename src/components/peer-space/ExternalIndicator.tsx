@@ -1,15 +1,16 @@
-import { ExternalLink } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface ExternalIndicatorProps {
-  source?: string;
+  source: string;
 }
 
-const ExternalIndicator = ({ source }: ExternalIndicatorProps) => (
-  <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full flex items-center">
-    <ExternalLink className="h-3 w-3 mr-1" />
-    외부 콘텐츠
-    {source && <span className="ml-1">출처: {source}</span>}
-  </div>
-);
-
-export default ExternalIndicator;
+export default function ExternalIndicator({ source }: ExternalIndicatorProps) {
+  return (
+    <Badge 
+      variant="outline"
+      className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm"
+    >
+      {source}
+    </Badge>
+  );
+}
