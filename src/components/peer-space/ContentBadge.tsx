@@ -5,7 +5,7 @@ interface ContentBadgeProps {
   type: ContentType;
 }
 
-export const ContentBadge = ({ type }: ContentBadgeProps) => {
+export default function ContentBadge({ type }: ContentBadgeProps) {
   const badgeConfig = {
     event: { text: '이벤트', className: 'bg-accent-100' },
     product: { text: '상품', className: 'bg-primary-200' },

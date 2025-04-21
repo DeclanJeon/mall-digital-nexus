@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowRight } from "lucide-react";
 import { Content } from "./types";
-import { ContentCard } from "./ContentCard";
+import ContentCard from "@/components/peer-space/ContentCard";
 
 interface PeerSpaceTabsProps {
   activeTab: string;
@@ -61,5 +61,50 @@ export const PeerSpaceTabs = ({
         )}
       </section>
     </TabsContent>
+
+    {/* 다른 탭들에 대한 기본 콘텐츠 추가 */}
+    <TabsContent value="portfolio">
+      <div className="py-4 text-center text-text-200">
+        포트폴리오 탭 콘텐츠 준비 중
+      </div>
+    </TabsContent>
+    
+    <TabsContent value="services">
+      <div className="py-4 text-center text-text-200">
+        서비스 탭 콘텐츠 준비 중
+      </div>
+    </TabsContent>
+
+    <TabsContent value="community">
+      <div className="py-4 text-center text-text-200">
+        커뮤니티 탭 콘텐츠 준비 중
+      </div>
+    </TabsContent>
+
+    <TabsContent value="reviews">
+      <div className="py-4 text-center text-text-200">
+        리뷰 탭 콘텐츠 준비 중
+      </div>
+    </TabsContent>
+
+    <TabsContent value="map">
+      <div className="py-4 text-center text-text-200">
+        지도 탭 콘텐츠 준비 중
+      </div>
+    </TabsContent>
+
+    <TabsContent value="events">
+      <div className="py-4 text-center text-text-200">
+        이벤트 탭 콘텐츠 준비 중
+      </div>
+    </TabsContent>
+
+    {isOwner && (
+      <TabsContent value="analytics">
+        <div className="py-4 text-center text-text-200">
+          분석 탭 콘텐츠 준비 중
+        </div>
+      </TabsContent>
+    )}
   </Tabs>
 );
