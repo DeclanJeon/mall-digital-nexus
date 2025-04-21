@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import userService from "@/services/userService";
 import { Input } from "@/components/ui/input";
-import { Mail, Key, Check, X } from "lucide-react";
+import { Mail, Key } from "lucide-react";
+
+const ADMIN_EMAIL = "admin@peermall.com";
+const ADMIN_OTP = "111111";
 
 const LoginForm = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
   const [email, setEmail] = useState('');
@@ -16,7 +19,7 @@ const LoginForm = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // 이메일 인증번호 요청
+  // 이메일 인증번호 요청 (admin bypass 추가)
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
@@ -27,7 +30,19 @@ const LoginForm = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
       });
       return;
     }
+
     setIsLoading(true);
+
+    // 관리자(admin@peermall.com) 이메일 로그인시 인증번호 생략 & 바로 로그인
+    if (email.trim().toLowerCase() === ADMIN_EMAIL) {
+      // 바로 로그인 처리
+      setTimeout(async () => {
+        await handleAdminLogin();
+        setIsLoading(false);
+      }, 700);
+      return;
+    }
+
     const { success, otp: serverOtp } = await userService.sendNumber(email);
     setIsLoading(false);
 
@@ -47,6 +62,19 @@ const LoginForm = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
     }
   };
 
+  // 관리자(admin@peermall.com) 즉시 로그인 처리
+  const handleAdminLogin = async () => {
+    // 바로 로그인 성공처리
+    localStorage.setItem('userLoggedIn', 'true');
+    localStorage.setItem('userEmail', ADMIN_EMAIL);
+    toast({
+      title: "관리자 모드 로그인",
+      description: "테스트용 admin 계정으로 로그인 되었습니다.",
+    });
+    if (onLoginSuccess) onLoginSuccess();
+    else navigate('/peer-space');
+  };
+
   // 인증번호 확인/로그인
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +87,15 @@ const LoginForm = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
       return;
     }
     setIsLoading(true);
+
+    if (email.trim().toLowerCase() === ADMIN_EMAIL) {
+      // admin은 otp 체크 없이 바로 로그인
+      setTimeout(async () => {
+        await handleAdminLogin();
+        setIsLoading(false);
+      }, 600);
+      return;
+    }
 
     // 실제 구현에서는 인증번호 검증을 서버에서 처리, 여기서는 OTP만 비교합니다 (DEMO)
     if (sentOtp && otp !== sentOtp) {
@@ -116,7 +153,7 @@ const LoginForm = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
           <Mail className="w-5 h-5 text-[#71c4ef]" />
         </div>
       </div>
-      {step === 'otp' && (
+      {step === 'otp' && email.trim().toLowerCase() !== ADMIN_EMAIL && (
         <div className="space-y-2">
           <label htmlFor="otp" className="block text-sm font-medium text-gray-700">인증번호</label>
           <div className="flex items-center gap-2">
@@ -145,7 +182,7 @@ const LoginForm = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
             className="w-full bg-[#71c4ef] hover:bg-[#5bb4e5] py-2 text-white rounded-md"
             disabled={isLoading}
           >
-            {isLoading ? "인증번호 전송 중..." : "인증번호 보내기"}
+            {isLoading ? (email.trim().toLowerCase() === ADMIN_EMAIL ? "관리자 로그인 중..." : "인증번호 전송 중...") : "인증번호 보내기"}
           </Button>
         ) : (
           <Button
@@ -157,7 +194,7 @@ const LoginForm = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
           </Button>
         )}
       </div>
-      {step === 'otp' && (
+      {step === 'otp' && email.trim().toLowerCase() !== ADMIN_EMAIL && (
         <div className="w-full flex justify-between text-xs text-[#71c4ef]">
           <button
             type="button"
@@ -167,12 +204,15 @@ const LoginForm = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
           >
             이메일 재입력
           </button>
-          {/* 인증번호 재전송: 이메일 다시 입력부터 시작 */}
         </div>
       )}
       <div className="text-center text-sm mt-4">
         <span className="text-gray-600">계정이 없으신가요? </span>
         <a href="/register" className="text-[#71c4ef] hover:underline">회원가입</a>
+      </div>
+      {/* 힌트: 테스트용 관리자는 admin@peermall.com을 사용할 수 있습니다. */}
+      <div className="text-center text-xs text-gray-400 mt-1">
+        <span>관리자 테스트: <b>admin@peermall.com</b></span>
       </div>
     </form>
   );
