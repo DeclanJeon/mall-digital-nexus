@@ -17,12 +17,13 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import CategoryNav from "./components/CategoryNav";
 import OpenChatRoom from "./components/community/OpenChatRoom";
+import PeerSpace from "./pages/PeerSpace";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   const location = useLocation();
-  const hideLayout = location.pathname === '/login';
+  const hideLayout = location.pathname === '/login' || location.pathname === '/peer-space';
 
   return (
     <>
@@ -36,10 +37,10 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/service" element={<ServicePage />} />
         <Route path="/my-info" element={<MyInfoPage />} />
+        <Route path="/peer-space" element={<PeerSpace />} />
         <Route path="*" element={<NotFound />} />
 
         <Route path="/community/chat/:id" element={<OpenChatRoom />} />
-
       </Routes>
       {!hideLayout && <Footer />}
     </>
