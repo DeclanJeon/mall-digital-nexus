@@ -1,9 +1,20 @@
-export type ContentType = 'portfolio' | 'service' | 'product' | 'event';
+export type ContentType =
+  | 'portfolio'
+  | 'service'
+  | 'product'
+  | 'event'
+  | 'course'
+  | 'workshop'
+  | 'challenge'
+  | 'tool';
 
-export interface Content {
+export interface BaseContent {
   id: string;
   title: string;
   description: string;
+}
+
+export interface Content extends BaseContent {
   imageUrl: string;
   type: ContentType;
   isExternal?: boolean;
@@ -11,6 +22,9 @@ export interface Content {
   price?: string;
   date?: string;
   likes: number;
+  completion?: number;
+  participants?: number;
+  maxParticipants?: number;
 }
 
 export interface Review {
@@ -38,6 +52,21 @@ export interface CommunityPost {
   likes: number;
 }
 
+export interface Quest extends BaseContent {
+  reward: string;
+  progress: number;
+  deadline: string;
+  likes?: number;
+}
+
+export function isContent(item: BaseContent): item is Content {
+  return 'type' in item;
+}
+
+export function isQuest(item: BaseContent): item is Quest {
+  return 'reward' in item;
+}
+
 export interface PeerSpaceData {
   id: string;
   title: string;
@@ -56,6 +85,11 @@ export interface PeerSpaceData {
   contactPhone: string;
   contactEmail: string;
   address: string;
+  level: number;
+  experience: number;
+  achievements: number;
+  completedChallenges: number;
+  activeQuests: number;
 }
 
 export interface FeaturedContentSectionProps {

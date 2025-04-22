@@ -18,17 +18,18 @@ import Header from "./components/Header";
 import CategoryNav from "./components/CategoryNav";
 import OpenChatRoom from "./components/community/OpenChatRoom";
 import PeerSpace from "./pages/PeerSpace";
+import PeerSpaceSettings from "./pages/PeerSpaceSettings";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   const location = useLocation();
-  const hideLayout = location.pathname === '/login' || location.pathname === '/peer-space';
+  const isPeerSpacePage = location.pathname.startsWith('/peer-space');
 
   return (
     <>
-      {!hideLayout && <Header />}
-      {!hideLayout && <CategoryNav />}
+      {!isPeerSpacePage && <Header />}
+      {!isPeerSpacePage && <CategoryNav />}
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/shopping" element={<Shopping />} />
@@ -38,11 +39,11 @@ const AppContent = () => {
         <Route path="/service" element={<ServicePage />} />
         <Route path="/my-info" element={<MyInfoPage />} />
         <Route path="/peer-space" element={<PeerSpace />} />
-        <Route path="*" element={<NotFound />} />
-
+        <Route path="/peer-space/settings" element={<PeerSpaceSettings />} />
         <Route path="/community/chat/:id" element={<OpenChatRoom />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
-      {!hideLayout && <Footer />}
+      {!isPeerSpacePage && <Footer />}
     </>
   );
 };

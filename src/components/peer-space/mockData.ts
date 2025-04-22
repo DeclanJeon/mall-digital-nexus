@@ -1,15 +1,15 @@
-import { Content, Review, CommunityPost, PeerSpaceData } from './types';
+import { Content, Review, CommunityPost, PeerSpaceData, Quest } from './types';
 
-export const peerSpaceData: PeerSpaceData = {
+export const learningHubData: PeerSpaceData = {
   id: 'myspace123',
-  title: '나의 피어 스페이스',
-  description: '나만의 특별한 공간에 오신 것을 환영합니다!',
+  title: '게이미피케이션 학습 공간',
+  description: '지속적인 도전과 피드백을 통한 효과적인 학습 환경',
   owner: '김피어',
   peerNumber: 'P-12345-6789',
   profileImage: 'https://api.dicebear.com/7.x/personas/svg?seed=currentUser',
-  badges: ['인증완료', '골드회원', '디자인전문가'],
-  followers: 128,
-  recommendations: 45,
+  badges: ['교육전문가', '상위 10% 활동가', '게이미피케이션 마스터'],
+  followers: 328,
+  recommendations: 145,
   socialLinks: {
     facebook: 'https://facebook.com',
     twitter: 'https://twitter.com',
@@ -18,86 +18,207 @@ export const peerSpaceData: PeerSpaceData = {
   contactPhone: '02-123-4567',
   contactEmail: 'contact@peermall.com',
   address: '서울시 강남구 테헤란로 123',
+  level: 10,
+  experience: 50,
+  achievements: 5,
+  completedChallenges: 8,
+  activeQuests: 2,
+};
+
+export const peerSpaceData: PeerSpaceData = {
+  id: 'myspace123',
+  title: '게이미피케이션 학습 공간',
+  description: '지속적인 도전과 피드백을 통한 효과적인 학습 환경',
+  owner: '김피어',
+  peerNumber: 'P-12345-6789',
+  profileImage: 'https://api.dicebear.com/7.x/personas/svg?seed=currentUser',
+  badges: ['교육전문가', '상위 10% 활동가', '게이미피케이션 마스터'],
+  followers: 328,
+  recommendations: 145,
+  socialLinks: {
+    facebook: 'https://facebook.com',
+    twitter: 'https://twitter.com',
+    instagram: 'https://instagram.com',
+  },
+  contactPhone: '02-123-4567',
+  contactEmail: 'contact@peermall.com',
+  address: '서울시 강남구 테헤란로 123',
+  level: 18,
+  experience: 75,
+  achievements: 28,
+  completedChallenges: 42,
+  activeQuests: 3,
 };
 
 export const featuredContent: Content[] = [
   {
     id: 'content1',
-    title: '디자인 포트폴리오',
-    description: '최근 작업한 브랜딩 디자인 모음입니다.',
+    title: '효과적인 학습 방법론',
+    description: '게임 메커니즘을 활용한 지속적 학습 동기 부여 기법',
     imageUrl:
-      'https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&q=80',
-    type: 'portfolio',
+      'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?auto=format&fit=crop&q=80',
+    type: 'course',
     date: '2일 전',
-    likes: 24,
+    likes: 124,
     isExternal: false,
+    completion: 68,
   },
   {
     id: 'content2',
-    title: '인테리어 컨설팅',
-    description: '공간의 변화를 위한 컨설팅 서비스를 제공합니다.',
+    title: '인터랙티브 학습 워크샵',
+    description: '실시간 피드백을 통한 체험형 교육 방식 학습하기',
     imageUrl:
-      'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&q=80',
-    type: 'service',
+      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80',
+    type: 'workshop',
     price: '150,000원~',
-    date: '',
-    likes: 15,
-    isExternal: true,
-    source: 'interiorpro.kr',
+    date: '2025년 5월 15일',
+    likes: 85,
+    isExternal: false,
+    participants: 24,
+    maxParticipants: 30,
   },
   {
     id: 'content3',
-    title: '디자인 워크샵',
-    description: '함께 배우는 브랜드 디자인 워크샵을 진행합니다.',
+    title: '학습 몰입도 향상 챌린지',
+    description: '21일 동안 진행되는 학습 습관 형성 프로그램',
     imageUrl:
-      'https://images.unsplash.com/photo-1675466583534-1755fbb2797b?auto=format&fit=crop&q=80',
-    type: 'event',
-    date: '2025년 5월 15일',
-    price: '50,000원',
-    likes: 32,
+      'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80',
+    type: 'challenge',
+    date: '진행중 (12일 남음)',
+    price: '무료',
+    likes: 212,
     isExternal: false,
+    participants: 156,
   },
   {
     id: 'content4',
-    title: '로고 디자인 패키지',
-    description: '브랜드 아이덴티티를 완성할 로고 디자인 패키지입니다.',
+    title: '교육용 게임 디자인 도구',
+    description: '게임 요소를 활용한 맞춤형 교육 콘텐츠 제작 솔루션',
     imageUrl:
-      'https://images.unsplash.com/photo-1626785774625-ddcdce9def54?auto=format&fit=crop&q=80',
-    type: 'product',
+      'https://images.unsplash.com/photo-1559336197-ded8aaa244bc?auto=format&fit=crop&q=80',
+    type: 'tool',
     price: '300,000원',
     date: '',
-    likes: 18,
+    likes: 78,
     isExternal: true,
-    source: 'designmarket.com',
+    source: 'edutools.com',
   },
 ];
 
-export const reviews: Review[] = [
+export const activeQuests: Quest[] = [
   {
-    id: 'review1',
-    author: '이지은',
-    authorImage: 'https://api.dicebear.com/7.x/personas/svg?seed=Jieun',
-    content: '디자인 컨설팅을 받았는데 정말 만족스러웠어요...',
-    rating: 5,
-    date: '2025-04-10',
-    source: 'internal',
-    peerMall: {
-      id: 'mall123',
-      name: '이지은의 공방',
-      address: '서울시 마포구 홍대입구역 근처',
-    },
+    id: 'quest1',
+    title: '첫 학습 커뮤니티 만들기',
+    description: '최소 5명 이상의 멤버와 함께하는 학습 그룹 생성하기',
+    reward: '경험치 200 + 협력 뱃지',
+    progress: 60,
+    deadline: '4일 남음',
   },
-  // ... (나머지 reviews 데이터)
+  {
+    id: 'quest2',
+    title: '교육 콘텐츠 3개 제작',
+    description: '다른 사용자들과 공유할 수 있는 교육 자료 만들기',
+    reward: '경험치 350 + 콘텐츠 크리에이터 칭호',
+    progress: 33,
+    deadline: '7일 남음',
+  },
+  {
+    id: 'quest3',
+    title: '피드백 마스터',
+    description: '10개 이상의 학습 콘텐츠에 건설적인 피드백 남기기',
+    reward: '경험치 150 + 멘토 포인트 50',
+    progress: 90,
+    deadline: '오늘까지',
+  },
 ];
 
-export const communityPosts: CommunityPost[] = [
+export const achievements = [
   {
-    id: 'post1',
-    title: '봄맞이 디자인 트렌드 정보',
-    author: '김피어',
-    date: '2025-04-18',
-    comments: 8,
-    likes: 24,
+    id: 'ach1',
+    name: '지식 공유왕',
+    icon: '🏆',
+    description: '50개 이상의 콘텐츠 제작',
+    unlocked: true,
   },
-  // ... (나머지 communityPosts 데이터)
+  {
+    id: 'ach2',
+    name: '꾸준한 학습자',
+    icon: '⏱️',
+    description: '30일 연속 접속',
+    unlocked: true,
+  },
+  {
+    id: 'ach3',
+    name: '토론의 달인',
+    icon: '💬',
+    description: '100개 이상의 토론 참여',
+    unlocked: true,
+  },
+  {
+    id: 'ach4',
+    name: '협업 전문가',
+    icon: '🤝',
+    description: '10개 이상의 그룹 프로젝트 완료',
+    unlocked: false,
+  },
+];
+
+export const learningPaths = [
+  {
+    id: 'path1',
+    title: '게이미피케이션 전문가 과정',
+    progress: 68,
+    steps: 12,
+    completedSteps: 8,
+    imageUrl:
+      'https://images.unsplash.com/photo-1522542550221-31fd19575a2d?auto=format&fit=crop&q=80',
+  },
+  {
+    id: 'path2',
+    title: '교육 콘텐츠 제작 마스터',
+    progress: 35,
+    steps: 10,
+    completedSteps: 3,
+    imageUrl:
+      'https://images.unsplash.com/photo-1588702547923-7093a6c3ba33?auto=format&fit=crop&q=80',
+  },
+  {
+    id: 'path3',
+    title: '학습 커뮤니티 리더십',
+    progress: 10,
+    steps: 8,
+    completedSteps: 1,
+    imageUrl:
+      'https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&q=80',
+  },
+];
+
+export const communityActivities = [
+  {
+    id: 'activity1',
+    user: '이지원',
+    userImage: 'https://api.dicebear.com/7.x/personas/svg?seed=Jiwon',
+    action: '새로운 챌린지를 완료했습니다',
+    target: '21일 학습 습관 형성하기',
+    time: '1시간 전',
+    icon: 'trophy',
+  },
+  {
+    id: 'activity2',
+    user: '박준호',
+    userImage: 'https://api.dicebear.com/7.x/personas/svg?seed=Junho',
+    action: '질문을 남겼습니다',
+    target: '게이미피케이션 요소를 어떻게 잘 적용할 수 있을까요?',
+    time: '3시간 전',
+    icon: 'message',
+  },
+  {
+    id: 'activity3',
+    user: '김미나',
+    userImage: 'https://api.dicebear.com/7.x/personas/svg?seed=Mina',
+    action: '새로운 학습 콘텐츠를 공유했습니다',
+    target: '효과적인 피드백 기법 워크숍',
+    time: '어제',
+    icon: 'share',
+  },
 ];
