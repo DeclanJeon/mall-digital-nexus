@@ -6,12 +6,12 @@ import { Star } from "lucide-react";
 
 interface ContentCardProps {
   content: Content;
-  onClick?: () => void;
+  onClick?: (content: Content) => void;
 }
 
 export default function ContentCard({ content, onClick }: ContentCardProps) {
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={onClick}>
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onClick?.(content)}>
       <div className="aspect-video relative overflow-hidden">
         <img
           src={content.imageUrl}

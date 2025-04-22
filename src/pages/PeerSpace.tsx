@@ -1,6 +1,6 @@
 // File: PeerSpace.tsx (Incorporating MyMall requirements)
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -528,8 +528,8 @@ const handleInteraction = async (type: 'like' | 'save', contentId: string) => {
               <CardContent className="p-4 flex-grow">
                   <h3 className="font-semibold text-base mb-1 line-clamp-2 text-text-100 group-hover:text-accent-100 transition-colors">{content.title}</h3>
                   <p className="text-xs text-text-200 mb-2 line-clamp-2">{content.description}</p>
-                  {content.price && content.type !== 'quest' && <p className="font-bold text-blue-600 text-sm mb-1">{content.price}</p>}
-                  {content.date && content.date !== '' && (content.type === 'quest' || !content.price) && <p className="text-xs text-text-200 flex items-center mb-1"><Clock className="h-3 w-3 mr-1" /> {content.date}</p>}
+                  {'price' in content && content.price && <p className="font-bold text-blue-600 text-sm mb-1">{content.price}</p>}
+                  {content.date && content.date !== '' && !('price' in content && content.price) && <p className="text-xs text-text-200 flex items-center mb-1"><Clock className="h-3 w-3 mr-1" /> {content.date}</p>}
 
                    {/* Progress indicators */}
                    {'participants' in content && 'maxParticipants' in content && content.maxParticipants && ( <div className="my-1"><Progress value={(content.participants / content.maxParticipants) * 100} className="h-1.5" /><p className="text-[10px] text-text-200 mt-0.5">{content.participants}/{content.maxParticipants} 참여</p></div> )}
@@ -730,44 +730,100 @@ const handleInteraction = async (type: 'like' | 'save', contentId: string) => {
       {/* Main Content Area */}
       <main className="container mx-auto px-4 py-8 relative z-10">
 
-          {/* Profile Header Section */}
-           <div className="flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-6 mb-8 md:mb-12 bg-white shadow-lg rounded-lg p-4 md:p-6 relative -mt-16 md:-mt-24 border">
-               <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-white shadow-lg -mt-12 md:-mt-16 flex-shrink-0">
-                   <AvatarImage src={mallConfig.profileImage} alt={mallConfig.owner} />
-                   <AvatarFallback className="text-4xl">{mallConfig.owner.substring(0,1)}</AvatarFallback>
-               </Avatar>
+          {/* Profile Header Section with Enhanced UI */}
+           <div className="flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-6 mb-8 md:mb-12 bg-white shadow-xl rounded-xl p-6 md:p-8 relative -mt-16 md:-mt-24 border border-gray-100">
+               <div className="relative">
+                   <Avatar className="h-28 w-28 md:h-36 md:w-36 border-4 border-white shadow-lg">
+                       <AvatarImage src={mallConfig.profileImage} alt={mallConfig.owner} />
+                       <AvatarFallback className="text-5xl">{mallConfig.owner.substring(0,1)}</AvatarFallback>
+                   </Avatar>
+                   {mallConfig.isVerified && (
+                       <div className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-1">
+                           <ShieldCheck className="h-5 w-5" />
+                       </div>
+                   )}
+               </div>
                <div className="flex-grow text-center md:text-left mt-4 md:mt-0">
-                   <h1 className="text-2xl md:text-3xl font-bold text-text-100 flex items-center justify-center md:justify-start gap-2">
+                   <h1 className="text-3xl md:text-4xl font-bold text-text-100 flex items-center justify-center md:justify-start gap-3">
                        {mallConfig.title}
-                       {mallConfig.isVerified && (
-                         <div title="인증된 피어몰">
-                           <ShieldCheck className="h-6 w-6 text-blue-500 flex-shrink-0" />
-                         </div>
-                       )}
                    </h1>
-                   <p className="text-sm text-text-200 mt-1 px-4 md:px-0">{mallConfig.description}</p>
-                   <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-1 text-xs text-text-200 mt-3">
-                       <span className="flex items-center"><Users className="h-3.5 w-3.5 mr-1"/> {mallConfig.followers} 팔로워</span>
-                       <span className="flex items-center"><Star className="h-3.5 w-3.5 mr-1 text-yellow-400"/> {mallConfig.recommendations} 추천</span>
-                       <span className="flex items-center"><Award className="h-3.5 w-3.5 mr-1 text-green-500"/> 레벨 {mallConfig.level}</span>
-                       <span className="flex items-center"><GitBranch className="h-3.5 w-3.5 mr-1 text-purple-500"/> 길드: {mallConfig.familyGuilds?.[0]?.name ?? '없음'}</span>
+                   <p className="text-base text-text-200 mt-2 px-4 md:px-0">{mallConfig.description}</p>
+                   <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2 text-sm text-text-200 mt-4">
+                       <span className="flex items-center"><Users className="h-4 w-4 mr-2"/> {mallConfig.followers} 팔로워</span>
+                       <span className="flex items-center"><Star className="h-4 w-4 mr-2 text-yellow-400"/> {mallConfig.recommendations} 추천</span>
+                       <span className="flex items-center"><Award className="h-4 w-4 mr-2 text-green-500"/> 레벨 {mallConfig.level}</span>
+                       <span className="flex items-center"><GitBranch className="h-4 w-4 mr-2 text-purple-500"/> 길드: {mallConfig.familyGuilds?.[0]?.name ?? '없음'}</span>
                    </div>
                     {mallConfig.customizations.showBadges && badgesAndAchievementsData.length > 0 && (
-                        <div className="mt-3 flex flex-wrap justify-center md:justify-start gap-1.5">
-                            {badgesAndAchievementsData.slice(0, 5).map(b => ( <Badge key={b.id} variant="outline" className={`text-[10px] px-1.5 py-0.5 border-opacity-50 ${b.color?.replace('text-', 'border-')} ${b.color}`}> <b.icon className="h-2.5 w-2.5 mr-1"/>{b.name} </Badge> ))}
+                        <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-2">
+                            {badgesAndAchievementsData.slice(0, 5).map(b => (
+                                <Badge 
+                                    key={b.id} 
+                                    variant="outline" 
+                                    className={`text-sm px-3 py-1.5 border-opacity-50 ${b.color?.replace('text-', 'border-')} ${b.color}`}
+                                >
+                                    <b.icon className="h-3 w-3 mr-2"/>{b.name}
+                                </Badge>
+                            ))}
                         </div>
                     )}
                </div>
-               <div className="flex flex-col items-center md:items-end space-y-2 mt-4 md:mt-0 flex-shrink-0">
-                   {!isOwner && <Button className="w-full md:w-auto bg-accent-100 hover:bg-accent-200 text-white h-9"><Plus className="h-4 w-4 mr-1"/> 팔로우</Button> }
-                   <Button variant="outline" className="w-full md:w-auto h-9 border-gray-300"><MessageSquare className="h-4 w-4 mr-1"/> 메시지</Button>
-                    <div className="flex space-x-1">
-                        <Button variant="outline" size="icon" className="h-8 w-8 border-gray-300" title="TIE 연결"> <RadioTower className="h-4 w-4"/> </Button>
-                        <Button variant="outline" size="icon" className="h-8 w-8 border-gray-300" title="VI 시작"> <ScreenShare className="h-4 w-4"/> </Button>
-                        <Button variant="outline" size="icon" className="h-8 w-8 border-gray-300" title="QR 코드" onClick={() => setShowQRModal(true)}> <QrCode className="h-4 w-4"/> </Button>
-                        <Button variant="outline" size="icon" className="h-8 w-8 border-gray-300" title="공유"> <Share2 className="h-4 w-4"/> </Button>
+               <div className="flex flex-col items-center md:items-end space-y-3 mt-4 md:mt-0 flex-shrink-0">
+                   {!isOwner && (
+                       <Button 
+                           className="w-full md:w-auto bg-accent-100 hover:bg-accent-200 text-white h-10 text-base"
+                       >
+                           <Plus className="h-5 w-5 mr-2"/> 팔로우
+                       </Button>
+                   )}
+                   <Button 
+                       variant="outline" 
+                       className="w-full md:w-auto h-10 border-gray-300 text-base"
+                   >
+                       <MessageSquare className="h-5 w-5 mr-2"/> 메시지
+                   </Button>
+                   <div className="flex space-x-2">
+                       <Button 
+                           variant="outline" 
+                           size="icon" 
+                           className="h-10 w-10 border-gray-300 hover:border-accent-100"
+                           title="TIE 연결"
+                       >
+                           <RadioTower className="h-5 w-5"/>
+                       </Button>
+                       <Button 
+                           variant="outline" 
+                           size="icon" 
+                           className="h-10 w-10 border-gray-300 hover:border-accent-100"
+                           title="VI 시작"
+                       >
+                           <ScreenShare className="h-5 w-5"/>
+                       </Button>
+                       <Button 
+                           variant="outline" 
+                           size="icon" 
+                           className="h-10 w-10 border-gray-300 hover:border-accent-100"
+                           title="QR 코드" 
+                           onClick={() => setShowQRModal(true)}
+                       >
+                           <QrCode className="h-5 w-5"/>
+                       </Button>
+                       <Button 
+                           variant="outline" 
+                           size="icon" 
+                           className="h-10 w-10 border-gray-300 hover:border-accent-100"
+                           title="공유"
+                       >
+                           <Share2 className="h-5 w-5"/>
+                       </Button>
                    </div>
-                   <Button variant="secondary" size="sm" className="w-full md:w-auto text-xs bg-pink-100 text-pink-700 hover:bg-pink-200 h-7"><Gift className="h-3 w-3 mr-1"/> 응원하기</Button>
+                   <Button 
+                       variant="secondary" 
+                       size="sm" 
+                       className="w-full md:w-auto text-sm bg-pink-100 text-pink-700 hover:bg-pink-200 h-9"
+                   >
+                       <Gift className="h-4 w-4 mr-2"/> 응원하기
+                   </Button>
                </div>
            </div>
 
@@ -784,8 +840,7 @@ const handleInteraction = async (type: 'like' | 'save', contentId: string) => {
                              </div>
                              {/* Add "View More" button */}
                              <div className="text-center mt-6"><Button variant="outline" size="sm">모든 콘텐츠 보기</Button></div>
-                             {/* Ad Placeholder */}
-                              <div className="mt-8 h-20 bg-gray-100 border rounded-lg flex items-center justify-center text-gray-400 text-sm">광고 영역</div>
+                             
                          </section>
                      );
                      case 'communitySpotlight': return (
@@ -800,13 +855,11 @@ const handleInteraction = async (type: 'like' | 'save', contentId: string) => {
                      case 'eventsAndQuests': return (
                           <section key={sectionId}> <h2 className="text-xl font-semibold mb-4">이벤트 & 퀘스트</h2> <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> {events.length > 0 && renderContentCard(events[0])} {quests.length > 0 && renderQuestCard(quests[0])} </div> </section>
                      );
-                     case 'map': return (
-                          <section key={sectionId}> <h2 className="text-xl font-semibold mb-4">피어몰 지도</h2> <Card className="bg-white shadow-md"><CardContent className="p-0 aspect-video bg-gray-100 flex items-center justify-center text-text-200 border rounded"><Compass className="h-12 w-12 text-gray-300 mr-2"/> 지도 표시 영역</CardContent></Card> </section>
-                     );
+
                      case 'reviews': return (
                           <section key={sectionId}> <h2 className="text-xl font-semibold mb-4">방문자 리뷰</h2> <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"> {reviews.slice(0, mallConfig.customizations.contentDisplayCount?.reviews ?? 3).map(renderReviewCard)} </div> <div className="text-center mt-6"><Button variant="outline" size="sm">모든 리뷰 보기</Button></div> </section>
                      );
-                     default: return <div key={sectionId} className="p-4 border rounded bg-yellow-50 text-yellow-700">알 수 없는 섹션: {sectionId}</div>; // Placeholder for unknown sections
+                     
                  }
              })}
            </div>
@@ -2445,7 +2498,17 @@ export default PeerSpace; // Exporting as PeerSpace
 //         </Tabs>
 //       </main>
       
-//       {/* QR Code Feature */}
+//      {/* Map Modal - Commented out until proper implementation */}
+      {/* {isMapOpen && (
+        <PeermallMap 
+          isOpen={isMapOpen}
+          onClose={handleCloseMap}
+          selectedLocation={selectedLocation}
+          allLocations={mapLocations}
+        />
+      )} */}
+
+      {/* QR Code Feature */}
 //       {showQRModal && (
 //         <Dialog open={showQRModal} onOpenChange={setShowQRModal}>
 //           <DialogContent className="max-w-md">
