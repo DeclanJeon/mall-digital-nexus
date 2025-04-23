@@ -6,6 +6,9 @@ import BasicInfoSection from "@/components/peer-space/BasicInfoSection";
 import DesignSettingsSection from "@/components/peer-space/DesignSettingsSection";
 import ContentManagementSection from "@/components/peer-space/ContentManagementSection";
 import ProductManagementSection from "@/components/peer-space/ProductManagementSection";
+import CommunityManagementSection from './CommunityManagementSection';
+import QRCodeManagementSection from './QRCodeManagementSection';
+import RelationshipManagementSection from './RelationshipManagementSection';
 
 interface ContentSectionProps {
   activeSection: string;
@@ -52,8 +55,11 @@ const ContentSection: React.FC<ContentSectionProps> = ({
       {activeSection === 'design' && <DesignSettingsSection />}
       {activeSection === 'content' && <ContentManagementSection />}
       {activeSection === 'products' && <ProductManagementSection />}
+      {activeSection === 'community' && <CommunityManagementSection />}
+      {activeSection === 'qr-codes' && <QRCodeManagementSection />}
+      {activeSection === 'relationships' && <RelationshipManagementSection />}
       
-      {!['dashboard', 'basic-info', 'design', 'content', 'products'].includes(activeSection) && (
+      {!['dashboard', 'basic-info', 'design', 'content', 'products', 'community', 'qr-codes', 'relationships'].includes(activeSection) && (
         <Card className="p-6">
           <p className="text-text-200">
             이 페이지는 현재 개발 중입니다. 다음 단계에서 {activeSection} 섹션이 구현될 예정입니다.
