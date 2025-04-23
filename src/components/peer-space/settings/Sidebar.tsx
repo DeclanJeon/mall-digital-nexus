@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, User, Paintbrush, FileText, ShoppingBag, 
-  MessageCircle, QrCode, Link2, Star, BarChart2, ShieldCheck, Settings 
+  MessageSquare, QrCode, Link2, Star, BarChart2, ShieldCheck, Settings,
+  Package, Percent, MapPin, Map, Users, Tag, Calendar, MessageSquare as MessageSquareIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SidebarItem from './SidebarItem';
@@ -36,17 +38,24 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection }) =>
         <SidebarCategory title="콘텐츠 & 제품">
           <SidebarItem icon={FileText} label="콘텐츠 관리" active={activeSection === 'content'} onClick={() => setActiveSection('content')} />
           <SidebarItem icon={ShoppingBag} label="제품 관리" active={activeSection === 'products'} onClick={() => setActiveSection('products')} />
-          <SidebarItem icon={MessageCircle} label="커뮤니티 관리" active={activeSection === 'community'} onClick={() => setActiveSection('community')} />
+          <SidebarItem icon={MessageSquare} label="커뮤니티 관리" active={activeSection === 'community'} onClick={() => setActiveSection('community')} />
+          <SidebarItem icon={Package} label="제품 생태계" active={activeSection === 'product-ecosystem'} onClick={() => setActiveSection('product-ecosystem')} />
         </SidebarCategory>
         
-        <SidebarCategory title="연결 & 분석">
+        <SidebarCategory title="마케팅 & 위치">
+          <SidebarItem icon={Percent} label="마케팅 및 홍보" active={activeSection === 'marketing'} onClick={() => setActiveSection('marketing')} />
+          <SidebarItem icon={MapPin} label="위치 기반 서비스" active={activeSection === 'location'} onClick={() => setActiveSection('location')} />
           <SidebarItem icon={QrCode} label="QR 코드 관리" active={activeSection === 'qr-codes'} onClick={() => setActiveSection('qr-codes')} />
+        </SidebarCategory>
+        
+        <SidebarCategory title="관계 & 고객 지원">
           <SidebarItem icon={Link2} label="관계 관리" active={activeSection === 'relationships'} onClick={() => setActiveSection('relationships')} />
           <SidebarItem icon={Star} label="리뷰 관리" active={activeSection === 'reviews'} onClick={() => setActiveSection('reviews')} />
-          <SidebarItem icon={BarChart2} label="통계 및 분석" active={activeSection === 'analytics'} onClick={() => setActiveSection('analytics')} />
+          <SidebarItem icon={MessageSquareIcon} label="고객 지원" active={activeSection === 'customer-support'} onClick={() => setActiveSection('customer-support')} />
         </SidebarCategory>
         
-        <SidebarCategory title="시스템 & 보안">
+        <SidebarCategory title="분석 & 시스템">
+          <SidebarItem icon={BarChart2} label="통계 및 분석" active={activeSection === 'analytics'} onClick={() => setActiveSection('analytics')} />
           <SidebarItem icon={ShieldCheck} label="보안 및 접근 관리" active={activeSection === 'security'} onClick={() => setActiveSection('security')} />
           <SidebarItem icon={Settings} label="설정" active={activeSection === 'settings'} onClick={() => setActiveSection('settings')} />
         </SidebarCategory>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import Sidebar from '@/components/peer-space/settings/Sidebar';
@@ -6,6 +7,12 @@ import ContentSection from '@/components/peer-space/settings/ContentSection';
 const PeerSpaceSettings = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [saved, setSaved] = useState(true);
+  
+  const handleSectionChange = (section: string) => {
+    setActiveSection(section);
+    // When changing sections, we assume all changes are saved
+    setSaved(true);
+  };
   
   const handleSaveChanges = () => {
     toast({
@@ -19,7 +26,7 @@ const PeerSpaceSettings = () => {
     <div className="min-h-screen bg-bg-100 flex">
       <Sidebar 
         activeSection={activeSection}
-        setActiveSection={setActiveSection}
+        setActiveSection={handleSectionChange}
       />
       <ContentSection 
         activeSection={activeSection}

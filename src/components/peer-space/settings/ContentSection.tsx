@@ -14,6 +14,10 @@ import ReviewsManagementSection from './ReviewsManagementSection';
 import AnalyticsSection from './AnalyticsSection';
 import SecuritySection from './SecuritySection';
 import SettingsSection from './SettingsSection';
+import ProductEcosystemSection from './ProductEcosystemSection';
+import MarketingPromotionSection from './MarketingPromotionSection';
+import LocationServiceSection from './LocationServiceSection';
+import CustomerSupportSection from './CustomerSupportSection';
 
 interface ContentSectionProps {
   activeSection: string;
@@ -40,6 +44,10 @@ const ContentSection: React.FC<ContentSectionProps> = ({
       case 'analytics': return '통계 및 분석';
       case 'security': return '보안 및 접근 관리';
       case 'settings': return '설정';
+      case 'product-ecosystem': return '제품 생태계 관리';
+      case 'marketing': return '마케팅 및 홍보 관리';
+      case 'location': return '위치 기반 서비스 관리';
+      case 'customer-support': return '고객 지원 관리';
       default: return '';
     }
   };
@@ -67,6 +75,10 @@ const ContentSection: React.FC<ContentSectionProps> = ({
       {activeSection === 'analytics' && <AnalyticsSection />}
       {activeSection === 'security' && <SecuritySection />}
       {activeSection === 'settings' && <SettingsSection />}
+      {activeSection === 'product-ecosystem' && <ProductEcosystemSection />}
+      {activeSection === 'marketing' && <MarketingPromotionSection />}
+      {activeSection === 'location' && <LocationServiceSection />}
+      {activeSection === 'customer-support' && <CustomerSupportSection />}
     </div>
   );
 };
