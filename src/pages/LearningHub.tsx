@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Content, Quest } from '@/components/peer-space/types';
 import LearningHubTopBar from '@/components/peer-space/LearningHubTopBar';
@@ -10,9 +11,9 @@ import { toast } from '@/components/ui/use-toast';
 import { 
   Trophy, Award, Compass, Users 
 } from 'lucide-react';
-import { LearningHubQuestDetailsModal } from '@/components/peer-space/modals/LearningHubQuestDetailsModal';
-import { UserLevelDisplay } from '@/components/peer-space/UserLevelDisplay';
-import { ActiveQuestsSection } from '@/components/peer-space/ActiveQuestsSection';
+import LearningHubQuestDetailsModal from '@/components/peer-space/modals/LearningHubQuestDetailsModal';
+import UserLevelDisplay from '@/components/peer-space/UserLevelDisplay';
+import ActiveQuestsSection from '@/components/peer-space/ActiveQuestsSection';
 import { LearningPathsSection } from '@/components/peer-space/LearningPathsSection';
 import { AchievementsSection } from '@/components/peer-space/AchievementsSection';
 import { CommunityActivitySection } from '@/components/peer-space/CommunityActivitySection';
