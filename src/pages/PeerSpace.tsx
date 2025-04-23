@@ -333,9 +333,11 @@ const MyMallHeader = ({ mallData, isOwner, onAddContent, onCustomize }: {
                  <Menu className="h-5 w-5"/>
              </Button>
             
-            <Button variant="ghost" size="icon" className="hidden lg:inline-flex text-text-200 hover:text-accent-100 hover:bg-accent-100/10">
-                <User className="h-5 w-5"/>
-            </Button>
+            <RouterLink to="/peer-space/settings">
+                <Button variant="ghost" size="icon" className="hidden lg:inline-flex text-text-200 hover:text-accent-100 hover:bg-accent-100/10">
+                    <User className="h-5 w-5"/>
+                </Button>
+            </RouterLink>
          </div>
        </div>
      </header>

@@ -128,11 +128,26 @@ const PeerSpaceSettings = () => {
                       />
                     </div>
                     <div>
+                      <label className="block text-sm font-medium mb-1">사업자 인증</label>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <Input placeholder="사업자 등록번호 입력" />
+                        <Button variant="outline" size="sm">인증 요청</Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">사업자 인증이 완료되면 추가 기능을 이용할 수 있습니다.</p>
+                    </div>
+                    <div>
                       <label className="block text-sm font-medium mb-1">설명</label>
                       <Textarea
                         defaultValue={peerSpaceData.description}
                         placeholder="피어 스페이스에 대한 설명을 입력하세요"
                         rows={4}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">개인정보 처리방침</label>
+                      <Input
+                        defaultValue="https://example.com/privacy"
+                        placeholder="개인정보 처리방침 URL"
                       />
                     </div>
                   </CardContent>
@@ -177,6 +192,49 @@ const PeerSpaceSettings = () => {
                     </div>
                   </CardContent>
                 </Card>
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle>고급 개인 정보 설정</CardTitle>
+                    <CardDescription>개인 정보 보호 및 데이터 관리 설정을 구성합니다.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                        <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+                        데이터 개인 정보 보호
+                      </h3>
+                      <div className="space-y-3 p-4 border rounded-md bg-muted/20">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">데이터 수집 동의</span>
+                          <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">분석 데이터 공유</span>
+                          <input type="checkbox" className="toggle toggle-primary" />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">마케팅 이메일 수신</span>
+                          <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                        <Users2 className="h-4 w-4 text-muted-foreground" />
+                        소셜 미디어 연동
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border rounded-md bg-muted/20">
+                        {['Facebook', 'Twitter', 'Instagram', 'LinkedIn'].map((social) => (
+                          <div key={social} className="flex items-center justify-between p-3 border rounded bg-background">
+                            <span className="text-sm">{social}</span>
+                            <Button variant="outline" size="sm">연동하기</Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
               <Separator />
@@ -187,6 +245,57 @@ const PeerSpaceSettings = () => {
                   <User className="h-5 w-5" /> 프로필 관리
                 </h2>
                 <Card>
+                  <CardHeader>
+                    <CardTitle>계정 관리</CardTitle>
+                    <CardDescription>로그인 이메일 및 서브 계정을 관리합니다.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Email Change Section */}
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        이메일 변경
+                      </h3>
+                      <div className="space-y-3 p-4 border rounded-md bg-muted/20">
+                        <div>
+                          <label className="block text-xs text-muted-foreground mb-1">현재 이메일</label>
+                          <Input value={peerSpaceData.contactEmail} disabled />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-muted-foreground mb-1">새 이메일</label>
+                          <Input placeholder="변경할 이메일 주소 입력" type="email" />
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <Input placeholder="인증 코드 입력" className="flex-1" />
+                          <Button variant="outline" size="sm" className="w-full sm:w-auto">인증 코드 발송</Button>
+                        </div>
+                        <Button size="sm">이메일 변경 확인</Button>
+                      </div>
+                    </div>
+
+                    {/* Sub-account Management */}
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                        <Users2 className="h-4 w-4 text-muted-foreground" />
+                        서브 계정 관리
+                      </h3>
+                      <div className="space-y-3 p-4 border rounded-md bg-muted/20">
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <Input placeholder="초대할 계정의 이메일 또는 ID 입력" className="flex-1" />
+                          <Button size="sm" className="w-full sm:w-auto">초대 보내기</Button>
+                        </div>
+                        <div className="border rounded-md p-3 bg-background">
+                          <div className="text-sm font-medium text-muted-foreground mb-2">현재 서브 계정 (0)</div>
+                          <div className="text-sm text-muted-foreground text-center py-4">
+                            등록된 서브 계정이 없습니다.
+                          </div>
+                          {/* TODO: Add list of sub-accounts */}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="mt-6">
                   <CardHeader>
                     <CardTitle>계정 관리</CardTitle>
                     <CardDescription>로그인 이메일 및 서브 계정을 관리합니다.</CardDescription>
@@ -449,6 +558,57 @@ const PeerSpaceSettings = () => {
                      </div>
                   </CardContent>
                 </Card>
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle>시스템 테마 설정</CardTitle>
+                    <CardDescription>시스템 차원의 테마 설정을 관리합니다.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                        <PaletteIcon className="h-4 w-4 text-muted-foreground" />
+                        다크 모드 설정
+                      </h3>
+                      <div className="space-y-3 p-4 border rounded-md bg-muted/20">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">다크 모드 활성화</span>
+                          <input type="checkbox" className="toggle toggle-primary" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">테마 자동 전환</label>
+                          <select className="w-full border rounded-md p-2 text-sm bg-background h-9">
+                            <option>시스템 설정 따름</option>
+                            <option>수동 설정</option>
+                            <option>시간대별 자동 전환</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                        <BarChart className="h-4 w-4 text-muted-foreground" />
+                        A/B 테스트 관리
+                      </h3>
+                      <div className="space-y-3 p-4 border rounded-md bg-muted/20">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">A/B 테스트 활성화</span>
+                          <input type="checkbox" className="toggle toggle-primary" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">테스트 대상</label>
+                          <select className="w-full border rounded-md p-2 text-sm bg-background h-9">
+                            <option>레이아웃</option>
+                            <option>색상 팔레트</option>
+                            <option>CTA 버튼</option>
+                            <option>전체 디자인</option>
+                          </select>
+                        </div>
+                        <Button variant="outline" size="sm" className="w-full">새 A/B 테스트 생성</Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
               <Separator />
@@ -571,7 +731,79 @@ const PeerSpaceSettings = () => {
                          <Button variant="outline" size="sm" className="w-full mt-2">퀘스트 관리 페이지로 이동</Button>
                       </div>
                     </div>
+                   </CardContent>
+                   <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle>사용자 레벨 시스템</CardTitle>
+                    <CardDescription>사용자 활동에 따른 레벨 및 포인트 정책을 설정합니다.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                        <BarChart className="h-4 w-4 text-muted-foreground" />
+                        레벨 정책 설정
+                      </h3>
+                      <div className="space-y-3 p-4 border rounded-md bg-muted/20">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">레벨 시스템 활성화</span>
+                          <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">최대 레벨</label>
+                          <Input
+                            type="number"
+                            defaultValue="50"
+                            className="w-24 bg-background"
+                            min="1"
+                            max="100"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">레벨업 기준 경험치</label>
+                          <Input
+                            type="number"
+                            defaultValue="1000"
+                            className="w-24 bg-background"
+                            min="100"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">각 레벨업에 필요한 경험치 양</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                        <Star className="h-4 w-4 text-muted-foreground" />
+                        포인트 정책
+                      </h3>
+                      <div className="space-y-3 p-4 border rounded-md bg-muted/20">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">기본 포인트 적립률</label>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              defaultValue="10"
+                              className="w-24 bg-background"
+                              min="0"
+                            />
+                            <span className="text-sm text-muted-foreground">%</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">구매 금액 대비 적립 포인트 비율</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">포인트 유효 기간</label>
+                          <Input
+                            type="number"
+                            defaultValue="365"
+                            className="w-24 bg-background"
+                            min="1"
+                          />
+                          <span className="text-sm text-muted-foreground ml-2">일</span>
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
+                </Card>
                    <CardContent className="mt-4 flex justify-end">
                      <Button>커뮤니티 설정 저장</Button>
                    </CardContent>
@@ -619,6 +851,70 @@ const PeerSpaceSettings = () => {
                       ))}
                     </div>
                      <Button className="w-full mt-4">콘텐츠 관리 페이지로 이동</Button>
+                  </CardContent>
+                </Card>
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle>콘텐츠 승인 시스템</CardTitle>
+                    <CardDescription>콘텐츠 게시 전 승인 프로세스를 관리합니다.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                        <ListChecks className="h-4 w-4 text-muted-foreground" />
+                        승인 워크플로우 설정
+                      </h3>
+                      <div className="space-y-3 p-4 border rounded-md bg-muted/20">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">콘텐츠 승인 시스템 활성화</span>
+                          <input type="checkbox" className="toggle toggle-primary" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">기본 승인자</label>
+                          <Input placeholder="승인자 이메일 또는 ID 입력" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">승인 단계</label>
+                          <select className="w-full border rounded-md p-2 text-sm bg-background h-9">
+                            <option>1단계 승인</option>
+                            <option>2단계 승인</option>
+                            <option>3단계 승인</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                        <Bot className="h-4 w-4 text-muted-foreground" />
+                        자동 승인 규칙
+                      </h3>
+                      <div className="space-y-3 p-4 border rounded-md bg-muted/20">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">자동 승인 활성화</span>
+                          <input type="checkbox" className="toggle toggle-primary" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">신뢰도 임계값</label>
+                          <Input
+                            type="number"
+                            defaultValue="80"
+                            className="w-24 bg-background"
+                            min="0"
+                            max="100"
+                          />
+                          <span className="text-sm text-muted-foreground ml-2">% 이상 사용자 콘텐츠 자동 승인</span>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">키워드 필터</label>
+                          <Textarea
+                            placeholder="자동 승인 제외 키워드 (쉼표로 구분)"
+                            rows={3}
+                            className="bg-background"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -681,6 +977,90 @@ const PeerSpaceSettings = () => {
                       <Button variant="outline" size="sm" className="w-full">새 카테고리 추가</Button>
                     </div>
                      <Button className="w-full mt-4">제품 관리 페이지로 이동</Button>
+                  </CardContent>
+                </Card>
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle>할인 및 프로모션 관리</CardTitle>
+                    <CardDescription>제품 할인 정책 및 프로모션을 설정합니다.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                        <Gift className="h-4 w-4 text-muted-foreground" />
+                        쿠폰 생성 및 관리
+                      </h3>
+                      <div className="space-y-3 p-4 border rounded-md bg-muted/20">
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <Input placeholder="쿠폰 코드" className="flex-1" />
+                          <Button size="sm" className="w-full sm:w-auto">생성</Button>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-sm font-medium mb-1">할인 유형</label>
+                            <select className="w-full border rounded-md p-2 text-sm bg-background h-9">
+                              <option>정액 할인</option>
+                              <option>정률 할인</option>
+                              <option>무료 배송</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">할인 금액/율</label>
+                            <Input type="number" placeholder="0" />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">최소 주문 금액</label>
+                            <Input type="number" placeholder="0" />
+                          </div>
+                        </div>
+                        <Button size="sm" className="w-full">쿠폰 저장</Button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                        <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                        프로모션 기간 설정
+                      </h3>
+                      <div className="space-y-3 p-4 border rounded-md bg-muted/20">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-sm font-medium mb-1">시작 일시</label>
+                            <Input type="datetime-local" />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">종료 일시</label>
+                            <Input type="datetime-local" />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">기간 제한 활성화</span>
+                          <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                        <BarChart className="h-4 w-4 text-muted-foreground" />
+                        할인 정책
+                      </h3>
+                      <div className="space-y-3 p-4 border rounded-md bg-muted/20">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">자동 할인 적용</span>
+                          <input type="checkbox" className="toggle toggle-primary" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">할인 대상</label>
+                          <select className="w-full border rounded-md p-2 text-sm bg-background h-9">
+                            <option>전체 제품</option>
+                            <option>선택 카테고리</option>
+                            <option>특정 제품</option>
+                          </select>
+                        </div>
+                        <Button variant="outline" size="sm" className="w-full">할인 정책 추가</Button>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -774,6 +1154,85 @@ const PeerSpaceSettings = () => {
                    <CardContent className="mt-4 flex justify-end">
                      <Button>마케팅/운영 설정 저장</Button>
                    </CardContent>
+                </Card>
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle>분석 및 보고서</CardTitle>
+                    <CardDescription>데이터 수집 및 분석 도구 설정을 관리합니다.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                        <BarChart className="h-4 w-4 text-muted-foreground" />
+                        데이터 수집 설정
+                      </h3>
+                      <div className="space-y-3 p-4 border rounded-md bg-muted/20">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">사용자 행동 추적</span>
+                          <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">성능 지표 수집</span>
+                          <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">오류 로깅</span>
+                          <input type="checkbox" className="toggle toggle-primary" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        보고서 자동 생성
+                      </h3>
+                      <div className="space-y-3 p-4 border rounded-md bg-muted/20">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">보고서 주기</label>
+                          <select className="w-full border rounded-md p-2 text-sm bg-background h-9">
+                            <option>매일</option>
+                            <option>매주</option>
+                            <option>매월</option>
+                            <option>분기별</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">보고서 수신 이메일</label>
+                          <Input
+                            type="email"
+                            placeholder="보고서를 수신할 이메일 주소"
+                          />
+                        </div>
+                        <Button variant="outline" size="sm" className="w-full">보고서 미리보기</Button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                        <LayoutPanelLeft className="h-4 w-4 text-muted-foreground" />
+                        분석 대시보드
+                      </h3>
+                      <div className="space-y-3 p-4 border rounded-md bg-muted/20">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">실시간 대시보드 활성화</span>
+                          <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">주요 지표</label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {['방문자 수', '전환율', '평균 세션 시간', '이탈률'].map((metric) => (
+                              <div key={metric} className="flex items-center gap-2">
+                                <input type="checkbox" defaultChecked />
+                                <span className="text-sm">{metric}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <Button size="sm" className="w-full">대시보드 설정 저장</Button>
+                      </div>
+                    </div>
+                  </CardContent>
                 </Card>
               </div>
 
