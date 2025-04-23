@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import AdminDashboardSection from "@/components/peer-space/AdminDashboardSection";
 import BasicInfoSection from "@/components/peer-space/BasicInfoSection";
@@ -18,6 +17,9 @@ import ProductEcosystemSection from './ProductEcosystemSection';
 import MarketingPromotionSection from './MarketingPromotionSection';
 import LocationServiceSection from './LocationServiceSection';
 import CustomerSupportSection from './CustomerSupportSection';
+import AdvertisementSection from './AdvertisementSection';
+import GamificationSection from './GamificationSection';
+import ReferralSystemSection from './ReferralSystemSection';
 
 interface ContentSectionProps {
   activeSection: string;
@@ -48,6 +50,9 @@ const ContentSection: React.FC<ContentSectionProps> = ({
       case 'marketing': return '마케팅 및 홍보 관리';
       case 'location': return '위치 기반 서비스 관리';
       case 'customer-support': return '고객 지원 관리';
+      case 'advertisement': return '광고 관리';
+      case 'gamification': return '게임화 요소';
+      case 'referral': return '추천인 시스템';
       default: return '';
     }
   };
@@ -79,6 +84,10 @@ const ContentSection: React.FC<ContentSectionProps> = ({
       {activeSection === 'marketing' && <MarketingPromotionSection />}
       {activeSection === 'location' && <LocationServiceSection />}
       {activeSection === 'customer-support' && <CustomerSupportSection />}
+      {/* 새로 추가된 섹션들 */}
+      {activeSection === 'advertisement' && <AdvertisementSection />}
+      {activeSection === 'gamification' && <GamificationSection />}
+      {activeSection === 'referral' && <ReferralSystemSection />}
     </div>
   );
 };
