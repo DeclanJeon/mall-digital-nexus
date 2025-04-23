@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
 import {
-  Plus, Search, Menu, Share2, Link2, Rss, LayoutGrid, ImageIcon, Paintbrush
+  Plus, Search, Menu, Share2, Link2, Rss, LayoutGrid, ImageIcon, Paintbrush,
+  Award, Heart, Flame, Users, Target, ShoppingBag, Edit, HandCoins, MessageCircle, 
+  Calendar, ExternalLink, Star, ThumbsUp, Compass, Eye, GripVertical, Palette, Bell, User
 } from 'lucide-react';
 
 import { Content, Review, CommunityPost, Event, Quest, BadgeData } from '@/components/peer-space/types';
@@ -15,6 +18,11 @@ import EnhancedContentCard from '@/components/peer-space/EnhancedContentCard';
 import QuestCard from '@/components/peer-space/QuestCard';
 import { useContentInteraction } from '@/hooks/useContentInteraction';
 import AddExternalContentForm from '@/components/peer-space/AddExternalContentForm';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 import PeerSpaceTopBar from '@/components/peer-space/PeerSpaceTopBar';
 

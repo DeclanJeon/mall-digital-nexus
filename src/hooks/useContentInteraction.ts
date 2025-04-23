@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { Heart, BookmarkPlus, CheckCircle } from 'lucide-react';
+import React from 'react';
 
 type InteractionType = 'like' | 'save' | 'comment';
 
@@ -24,7 +25,7 @@ export const useContentInteraction = ({ onInteractionComplete }: UseContentInter
     // Feedback configuration
     let feedbackTitle = '';
     let feedbackDesc = '';
-    let feedbackIcon: React.ReactNode = null;
+    let feedbackIcon: React.ElementType = Heart;
 
     switch (type) {
       case 'like':
