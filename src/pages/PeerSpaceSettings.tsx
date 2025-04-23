@@ -10,6 +10,10 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/components/ui/use-toast';
 import AdminDashboardSection from "@/components/peer-space/AdminDashboardSection";
+import BasicInfoSection from "@/components/peer-space/BasicInfoSection";
+import DesignSettingsSection from "@/components/peer-space/DesignSettingsSection";
+import ContentManagementSection from "@/components/peer-space/ContentManagementSection";
+import ProductManagementSection from "@/components/peer-space/ProductManagementSection";
 
 interface SidebarItemProps {
   icon: React.ElementType;
@@ -126,9 +130,22 @@ const PeerSpaceSettings = () => {
             <Button onClick={handleSaveChanges}>변경사항 저장</Button>
           )}
         </div>
-        {activeSection === 'dashboard' ? (
+        {activeSection === 'dashboard' && (
           <AdminDashboardSection />
-        ) : (
+        )}
+        {activeSection === 'basic-info' && (
+          <BasicInfoSection />
+        )}
+        {activeSection === 'design' && (
+          <DesignSettingsSection />
+        )}
+        {activeSection === 'content' && (
+          <ContentManagementSection />
+        )}
+        {activeSection === 'products' && (
+          <ProductManagementSection />
+        )}
+        {(activeSection !== 'dashboard' && activeSection !== 'basic-info' && activeSection !== 'design' && activeSection !== 'content' && activeSection !== 'products') && (
           <Card className="p-6">
             <p className="text-text-200">이 페이지는 현재 개발 중입니다. 다음 단계에서 {activeSection} 섹션이 구현될 예정입니다.</p>
           </Card>
