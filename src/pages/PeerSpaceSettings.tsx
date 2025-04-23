@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -10,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/components/ui/use-toast';
+import AdminDashboardSection from "@/components/peer-space/AdminDashboardSection";
 
 interface SidebarItemProps {
   icon: React.ElementType;
@@ -52,7 +52,6 @@ const PeerSpaceSettings = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('dashboard');
   
-  // Mock saved state for demonstration
   const [saved, setSaved] = useState(true);
   
   const handleBackToMyMall = () => {
@@ -69,7 +68,6 @@ const PeerSpaceSettings = () => {
 
   return (
     <div className="min-h-screen bg-bg-100 flex">
-      {/* Sidebar */}
       <aside className="w-64 h-screen bg-white shadow-sm border-r border-gray-100 p-4 flex-shrink-0 sticky top-0">
         <div className="flex items-center justify-between mb-6 px-2">
           <h2 className="text-lg font-bold text-primary-300">피어스페이스 관리</h2>
@@ -108,9 +106,7 @@ const PeerSpaceSettings = () => {
         </div>
       </aside>
       
-      {/* Main Content */}
       <main className="flex-1 p-6">
-        {/* Placeholder Content - To be expanded in next steps */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">
             {activeSection === 'dashboard' && '대시보드'}
@@ -126,15 +122,17 @@ const PeerSpaceSettings = () => {
             {activeSection === 'security' && '보안 및 접근 관리'}
             {activeSection === 'settings' && '설정'}
           </h1>
-          
           {!saved && (
             <Button onClick={handleSaveChanges}>변경사항 저장</Button>
           )}
         </div>
-        
-        <Card className="p-6">
-          <p className="text-text-200">이 페이지는 현재 개발 중입니다. 다음 단계에서 {activeSection} 섹션이 구현될 예정입니다.</p>
-        </Card>
+        {activeSection === 'dashboard' ? (
+          <AdminDashboardSection />
+        ) : (
+          <Card className="p-6">
+            <p className="text-text-200">이 페이지는 현재 개발 중입니다. 다음 단계에서 {activeSection} 섹션이 구현될 예정입니다.</p>
+          </Card>
+        )}
       </main>
     </div>
   );
