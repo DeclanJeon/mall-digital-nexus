@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -328,18 +328,14 @@ const MyMallHeader = ({ mallData, isOwner, onAddContent, onCustomize }: {
              )}
              <Button variant="ghost" size="icon" className="relative text-text-200 hover:text-accent-100 hover:bg-accent-100/10">
                  <Bell className="h-5 w-5"/>
-                 {/* Add notification indicator dot if needed */}
-                 {/* <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span> */}
              </Button>
-             {/* Mobile Menu Trigger */}
              <Button variant="ghost" size="icon" className="lg:hidden text-text-200 hover:text-accent-100 hover:bg-accent-100/10">
                  <Menu className="h-5 w-5"/>
              </Button>
-             {/* User Dropdown Menu (Conceptual) */}
-              {/* Use Shadcn DropdownMenu component here */}
-             <Button variant="ghost" size="icon" className="hidden lg:inline-flex text-text-200 hover:text-accent-100 hover:bg-accent-100/10">
-                 <User className="h-5 w-5"/>
-             </Button>
+            
+            <Button variant="ghost" size="icon" className="hidden lg:inline-flex text-text-200 hover:text-accent-100 hover:bg-accent-100/10">
+                <User className="h-5 w-5"/>
+            </Button>
          </div>
        </div>
      </header>
