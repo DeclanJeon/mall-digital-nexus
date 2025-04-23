@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, User, Check, X, UserPlus, Link2, Search, Star } from 'lucide-react';
+import { Users, User, Check, X, UserPlus, Link2, Search, Star, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const dummyRequests = [
