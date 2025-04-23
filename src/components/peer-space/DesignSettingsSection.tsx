@@ -1,11 +1,10 @@
-
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { 
   Paintbrush, Image, Layout, LayoutTemplate, FileText, 
   Type, Palette, Monitor, Aperture, Send, Grid3X3, 
   LayoutGrid, LayoutDashboard, List, Award, Users,
-  Eye, Settings, X, Plus, Ad
+  Eye, Settings, X, Plus, Settings as AdIcon
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -313,21 +312,21 @@ const DesignSettingsSection: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-2 border rounded-md">
                   <div className="flex items-center gap-2">
-                    <Ad className="h-4 w-4 text-primary-200" />
+                    <AdIcon className="h-4 w-4 text-primary-200" />
                     <span>상단 배너 광고</span>
                   </div>
                   <Switch />
                 </div>
                 <div className="flex items-center justify-between p-2 border rounded-md">
                   <div className="flex items-center gap-2">
-                    <Ad className="h-4 w-4 text-primary-200" />
+                    <AdIcon className="h-4 w-4 text-primary-200" />
                     <span>사이드바 광고</span>
                   </div>
                   <Switch />
                 </div>
                 <div className="flex items-center justify-between p-2 border rounded-md">
                   <div className="flex items-center gap-2">
-                    <Ad className="h-4 w-4 text-primary-200" />
+                    <AdIcon className="h-4 w-4 text-primary-200" />
                     <span>콘텐츠 내 광고</span>
                   </div>
                   <Switch />
