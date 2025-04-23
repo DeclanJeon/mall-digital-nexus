@@ -22,6 +22,9 @@ export interface Content extends BaseContent {
   price?: string;
   date?: string;
   likes: number;
+  saves?: number;
+  comments?: number;
+  views?: number;
   completion?: number;
   participants?: number;
   maxParticipants?: number;
@@ -36,6 +39,7 @@ export interface Review {
   date: string;
   source: 'internal' | 'external';
   sourceSite?: string;
+  likes?: number;
   peerMall: {
     id: string;
     name: string;
@@ -50,13 +54,32 @@ export interface CommunityPost {
   date: string;
   comments: number;
   likes: number;
+  views?: number;
 }
 
 export interface Quest extends BaseContent {
   reward: string;
   progress: number;
+  goal: number;
+  participants?: number;
   deadline: string;
+  type: 'individual' | 'community';
+  imageUrl: string;
   likes?: number;
+}
+
+export interface Event extends Content {
+  location: string;
+  deadline?: string;
+  type: 'event';
+}
+
+export interface BadgeData {
+  id: string;
+  name: string;
+  icon: React.ElementType;
+  description: string;
+  color?: string;
 }
 
 export function isContent(item: BaseContent): item is Content {
@@ -64,7 +87,11 @@ export function isContent(item: BaseContent): item is Content {
 }
 
 export function isQuest(item: BaseContent): item is Quest {
-  return 'reward' in item;
+  return 'reward' in item && 'progress' in item;
+}
+
+export function isEvent(item: BaseContent): item is Event {
+  return 'type' in item && item.type === 'event' && 'location' in item;
 }
 
 export interface PeerSpaceData {
