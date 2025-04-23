@@ -24,23 +24,23 @@ export const useContentInteraction = ({ onInteractionComplete }: UseContentInter
     // Feedback configuration
     let feedbackTitle = '';
     let feedbackDesc = '';
-    let feedbackIcon = null;
+    let feedbackIcon: React.ReactNode = null;
 
     switch (type) {
       case 'like':
         feedbackTitle = '좋아요!';
         feedbackDesc = '콘텐츠에 좋아요 (+5 XP)';
-        feedbackIcon = <Heart className="h-5 w-5 text-red-500" />;
+        feedbackIcon = Heart;
         break;
       case 'save':
         feedbackTitle = '저장!';
         feedbackDesc = '나중에 볼 콘텐츠로 저장 (+5 XP)';
-        feedbackIcon = <BookmarkPlus className="h-5 w-5 text-blue-500" />;
+        feedbackIcon = BookmarkPlus;
         break;
       case 'comment':
         feedbackTitle = '댓글 작성 완료!';
         feedbackDesc = '의견을 남겨주셔서 감사합니다 (+10 XP)';
-        feedbackIcon = <CheckCircle className="h-5 w-5 text-green-500" />;
+        feedbackIcon = CheckCircle;
         break;
       default:
         return;
