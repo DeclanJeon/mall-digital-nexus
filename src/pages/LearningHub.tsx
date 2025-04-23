@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Content, Quest } from '@/components/peer-space/types';
 import LearningHubTopBar from '@/components/peer-space/LearningHubTopBar';
@@ -8,9 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { toast } from '@/components/ui/use-toast';
-import { 
-  Trophy, Award, Compass, Users 
-} from 'lucide-react';
+import { Trophy, Award, Compass, Users } from 'lucide-react';
 import LearningHubQuestDetailsModal from '@/components/peer-space/modals/LearningHubQuestDetailsModal';
 import UserLevelDisplay from '@/components/peer-space/UserLevelDisplay';
 import ActiveQuestsSection from '@/components/peer-space/ActiveQuestsSection';
@@ -89,7 +86,7 @@ const LearningHub = () => {
         onFollow={handleFollow}
         onMessage={() => {}}
         onQRGenerate={() => {}}
-        onSettings={() => navigate('/learning-hub/settings')}
+        onSettings={() => navigate('/peer-space/settings')}
       />
       
       <UserLevelDisplay peerSpaceData={learningHubData} />
