@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,10 @@ import ProductManagementSection from "@/components/peer-space/ProductManagementS
 import CommunityManagementSection from './CommunityManagementSection';
 import QRCodeManagementSection from './QRCodeManagementSection';
 import RelationshipManagementSection from './RelationshipManagementSection';
+import ReviewsManagementSection from './ReviewsManagementSection';
+import AnalyticsSection from './AnalyticsSection';
+import SecuritySection from './SecuritySection';
+import SettingsSection from './SettingsSection';
 
 interface ContentSectionProps {
   activeSection: string;
@@ -58,14 +63,10 @@ const ContentSection: React.FC<ContentSectionProps> = ({
       {activeSection === 'community' && <CommunityManagementSection />}
       {activeSection === 'qr-codes' && <QRCodeManagementSection />}
       {activeSection === 'relationships' && <RelationshipManagementSection />}
-      
-      {!['dashboard', 'basic-info', 'design', 'content', 'products', 'community', 'qr-codes', 'relationships'].includes(activeSection) && (
-        <Card className="p-6">
-          <p className="text-text-200">
-            이 페이지는 현재 개발 중입니다. 다음 단계에서 {activeSection} 섹션이 구현될 예정입니다.
-          </p>
-        </Card>
-      )}
+      {activeSection === 'reviews' && <ReviewsManagementSection />}
+      {activeSection === 'analytics' && <AnalyticsSection />}
+      {activeSection === 'security' && <SecuritySection />}
+      {activeSection === 'settings' && <SettingsSection />}
     </div>
   );
 };
