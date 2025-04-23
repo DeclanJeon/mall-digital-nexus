@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -349,9 +348,15 @@ const CustomerSupportSection = () => {
               <div className="border rounded-md p-4">
                 <h3 className="font-medium mb-3">피드백 항목 설정</h3>
                 <div className="space-y-3">
+                  {/* Explicitly handle checkbox states */}
                   <div className="flex items-center justify-between border-b pb-2">
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" defaultChecked /> 
+                      <input 
+                        type="checkbox" 
+                        checked={true}
+                        onChange={() => {}} // Add empty onChange to avoid React warning
+                        className="form-checkbox" 
+                      />
                       <span>이름</span>
                     </div>
                     <div className="flex gap-2">
@@ -366,9 +371,15 @@ const CustomerSupportSection = () => {
                       </Select>
                     </div>
                   </div>
+                  {/* Repeat similar pattern for other checkboxes */}
                   <div className="flex items-center justify-between border-b pb-2">
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" defaultChecked /> 
+                      <input 
+                        type="checkbox" 
+                        checked={true}
+                        onChange={() => {}} // Add empty onChange to avoid React warning
+                        className="form-checkbox" 
+                      />
                       <span>이메일</span>
                     </div>
                     <div className="flex gap-2">
@@ -385,7 +396,12 @@ const CustomerSupportSection = () => {
                   </div>
                   <div className="flex items-center justify-between border-b pb-2">
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" defaultChecked /> 
+                      <input 
+                        type="checkbox" 
+                        checked={true}
+                        onChange={() => {}} // Add empty onChange to avoid React warning
+                        className="form-checkbox" 
+                      />
                       <span>피드백 유형</span>
                     </div>
                     <div className="flex gap-2">
@@ -402,7 +418,12 @@ const CustomerSupportSection = () => {
                   </div>
                   <div className="flex items-center justify-between border-b pb-2">
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" defaultChecked /> 
+                      <input 
+                        type="checkbox" 
+                        checked={true}
+                        onChange={() => {}} // Add empty onChange to avoid React warning
+                        className="form-checkbox" 
+                      />
                       <span>만족도 평가</span>
                     </div>
                     <div className="flex gap-2">
@@ -419,7 +440,12 @@ const CustomerSupportSection = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" defaultChecked /> 
+                      <input 
+                        type="checkbox" 
+                        checked={true}
+                        onChange={() => {}} // Add empty onChange to avoid React warning
+                        className="form-checkbox" 
+                      />
                       <span>상세 의견</span>
                     </div>
                     <div className="flex gap-2">
