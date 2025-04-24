@@ -1,3 +1,4 @@
+
 import { LucideIcon } from 'lucide-react';
 
 export type ContentType = 'portfolio' | 'service' | 'product' | 'event' | 'post' | 'review' | 'quest' | 'advertisement' | 'stream' | 'guestbook' | 'course' | 'workshop' | 'challenge' | 'tool';
@@ -144,3 +145,78 @@ export interface FeaturedContentSectionProps {
   onAddContent?: () => void;
   onContentClick?: (content: Content) => void;
 }
+
+export interface Space {
+  id: string;
+  title: string;
+  imageUrl: string;
+  memberCount: number;
+  peopleOnline: number;
+  postCount: number;
+  isAdult: boolean;
+}
+
+export interface PeerMallConfig {
+  id: string;
+  title: string;
+  description: string;
+  owner: string;
+  peerNumber: string;
+  profileImage: string;
+  coverImage?: string;
+  badges: string[];
+  followers: number;
+  recommendations: number;
+  level: number;
+  experience: number;
+  nextLevelExperience: number;
+  isVerified?: boolean;
+  skin: string;
+  sections: SectionType[];
+  customizations: {
+    primaryColor?: string;
+    secondaryColor?: string;
+    showChat?: boolean;
+    allowComments?: boolean;
+    showBadges?: boolean;
+    contentDisplayCount?: { [sectionId: string]: number };
+  };
+  socialLinks?: { [key: string]: string };
+  contactPhone?: string;
+  contactEmail?: string;
+  address?: string;
+  familyGuilds?: { id: string; name: string; imageUrl: string }[];
+  qrCodes?: QRCode[];
+  location?: {
+    lat: number;
+    lng: number;
+    address: string;
+  };
+  achievements?: number;
+  completedChallenges?: number;
+  activeQuests?: number;
+}
+
+export interface QRCode {
+  id: string;
+  title: string;
+  type: 'peerspace' | 'content' | 'event' | 'quest' | 'peernumber';
+  url: string;
+  imageUrl?: string;
+}
+
+export type SectionType = 
+  | 'hero'
+  | 'content'
+  | 'community'
+  | 'liveCollaboration'
+  | 'livestream'
+  | 'infoHub'
+  | 'map'
+  | 'introduction'
+  | 'advertising'
+  | 'reviews'
+  | 'quests'
+  | 'events'
+  | 'guestbook'
+  | 'trust';
