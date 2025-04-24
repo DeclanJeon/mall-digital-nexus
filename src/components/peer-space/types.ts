@@ -144,3 +144,13 @@ export interface FeaturedContentSectionProps {
   onAddContent?: () => void;
   onContentClick?: (content: Content) => void;
 }
+
+export interface Space {
+  id: string;
+  title: string;
+  imageUrl: string;
+  memberCount: number;
+  peopleOnline: number;
+  postCount: number;
+  isAdult: boolean;
+}
