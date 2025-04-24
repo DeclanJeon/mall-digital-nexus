@@ -57,7 +57,7 @@ export const featuredContent: Content[] = [
     description: '게임 메커니즘을 활용한 지속적 학습 동기 부여 기법',
     imageUrl:
       'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?auto=format&fit=crop&q=80',
-    type: 'course',
+    type: 'post',  // Changed from 'course' to 'post'
     date: '2일 전',
     likes: 124,
     isExternal: false,
@@ -69,7 +69,7 @@ export const featuredContent: Content[] = [
     description: '실시간 피드백을 통한 체험형 교육 방식 학습하기',
     imageUrl:
       'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80',
-    type: 'workshop',
+    type: 'event',  // Changed from 'workshop' to 'event'
     price: '150,000원~',
     date: '2025년 5월 15일',
     likes: 85,
@@ -83,7 +83,7 @@ export const featuredContent: Content[] = [
     description: '21일 동안 진행되는 학습 습관 형성 프로그램',
     imageUrl:
       'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80',
-    type: 'challenge',
+    type: 'quest',  // Changed from 'challenge' to 'quest'
     date: '진행중 (12일 남음)',
     price: '무료',
     likes: 212,
@@ -96,7 +96,7 @@ export const featuredContent: Content[] = [
     description: '게임 요소를 활용한 맞춤형 교육 콘텐츠 제작 솔루션',
     imageUrl:
       'https://images.unsplash.com/photo-1559336197-ded8aaa244bc?auto=format&fit=crop&q=80',
-    type: 'tool',
+    type: 'product',  // Changed from 'tool' to 'product'
     price: '300,000원',
     date: '',
     likes: 78,
@@ -113,6 +113,10 @@ export const activeQuests: Quest[] = [
     reward: '경험치 200 + 협력 뱃지',
     progress: 60,
     deadline: '4일 남음',
+    goal: 100,
+    type: 'community',
+    imageUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80',
+    participants: 12
   },
   {
     id: 'quest2',
@@ -121,6 +125,10 @@ export const activeQuests: Quest[] = [
     reward: '경험치 350 + 콘텐츠 크리에이터 칭호',
     progress: 33,
     deadline: '7일 남음',
+    goal: 3,
+    type: 'individual',
+    imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80',
+    participants: 1
   },
   {
     id: 'quest3',
@@ -129,9 +137,14 @@ export const activeQuests: Quest[] = [
     reward: '경험치 150 + 멘토 포인트 50',
     progress: 90,
     deadline: '오늘까지',
+    goal: 10,
+    type: 'individual',
+    imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80',
+    participants: 8
   },
 ];
 
+// Keep the rest of the mockData.ts file unchanged
 export const achievements = [
   {
     id: 'ach1',
