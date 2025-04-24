@@ -1,17 +1,9 @@
-// 기존 QuestDetailsModal.tsx 내용을 복사
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Award, Trophy } from 'lucide-react';
-
-interface Quest {
-  id: string;
-  title: string;
-  description: string;
-  reward: string;
-  progress: number;
-  deadline: string;
-}
+import { Quest } from '../types';
 
 interface LearningHubQuestDetailsModalProps {
   quest: Quest | null;

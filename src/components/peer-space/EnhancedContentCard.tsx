@@ -50,6 +50,19 @@ export const EnhancedContentCard = ({
   const hasProgress = 'participants' in content && 'maxParticipants' in content && content.maxParticipants;
   const hasGoalProgress = 'progress' in content && 'goal' in content && content.goal;
   
+  let progressValue = 0;
+  let progressLabel = '';
+  
+  if (hasProgress && typeof content.participants === 'number' && typeof content.maxParticipants === 'number') {
+    progressValue = (content.participants / content.maxParticipants) * 100;
+    progressLabel = `${content.participants}/${content.maxParticipants} 참여`;
+  }
+  
+  if (hasGoalProgress && typeof content.progress === 'number' && typeof content.goal === 'number') {
+    progressValue = (content.progress / content.goal) * 100;
+    progressLabel = `${content.progress ?? 0}/${content.goal} 완료`;
+  }
+  
   return (
     <Card
       className={`overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white cursor-pointer group ${isExternal ? 'border-l-4 border-accent-100' : ''}`}
@@ -90,12 +103,11 @@ export const EnhancedContentCard = ({
         {hasProgress && (
           <div className="my-1">
             <Progress 
-              value={('participants' in content && 'maxParticipants' in content) ? 
-                (content.participants! / content.maxParticipants!) * 100 : 0} 
+              value={progressValue} 
               className="h-1.5" 
             />
             <p className="text-[10px] text-text-200 mt-0.5">
-              {content.participants}/{content.maxParticipants} 참여
+              {progressLabel}
             </p>
           </div>
         )}
@@ -103,17 +115,16 @@ export const EnhancedContentCard = ({
         {hasGoalProgress && (
           <div className="my-1">
             <Progress 
-              value={('progress' in content && 'goal' in content) ? 
-                (content.progress! / content.goal!) * 100 : 0} 
+              value={progressValue} 
               className="h-1.5" 
             />
             <p className="text-[10px] text-text-200 mt-0.5">
-              {content.progress ?? 0}/{content.goal} 완료
+              {progressLabel}
             </p>
           </div>
         )}
         
-        {isExternal && 'source' in content && (
+        {isExternal && 'source' in content && content.source && (
           <p className="text-[10px] text-gray-500 flex items-center mt-1">
             <Link className="h-2.5 w-2.5 mr-1" /> 출처: {content.source}
           </p>
@@ -145,11 +156,11 @@ export const EnhancedContentCard = ({
             }`}
             disabled={pendingInteractions[`save-${content.id}`]}
           >
-            <BookmarkPlus className="h-3.5 w-3.5 mr-0.5" /> {'saves' in content ? content.saves : 0}
+            <BookmarkPlus className="h-3.5 w-3.5 mr-0.5" /> {content.saves || 0}
           </button>
           
           <span className="flex items-center">
-            <MessageCircle className="h-3.5 w-3.5 mr-0.5" /> {'comments' in content ? content.comments : 0}
+            <MessageCircle className="h-3.5 w-3.5 mr-0.5" /> {content.comments || 0}
           </span>
         </div>
         

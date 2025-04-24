@@ -5,14 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/use-toast';
-import { Content } from './types';
+import { Content, ContentType } from './types';
 
 interface ExternalPreview {
   title: string;
   description: string;
   imageUrl: string;
   price?: string;
-  type?: string;
+  type?: ContentType;
   isExternal: boolean;
   externalUrl: string;
   source?: string;
@@ -40,15 +40,20 @@ export const AddExternalContentForm = ({ onBack, onSubmit }: AddExternalContentF
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Analyze URL to determine content type (in a real app, this would come from an API)
-      const isReviewLink = externalUrlInput.includes('review') || externalUrlInput.includes('youtube');
-      const isProductLink = externalUrlInput.includes('store') || externalUrlInput.includes('product');
+      let contentType: ContentType = 'post';
+      
+      if (externalUrlInput.includes('review') || externalUrlInput.includes('youtube')) {
+        contentType = 'review';
+      } else if (externalUrlInput.includes('store') || externalUrlInput.includes('product')) {
+        contentType = 'product';
+      }
       
       setExternalPreview({
         title: '가져온 콘텐츠 제목 (자동)',
         description: '외부 페이지 설명...',
         imageUrl: 'https://via.placeholder.com/150/d4eaf7/3b3c3d?text=Preview',
-        price: isProductLink ? '50,000원 (추정)' : undefined,
-        type: isReviewLink ? 'review' : isProductLink ? 'product' : 'post',
+        price: contentType === 'product' ? '50,000원 (추정)' : undefined,
+        type: contentType,
         isExternal: true,
         externalUrl: externalUrlInput,
         source: new URL(externalUrlInput).hostname

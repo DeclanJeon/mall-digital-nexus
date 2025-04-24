@@ -1,6 +1,7 @@
+
 import { LucideIcon } from 'lucide-react';
 
-export type ContentType = 'portfolio' | 'service' | 'product' | 'event' | 'post' | 'review' | 'quest' | 'advertisement' | 'stream' | 'guestbook';
+export type ContentType = 'portfolio' | 'service' | 'product' | 'event' | 'post' | 'review' | 'quest' | 'advertisement' | 'stream' | 'guestbook' | 'course' | 'workshop' | 'challenge' | 'tool';
 
 export interface Content {
   id: string;
@@ -64,7 +65,7 @@ export interface Quest {
   deadline: string;
   reward: string;
   goal: number;
-  progress?: number;
+  progress: number;  // Changed from optional to required
   participants?: number;
   type: 'community' | 'individual';
   imageUrl: string;
@@ -104,6 +105,7 @@ export interface PeerSpaceData {
     name: string;
     imageUrl: string;
   }[];
+  socialLinks?: { [key: string]: string }; // Added missing property
 }
 
 export interface GuestbookEntry {
@@ -132,4 +134,12 @@ export interface Advertisement {
   link: string;
   startDate: string;
   endDate: string;
+}
+
+// Add missing FeaturedContentSectionProps interface
+export interface FeaturedContentSectionProps {
+  content: Content[];
+  isOwner: boolean;
+  onAddContent?: () => void;
+  onContentClick?: (content: Content) => void;
 }
