@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Search, Menu, Bell, User, Share2, Heart, MessageSquare, MapPin,
   Plus, Edit, Calendar, ExternalLink, Star, ThumbsUp, Eye,
-  Users, Award, ShoppingBag, Link, QrCode
+  Users, Award, ShoppingBag, Link as LinkIcon, QrCode
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -158,7 +158,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
               { id: 'portfolio', name: '포트폴리오', description: '작업물 전시', icon: Award },
               { id: 'service', name: '서비스', description: '제공할 서비스 등록', icon: Users },
               { id: 'post', name: '게시글', description: '커뮤니티에 글 작성', icon: Edit },
-              { id: 'external', name: '외부 링크', description: '외부 콘텐츠 연결', icon: Link },
+              { id: 'external', name: '외부 링크', description: '외부 콘텐츠 연결', icon: LinkIcon },
               { id: 'event', name: '이벤트', description: '이벤트 생성', icon: Calendar },
             ].map(type => (
               <div 

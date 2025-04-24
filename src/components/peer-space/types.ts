@@ -187,6 +187,14 @@ export interface PeerMallConfig {
   address?: string;
   familyGuilds?: { id: string; name: string; imageUrl: string }[];
   qrCodes?: QRCode[];
+  location?: {
+    lat: number;
+    lng: number;
+    address: string;
+  };
+  achievements?: number;
+  completedChallenges?: number;
+  activeQuests?: number;
 }
 
 export interface QRCode {
