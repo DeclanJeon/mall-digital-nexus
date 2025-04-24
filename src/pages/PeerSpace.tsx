@@ -24,7 +24,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-import PeerSpaceTopBar from '@/components/peer-space/PeerSpaceTopBar';
 
 interface MyMallConfig {
   id: string;
