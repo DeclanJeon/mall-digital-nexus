@@ -14,7 +14,8 @@ interface DynamicSectionProps {
   communityPosts?: CommunityPost[];
   questItems?: Quest[];
   eventItems?: Event[];
-  renderContentCard: (content: Content) => React.ReactNode;
+  renderContentCard?: (content: Content) => React.ReactNode;
+  renderItem?: (content: Content | Review | Event | Quest) => React.ReactNode;
   renderReviewCard?: (review: Review) => React.ReactNode;
   renderQuestCard?: (quest: Quest) => React.ReactNode;
   renderEventCard?: (event: Event) => React.ReactNode;
@@ -33,8 +34,9 @@ export const DynamicSection = ({
   questItems = [],
   eventItems = [],
   renderContentCard,
+  renderItem,
   renderReviewCard,
-  renderQuestCard,
+  renderQuestCard, 
   renderEventCard,
   renderCommunityPost,
   viewAllLinkText = "더보기",
@@ -58,7 +60,12 @@ export const DynamicSection = ({
   // Show appropriate items
   const renderContent = () => {
     if (hasContent) {
-      return contentItems.slice(0, itemsToShow).map(renderContentCard);
+      const renderFn = renderItem || renderContentCard;
+      if (!renderFn) {
+        console.error('No render function provided for content items');
+        return null;
+      }
+      return contentItems.slice(0, itemsToShow).map(renderFn);
     }
     
     if (hasReviews) {

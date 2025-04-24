@@ -108,7 +108,7 @@ const PeerSpace = () => {
     ]
   });
 
-  const contentItems: Content[] = [
+  const contentItems: (Content | Event)[] = [
     {
       id: 'content1', title: '디자인 포트폴리오: 모던 브랜딩', description: '최근 작업한 모던하고 세련된 브랜딩 디자인 결과물입니다.',
       imageUrl: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&q=80&w=800',
@@ -333,6 +333,9 @@ const PeerSpace = () => {
               className="w-full h-64 object-cover rounded-md"
             />
             <p>{selectedContent.description}</p>
+            {'participants' in selectedContent && 'maxParticipants' in selectedContent && (
+              <p>참가자: {selectedContent.participants}/{selectedContent.maxParticipants}</p>
+            )}
             <pre className="text-xs max-h-64 overflow-auto bg-gray-100 p-2 rounded">
               {JSON.stringify(selectedContent, null, 2)}
             </pre>
@@ -348,7 +351,7 @@ const PeerSpace = () => {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center">
-              <Plus className="mr-2"/> MyMall에 콘텐츠 추가
+              <Plus className="mr-2"/> Space 내 콘텐츠 추가
             </DialogTitle>
           </DialogHeader>
           
@@ -399,7 +402,7 @@ const PeerSpace = () => {
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center">
-              <Paintbrush className="mr-2"/> MyMall 꾸미기
+              <Paintbrush className="mr-2"/> 내 Space 꾸미기
             </DialogTitle>
           </DialogHeader>
           
@@ -456,7 +459,7 @@ const PeerSpace = () => {
       <Dialog open={showQRModal} onOpenChange={setShowQRModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>MyMall QR 코드</DialogTitle>
+            <DialogTitle>내 스페이스 QR 코드</DialogTitle>
           </DialogHeader>
           <div className="p-4 flex justify-center">
             <div className="w-48 h-48 bg-gray-200 flex items-center justify-center text-sm text-gray-500">
@@ -479,10 +482,10 @@ const PeerSpace = () => {
     onCustomize: () => void;
   }) => {
     const navItems = [
-      { label: '홈', icon: () => <div>Home</div>, link: '#' },
-      { label: '상품', icon: () => <div>Store</div>, link: '#products' },
-      { label: '커뮤니티', icon: () => <div>MessageCircle</div>, link: '#community' },
-      { label: '이벤트', icon: () => <div>Activity</div>, link: '#events' },
+      { label: '홈', icon: () => <span>Home</span>, link: '#' },
+      { label: '상품', icon: () => <span>Store</span>, link: '#products' },
+      { label: '커뮤니티', icon: () => <span>MessageCircle</span>, link: '#community' },
+      { label: '이벤트', icon: () => <span>Activity</span>, link: '#events' },
     ];
 
     return (
@@ -497,7 +500,7 @@ const PeerSpace = () => {
             <nav className="hidden lg:flex items-center space-x-4 text-sm ml-4">
               {navItems.map(item => (
                 <a key={item.label} href={item.link} className="flex items-center gap-1 text-text-200 hover:text-accent-100 transition-colors">
-                  <item.icon className="h-4 w-4"/> {item.label}
+                  {item.icon()} {item.label}
                 </a>
               ))}
             </nav>
@@ -505,7 +508,7 @@ const PeerSpace = () => {
           <div className="flex-1 max-w-md hidden md:block mx-auto">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"/>
-              <Input placeholder="MyMall 내 콘텐츠 검색..." className="h-9 pl-10 rounded-full bg-bg-100 border-gray-200 focus:bg-white focus:border-accent-100"/>
+              <Input placeholder="내 Space 내 콘텐츠 검색..." className="h-9 pl-10 rounded-full bg-bg-100 border-gray-200 focus:bg-white focus:border-accent-100"/>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -638,7 +641,7 @@ const PeerSpace = () => {
       <Dialog open={showQRModal} onOpenChange={setShowQRModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>MyMall QR 코드</DialogTitle>
+            <DialogTitle>내 스페이스 QR 코드</DialogTitle>
           </DialogHeader>
           <div className="p-4 flex justify-center">
             <div className="w-48 h-48 bg-gray-200 flex items-center justify-center text-sm text-gray-500">
