@@ -1,7 +1,6 @@
-
 import { LucideIcon } from 'lucide-react';
 
-export type ContentType = 'portfolio' | 'service' | 'product' | 'event' | 'post' | 'review' | 'quest';
+export type ContentType = 'portfolio' | 'service' | 'product' | 'event' | 'post' | 'review' | 'quest' | 'advertisement' | 'stream' | 'guestbook';
 
 export interface Content {
   id: string;
@@ -20,6 +19,9 @@ export interface Content {
   source?: string;
   sourceType?: string;
   rating?: number;
+  completion?: number;
+  participants?: number;
+  maxParticipants?: number;
 }
 
 export interface Review {
@@ -82,7 +84,52 @@ export interface PeerSpaceData {
   owner: string;
   peerNumber: string;
   profileImage: string;
+  description: string;
   badges: string[];
   recommendations: number;
   followers: number;
+  level: number;
+  experience: number;
+  achievements: number;
+  completedChallenges: number;
+  activeQuests: number;
+  location?: {
+    lat: number;
+    lng: number;
+    address: string;
+  };
+  category?: string[];
+  familyMembership?: {
+    id: string;
+    name: string;
+    imageUrl: string;
+  }[];
+}
+
+export interface GuestbookEntry {
+  id: string;
+  author: string;
+  content: string;
+  date: string;
+  authorImage?: string;
+}
+
+export interface LiveStream {
+  id: string;
+  streamer: string;
+  title: string;
+  viewers: number;
+  thumbnailUrl: string;
+  isLive: boolean;
+}
+
+export interface Advertisement {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  type: 'banner' | 'card' | 'popup';
+  link: string;
+  startDate: string;
+  endDate: string;
 }
