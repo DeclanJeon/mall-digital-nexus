@@ -1,4 +1,3 @@
-
 import { LucideIcon } from 'lucide-react';
 
 export type ContentType = 'portfolio' | 'service' | 'product' | 'event' | 'post' | 'review' | 'quest' | 'advertisement' | 'stream' | 'guestbook' | 'course' | 'workshop' | 'challenge' | 'tool';
@@ -65,7 +64,7 @@ export interface Quest {
   deadline: string;
   reward: string;
   goal: number;
-  progress: number;  // Changed from optional to required
+  progress: number;
   participants?: number;
   type: 'community' | 'individual';
   imageUrl: string;
@@ -105,7 +104,10 @@ export interface PeerSpaceData {
     name: string;
     imageUrl: string;
   }[];
-  socialLinks?: { [key: string]: string }; // Added missing property
+  socialLinks?: { [key: string]: string };
+  contactPhone?: string;
+  contactEmail?: string;
+  address?: string;
 }
 
 export interface GuestbookEntry {
@@ -136,7 +138,6 @@ export interface Advertisement {
   endDate: string;
 }
 
-// Add missing FeaturedContentSectionProps interface
 export interface FeaturedContentSectionProps {
   content: Content[];
   isOwner: boolean;
