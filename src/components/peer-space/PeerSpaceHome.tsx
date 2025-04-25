@@ -26,6 +26,9 @@ import PeerSpaceInfoHub from './PeerSpaceInfoHub';
 import PeerSpaceReviewSection from './PeerSpaceReviewSection';
 import PeerSpaceMapSection from './PeerSpaceMapSection';
 import PeerSpaceTrustSection from './PeerSpaceTrustSection';
+import PeerSpaceRelatedMallsSection from './PeerSpaceRelatedMallsSection';
+import PeerSpaceActivityFeed from './PeerSpaceActivityFeed';
+import PeerSpaceLiveCollaboration from './PeerSpaceLiveCollaboration'; // Import the new live collaboration component
 import PeerSpaceFooter from './PeerSpaceFooter';
 
 interface PeerSpaceHomeProps {
@@ -84,12 +87,23 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       case 'hero':
         return <PeerSpaceHero config={config} isOwner={isOwner} />;
       case 'content':
-        return <PeerSpaceContentSection 
-          config={config} 
-          contents={contents} 
-          isOwner={isOwner} 
-          onAddContent={handleAddContent} 
-        />;
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-3">
+              <PeerSpaceContentSection 
+                config={config} 
+                contents={contents} 
+                isOwner={isOwner} 
+                onAddContent={handleAddContent} 
+              />
+            </div>
+            {config.sections.includes('activityFeed') && (
+              <div className="lg:col-span-1">
+                <PeerSpaceActivityFeed />
+              </div>
+            )}
+          </div>
+        );
       case 'community':
         return <PeerSpaceCommunitySection config={config} isOwner={isOwner} />;
       case 'events':
@@ -116,6 +130,12 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
           /> : null);
       case 'trust':
         return <PeerSpaceTrustSection config={config} />;
+      case 'relatedMalls': // Add case for related malls section
+        return <PeerSpaceRelatedMallsSection />;
+      case 'activityFeed': // Handled together with content section
+        return null;
+      case 'liveCollaboration': // Add case for live collaboration section
+        return <PeerSpaceLiveCollaboration />;
       default:
         return null;
     }

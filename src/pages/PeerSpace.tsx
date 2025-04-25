@@ -28,7 +28,8 @@ const PeerSpace = () => {
     nextLevelExperience: 1200,
     isVerified: true,
     skin: 'creator-hub-default',
-    sections: ['hero', 'content', 'community', 'events', 'infoHub', 'map', 'reviews', 'trust'],
+    // Add 'qrCodeList' and 'support' to the sections array
+    sections: ['hero', 'content', 'community', 'events', 'infoHub', 'map', 'reviews', 'trust', 'support', 'qrCodeList', 'relatedMalls', 'activityFeed', 'liveCollaboration'],
     customizations: {
       primaryColor: '#71c4ef',
       secondaryColor: '#3B82F6',

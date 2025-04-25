@@ -1,7 +1,20 @@
-
 import { LucideIcon } from 'lucide-react';
 
-export type ContentType = 'portfolio' | 'service' | 'product' | 'event' | 'post' | 'review' | 'quest' | 'advertisement' | 'stream' | 'guestbook' | 'course' | 'workshop' | 'challenge' | 'tool';
+export type ContentType =
+  | 'portfolio'
+  | 'service'
+  | 'product'
+  | 'event'
+  | 'post'
+  | 'review'
+  | 'quest'
+  | 'advertisement'
+  | 'stream'
+  | 'guestbook'
+  | 'course'
+  | 'workshop'
+  | 'challenge'
+  | 'tool';
 
 export interface Content {
   id: string;
@@ -205,7 +218,7 @@ export interface QRCode {
   imageUrl?: string;
 }
 
-export type SectionType = 
+export type SectionType =
   | 'hero'
   | 'content'
   | 'community'
@@ -219,4 +232,9 @@ export type SectionType =
   | 'quests'
   | 'events'
   | 'guestbook'
-  | 'trust';
+  | 'trust'
+  | 'qrCodeList' // Add the new section type
+  | 'support'
+  | 'relatedMalls'
+  | 'activityFeed'
+  | 'liveCollaboration';
