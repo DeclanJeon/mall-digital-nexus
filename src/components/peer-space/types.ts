@@ -233,7 +233,7 @@ export type SectionType =
   | 'events'
   | 'guestbook'
   | 'trust'
-  | 'qrCodeList' // Add the new section type
+  | 'qrCodeList'
   | 'support'
   | 'relatedMalls'
   | 'activityFeed'

@@ -132,7 +132,9 @@ export const EnhancedProfileHeader = ({
                   variant="outline" 
                   className={`text-sm px-3 py-1.5 border-opacity-50 ${badge.color?.replace('text-', 'border-')} ${badge.color}`}
                 >
-                  <badge.icon className="h-3 w-3 mr-2"/>{badge.name}
+                  {/* Fix: Use createElement to render dynamic component */}
+                  {React.createElement(badge.icon, { className: "h-3 w-3 mr-2" })}
+                  {badge.name}
                 </Badge>
               ))}
             </div>

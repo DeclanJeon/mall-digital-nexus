@@ -16,6 +16,8 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import PeerSpace from "./pages/PeerSpace";
 import PeerSpaceSettings from "./pages/PeerSpaceSettings";
+import LearningHub from "./pages/LearningHub";
+import ContentDetailPage from "./pages/ContentDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -34,8 +36,11 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/service" element={<ServicePage />} />
         <Route path="/my-info" element={<MyInfoPage />} />
+        <Route path="/learning-hub" element={<LearningHub />} />
         <Route path="/space/:address" element={<PeerSpace />} />
         <Route path="/space/:address/settings" element={<PeerSpaceSettings />} />
+        <Route path="/space/:address/content/:contentId" element={<ContentDetailPage />} />
+
         <Route path="*" element={<NotFound />} />
       </Routes>
       {!isPeerSpacePage && <Footer />}

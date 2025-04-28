@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Content, Quest } from '@/components/peer-space/types';
 import LearningHubTopBar from '@/components/peer-space/LearningHubTopBar';
@@ -11,7 +12,7 @@ import { Trophy, Award, Compass, Users } from 'lucide-react';
 import LearningHubQuestDetailsModal from '@/components/peer-space/modals/LearningHubQuestDetailsModal';
 import UserLevelDisplay from '@/components/peer-space/UserLevelDisplay';
 import ActiveQuestsSection from '@/components/peer-space/ActiveQuestsSection';
-import { LearningPathsSection } from '@/components/peer-space/LearningPathsSection';
+import LearningPathsSection from '@/components/peer-space/LearningPathsSection';
 import { AchievementsSection } from '@/components/peer-space/AchievementsSection';
 import { CommunityActivitySection } from '@/components/peer-space/CommunityActivitySection';
 
@@ -75,6 +76,21 @@ const LearningHub = () => {
     });
   };
 
+  // Dummy handlers for the LearningHubTabs component
+  const handleAddContent = () => {
+    toast({
+      title: '기능 준비 중',
+      description: '콘텐츠 추가 기능은 현재 개발 중입니다.',
+    });
+  };
+
+  const handleContentClick = (content: Content) => {
+    toast({
+      title: '콘텐츠 선택',
+      description: `"${content.title}" 콘텐츠를 선택하셨습니다.`,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-bg-100">
       <LearningHubTopBar
@@ -100,10 +116,9 @@ const LearningHub = () => {
         <LearningHubTabs
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          featuredContent={featuredContent}
-          isOwner={isOwner}
-          onAddContent={() => {}}
-          onContentClick={() => {}}
+          courses={[]}
+          resources={[]}
+          workshops={[]}
         />
         
         <LearningPathsSection paths={learningPaths} />
