@@ -1,152 +1,118 @@
 
-import React, { useState, useEffect } from 'react';
-import { Content, Quest } from '@/components/peer-space/types';
-import LearningHubTopBar from '@/components/peer-space/LearningHubTopBar';
-import LearningHubTabs from '@/components/peer-space/LearningHubTabs';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { toast } from '@/components/ui/use-toast';
-import { Trophy, Award, Compass, Users } from 'lucide-react';
-import LearningHubQuestDetailsModal from '@/components/peer-space/modals/LearningHubQuestDetailsModal';
-import UserLevelDisplay from '@/components/peer-space/UserLevelDisplay';
-import ActiveQuestsSection from '@/components/peer-space/ActiveQuestsSection';
-import LearningPathsSection from '@/components/peer-space/LearningPathsSection';
-import { AchievementsSection } from '@/components/peer-space/AchievementsSection';
-import { CommunityActivitySection } from '@/components/peer-space/CommunityActivitySection';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LearningHubTabs } from '@/components/peer-space/LearningHubTabs';
+import LearningPathsSection, { LearningPath } from '@/components/peer-space/LearningPathsSection';
+import { Content } from '@/components/peer-space/types';
 
-import { 
-  learningHubData,
-  featuredContent,
-  activeQuests,
-  achievements,
-  learningPaths,
-  communityActivities
-} from '@/components/peer-space/mockData';
-
-const LearningHub = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isOwner, setIsOwner] = useState(false);
+const LearningHub: React.FC = () => {
+  const { address } = useParams<{ address: string }>();
   const [activeTab, setActiveTab] = useState('featured');
-  const [isNotificationOn, setIsNotificationOn] = useState(true);
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [showQuestDetailsModal, setShowQuestDetailsModal] = useState(false);
-  const [selectedQuest, setSelectedQuest] = useState(activeQuests[0]);
-
-  useEffect(() => {
-    const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
-    setIsLoggedIn(userLoggedIn);
-    setIsOwner(userLoggedIn);
-    
-    if (!userLoggedIn) {
-      navigate('/login', { state: { from: location.pathname } });
+  
+  // Mock data for learning paths with the complete LearningPath type
+  const learningPaths: LearningPath[] = [
+    {
+      id: '1',
+      title: '웹 개발 기초부터 마스터',
+      description: 'HTML, CSS, JavaScript의 기초부터 React, Node.js까지 완벽하게 배워보세요.',
+      progress: 25,
+      steps: 12,
+      completedSteps: 3,
+      imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97',
+      totalCourses: 5,
+      completedCourses: 1,
+      difficulty: 'beginner',
+      duration: '12주',
+      enrolledUsers: 345,
+      author: '김개발',
+      tags: ['웹개발', 'JavaScript', 'React']
+    },
+    {
+      id: '2',
+      title: '데이터 분석 전문가 과정',
+      description: 'Python, Pandas, NumPy를 활용한 데이터 분석 기술을 습득하세요.',
+      progress: 60,
+      steps: 8,
+      completedSteps: 5,
+      imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71',
+      totalCourses: 4,
+      completedCourses: 2,
+      difficulty: 'intermediate',
+      duration: '8주',
+      enrolledUsers: 210,
+      author: '이분석',
+      tags: ['데이터분석', 'Python', 'Pandas']
+    },
+    {
+      id: '3',
+      title: '모바일 앱 개발 완성',
+      description: 'Flutter를 사용하여 iOS와 Android 앱을 동시에 개발하는 방법을 배워보세요.',
+      progress: 10,
+      steps: 10,
+      completedSteps: 1,
+      imageUrl: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c',
+      totalCourses: 6,
+      completedCourses: 0,
+      difficulty: 'advanced',
+      duration: '10주',
+      enrolledUsers: 178,
+      author: '박앱개발',
+      tags: ['앱개발', 'Flutter', 'Dart']
     }
-  }, [navigate, location]);
-
-  if (!isLoggedIn) {
-    return null;
-  }
-
-  const handleFollow = () => {
-    setIsFollowing(!isFollowing);
-    toast({
-      title: isFollowing ? '팔로우 취소' : '팔로우 완료',
-      description: isFollowing ? 
-        '더 이상 이 피어를 팔로우하지 않습니다.' : 
-        '이제 이 피어의 새로운 소식을 받아보실 수 있습니다.',
-    });
+  ];
+  
+  // Mock featured content
+  const featuredContent: Content[] = [
+    {
+      id: 'content-1',
+      title: 'React 기초 강의',
+      description: 'React의 기본 개념과 사용법을 배워봅시다.',
+      imageUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee',
+      type: 'course'
+    },
+    {
+      id: 'content-2',
+      title: '데이터 분석 특강',
+      description: '실무에서 사용하는 데이터 분석 기법을 알아봅니다.',
+      imageUrl: 'https://images.unsplash.com/photo-1543286386-713bdd548da4',
+      type: 'workshop'
+    }
+  ];
+  
+  const handlePathClick = (pathId: string) => {
+    console.log('Clicked learning path:', pathId);
   };
-
-  const handleQuestClick = (quest: Quest) => {
-    setSelectedQuest(quest);
-    setShowQuestDetailsModal(true);
+  
+  const handleContentClick = () => {
+    console.log('Content clicked');
   };
-
-  const toggleNotification = () => {
-    setIsNotificationOn(!isNotificationOn);
-  };
-
-  const handleJoinChallenge = () => {
-    toast({
-      title: '챌린지 참여 완료',
-      description: '새로운 학습 챌린지에 참여하셨습니다! 진행 상황은 대시보드에서 확인하세요.',
-    });
-  };
-
-  // Dummy handlers for the LearningHubTabs component
+  
   const handleAddContent = () => {
-    toast({
-      title: '기능 준비 중',
-      description: '콘텐츠 추가 기능은 현재 개발 중입니다.',
-    });
-  };
-
-  const handleContentClick = (content: Content) => {
-    toast({
-      title: '콘텐츠 선택',
-      description: `"${content.title}" 콘텐츠를 선택하셨습니다.`,
-    });
+    console.log('Add content clicked');
   };
 
   return (
-    <div className="min-h-screen bg-bg-100">
-      <LearningHubTopBar
-        peerSpaceData={learningHubData}
-        isOwner={isOwner}
-        isFollowing={isFollowing}
-        toggleNotification={toggleNotification}
-        isNotificationOn={isNotificationOn}
-        onFollow={handleFollow}
-        onMessage={() => {}}
-        onQRGenerate={() => {}}
-        onSettings={() => navigate('/peer-space/settings')}
-      />
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">학습 허브</h1>
       
-      <UserLevelDisplay peerSpaceData={learningHubData} />
-      
-      <main className="container mx-auto px-4 py-8">
-        <ActiveQuestsSection 
-          quests={activeQuests}
-          onQuestClick={handleQuestClick}
+      <div className="mb-8">
+        <LearningPathsSection 
+          paths={learningPaths}
+          onPathClick={handlePathClick}
         />
-        
+      </div>
+      
+      <div>
         <LearningHubTabs
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          courses={[]}
-          resources={[]}
-          workshops={[]}
+          onAddContent={handleAddContent}
+          onContentClick={handleContentClick}
+          isOwner={true}
         />
-        
-        <LearningPathsSection paths={learningPaths} />
-        <AchievementsSection achievements={achievements} />
-        <CommunityActivitySection activities={communityActivities} />
-        
-        <section className="mb-10">
-          <Card className="bg-primary-300 text-white">
-            <CardContent className="p-6">
-              <div className="md:flex justify-between items-center">
-                <div className="mb-4 md:mb-0">
-                  <h2 className="text-2xl font-bold mb-2">새로운 학습 챌린지에 도전하세요!</h2>
-                  <p className="text-primary-100">21일 동안의 학습 습관 형성 프로그램에 참여하고 특별한 보상을 받으세요.</p>
-                </div>
-                <Button variant="secondary" size="lg" onClick={handleJoinChallenge}>
-                  지금 참여하기
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-      </main>
-      
-      <LearningHubQuestDetailsModal 
-        quest={selectedQuest}
-        isOpen={showQuestDetailsModal}
-        onOpenChange={setShowQuestDetailsModal}
-      />
+      </div>
     </div>
   );
 };
