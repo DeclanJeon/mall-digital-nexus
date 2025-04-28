@@ -1,13 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Bell, Menu, X, User } from 'lucide-react';
+import { Search, Bell, Menu, X, User, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import CreatePeermallModal from '@/components/CreatePeermallModal';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+
+  const handleCreateModalOpen = () => setIsCreateModalOpen(true);
+  const handleCreateModalClose = () => setIsCreateModalOpen(false);
 
   useEffect(() => {
     // Check if user is logged in using localStorage
@@ -57,7 +62,15 @@ const Header = () => {
             <Link to="/curation-links" className="text-text-200 hover:text-primary-300">큐레이션</Link>
             <Link to="/community" className="text-text-200 hover:text-primary-300">커뮤니티</Link>
             {isLoggedIn && (
-              <Link to="/peer-space" className="text-accent-200 hover:text-accent-100">내 피어스페이스</Link>
+              <>
+                <Link to="/space" className="text-accent-200 hover:text-accent-100">내 스페이스</Link>
+                <button 
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="ml-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                >
+                  피어몰 만들기
+                </button>
+              </>
             )}
           </nav>
 
@@ -69,22 +82,25 @@ const Header = () => {
             </button>
             
             {isLoggedIn ? (
-              <div className="relative ml-4 group">
-                <Link to="/my-info">
-                  <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-white cursor-pointer">
-                    <User className="h-5 w-5" />
-                  </div>
-                </Link>
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden group-hover:block">
-                  <Link to="/my-info" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 정보</Link>
-                  <Link to="/peer-space" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 피어스페이스</Link>
-                  <button 
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    로그아웃
-                  </button>
+              <div className="relative ml-4">
+                <div 
+                  className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-white cursor-pointer"
+                  onClick={() => setIsMenuOpen(prev => !prev)}
+                >
+                  <User className="h-5 w-5" />
                 </div>
+                {isMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                    <Link to="/my-info" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 정보</Link>
+                    <Link to="/space" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 스페이스</Link>
+                    <button 
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      로그아웃
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <Button 
@@ -128,7 +144,15 @@ const Header = () => {
               <Link to="/curation-links" className="py-2 text-text-200 hover:text-primary-300">큐레이션</Link>
               <Link to="/community" className="py-2 text-text-200 hover:text-primary-300">커뮤니티</Link>
               {isLoggedIn && (
-                <Link to="/peer-space" className="py-2 text-accent-200 hover:text-accent-100">내 피어스페이스</Link>
+                <>
+                  <Link to="/space" className="py-2 text-accent-200 hover:text-accent-100">내 스페이스</Link>
+                  <button 
+                    onClick={handleCreateModalOpen}
+                    className="py-2 text-left text-accent-200 hover:text-accent-100"
+                  >
+                    피어몰 만들기
+                  </button>
+                </>
               )}
               <div className="flex items-center justify-between py-2">
                 <div className="flex items-center">
@@ -159,6 +183,10 @@ const Header = () => {
           </div>
         </div>
       )}
+      <CreatePeermallModal 
+        isOpen={isCreateModalOpen}
+        onClose={handleCreateModalClose}
+      />
     </header>
   );
 };

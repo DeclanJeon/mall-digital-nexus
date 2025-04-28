@@ -1,17 +1,18 @@
 
 import React, { useState } from 'react';
 import { toast } from '@/components/ui/use-toast';
+import { useParams } from 'react-router-dom';
 import Sidebar from '@/components/peer-space/settings/Sidebar';
 import ContentSection from '@/components/peer-space/settings/ContentSection';
 
 const PeerSpaceSettings = () => {
+  const { address } = useParams();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [saved, setSaved] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
   const handleSectionChange = (section: string) => {
     setActiveSection(section);
-    // 섹션 변경 시 저장 상태를 true로 설정 (변경사항 없음 상태)
     setSaved(true);
   };
   
@@ -19,10 +20,6 @@ const PeerSpaceSettings = () => {
     setIsSaving(true);
     
     try {
-      // 실제 백엔드 연동 시 여기에 API 호출 로직 구현
-      // 예: await api.saveSettings(activeSection, settingsData);
-      
-      // 백엔드 연동 시뮬레이션 (지연 효과)
       await new Promise(resolve => setTimeout(resolve, 800));
       
       toast({
@@ -42,6 +39,10 @@ const PeerSpaceSettings = () => {
     }
   };
 
+  if (!address) {
+    return <div>Invalid address</div>;
+  }
+
   return (
     <div className="min-h-screen bg-bg-100 flex">
       <Sidebar 
@@ -52,6 +53,7 @@ const PeerSpaceSettings = () => {
         activeSection={activeSection}
         saved={saved}
         onSave={handleSaveChanges}
+        address={address}
       />
     </div>
   );

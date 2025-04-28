@@ -58,15 +58,19 @@ import {
 
 // Define the form schema with validation
 const formSchema = z.object({
-  address: z.string().min(1, { message: '피어몰 주소를 입력해주세요' }),
+  address: z.string()
+    .min(1, { message: '피어몰 주소를 입력해주세요' })
+    .regex(/^[a-z0-9-]+$/, { message: '소문자, 숫자, 하이픈(-)만 사용 가능합니다' }),
   name: z.string().min(2, { message: '피어몰 이름은 2자 이상이어야 합니다' }),
+  type: z.string().default('기타'),
   description: z.string().min(10, { message: '설명은 10자 이상이어야 합니다' }),
   hashtags: z.string().optional(),
   logoUrl: z.string().optional(),
   faviconUrl: z.string().optional(),
-  imageUrl: z.string().min(1, { message: '대표 이미지를 선택해주세요' }),
+  imageUrl: z.string().optional(),
   representativeName: z.string().min(1, { message: '대표자 이름을 입력해주세요' }),
-  contact: z.string().min(1, { message: '연락처를 입력해주세요' }),
+  phoneNumber: z.string().optional(),
+  email: z.string().optional(),
   referralCode: z.string().optional(),
   hasReferral: z.boolean().default(false),
   isPublic: z.boolean().default(true),
@@ -77,7 +81,7 @@ type FormValues = z.infer<typeof formSchema>;
 interface CreatePeermallModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: (peermallId: string) => void;
+  onSuccess?: (peermallData: {name: string; type: string}) => void;
 }
 
 const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({ 
@@ -100,7 +104,8 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       faviconUrl: '',
       imageUrl: '',
       representativeName: '',
-      contact: '',
+      phoneNumber: '',
+      email: '',
       referralCode: '',
       hasReferral: false,
       isPublic: true,
@@ -119,32 +124,72 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
   };
 
   // Form submission handler
-  const onSubmit = (values: FormValues) => {
-    // Process hashtags (split string into array, trim whitespace)
-    const processedValues = {
-      ...values,
-      hashtags: values.hashtags?.split(',').map(tag => tag.trim()).filter(tag => tag !== '') || [],
-    };
-    console.log('피어몰 생성 데이터:', processedValues);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const onSubmit = async (values: FormValues) => {
+    setIsLoading(true);
+    try {
+      // Process hashtag (split string into array, trim whitespace)
+      const processedValues = {
+        ...values,
+        hashtags: values.hashtags?.split(',').map(tag => tag.trim()).filter(tag => tag !== '') || [],
+      };
+      console.log('피어몰 생성 데이터:', processedValues);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Generate a mock peermall ID based on the address
+      const peermallId = values.address.toLowerCase().replace(/\s+/g, '-');
+
+      // 로컬 스토리지에 피어몰 정보 저장
+      const storedPeermalls = localStorage.getItem('peermalls');
+      const peermalls = storedPeermalls ? JSON.parse(storedPeermalls) : [];
+      peermalls.push({
+        id: peermallId,
+        title: values.name,
+        description: values.description,
+        owner: values.representativeName,
+        imageUrl: values.imageUrl,
+        category: '기타', // 기본값
+        tags: Array.isArray(values.hashtags) ? values.hashtags : [],
+        rating: 0,
+        reviewCount: 0,
+        location: {
+          address: values.address,
+          lat: 0,
+          lng: 0,
+        },
+      });
+      localStorage.setItem('peermalls', JSON.stringify(peermalls));
+
+      toast({
+        title: "피어몰 등록 완료",
+        description: "피어몰이 성공적으로 등록되었습니다.",
+        variant: "default",
+      });
     
-    toast({
-      title: "피어몰 생성 요청",
-      description: "피어몰 생성이 요청되었습니다. 검토 후 승인됩니다.",
-      variant: "default",
-    });
-    
-    // Generate a mock peermall ID based on the address
-    const peermallId = values.address.toLowerCase().replace(/\s+/g, '-');
-    
-    // Reset the form
-    form.reset();
-    
-    // Call onSuccess callback if provided
-    if (onSuccess) {
-      onSuccess(peermallId);
-    } else {
-      // Just close the modal if no callback provided
-      onClose();
+      // Reset the form
+      form.reset();
+      
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess({
+          name: values.name,
+          type: values.type
+        });
+      } else {
+        // Just close the modal if no callback provided
+        onClose();
+      }
+    } catch (error) {
+      toast({
+        title: "피어몰 등록 실패",
+        description: "피어몰 등록 중 오류가 발생했습니다. 다시 시도해주세요.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -159,7 +204,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto z-[1000]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-2xl">
               <Store className="h-6 w-6 text-accent-100" />
@@ -219,7 +264,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                             </FormLabel>
                             <FormControl>
                               <div className="flex items-center">
-                                <span className="text-sm text-muted-foreground mr-1 select-none">peermall.com/</span>
+                                <span className="text-sm text-muted-foreground mr-1 select-none">peermall.com/space/</span>
                                 <Input placeholder="mystore" {...field} />
                               </div>
                             </FormControl>
@@ -311,15 +356,33 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                       {/* 연락처 */}
                       <FormField
                         control={form.control}
-                        name="contact"
+                        name="phoneNumber"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="flex items-center gap-1">
                               <Phone className="h-4 w-4 text-accent-100" /> 
-                              <RequiredLabel>연락처</RequiredLabel>
+                              <RequiredLabel>전화번호</RequiredLabel>
                             </FormLabel>
                             <FormControl>
-                              <Input placeholder="이메일 또는 전화번호" {...field} />
+                              <Input placeholder="전화번호를 입력해주세요" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* 이메일 */}
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-1">
+                              <Phone className="h-4 w-4 text-accent-100" /> 
+                              <RequiredLabel>이메일</RequiredLabel>
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="이메일을 입력해주세요" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -338,7 +401,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                           <FormItem>
                             <FormLabel className="flex items-center gap-1">
                               <ImageIcon className="h-4 w-4 text-accent-100" /> 
-                              <RequiredLabel>대표 이미지</RequiredLabel>
+                              대표 이미지
                             </FormLabel>
                             <FormControl>
                               <div className="flex flex-col gap-2">
@@ -592,8 +655,9 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                 <Button 
                   type="submit"
                   className="bg-accent-100 hover:bg-accent-100/90 text-white"
+                  disabled={isLoading}
                 >
-                  피어몰 생성하기
+                  {isLoading ? "등록 중..." : "피어몰 생성하기"}
                 </Button>
               </DialogFooter>
             </form>

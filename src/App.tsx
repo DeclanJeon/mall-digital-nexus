@@ -21,7 +21,7 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   const location = useLocation();
-  const isPeerSpacePage = location.pathname.startsWith('/peer-space');
+  const isPeerSpacePage = location.pathname.startsWith('/space/');
 
   return (
     <>
@@ -34,8 +34,8 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/service" element={<ServicePage />} />
         <Route path="/my-info" element={<MyInfoPage />} />
-        <Route path="/peer-space" element={<PeerSpace />} />
-        <Route path="/peer-space/settings" element={<PeerSpaceSettings />} />
+        <Route path="/space/:address" element={<PeerSpace />} />
+        <Route path="/space/:address/settings" element={<PeerSpaceSettings />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       {!isPeerSpacePage && <Footer />}

@@ -25,12 +25,14 @@ interface ContentSectionProps {
   activeSection: string;
   saved: boolean;
   onSave: () => void;
+  address: string;
 }
 
 const ContentSection: React.FC<ContentSectionProps> = ({ 
   activeSection, 
   saved, 
-  onSave 
+  onSave,
+  address
 }) => {
   const getSectionTitle = () => {
     switch(activeSection) {

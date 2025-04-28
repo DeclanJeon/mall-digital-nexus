@@ -353,7 +353,7 @@ const EcosystemMap = () => {
   };
 
   return (
-    <div className="relative">
+    <div className="sticky top-0">
       <div className="relative w-full h-[400px] rounded-lg shadow-md overflow-hidden">
         <div 
           ref={mapRef} 
