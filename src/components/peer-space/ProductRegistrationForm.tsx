@@ -1061,7 +1061,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
 
                 <div className="flex justify-center bg-white p-4 rounded-md mb-3" ref={qrRef}>
                   {qrCodeUrl ? (
-                    <QRCodeSVG value={qrCodeUrl} title='PeerMall Product' size={128} />
+                    <QRCodeSVG value={qrCodeUrl} size={128} />
                   ) : (
                     <div className="w-32 h-32 bg-gray-100 flex items-center justify-center text-gray-400">
                       QR 코드

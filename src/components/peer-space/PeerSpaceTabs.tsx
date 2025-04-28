@@ -1,3 +1,4 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowRight } from "lucide-react";
@@ -45,11 +46,9 @@ export const PeerSpaceTabs = ({
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {featuredContent.map(content => (
-            <ContentCard 
-              key={content.id} 
-              content={content} 
-              onClick={() => onContentClick(content)} 
-            />
+            <div key={content.id} onClick={() => onContentClick(content)}>
+              <ContentCard content={content} />
+            </div>
           ))}
         </div>
         {featuredContent.length > 4 && (
@@ -108,3 +107,5 @@ export const PeerSpaceTabs = ({
     )}
   </Tabs>
 );
+
+export default PeerSpaceTabs;
