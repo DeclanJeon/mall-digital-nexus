@@ -3,8 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
-import { useParams } from 'react-router-dom';
-import { Content } from './types';
+import { Content, PeerMallConfig, SectionType } from './types';
 import { Heart, MessageSquare, Share2, QrCode } from 'lucide-react';
 import { 
   getPeerSpaceContents, 
@@ -29,15 +28,15 @@ import EmptyState from './EmptyState';
 
 interface PeerSpaceHomeProps {
   isOwner: boolean;
+  address: string;
 }
 
-const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ isOwner }) => {
-  const { address } = useParams<{ address: string }>();
+const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ isOwner, address }) => {
   const [showQRModal, setShowQRModal] = useState(false);
   const [contents, setContents] = useState<Content[]>([]);
   
-  // Basic config for the PeerSpace
-  const [config, setConfig] = useState({
+  // Basic config for the PeerSpace with correct section types
+  const [config, setConfig] = useState<PeerMallConfig>({
     id: address || 'default-peer-space',
     title: '내 피어스페이스',
     description: '나만의 공간을 구성해보세요',
@@ -52,13 +51,18 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ isOwner }) => {
     nextLevelExperience: 100,
     isVerified: false,
     skin: 'default',
-    sections: ['hero', 'content', 'community', 'events', 'reviews'],
+    sections: ['hero', 'content', 'community', 'events', 'reviews'] as SectionType[],
     customizations: {
       primaryColor: '#71c4ef',
       secondaryColor: '#3B82F6',
       showChat: true,
       allowComments: true,
       showBadges: true,
+    },
+    location: {
+      lat: 37.5665,
+      lng: 126.9780,
+      address: 'Seoul, South Korea'
     }
   });
 
@@ -149,7 +153,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ isOwner }) => {
   );
 
   // Helper function to render sections
-  const renderSection = (sectionType: string) => {
+  const renderSection = (sectionType: SectionType) => {
     switch(sectionType) {
       case 'hero':
         return <PeerSpaceHero config={config} isOwner={isOwner} />;

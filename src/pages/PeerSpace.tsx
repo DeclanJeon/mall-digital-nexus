@@ -22,8 +22,9 @@ const PeerSpace = () => {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
+  // Make sure address is passed to the PeerSpaceHome component
   return (
-    <PeerSpaceHome isOwner={isOwner} />
+    <PeerSpaceHome isOwner={isOwner} address={address || ''} />
   );
 };
 

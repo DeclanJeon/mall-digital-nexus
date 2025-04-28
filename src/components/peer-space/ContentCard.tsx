@@ -1,10 +1,9 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Content } from "./types";
-import ContentBadge from "./ContentBadge.tsx";
+import ContentBadge from "./ContentBadge";
 import ExternalIndicator from "./ExternalIndicator";
 import { Star, Clock, Users, CheckCircle } from "lucide-react";
 
@@ -37,7 +36,7 @@ export default function ContentCard({ content, onClick }: ContentCardProps) {
           <ContentBadge type={content.type} />
         </div>
         
-        {content.isExternal && (
+        {content.isExternal && content.source && (
           <div className="absolute top-3 right-3 z-10">
             <ExternalIndicator source={content.source} />
           </div>
