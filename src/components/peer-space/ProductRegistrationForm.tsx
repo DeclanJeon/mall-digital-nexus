@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -453,7 +452,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                   <div className="flex flex-col items-center mb-6">
                     <div className="bg-white p-4 rounded-md mb-4 border border-gray-100" ref={qrRef}>
                       {qrCodeUrl ? (
-                        <QRCodeSVG value={qrCodeUrl} title='PeerMall Product' size={180} />
+                        <QRCodeSVG value={qrCodeUrl} size={180} />
                       ) : (
                         <div className="w-44 h-44 bg-gray-100 flex items-center justify-center text-gray-400">
                           <QrCode className="h-12 w-12" />

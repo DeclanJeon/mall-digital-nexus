@@ -9,9 +9,10 @@ import ExternalIndicator from './ExternalIndicator';
 
 interface ContentCardProps {
   content: Content;
+  onClick?: () => void; // Make onClick optional
 }
 
-const ContentCard = ({ content }: ContentCardProps) => {
+const ContentCard = ({ content, onClick }: ContentCardProps) => {
   const location = useLocation();
   const address = location.pathname.split('/')[2];
 
@@ -37,10 +38,16 @@ const ContentCard = ({ content }: ContentCardProps) => {
     );
   };
 
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick();
+    }
+  };
+
   return (
-    <Link
-      to={`/space/${address}/content/${content.id}`}
-      className="block bg-white rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-shadow group"
+    <div
+      onClick={handleCardClick}
+      className="block bg-white rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-shadow group cursor-pointer"
     >
       <div className="relative aspect-video bg-gray-100">
         {getContentTypeBadge(content.type)}
@@ -94,7 +101,7 @@ const ContentCard = ({ content }: ContentCardProps) => {
           {content.saves || 0}
         </span>
       </div>
-    </Link>
+    </div>
   );
 };
 
