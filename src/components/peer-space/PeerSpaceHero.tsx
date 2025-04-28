@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PeerMallConfig } from './types';
 import { toast } from '@/hooks/use-toast';
-import { Award, Heart, ThumbsUp } from 'lucide-react';
+import { Award, Heart, ThumbsUp, Shield, Star, Gift } from 'lucide-react';
 
 interface PeerSpaceHeroProps {
   config: PeerMallConfig;
@@ -45,10 +45,12 @@ const PeerSpaceHero: React.FC<PeerSpaceHeroProps> = ({
   
   const getBadgeIcon = (badge: string) => {
     switch(badge) {
-      case 'trusted': return <Award className="h-3 w-3 mr-1" />;
+      case 'trusted': return <Shield className="h-3 w-3 mr-1" />;
       case 'recommended': return <ThumbsUp className="h-3 w-3 mr-1" />;
       case 'favorite': return <Heart className="h-3 w-3 mr-1" />;
-      default: return null;
+      case 'topRated': return <Star className="h-3 w-3 mr-1" />;
+      case 'premium': return <Gift className="h-3 w-3 mr-1" />;
+      default: return <Award className="h-3 w-3 mr-1" />;
     }
   };
   
@@ -60,6 +62,17 @@ const PeerSpaceHero: React.FC<PeerSpaceHeroProps> = ({
       case 'topRated': return '최고 등급';
       case 'premium': return '프리미엄';
       default: return badge;
+    }
+  };
+
+  const getBadgeColor = (badge: string) => {
+    switch(badge) {
+      case 'trusted': return "bg-blue-500/20 text-blue-500 hover:bg-blue-500/30";
+      case 'recommended': return "bg-green-500/20 text-green-500 hover:bg-green-500/30";
+      case 'favorite': return "bg-red-500/20 text-red-500 hover:bg-red-500/30";
+      case 'topRated': return "bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30";
+      case 'premium': return "bg-purple-500/20 text-purple-500 hover:bg-purple-500/30";
+      default: return "bg-gray-500/20 text-gray-500 hover:bg-gray-500/30";
     }
   };
   
@@ -81,7 +94,7 @@ const PeerSpaceHero: React.FC<PeerSpaceHeroProps> = ({
               {config.badges.map((badge, index) => (
                 <Badge 
                   key={index}
-                  className="bg-white/20 text-white border-none hover:bg-white/30 flex items-center"
+                  className={`border-none hover:bg-white/30 flex items-center ${getBadgeColor(badge)}`}
                 >
                   {getBadgeIcon(badge)}
                   {getBadgeLabel(badge)}

@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Award, ThumbsUp, Heart, Star, Gift, Settings } from 'lucide-react';
+import { Award, ThumbsUp, Heart, Star, Gift, Shield } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface BadgeSelectorProps {
@@ -19,7 +19,7 @@ const BadgeSelector: React.FC<BadgeSelectorProps> = ({ onBadgeAdd, currentBadges
   const [isOpen, setIsOpen] = useState(false);
 
   const badges = [
-    { id: 'trusted', name: '신뢰할 수 있는', icon: <Award className="mr-2 h-4 w-4" /> },
+    { id: 'trusted', name: '신뢰할 수 있는', icon: <Shield className="mr-2 h-4 w-4" /> },
     { id: 'recommended', name: '추천 피어', icon: <ThumbsUp className="mr-2 h-4 w-4" /> },
     { id: 'favorite', name: '즐겨찾는', icon: <Heart className="mr-2 h-4 w-4" /> },
     { id: 'topRated', name: '최고 등급', icon: <Star className="mr-2 h-4 w-4" /> },
