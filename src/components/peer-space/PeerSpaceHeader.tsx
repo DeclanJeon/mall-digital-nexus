@@ -1,128 +1,81 @@
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
-import { Menu, Search, Bell, User, Plus, Palette } from 'lucide-react';
-
+import React from 'react';
 import { PeerMallConfig } from './types';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Plus, Settings, Package } from 'lucide-react';
+import { ContentFormValues } from './AddContentForm';
 
 interface PeerSpaceHeaderProps {
   config: PeerMallConfig;
   isOwner: boolean;
-  onAddContent: () => void;
+  onAddContent: (content: ContentFormValues) => void;
+  onAddProduct?: () => void;
 }
 
-const PeerSpaceHeader: React.FC<PeerSpaceHeaderProps> = ({
-  config,
+const PeerSpaceHeader: React.FC<PeerSpaceHeaderProps> = ({ 
+  config, 
   isOwner,
-  onAddContent
+  onAddContent,
+  onAddProduct
 }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const navItems = [
-    { label: '홈', link: `/peermall/${config.id}` },
-    { label: '콘텐츠', link: `/peermall/${config.id}/content` },
-    { label: '커뮤니티', link: `/peermall/${config.id}/community` },
-    { label: '이벤트', link: `/peermall/${config.id}/events` },
-    { label: '소개', link: `/peermall/${config.id}/about` },
-  ];
-
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm border-b">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
-        {/* Logo and Brand */}
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={config.profileImage} alt={config.title} />
-            <AvatarFallback>{config.title.substring(0, 1)}</AvatarFallback>
+    <header className="bg-white border-b sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-2 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <Avatar className="h-10 w-10 border">
+            <AvatarImage src={config.profileImage} alt={config.owner} />
+            <AvatarFallback>{config.owner.substring(0, 2)}</AvatarFallback>
           </Avatar>
-          <span className="font-bold text-lg hidden md:inline">{config.title}</span>
-          
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-6 text-sm ml-6">
-            {navItems.map(item => (
-              <Link 
-                key={item.label} 
-                to={item.link} 
-                className="text-gray-600 hover:text-blue-500 transition-colors"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-        
-        {/* Search */}
-        <div className="flex-1 max-w-md hidden md:block mx-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input 
-              placeholder="검색어를 입력하세요" 
-              className="h-9 pl-10 rounded-full bg-gray-100 border-gray-200"
-            />
+          <div>
+            <h1 className="font-semibold text-lg">{config.title}</h1>
+            <p className="text-xs text-gray-500">{config.peerNumber}</p>
           </div>
         </div>
         
-        {/* Right side buttons */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {isOwner && (
-            <>
+        {isOwner && (
+          <div className="flex gap-2">
+            {onAddProduct && (
               <Button 
                 size="sm" 
-                variant="outline"
-                className="hidden sm:inline-flex items-center gap-1"
+                variant="outline" 
+                onClick={onAddProduct}
+                className="hidden md:flex"
               >
-                <Palette className="h-4 w-4" /> 꾸미기
+                <Package className="mr-2 h-4 w-4" />
+                제품 등록
               </Button>
-              <Button 
-                size="sm" 
-                onClick={onAddContent}
-                className="bg-blue-500 hover:bg-blue-600 text-white items-center gap-1"
-              >
-                <Plus className="h-4 w-4" /> 추가
-              </Button>
-            </>
-          )}
-          
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-          </Button>
-          
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-            <Menu className="h-5 w-5" />
-          </Button>
-          
-          <Button variant="ghost" size="icon" className="hidden lg:inline-flex">
-            <User className="h-5 w-5" />
-          </Button>
-        </div>
+            )}
+            <Button 
+              size="sm" 
+              onClick={() => {
+                // This is a simplified approach, you should open a proper modal here
+                // For now, we'll just create a default content for demonstration
+                const defaultContent: ContentFormValues = {
+                  title: "새 콘텐츠",
+                  description: "내용을 입력하세요",
+                  imageUrl: "https://via.placeholder.com/800x600.png?text=New+Content",
+                  type: 'post',
+                  price: ""
+                };
+                
+                onAddContent(defaultContent);
+              }}
+              className="hidden md:flex"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              콘텐츠 추가
+            </Button>
+            <Button 
+              size="sm" 
+              variant="ghost"
+              onClick={() => window.location.href = `/settings/${config.id}`}
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
-      
-      {/* Mobile menu */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-gray-100 shadow-md">
-          <nav className="container mx-auto px-4 py-2 space-y-1">
-            {navItems.map(item => (
-              <Link 
-                key={item.label} 
-                to={item.link} 
-                className="block py-2 px-4 text-gray-600 hover:bg-gray-50 rounded-md"
-              >
-                {item.label}
-              </Link>
-            ))}
-            <div className="relative mt-2 p-2">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input 
-                placeholder="검색어를 입력하세요" 
-                className="h-9 pl-10 rounded-full bg-gray-100 border-gray-200"
-              />
-            </div>
-          </nav>
-        </div>
-      )}
     </header>
   );
 };

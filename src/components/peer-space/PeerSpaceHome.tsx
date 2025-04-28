@@ -2,15 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { Content, PeerMallConfig, SectionType } from './types';
-import { Heart, MessageSquare, Share2, QrCode } from 'lucide-react';
+import { Heart, MessageSquare, Share2, QrCode, Award, ThumbsUp } from 'lucide-react';
 import { 
   getPeerSpaceContents, 
-  addPeerSpaceContent, 
   savePeerSpaceContents 
 } from '@/utils/peerSpaceStorage';
-import { ContentFormValues } from './AddContentForm';
 import PeerSpaceHeader from './PeerSpaceHeader';
 import PeerSpaceHero from './PeerSpaceHero';
 import PeerSpaceContentSection from './PeerSpaceContentSection';
@@ -25,46 +23,26 @@ import PeerSpaceActivityFeed from './PeerSpaceActivityFeed';
 import PeerSpaceLiveCollaboration from './PeerSpaceLiveCollaboration';
 import PeerSpaceFooter from './PeerSpaceFooter';
 import EmptyState from './EmptyState';
+import ProductRegistrationForm from './ProductRegistrationForm';
+import BadgeSelector from './BadgeSelector';
+import { ContentFormValues } from './AddContentForm';
 
 interface PeerSpaceHomeProps {
   isOwner: boolean;
   address: string;
+  config: PeerMallConfig;
+  onUpdateConfig: (updatedConfig: PeerMallConfig) => void;
 }
 
-const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ isOwner, address }) => {
+const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ 
+  isOwner, 
+  address,
+  config,
+  onUpdateConfig 
+}) => {
   const [showQRModal, setShowQRModal] = useState(false);
   const [contents, setContents] = useState<Content[]>([]);
-  
-  // Basic config for the PeerSpace with correct section types
-  const [config, setConfig] = useState<PeerMallConfig>({
-    id: address || 'default-peer-space',
-    title: '내 피어스페이스',
-    description: '나만의 공간을 구성해보세요',
-    owner: '나',
-    peerNumber: 'P-00000-0000',
-    profileImage: 'https://api.dicebear.com/7.x/personas/svg?seed=default',
-    badges: [],
-    followers: 0,
-    recommendations: 0,
-    level: 1,
-    experience: 0,
-    nextLevelExperience: 100,
-    isVerified: false,
-    skin: 'default',
-    sections: ['hero', 'content', 'community', 'events', 'reviews'] as SectionType[],
-    customizations: {
-      primaryColor: '#71c4ef',
-      secondaryColor: '#3B82F6',
-      showChat: true,
-      allowComments: true,
-      showBadges: true,
-    },
-    location: {
-      lat: 37.5665,
-      lng: 126.9780,
-      address: 'Seoul, South Korea'
-    }
-  });
+  const [showProductForm, setShowProductForm] = useState(false);
 
   useEffect(() => {
     if (address) {
@@ -107,7 +85,19 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ isOwner, address }) => {
     });
   };
 
+  const handleProductAdded = (product: Content) => {
+    // Add the product and update state
+    const updatedContents = [...contents, product];
+    setContents(updatedContents);
+    
+    // Close product form dialog
+    setShowProductForm(false);
+  };
+
   const handleShare = () => {
+    // Copy current URL to clipboard
+    navigator.clipboard.writeText(window.location.href);
+    
     toast({
       title: "공유하기",
       description: "링크가 클립보드에 복사되었습니다.",
@@ -115,9 +105,60 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ isOwner, address }) => {
   };
 
   const handleFollow = () => {
+    // Update followers count in the config
+    const updatedConfig = {
+      ...config,
+      followers: config.followers + 1
+    };
+    
+    // Save the updated config
+    onUpdateConfig(updatedConfig);
+    
     toast({
       title: "팔로우 완료",
       description: `${config.owner}님을 팔로우합니다.`,
+    });
+  };
+
+  const handleAddRecommendation = () => {
+    // Update recommendations count in the config
+    const updatedConfig = {
+      ...config,
+      recommendations: config.recommendations + 1
+    };
+    
+    // Save the updated config
+    onUpdateConfig(updatedConfig);
+    
+    toast({
+      title: "추천 완료",
+      description: "해당 피어스페이스를 추천하였습니다.",
+    });
+  };
+
+  const handleAddBadge = (badge: string) => {
+    // Don't add duplicate badges
+    if (config.badges.includes(badge)) {
+      toast({
+        title: "이미 추가된 뱃지",
+        description: "이미 추가한 뱃지입니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Add badge to config
+    const updatedConfig = {
+      ...config,
+      badges: [...config.badges, badge]
+    };
+    
+    // Save the updated config
+    onUpdateConfig(updatedConfig);
+    
+    toast({
+      title: "뱃지 추가 완료",
+      description: "뱃지가 성공적으로 추가되었습니다.",
     });
   };
 
@@ -130,6 +171,10 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ isOwner, address }) => {
 
   const handleQRGenerate = () => {
     setShowQRModal(true);
+  };
+
+  const handleShowProductForm = () => {
+    setShowProductForm(true);
   };
 
   // Modal for QR codes
@@ -152,6 +197,22 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ isOwner, address }) => {
     </Dialog>
   );
 
+  // Product registration modal
+  const renderProductFormModal = () => (
+    <Dialog open={showProductForm} onOpenChange={setShowProductForm}>
+      <DialogContent className="max-w-5xl h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold">제품 등록</DialogTitle>
+        </DialogHeader>
+        <ProductRegistrationForm 
+          onProductAdded={handleProductAdded} 
+          address={address}
+          onClose={() => setShowProductForm(false)}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+
   // Helper function to render sections
   const renderSection = (sectionType: SectionType) => {
     switch(sectionType) {
@@ -166,6 +227,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ isOwner, address }) => {
                 contents={contents} 
                 isOwner={isOwner} 
                 onAddContent={handleAddContent}
+                onAddProduct={handleShowProductForm}
               />
             </div>
             {config.sections.includes('activityFeed') && (
@@ -227,16 +289,24 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ isOwner, address }) => {
       <PeerSpaceHeader 
         config={config} 
         isOwner={isOwner} 
-        onAddContent={() => {}} 
+        onAddContent={handleAddContent} 
+        onAddProduct={handleShowProductForm}
       />
       
       <main className="container mx-auto px-4 py-6">
         {/* Quick action buttons for non-owners */}
         {!isOwner && (
-          <div className="flex mb-6 gap-2">
+          <div className="flex mb-6 gap-2 flex-wrap">
             <Button onClick={handleFollow} className="flex-1">
               <Heart className="mr-1 h-4 w-4" /> 팔로우
             </Button>
+            <Button onClick={handleAddRecommendation} variant="outline" className="flex-1">
+              <ThumbsUp className="mr-1 h-4 w-4" /> 추천하기
+            </Button>
+            <BadgeSelector 
+              onBadgeAdd={handleAddBadge} 
+              currentBadges={config.badges} 
+            />
             <Button onClick={handleMessage} variant="outline" className="flex-1">
               <MessageSquare className="mr-1 h-4 w-4" /> 메시지
             </Button>
@@ -263,6 +333,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ isOwner, address }) => {
       
       {/* Modals */}
       {renderQRModal()}
+      {renderProductFormModal()}
     </div>
   );
 };
