@@ -25,6 +25,9 @@ import BadgeSelector from './BadgeSelector';
 import { ContentFormValues } from './AddContentForm';
 import { usePeerSpaceTabs } from '@/hooks/usePeerSpaceTabs';
 import PeerSpaceTabs from './PeerSpaceTabs';
+import GuestbookSection from './GuestbookSection';
+import QuestEventSection from './QuestEventSection';
+import { Link } from 'react-router-dom';
 
 interface PeerSpaceHomeProps {
   isOwner: boolean;
@@ -382,7 +385,15 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
 
     switch(sectionType) {
       case 'hero':
-        return <PeerSpaceHero config={config} isOwner={isOwner} />;
+        return (
+          <PeerSpaceHero 
+            config={config} 
+            isOwner={isOwner} 
+            onAddBadge={handleAddBadge}
+            onAddRecommendation={handleAddRecommendation}
+            onFollow={handleFollow}
+          />
+        );
       case 'content':
         return (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -404,22 +415,35 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
           </div>
         );
       case 'community':
-        return <PeerSpaceCommunitySection config={config} isOwner={isOwner} />;
+        return (
+          <div className="mb-10">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">커뮤니티</h2>
+              <Link to="/community">
+                <Button variant="outline">
+                  모든 게시글 보기
+                </Button>
+              </Link>
+            </div>
+            <PeerSpaceCommunitySection config={config} isOwner={isOwner} />
+          </div>
+        );
       case 'events':
-        return <PeerSpaceEventsSection 
-          config={config} 
-          events={[]} 
-          quests={[]} 
-          isOwner={isOwner} 
-        />;
+        return (
+          <QuestEventSection
+            peerAddress={address}
+            isOwner={isOwner}
+          />
+        );
       case 'infoHub':
         return <PeerSpaceInfoHub config={config} />;
       case 'reviews':
-        return <PeerSpaceReviewSection 
-          config={config} 
-          reviews={[]} 
-          isOwner={isOwner} 
-        />;
+        return (
+          <GuestbookSection
+            peerAddress={address}
+            isOwner={isOwner}
+          />
+        );
       case 'map':
         return config.location ? 
           <PeerSpaceMapSection 
