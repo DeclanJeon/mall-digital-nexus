@@ -12,7 +12,7 @@ import {
   Key, 
   Eye, 
   EyeOff,
-  DeviceTablet 
+  Tablet as DeviceTablet 
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 

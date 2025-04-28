@@ -1,23 +1,12 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, CreditCard, Award, Zap } from 'lucide-react';
+import { Activity, Clock, Gift, Award, Star, PieChart } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 
-interface ActivityItem {
-  id: string;
-  type: string;
-  title: string;
-  timestamp: string;
-  details?: string;
-  image?: string;
-}
-
-interface TransactionItem {
+export interface TransactionItem {
   id: string;
   type: 'purchase' | 'reward' | 'refund' | 'other';
   title: string;
@@ -26,38 +15,41 @@ interface TransactionItem {
   status: 'completed' | 'pending' | 'failed';
 }
 
-interface UserBadge {
-  id: string;
-  name: string;
-  image: string;
-  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
-  acquiredDate: string;
-  description: string;
-}
-
-interface Quest {
-  id: string;
-  title: string;
-  progress: number;
-  deadline?: string;
-  reward: string;
-}
-
 interface ActivitySectionProps {
-  activities: ActivityItem[];
+  activities: Array<{
+    id: string;
+    type: string;
+    title: string;
+    timestamp: string;
+    details?: string;
+    image?: string;
+  }>;
   transactions: TransactionItem[];
   level: number;
   maxLevel: number;
   experience: number;
   nextLevelExperience: number;
-  badges: UserBadge[];
-  quests: Quest[];
+  badges: Array<{
+    id: string;
+    name: string;
+    image: string;
+    rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+    acquiredDate: string;
+    description: string;
+  }>;
+  quests: Array<{
+    id: string;
+    title: string;
+    progress: number;
+    deadline?: string;
+    reward: string;
+  }>;
   points: {
     total: number;
-    history: {
+    history: Array<{
       period: string;
       amount: number;
-    }[];
+    }>;
   };
 }
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import ProfileSection from '@/components/my-info/ProfileSection';
 import SecuritySection from '@/components/my-info/SecuritySection';
@@ -13,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Search, Filter } from 'lucide-react';
 import { openDB } from 'idb';
 import CreatePeermallModal from '@/components/CreatePeermallModal';
+import { TransactionItem } from '@/components/my-info/ActivitySection';
 
 interface PeerMall {
   id: number;
@@ -126,7 +126,7 @@ const MyInfoPage = () => {
       title: '디자인 툴킷 구매',
       amount: -45000,
       timestamp: '어제',
-      status: 'completed' as const
+      status: 'completed' as 'completed'
     },
     { 
       id: '2', 
@@ -134,7 +134,7 @@ const MyInfoPage = () => {
       title: '리뷰 작성 보상',
       amount: 5000,
       timestamp: '3일 전',
-      status: 'completed' as const
+      status: 'completed' as 'completed'
     },
     { 
       id: '3', 
@@ -142,7 +142,7 @@ const MyInfoPage = () => {
       title: '상품 반품 환불',
       amount: 25000,
       timestamp: '일주일 전',
-      status: 'pending' as const
+      status: 'pending' as 'pending'
     }
   ];
   
@@ -262,7 +262,7 @@ const MyInfoPage = () => {
       title: '2024년 UI/UX 디자인 트렌드',
       type: '가이드',
       createdAt: '2024-03-15',
-      status: 'published',
+      status: 'published' as 'published',
       views: 1234,
       likes: 87
     },
@@ -271,7 +271,7 @@ const MyInfoPage = () => {
       title: '푸드 스타일링 기초 가이드',
       type: '튜토리얼',
       createdAt: '2024-02-10',
-      status: 'published',
+      status: 'published' as 'published',
       views: 856,
       likes: 42
     },
@@ -280,7 +280,7 @@ const MyInfoPage = () => {
       title: '디지털 아트 작업 과정',
       type: '프로세스',
       createdAt: '2024-04-02',
-      status: 'draft',
+      status: 'draft' as 'draft',
       thumbnail: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=300'
     },
     {
@@ -288,7 +288,7 @@ const MyInfoPage = () => {
       title: '초보자를 위한 웹 디자인 가이드',
       type: '가이드',
       createdAt: '2024-01-20',
-      status: 'published',
+      status: 'published' as 'published',
       views: 2145,
       likes: 156
     }
@@ -298,7 +298,7 @@ const MyInfoPage = () => {
     {
       id: '1',
       title: '효과적인 브랜딩 전략',
-      type: 'content',
+      type: 'content' as 'content',
       source: '디자인 랩',
       savedAt: '2024-04-10',
       thumbnail: 'https://images.unsplash.com/photo-1672701527516-d11ec74c1fc3?auto=format&fit=crop&w=300'
@@ -306,21 +306,21 @@ const MyInfoPage = () => {
     {
       id: '2',
       title: '프리미엄 스케치북 세트',
-      type: 'product',
+      type: 'product' as 'product',
       source: '아트 서플라이',
       savedAt: '2024-03-28'
     },
     {
       id: '3',
       title: '디자인 씽킹의 5단계',
-      type: 'content',
+      type: 'content' as 'content',
       source: '이지우의 디자인 랩',
       savedAt: '2024-03-15'
     },
     {
       id: '4',
       title: '아이패드 프로 M2',
-      type: 'product',
+      type: 'product' as 'product',
       source: '테크 마켓',
       savedAt: '2024-02-20',
       thumbnail: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=300'
@@ -328,7 +328,7 @@ const MyInfoPage = () => {
     {
       id: '5',
       title: '사용자 인터뷰 기법 10가지',
-      type: 'content',
+      type: 'content' as 'content',
       source: 'UX 리서치 허브',
       savedAt: '2024-02-10'
     }
@@ -574,7 +574,6 @@ const MyInfoPage = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* 왼쪽 컬럼 */}
         <div className="lg:col-span-7 space-y-6">
           <ProfileSection userProfile={userProfile} setUserProfile={setUserProfile} />
           
@@ -597,7 +596,6 @@ const MyInfoPage = () => {
           />
         </div>
         
-        {/* 오른쪽 컬럼 */}
         <div className="lg:col-span-5 space-y-6">
           <ActivitySection 
             activities={activities}

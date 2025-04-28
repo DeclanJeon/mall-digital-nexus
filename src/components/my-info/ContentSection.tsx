@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Bookmark, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
+// Define content type with proper status values
 interface Content {
   id: string;
   title: string;
@@ -17,6 +18,7 @@ interface Content {
   likes?: number;
 }
 
+// Define SavedItem type with proper type values
 interface SavedItem {
   id: string;
   title: string;
