@@ -43,3 +43,19 @@ export interface Space {
   isAdult: boolean;
   peopleOnline?: number;
 }
+
+export interface BadgeData {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+}
+
+export interface SavedItem {
+  id: string;
+  title: string;
+  type: "content" | "product";
+  source: string;
+  savedAt: string;
+  thumbnail?: string;
+}

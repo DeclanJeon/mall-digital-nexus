@@ -2,9 +2,10 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, Clock, Gift, Award, Star, PieChart } from 'lucide-react';
+import { Activity, Clock, Gift, Award, Star, PieChart, CreditCard, Zap } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 export interface TransactionItem {
   id: string;

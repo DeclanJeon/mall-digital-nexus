@@ -122,7 +122,7 @@ const MyInfoPage = () => {
   const transactions = [
     { 
       id: '1', 
-      type: 'purchase', 
+      type: 'purchase' as 'purchase', 
       title: '디자인 툴킷 구매',
       amount: -45000,
       timestamp: '어제',
@@ -130,7 +130,7 @@ const MyInfoPage = () => {
     },
     { 
       id: '2', 
-      type: 'reward', 
+      type: 'reward' as 'reward', 
       title: '리뷰 작성 보상',
       amount: 5000,
       timestamp: '3일 전',
@@ -138,7 +138,7 @@ const MyInfoPage = () => {
     },
     { 
       id: '3', 
-      type: 'refund', 
+      type: 'refund' as 'refund', 
       title: '상품 반품 환불',
       amount: 25000,
       timestamp: '일주일 전',
@@ -347,7 +347,7 @@ const MyInfoPage = () => {
     {
       id: '2',
       title: '괜찮은 푸드 마켓',
-      content: '제품의 신선도는 좋았으나, 배송이 조금 늦어서 아쉬웠습니다. 그래도 전체적인 품질과 서비스는 만족스러웠습니다. 특히 유기농 채소의 품질이 매우 좋았습니다.',
+      content: '제품의 신선도는 ��았으나, 배송이 조금 늦어서 아쉬웠습니다. 그래도 전체적인 품질과 서비스는 만족스러웠습니다. 특히 유기농 채소의 품질이 매우 좋았습니다.',
       target: '에코 푸드 마켓',
       rating: 4,
       createdAt: '2024-02-18',
