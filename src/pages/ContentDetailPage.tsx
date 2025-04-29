@@ -3,6 +3,8 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import ContentDetailView from '@/components/peer-space/ContentDetailView';
+import PeerSpaceHeader from '@/components/peer-space/PeerSpaceHeader';
+import PeerSpaceFooter from '@/components/peer-space/PeerSpaceFooter';
 import { PeerMallConfig } from '@/components/peer-space/types';
 
 // Function to get PeerSpace configuration from localStorage
@@ -58,11 +60,19 @@ const ContentDetailPage = () => {
   }
 
   return (
-    <ContentDetailView 
-      address={address} 
-      config={config}
-      isOwner={isOwner} 
-    />
+    <>
+      <PeerSpaceHeader 
+        config={config}
+        isOwner={isOwner}
+        onAddContent={() => {}} // 임시 함수
+      />
+      <ContentDetailView 
+        address={address} 
+        config={config}
+        isOwner={isOwner} 
+      />
+      <PeerSpaceFooter config={config} />
+    </>
   );
 };
 
