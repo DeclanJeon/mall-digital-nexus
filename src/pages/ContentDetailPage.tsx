@@ -1,11 +1,12 @@
 
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import ContentDetailView from '@/components/peer-space/ContentDetailView';
 import PeerSpaceHeader from '@/components/peer-space/PeerSpaceHeader';
 import PeerSpaceFooter from '@/components/peer-space/PeerSpaceFooter';
 import { PeerMallConfig } from '@/components/peer-space/types';
+import { ContentFormValues } from '@/components/peer-space/AddContentForm';
 
 // Function to get PeerSpace configuration from localStorage
 const getPeerSpaceConfig = (address: string): PeerMallConfig | null => {
@@ -24,6 +25,7 @@ const getPeerSpaceConfig = (address: string): PeerMallConfig | null => {
 
 const ContentDetailPage = () => {
   const { address, contentId } = useParams<{ address: string; contentId: string }>();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = React.useState(true);
   const [config, setConfig] = React.useState<PeerMallConfig | null>(null);
   const [isOwner, setIsOwner] = React.useState(true); // In reality, this would be based on authentication
@@ -59,12 +61,21 @@ const ContentDetailPage = () => {
     );
   }
 
+  const handleAddContent = (content: ContentFormValues) => {
+    // Handle adding content logic here
+    toast({
+      title: "콘텐츠 추가",
+      description: "콘텐츠 추가 기능은 아직 개발 중입니다.",
+    });
+    navigate(`/space/${address}`);
+  };
+
   return (
     <>
       <PeerSpaceHeader 
         config={config}
         isOwner={isOwner}
-        onAddContent={() => {}} // 임시 함수
+        onAddContent={handleAddContent}
       />
       <ContentDetailView 
         address={address} 
