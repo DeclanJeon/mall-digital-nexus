@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ExternalLink, Copy, Check, QrCode } from 'lucide-react';
-import Header from '../components/Header';
+import Header from '../components/CategoryNav';
 import Footer from '../components/Footer';
 
 const CurationLinks = () => {
@@ -51,8 +51,6 @@ const CurationLinks = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
-      
       <main className="flex-grow bg-bg-100 py-12">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
@@ -256,8 +254,6 @@ const CurationLinks = () => {
           </div>
         </div>
       </main>
-      
-      <Footer />
     </div>
   );
 };

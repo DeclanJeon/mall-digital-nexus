@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import Header from '@/components/Header';
+import CategoryNav from '@/components/CategoryNav';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -46,6 +46,14 @@ const Register = () => {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Mock categories data for CategoryNav
+  const categories = [
+    { id: "home", name: "홈" },
+    { id: "products", name: "상품" },
+    { id: "services", name: "서비스" }
+  ];
+  const [activeCategory, setActiveCategory] = useState("home");
 
   // Initialize form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -71,9 +79,17 @@ const Register = () => {
     });
   };
 
+  const handleCategoryChange = (category: string) => {
+    setActiveCategory(category);
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <Header />
+      <CategoryNav 
+        categories={categories} 
+        activeCategory={activeCategory} 
+        onCategoryChange={handleCategoryChange}
+      />
       
       <main className="flex-grow flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">

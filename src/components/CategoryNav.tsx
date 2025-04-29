@@ -1,39 +1,30 @@
 
 import React from 'react';
-import { Home, ShoppingBag, Users, Info, HelpCircle } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-const CategoryNav = () => {
-  const location = useLocation();
-  const currentPath = location.pathname;
-  
-  const categories = [
-    { name: '홈', icon: <Home className="h-5 w-5" />, path: '/' },
-    { name: '쇼핑', icon: <ShoppingBag className="h-5 w-5" />, path: '/shopping' },
-    { name: '커뮤니티', icon: <Users className="h-5 w-5" />, path: '/community' },
-    { name: '소개', icon: <Info className="h-5 w-5" />, path: '/about' },
-    { name: '고객센터', icon: <HelpCircle className="h-5 w-5" />, path: '/help' },
-  ];
+interface CategoryNavProps {
+  categories: { id: string; name: string }[];
+  activeCategory: string;
+  onCategoryChange: (category: string) => void;
+}
 
+const CategoryNav: React.FC<CategoryNavProps> = ({ 
+  categories, 
+  activeCategory, 
+  onCategoryChange 
+}) => {
   return (
-    <nav className="w-full bg-white border-b border-gray-200 py-2">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between overflow-x-auto hide-scrollbar">
-          {categories.map((category, index) => (
-            <Link 
-              key={index} 
-              to={category.path}
-              className={`flex flex-col items-center px-4 py-2 text-sm whitespace-nowrap ${
-                currentPath === category.path ? 'text-accent-200' : 'text-text-200 hover:text-accent-200'
-              } transition-colors`}
-            >
-              {category.icon}
-              <span className="mt-1">{category.name}</span>
-            </Link>
+    <div className="overflow-x-auto py-2">
+      <Tabs value={activeCategory} onValueChange={onCategoryChange} className="w-full">
+        <TabsList className="w-full justify-start">
+          {categories.map(category => (
+            <TabsTrigger key={category.id} value={category.id}>
+              {category.name}
+            </TabsTrigger>
           ))}
-        </div>
-      </div>
-    </nav>
+        </TabsList>
+      </Tabs>
+    </div>
   );
 };
 

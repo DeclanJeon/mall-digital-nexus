@@ -1,0 +1,55 @@
+
+import React from 'react';
+import { Badge } from '@/components/ui/badge';
+import { BadgeData } from './types';
+
+interface BadgeDisplayProps {
+  badges: BadgeData[];
+  limit?: number;
+  size?: 'sm' | 'md' | 'lg';
+  showTooltip?: boolean;
+}
+
+export const BadgeDisplay = ({ 
+  badges, 
+  limit = 5, 
+  size = 'md',
+  showTooltip = true
+}: BadgeDisplayProps) => {
+  const displayBadges = badges.slice(0, limit);
+  const remainingCount = Math.max(0, badges.length - limit);
+
+  // Size classes
+  const sizeClasses = {
+    sm: 'text-xs px-2 py-0.5',
+    md: 'text-sm px-3 py-1',
+    lg: 'px-3 py-1.5'
+  };
+  
+  return (
+    <div className="flex flex-wrap gap-2">
+      {displayBadges.map((badge) => (
+        <Badge 
+          key={badge.id} 
+          variant="outline" 
+          className={`${sizeClasses[size]} border-opacity-50 ${badge.color?.replace('text-', 'border-')} ${badge.color}`}
+          title={showTooltip ? badge.description : undefined}
+        >
+          <badge.icon className="h-3 w-3 mr-1.5" />
+          {badge.name}
+        </Badge>
+      ))}
+      
+      {remainingCount > 0 && (
+        <Badge 
+          variant="outline" 
+          className={`${sizeClasses[size]} border-gray-300 text-gray-500`}
+        >
+          +{remainingCount} 더보기
+        </Badge>
+      )}
+    </div>
+  );
+};
+
+export default BadgeDisplay;

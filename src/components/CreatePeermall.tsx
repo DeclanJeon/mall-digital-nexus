@@ -6,7 +6,11 @@ import { useNavigate } from 'react-router-dom';
 import CreatePeermallModal from './CreatePeermallModal';
 import { toast } from '@/hooks/use-toast';
 
-const CreatePeermall = () => {
+interface CreatePeermallProps {
+  // Add any props if needed
+}
+
+const CreatePeermall: React.FC<CreatePeermallProps> = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
   
@@ -36,7 +40,7 @@ const CreatePeermall = () => {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  const handleCreateSuccess = (peermallId: string) => {
+  const handleCreateSuccess = (peermallData: { name: string; type: string; }) => {
     // Close modal
     closeModal();
     
@@ -48,7 +52,7 @@ const CreatePeermall = () => {
     
     // Navigate to the new Peermall
     setTimeout(() => {
-      navigate(`/peermall/${peermallId}`);
+      navigate(`/peermall/${peermallData.name}`);
     }, 1000);
   };
 

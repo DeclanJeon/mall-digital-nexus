@@ -14,6 +14,8 @@ interface PeermallCardProps {
   rating: number;
   reviewCount: number;
   featured?: boolean;
+  feedDate?: string;
+  recommended?: boolean;
   location?: {
     lat: number;
     lng: number;
@@ -33,6 +35,8 @@ const PeermallCard = ({
   rating, 
   reviewCount, 
   featured,
+  feedDate,
+  recommended,
   location,
   onOpenMap,
   id = "sample-peermall" // Default ID if none provided
@@ -45,11 +49,18 @@ const PeermallCard = ({
           alt={title} 
           className="w-full h-full object-cover transform hover:scale-105 transition-transform" 
         />
-        {featured && (
-          <div className="absolute top-2 right-2 bg-accent-100 text-white text-xs px-2 py-1 rounded-full">
-            인기
-          </div>
-        )}
+        <div className="absolute top-2 right-2 flex flex-col gap-1">
+          {featured && (
+            <div className="bg-accent-100 text-white text-xs px-2 py-1 rounded-full">
+              인기
+            </div>
+          )}
+          {recommended && (
+            <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+              추천
+            </div>
+          )}
+        </div>
         <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/70 to-transparent p-3">
           <span className="text-white text-xs font-semibold">{category}</span>
         </div>
@@ -67,11 +78,11 @@ const PeermallCard = ({
         
         {tags && tags.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
-            {tags.map((tag, index) => (
+            {Array.isArray(tags) ? tags.map((tag, index) => (
               <span key={index} className="inline-block text-xs bg-bg-200 text-text-200 px-2 py-0.5 rounded-full">
                 {tag}
               </span>
-            ))}
+            )) : null}
           </div>
         )}
         
@@ -97,7 +108,7 @@ const PeermallCard = ({
               className="text-accent-200 hover:text-accent-100 p-0"
               asChild
             >
-              <Link to={`/peermall/${id}`}>방문하기</Link>
+              <Link to={`/space/${id}`}>방문하기</Link>
             </Button>
           </div>
         </div>

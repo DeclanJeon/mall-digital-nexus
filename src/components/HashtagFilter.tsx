@@ -106,47 +106,7 @@ const HashtagFilter = ({ hashtags, onFilterChange }: HashtagFilterProps) => {
         </div>
       </div>
       
-      <div className="border-t pt-3">
-        <h3 className="text-sm font-semibold mb-2">피어몰 타입</h3>
-        <ToggleGroup type="multiple" className="flex flex-wrap gap-2">
-          <ToggleGroupItem 
-            value="all" 
-            aria-label="전체 피어몰" 
-            className={`px-3 py-1 text-sm rounded-full ${
-              selectedTypes.includes('all') ? 'bg-primary-300 text-white' : 'bg-bg-200 text-text-200'
-            }`}
-          >
-            전체
-          </ToggleGroupItem>
-          <ToggleGroupItem 
-            value="trending" 
-            aria-label="인기 피어몰" 
-            className={`px-3 py-1 text-sm rounded-full ${
-              selectedTypes.includes('trending') ? 'bg-primary-300 text-white' : 'bg-bg-200 text-text-200'
-            }`}
-          >
-            인기 피어몰
-          </ToggleGroupItem>
-          <ToggleGroupItem 
-            value="recent" 
-            aria-label="최근 피어몰" 
-            className={`px-3 py-1 text-sm rounded-full ${
-              selectedTypes.includes('recent') ? 'bg-primary-300 text-white' : 'bg-bg-200 text-text-200'
-            }`}
-          >
-            최근 피어몰
-          </ToggleGroupItem>
-          <ToggleGroupItem 
-            value="recommended" 
-            aria-label="추천 피어몰"
-            className={`px-3 py-1 text-sm rounded-full ${
-              selectedTypes.includes('recommended') ? 'bg-primary-300 text-white' : 'bg-bg-200 text-text-200'
-            }`}
-          >
-            추천 피어몰
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </div>
+      
     </div>
   );
 };
