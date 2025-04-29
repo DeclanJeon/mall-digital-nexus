@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import PeermallGrid from '../components/PeermallGrid';
 import CommunicationWidget from '@/components/CommunicationWidget';
@@ -7,6 +8,9 @@ import ServiceCardsSection from '@/components/ServiceCardsSection';
 import FavoriteServicesSection from '@/components/FavoriteServicesSection';
 import EcosystemMap from '@/components/EcosystemMap';
 import CommunityHighlights from '@/components/CommunityHighlights';
+import CreatePeermall from '@/components/CreatePeermall';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useNavigate } from 'react-router-dom';
 
 interface Peermall {
   title: string;
@@ -26,6 +30,7 @@ interface Peermall {
     lng: number;
     address: string;
   };
+  id?: string; // Added ID for routing
 }
 
 interface Location {
@@ -36,10 +41,39 @@ interface Location {
 }
 
 const Index = () => {
-  const [peermalls, setPeermalls] = useState<Peermall[]>(() => {
-    const storedPeermalls = localStorage.getItem('peermalls');
-    return storedPeermalls ? JSON.parse(storedPeermalls) : [];
-  });
+  const navigate = useNavigate();
+  const [peermalls, setPeermalls] = useState<Peermall[]>([]);
+  const [isMySpacesOpen, setIsMySpacesOpen] = useState(false);
+  const [mySpaces, setMySpaces] = useState<Peermall[]>([]);
+
+  // Load peermalls from localStorage
+  useEffect(() => {
+    const loadFromStorage = () => {
+      try {
+        const storedPeermalls = localStorage.getItem('peermalls');
+        if (storedPeermalls) {
+          const parsedPeermalls = JSON.parse(storedPeermalls);
+          setPeermalls(parsedPeermalls);
+          
+          // Also set my spaces
+          setMySpaces(parsedPeermalls.filter((mall: Peermall) => mall.owner === '나'));
+        }
+      } catch (error) {
+        console.error('Error loading peermalls from localStorage:', error);
+      }
+    };
+    
+    // Initial load
+    loadFromStorage();
+    
+    // Set up event listener for storage changes
+    window.addEventListener('storage', loadFromStorage);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('storage', loadFromStorage);
+    };
+  }, []);
 
   const hashtagOptions: HashtagFilterOption[] = [
     { label: '전체', value: '전체' },
@@ -66,6 +100,11 @@ const Index = () => {
 
   const handleCreateModalOpen = () => setIsCreateModalOpen(true);
   const handleCreateModalClose = () => setIsCreateModalOpen(false);
+
+  // Update filtered malls when peermalls change
+  useEffect(() => {
+    setFilteredMalls(peermalls);
+  }, [peermalls]);
 
   const allLocations = peermalls
     .filter(mall => mall.location)
@@ -106,6 +145,19 @@ const Index = () => {
     setIsMapOpen(false);
   }, []);
 
+  const handleOpenMySpaces = () => {
+    setIsMySpacesOpen(true);
+  };
+
+  const handleCloseMySpaces = () => {
+    setIsMySpacesOpen(false);
+  };
+
+  const handleSelectSpace = (id: string) => {
+    handleCloseMySpaces();
+    navigate(`/space/${id}`);
+  };
+
   const [scrollY, setScrollY] = useState(0);
   const handleScroll = useCallback(() => {
     setScrollY(window.scrollY);
@@ -124,10 +176,14 @@ const Index = () => {
           <section className="mb-8 flex justify-between items-center">
             <FavoriteServicesSection />
           </section>
+          
           <HashtagFilter
             hashtags={hashtagOptions}
             onFilterChange={handleFilterChange}
           />
+          
+          {/* Create Peermall Section */}
+          <CreatePeermall />
           
           <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             <div className="md:col-span-2">
@@ -160,6 +216,44 @@ const Index = () => {
         selectedLocation={selectedLocation}
         allLocations={allLocations}
       />
+
+      {/* My Spaces Dialog */}
+      <Dialog open={isMySpacesOpen} onOpenChange={handleCloseMySpaces}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>내 스페이스</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            {mySpaces.length > 0 ? (
+              mySpaces.map((space) => (
+                <div 
+                  key={space.id}
+                  className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  onClick={() => handleSelectSpace(space.id!)}
+                >
+                  <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden mr-4">
+                    <img 
+                      src={space.imageUrl} 
+                      alt={space.title} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">{space.title}</h3>
+                    <p className="text-sm text-gray-500">{space.type}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">생성된 스페이스가 없습니다.</p>
+                <p className="text-sm text-gray-400 mt-2">새로운 피어몰을 만들어보세요!</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

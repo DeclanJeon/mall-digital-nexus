@@ -23,6 +23,21 @@ const getPeerSpaceConfig = (address: string): PeerMallConfig | null => {
   }
 };
 
+// Function to get peermall details from localStorage
+const getPeermallDetails = (address: string) => {
+  try {
+    const peermalls = localStorage.getItem('peermalls');
+    if (peermalls) {
+      const parsedPeermalls = JSON.parse(peermalls);
+      return parsedPeermalls.find((peermall: any) => peermall.id === address);
+    }
+    return null;
+  } catch (error) {
+    console.error("Error loading peermall details:", error);
+    return null;
+  }
+};
+
 const ContentDetailPage = () => {
   const { address, contentId } = useParams<{ address: string; contentId: string }>();
   const navigate = useNavigate();
@@ -38,11 +53,52 @@ const ContentDetailPage = () => {
       if (storedConfig) {
         setConfig(storedConfig);
       } else {
-        toast({
-          variant: "destructive",
-          title: "설정을 찾을 수 없습니다",
-          description: "피어스페이스 설정을 불러올 수 없습니다.",
-        });
+        // If config doesn't exist, try to get peermall details
+        const peermallDetails = getPeermallDetails(address);
+        
+        if (peermallDetails) {
+          // Create a default config based on peermall details
+          const defaultConfig: PeerMallConfig = {
+            id: address,
+            title: peermallDetails.title,
+            description: peermallDetails.description || '',
+            owner: peermallDetails.owner || '나',
+            peerNumber: `P-${Math.floor(10000 + Math.random() * 90000)}-${Math.floor(1000 + Math.random() * 9000)}`,
+            profileImage: peermallDetails.imageUrl || `https://api.dicebear.com/7.x/personas/svg?seed=${address}`,
+            badges: [],
+            followers: 0,
+            recommendations: 0,
+            level: 1,
+            experience: 0,
+            nextLevelExperience: 100,
+            isVerified: false,
+            skin: 'default',
+            sections: ['hero', 'content', 'community', 'events', 'reviews'],
+            customizations: {
+              primaryColor: '#71c4ef',
+              secondaryColor: '#3B82F6',
+              showChat: true,
+              allowComments: true,
+              showBadges: true,
+            },
+            location: {
+              lat: 37.5665,
+              lng: 126.9780,
+              address: 'Seoul, South Korea'
+            }
+          };
+          
+          setConfig(defaultConfig);
+          
+          // Save this config for future use
+          localStorage.setItem(`peer_space_${address}_config`, JSON.stringify(defaultConfig));
+        } else {
+          toast({
+            variant: "destructive",
+            title: "설정을 찾을 수 없습니다",
+            description: "피어스페이스 설정을 불러올 수 없습니다.",
+          });
+        }
       }
       
       setIsLoading(false);

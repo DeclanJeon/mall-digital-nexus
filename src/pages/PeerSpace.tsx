@@ -20,6 +20,21 @@ const getPeerSpaceConfig = (address: string): PeerMallConfig | null => {
   }
 };
 
+// Function to get peermall details from localStorage
+const getPeermallDetails = (address: string) => {
+  try {
+    const peermalls = localStorage.getItem('peermalls');
+    if (peermalls) {
+      const parsedPeermalls = JSON.parse(peermalls);
+      return parsedPeermalls.find((peermall: any) => peermall.id === address);
+    }
+    return null;
+  } catch (error) {
+    console.error("Error loading peermall details:", error);
+    return null;
+  }
+};
+
 // Function to save PeerSpace configuration to localStorage
 const savePeerSpaceConfig = (address: string, config: PeerMallConfig): void => {
   try {
@@ -46,39 +61,78 @@ const PeerSpace = () => {
         if (storedConfig) {
           setConfig(storedConfig);
         } else {
-          // Create default configuration if none exists
-          const defaultConfig: PeerMallConfig = {
-            id: address,
-            title: '내 피어스페이스',
-            description: '나만의 공간을 구성해보세요',
-            owner: '나',
-            peerNumber: `P-${Math.floor(10000 + Math.random() * 90000)}-${Math.floor(1000 + Math.random() * 9000)}`,
-            profileImage: 'https://api.dicebear.com/7.x/personas/svg?seed=' + address,
-            badges: [],
-            followers: 0,
-            recommendations: 0,
-            level: 1,
-            experience: 0,
-            nextLevelExperience: 100,
-            isVerified: false,
-            skin: 'default',
-            sections: ['hero', 'content', 'community', 'events', 'reviews'],
-            customizations: {
-              primaryColor: '#71c4ef',
-              secondaryColor: '#3B82F6',
-              showChat: true,
-              allowComments: true,
-              showBadges: true,
-            },
-            location: {
-              lat: 37.5665,
-              lng: 126.9780,
-              address: 'Seoul, South Korea'
-            }
-          };
+          // If config doesn't exist, try to load from peermall details
+          const peermallDetails = getPeermallDetails(address);
           
-          setConfig(defaultConfig);
-          savePeerSpaceConfig(address, defaultConfig);
+          if (peermallDetails) {
+            // Create a default config from peermall details
+            const defaultConfig: PeerMallConfig = {
+              id: address,
+              title: peermallDetails.title || '내 피어스페이스',
+              description: peermallDetails.description || '나만의 공간을 구성해보세요',
+              owner: peermallDetails.owner || '나',
+              peerNumber: `P-${Math.floor(10000 + Math.random() * 90000)}-${Math.floor(1000 + Math.random() * 9000)}`,
+              profileImage: peermallDetails.imageUrl || 'https://api.dicebear.com/7.x/personas/svg?seed=' + address,
+              badges: [],
+              followers: 0,
+              recommendations: 0,
+              level: 1,
+              experience: 0,
+              nextLevelExperience: 100,
+              isVerified: false,
+              skin: 'default',
+              sections: ['hero', 'content', 'community', 'events', 'reviews', 'infoHub', 'map', 'trust', 'relatedMalls', 'activityFeed', 'liveCollaboration'],
+              customizations: {
+                primaryColor: '#71c4ef',
+                secondaryColor: '#3B82F6',
+                showChat: true,
+                allowComments: true,
+                showBadges: true,
+              },
+              location: peermallDetails.location || {
+                lat: 37.5665,
+                lng: 126.9780,
+                address: 'Seoul, South Korea'
+              }
+            };
+            
+            setConfig(defaultConfig);
+            savePeerSpaceConfig(address, defaultConfig);
+          } else {
+            // If no details found, create a completely new default config
+            const defaultConfig: PeerMallConfig = {
+              id: address,
+              title: '내 피어스페이스',
+              description: '나만의 공간을 구성해보세요',
+              owner: '나',
+              peerNumber: `P-${Math.floor(10000 + Math.random() * 90000)}-${Math.floor(1000 + Math.random() * 9000)}`,
+              profileImage: 'https://api.dicebear.com/7.x/personas/svg?seed=' + address,
+              badges: [],
+              followers: 0,
+              recommendations: 0,
+              level: 1,
+              experience: 0,
+              nextLevelExperience: 100,
+              isVerified: false,
+              skin: 'default',
+              sections: ['hero', 'content', 'community', 'events', 'reviews', 'infoHub', 'map', 'trust', 'relatedMalls', 'activityFeed', 'liveCollaboration'],
+              customizations: {
+                primaryColor: '#71c4ef',
+                secondaryColor: '#3B82F6',
+                showChat: true,
+                allowComments: true,
+                showBadges: true,
+              },
+              location: {
+                lat: 37.5665,
+                lng: 126.9780,
+                address: 'Seoul, South Korea'
+              }
+            };
+            
+            setConfig(defaultConfig);
+            savePeerSpaceConfig(address, defaultConfig);
+          }
         }
       }
       setIsLoading(false);

@@ -25,10 +25,31 @@ const PeerSpaceHero: React.FC<PeerSpaceHeroProps> = ({
     if (onFollow) {
       onFollow();
     } else {
-      toast({
-        title: "팔로우 완료",
-        description: `${config.owner}님을 팔로우합니다.`,
-      });
+      // Default follow functionality if none provided
+      // Update in localStorage
+      try {
+        const key = `peer_space_${config.id}_config`;
+        const updatedConfig = {
+          ...config,
+          followers: config.followers + 1
+        };
+        localStorage.setItem(key, JSON.stringify(updatedConfig));
+        
+        toast({
+          title: "팔로우 완료",
+          description: `${config.owner}님을 팔로우합니다.`,
+        });
+        
+        // Refresh the page to show updated counts
+        window.location.reload();
+      } catch (error) {
+        console.error('Error updating followers:', error);
+        toast({
+          variant: "destructive",
+          title: "오류 발생",
+          description: "팔로우 처리 중 오류가 발생했습니다.",
+        });
+      }
     }
   };
   
@@ -36,10 +57,71 @@ const PeerSpaceHero: React.FC<PeerSpaceHeroProps> = ({
     if (onAddRecommendation) {
       onAddRecommendation();
     } else {
-      toast({
-        title: "추천 완료",
-        description: "해당 피어스페이스를 추천하였습니다.",
-      });
+      // Default recommendation functionality if none provided
+      // Update in localStorage
+      try {
+        const key = `peer_space_${config.id}_config`;
+        const updatedConfig = {
+          ...config,
+          recommendations: config.recommendations + 1
+        };
+        localStorage.setItem(key, JSON.stringify(updatedConfig));
+        
+        toast({
+          title: "추천 완료",
+          description: "해당 피어스페이스를 추천하였습니다.",
+        });
+        
+        // Refresh the page to show updated counts
+        window.location.reload();
+      } catch (error) {
+        console.error('Error updating recommendations:', error);
+        toast({
+          variant: "destructive",
+          title: "오류 발생",
+          description: "추천 처리 중 오류가 발생했습니다.",
+        });
+      }
+    }
+  };
+
+  // Handle badge addition
+  const handleAddBadgeClick = (badge: string) => {
+    if (onAddBadge) {
+      onAddBadge(badge);
+    } else {
+      // Default badge functionality if none provided
+      if (!config.badges.includes(badge)) {
+        try {
+          const key = `peer_space_${config.id}_config`;
+          const updatedConfig = {
+            ...config,
+            badges: [...config.badges, badge]
+          };
+          localStorage.setItem(key, JSON.stringify(updatedConfig));
+          
+          toast({
+            title: "뱃지 추가 완료",
+            description: "뱃지가 성공적으로 추가되었습니다.",
+          });
+          
+          // Refresh the page to show updated badges
+          window.location.reload();
+        } catch (error) {
+          console.error('Error adding badge:', error);
+          toast({
+            variant: "destructive",
+            title: "오류 발생",
+            description: "뱃지 추가 중 오류가 발생했습니다.",
+          });
+        }
+      } else {
+        toast({
+          title: "이미 추가된 뱃지",
+          description: "이미 추가한 뱃지입니다.",
+          variant: "destructive",
+        });
+      }
     }
   };
   
@@ -75,6 +157,9 @@ const PeerSpaceHero: React.FC<PeerSpaceHeroProps> = ({
       default: return "bg-gray-500/20 text-gray-500 hover:bg-gray-500/30";
     }
   };
+
+  // Available badges to add
+  const availableBadges = ['trusted', 'recommended', 'favorite', 'topRated', 'premium'];
   
   return (
     <section 
@@ -109,7 +194,7 @@ const PeerSpaceHero: React.FC<PeerSpaceHeroProps> = ({
             {config.description}
           </p>
           
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 mb-4">
             <Button className="bg-white text-blue-700 hover:bg-white/90">
               둘러보기
             </Button>
@@ -139,6 +224,25 @@ const PeerSpaceHero: React.FC<PeerSpaceHeroProps> = ({
               </>
             )}
           </div>
+          
+          {/* Badge Selection for Visitors */}
+          {!isOwner && (
+            <div className="mt-4">
+              <p className="text-sm text-white/70 mb-2">뱃지 주기:</p>
+              <div className="flex flex-wrap gap-2">
+                {availableBadges.filter(badge => !config.badges.includes(badge)).map((badge) => (
+                  <Badge 
+                    key={badge}
+                    className={`cursor-pointer border-none hover:bg-white/30 flex items-center ${getBadgeColor(badge)}`}
+                    onClick={() => handleAddBadgeClick(badge)}
+                  >
+                    {getBadgeIcon(badge)}
+                    + {getBadgeLabel(badge)}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
       

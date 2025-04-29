@@ -4,20 +4,74 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Search, Bell, Menu, X, User, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CreatePeermallModal from '@/components/CreatePeermallModal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+interface Peermall {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  imageUrl: string;
+  owner: string;
+}
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isMySpacesOpen, setIsMySpacesOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [mySpaces, setMySpaces] = useState<Peermall[]>([]);
   const navigate = useNavigate();
 
   const handleCreateModalOpen = () => setIsCreateModalOpen(true);
   const handleCreateModalClose = () => setIsCreateModalOpen(false);
+  
+  const handleOpenMySpaces = () => {
+    loadMySpaces();
+    setIsMySpacesOpen(true);
+  };
+  
+  const handleCloseMySpaces = () => {
+    setIsMySpacesOpen(false);
+  };
+
+  // Load my spaces from localStorage
+  const loadMySpaces = () => {
+    try {
+      const storedPeermalls = localStorage.getItem('peermalls');
+      if (storedPeermalls) {
+        const allPeermalls = JSON.parse(storedPeermalls);
+        const filteredSpaces = allPeermalls.filter((mall: Peermall) => mall.owner === '나');
+        setMySpaces(filteredSpaces);
+      }
+    } catch (error) {
+      console.error('Error loading my spaces from localStorage:', error);
+    }
+  };
+
+  const handleSelectSpace = (id: string) => {
+    handleCloseMySpaces();
+    navigate(`/space/${id}`);
+  };
+
+  // Handle successful peermall creation
+  const handleCreateSuccess = (peermallData: { name: string; type: string; id: string }) => {
+    // Close modal
+    handleCreateModalClose();
+    
+    // Navigate to the new peermall
+    navigate(`/space/${peermallData.id}`);
+  };
 
   useEffect(() => {
     // Check if user is logged in using localStorage
     const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
     setIsLoggedIn(userLoggedIn);
+    
+    // Initial load of my spaces
+    if (userLoggedIn) {
+      loadMySpaces();
+    }
   }, []);
 
   const toggleMenu = () => {
@@ -63,7 +117,12 @@ const Header = () => {
             <Link to="/community" className="text-text-200 hover:text-primary-300">커뮤니티</Link>
             {isLoggedIn && (
               <>
-                <Link to="/space" className="text-accent-200 hover:text-accent-100">내 스페이스</Link>
+                <button 
+                  onClick={handleOpenMySpaces}
+                  className="text-accent-200 hover:text-accent-100"
+                >
+                  내 스페이스
+                </button>
                 <button 
                   onClick={() => setIsCreateModalOpen(true)}
                   className="ml-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
@@ -92,7 +151,12 @@ const Header = () => {
                 {isMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
                     <Link to="/my-info" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 정보</Link>
-                    <Link to="/space" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 스페이스</Link>
+                    <button 
+                      onClick={handleOpenMySpaces}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      내 스페이스
+                    </button>
                     <button 
                       onClick={handleLogout}
                       className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -145,7 +209,12 @@ const Header = () => {
               <Link to="/community" className="py-2 text-text-200 hover:text-primary-300">커뮤니티</Link>
               {isLoggedIn && (
                 <>
-                  <Link to="/space" className="py-2 text-accent-200 hover:text-accent-100">내 스페이스</Link>
+                  <button 
+                    onClick={handleOpenMySpaces}
+                    className="py-2 text-left text-accent-200 hover:text-accent-100"
+                  >
+                    내 스페이스
+                  </button>
                   <button 
                     onClick={handleCreateModalOpen}
                     className="py-2 text-left text-accent-200 hover:text-accent-100"
@@ -183,9 +252,49 @@ const Header = () => {
           </div>
         </div>
       )}
+      
+      {/* My Spaces Dialog */}
+      <Dialog open={isMySpacesOpen} onOpenChange={handleCloseMySpaces}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>내 스페이스</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            {mySpaces.length > 0 ? (
+              mySpaces.map((space) => (
+                <div 
+                  key={space.id}
+                  className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  onClick={() => handleSelectSpace(space.id)}
+                >
+                  <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden mr-4">
+                    <img 
+                      src={space.imageUrl} 
+                      alt={space.title} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">{space.title}</h3>
+                    <p className="text-sm text-gray-500">{space.type}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">생성된 스페이스가 없습니다.</p>
+                <p className="text-sm text-gray-400 mt-2">새로운 피어몰을 만들어보세요!</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+      
       <CreatePeermallModal 
         isOpen={isCreateModalOpen}
         onClose={handleCreateModalClose}
+        onSuccess={handleCreateSuccess}
       />
     </header>
   );
