@@ -1,67 +1,90 @@
-
-import { Content } from "@/components/peer-space/types";
-
-// Key prefix for localStorage
-const PEER_SPACE_CONTENT_KEY = "peer_space";
-
-/**
- * Get storage key for specific peer space address
- */
-export const getPeerSpaceStorageKey = (address: string): string => {
-  return `${PEER_SPACE_CONTENT_KEY}_${address}_contents`;
-};
+import { Content } from '@/components/peer-space/types';
+import {
+  createContent,
+  updateContent,
+  deleteContent,
+} from '@/services/contentService';
+import { STORES, getDB, getPeerSpaceContentsFromDB } from '@/utils/indexedDB';
 
 /**
- * Get all content items for a peer space
+ * Get all content items for a peer space from IndexedDB
  */
-export const getPeerSpaceContents = (address: string): Content[] => {
+export const getPeerSpaceContents = async (
+  address: string
+): Promise<Content[]> => {
   try {
-    const storageKey = getPeerSpaceStorageKey(address);
-    const storedData = localStorage.getItem(storageKey);
-    
-    if (!storedData) {
-      return [];
-    }
-    
-    return JSON.parse(storedData) as Content[];
+    return await getPeerSpaceContentsFromDB(address);
   } catch (error) {
-    console.error("Failed to load peer space contents:", error);
+    console.error('Failed to load peer space contents from IndexedDB:', error);
     return [];
   }
 };
 
 /**
- * Save content items for a peer space
+ * Save content items to IndexedDB (individual upsert)
  */
-export const savePeerSpaceContents = (address: string, contents: Content[]): void => {
+export const savePeerSpaceContent = async (
+  address: string,
+  content: Content
+): Promise<void> => {
   try {
-    const storageKey = getPeerSpaceStorageKey(address);
-    localStorage.setItem(storageKey, JSON.stringify(contents));
+    if (content.id) {
+      await updateContent(content.id, content);
+    } else {
+      const { id, ...rest } = content;
+      await createContent({
+        ...rest,
+        peerSpaceAddress: address,
+      });
+    }
   } catch (error) {
-    console.error("Failed to save peer space contents:", error);
+    console.error('Failed to save peer space content to IndexedDB:', error);
   }
 };
 
 /**
- * Add a new content item to a peer space
+ * Delete a content item from IndexedDB
  */
-export const addPeerSpaceContent = (address: string, content: Omit<Content, "id">): Content => {
-  const contents = getPeerSpaceContents(address);
-  
-  const newContent: Content = {
-    ...content,
-    id: `content-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-  };
-  
-  savePeerSpaceContents(address, [...contents, newContent]);
-  return newContent;
+export const deletePeerSpaceContent = async (
+  address: string,
+  contentId: string
+): Promise<void> => {
+  try {
+    await deleteContent(contentId);
+  } catch (error) {
+    console.error('Failed to delete peer space content from IndexedDB:', error);
+  }
 };
 
 /**
- * Delete a content item from a peer space
+ * Add a new content item to IndexedDB
  */
-export const deletePeerSpaceContent = (address: string, contentId: string): void => {
-  const contents = getPeerSpaceContents(address);
-  const updatedContents = contents.filter(content => content.id !== contentId);
-  savePeerSpaceContents(address, updatedContents);
+export const addPeerSpaceContent = async (
+  address: string,
+  content: Omit<Content, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<Content> => {
+  try {
+    const newContentId = await createContent({
+      ...content,
+      peerSpaceAddress: address,
+    });
+
+    // Get the newly created content with proper ID
+    const newContent = await getPeerSpaceContentsFromDB(address).then(
+      (contents) => contents.find((c) => c.id === newContentId)
+    );
+
+    return (
+      newContent || {
+        ...content,
+        id: newContentId,
+        peerSpaceAddress: address,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+    );
+  } catch (error) {
+    console.error('Failed to add peer space content to IndexedDB:', error);
+    throw error;
+  }
 };

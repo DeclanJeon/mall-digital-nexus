@@ -14,22 +14,109 @@ export type ContentType =
   | 'course'
   | 'workshop'
   | 'challenge'
-  | 'tool';
+  | 'tool'
+  | 'external'; // Added 'external' to match the type used in PeerSpaceHome.tsx
+
+export interface PeerMallConfig {
+  owner: string;
+  title: string;
+  description: string;
+  followers: number;
+  recommendations: number;
+  badges: string[];
+  location?: {
+    lat: number;
+    lng: number;
+    address: string;
+  };
+  sections: SectionType[];
+}
+
+export interface PeerSpaceContent {
+  id: string;
+  peerSpaceAddress: string;
+  title: string;
+  description: string;
+  imageUrl?: string;
+  type: ContentType;
+  date: string;
+  price?: number;
+  likes: number;
+  comments: number;
+  views: number;
+  saves: number;
+  externalUrl?: string;
+  tags?: string[];
+  category?: string;
+  badges?: string[];
+  ecosystem?: {
+    manufacturer?: string;
+    supplier?: string;
+    relatedExperts?: string[];
+  };
+  attributes?: {
+    [key: string]: string | number | boolean;
+  };
+  createdAt: string;
+  updatedAt: string;
+  isExternal?: boolean;
+  source?: string;
+  sourceType?: string;
+  rating?: number;
+  completion?: number;
+  participants?: number;
+  maxParticipants?: number;
+}
+
+export type SectionType =
+  | 'hero'
+  | 'content'
+  | 'community'
+  | 'liveCollaboration'
+  | 'livestream'
+  | 'infoHub'
+  | 'map'
+  | 'introduction'
+  | 'advertising'
+  | 'reviews'
+  | 'quests'
+  | 'events'
+  | 'guestbook'
+  | 'trust'
+  | 'qrCodeList'
+  | 'support'
+  | 'relatedMalls'
+  | 'activityFeed'
+  | 'liveCollaboration';
 
 export interface Content {
   id: string;
+  peerSpaceAddress: string;
   title: string;
   description: string;
-  imageUrl: string;
+  imageUrl?: string;
   type: ContentType;
-  date?: string;
-  price?: string;
-  likes?: number;
-  comments?: number;
-  saves?: number;
-  views?: number;
-  isExternal?: boolean;
+  date: string;
+  price?: number;
+  likes: number;
+  comments: number;
+  views: number;
+  saves: number;
   externalUrl?: string;
+  tags?: string[];
+  category?: string;
+  badges?: string[];
+  ecosystem?: {
+    manufacturer?: string;
+    supplier?: string;
+    relatedExperts?: string[];
+  };
+  attributes?: {
+    [key: string]: string | number | boolean;
+  };
+  createdAt: string;
+  updatedAt: string;
+  isExternal?: boolean;
   source?: string;
   sourceType?: string;
   rating?: number;
@@ -217,24 +304,3 @@ export interface QRCode {
   url: string;
   imageUrl?: string;
 }
-
-export type SectionType =
-  | 'hero'
-  | 'content'
-  | 'community'
-  | 'liveCollaboration'
-  | 'livestream'
-  | 'infoHub'
-  | 'map'
-  | 'introduction'
-  | 'advertising'
-  | 'reviews'
-  | 'quests'
-  | 'events'
-  | 'guestbook'
-  | 'trust'
-  | 'qrCodeList'
-  | 'support'
-  | 'relatedMalls'
-  | 'activityFeed'
-  | 'liveCollaboration';

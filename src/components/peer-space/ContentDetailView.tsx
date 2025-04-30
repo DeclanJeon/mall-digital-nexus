@@ -33,7 +33,7 @@ import { toast } from '@/hooks/use-toast';
 import { Content, ContentType, PeerMallConfig, Review } from './types';
 import { 
   getPeerSpaceContents, 
-  savePeerSpaceContents,
+  savePeerSpaceContent,
   deletePeerSpaceContent 
 } from '@/utils/peerSpaceStorage';
 import { generateRandomReviews } from '@/utils/contentHelper';
@@ -81,42 +81,49 @@ const ContentDetailView: React.FC<ContentDetailViewProps> = ({ address, config, 
     ]
   };
 
-  useEffect(() => {
-    if (contentId && address) {
-      const allContents = getPeerSpaceContents(address);
-      const foundContent = allContents.find(item => item.id === contentId);
-      
-      if (foundContent) {
-        setContent(foundContent);
-        
-        // Find related contents (same type or by some other relation)
-        const related = allContents
-          .filter(item => item.id !== contentId && item.type === foundContent.type)
-          .slice(0, 4);
-        setRelatedContents(related);
-        
-        // Generate or load reviews
-        const generatedReviews = generateRandomReviews(contentId, 5);
-        setReviews(generatedReviews);
-        
-        // Calculate average rating
-        setAverageRating(getAverageRating(generatedReviews));
-      } else {
-        // Content not found
-        toast({
-          variant: "destructive",
-          title: "콘텐츠를 찾을 수 없습니다.",
-          description: "존재하지 않거나 삭제된 콘텐츠입니다."
-        });
-        navigate(`/space/${address}`);
-      }
+    useEffect(() => {
+      if (contentId && address) {
+        (async () => {
+          const allContents = await getPeerSpaceContents(address);
+          const foundContent = allContents.find(item => item.id === contentId);
+          
+          if (foundContent) {
+            setContent(foundContent);
+            
+    // Find related contents (same type or by some other relation)
+    const related = allContents
+      .filter(item => item.id !== contentId && item.type === foundContent.type)
+      .slice(0, 4);
+    setRelatedContents(related);
+            
+    // Generate or load reviews
+    const generatedReviews = await generateRandomReviews(contentId, 5);
+    setReviews(generatedReviews);
+    
+    // Calculate average rating
+    if (generatedReviews.length > 0) {
+      setAverageRating(getAverageRating(generatedReviews));
     }
-  }, [contentId, address, navigate]);
+            
+            // Calculate average rating
+            setAverageRating(getAverageRating(generatedReviews));
+          } else {
+            // Content not found
+            toast({
+              variant: "destructive",
+              title: "콘텐츠를 찾을 수 없습니다.",
+              description: "존재하지 않거나 삭제된 콘텐츠입니다."
+            });
+            navigate(`/space/${address}`);
+          }
+        })();
+      }
+    }, [contentId, address, navigate]);
 
-  const handleEditContent = (updatedContent: Content) => {
+  const handleEditContent = async (updatedContent: Content) => {
     if (!contentId || !address) return;
     
-    const allContents = getPeerSpaceContents(address);
+    const allContents = await getPeerSpaceContents(address);
     const updatedContents = allContents.map(item => {
       if (item.id === contentId) {
         return { ...updatedContent, id: contentId };
@@ -124,7 +131,7 @@ const ContentDetailView: React.FC<ContentDetailViewProps> = ({ address, config, 
       return item;
     });
     
-    savePeerSpaceContents(address, updatedContents);
+    await savePeerSpaceContent(address, updatedContent);
     setContent(updatedContent);
     setIsEditModalOpen(false);
     
@@ -183,13 +190,13 @@ const ContentDetailView: React.FC<ContentDetailViewProps> = ({ address, config, 
     });
   };
 
-  const handleToggleLike = () => {
+  const handleToggleLike = async () => {
     if (!content || !contentId || !address) return;
     
     const newLikeStatus = !isLiked;
     setIsLiked(newLikeStatus);
     
-    const allContents = getPeerSpaceContents(address);
+    const allContents = await getPeerSpaceContents(address);
     const updatedContents = allContents.map(item => {
       if (item.id === contentId) {
         const currentLikes = item.likes || 0;
@@ -201,10 +208,13 @@ const ContentDetailView: React.FC<ContentDetailViewProps> = ({ address, config, 
       return item;
     });
     
-    savePeerSpaceContents(address, updatedContents);
+    // savePeerSpaceContent(address, updatedContents);
     
+    //  이거 리팩토링해야됨
     // Update local content state
     if (content) {
+      const updatedContent = updatedContents.find(item => item.id === contentId);
+      await savePeerSpaceContent(address, updatedContent);
       const currentLikes = content.likes || 0;
       setContent({
         ...content,
@@ -263,7 +273,8 @@ const ContentDetailView: React.FC<ContentDetailViewProps> = ({ address, config, 
       'course': '코스',
       'workshop': '워크샵',
       'challenge': '챌린지',
-      'tool': '도구'
+      'tool': '도구',
+      'external': '외부'
     };
     
     return typeMapping[type] || type;

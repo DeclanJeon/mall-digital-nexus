@@ -3,9 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { Content, PeerMallConfig, SectionType } from './types';
+import { Content, ContentType, PeerMallConfig, SectionType } from './types';
 import { Heart, MessageSquare, Share2, QrCode, Award, ThumbsUp, Settings } from 'lucide-react';
-import { getPeerSpaceContents, savePeerSpaceContents } from '@/utils/peerSpaceStorage';
+import { createContent, updateContent } from '@/services/contentService';
+import { getPeerSpaceContents, savePeerSpaceContent } from '@/utils/peerSpaceStorage';
 import PeerSpaceHeader from './PeerSpaceHeader';
 import PeerSpaceHero from './PeerSpaceHero';
 import PeerSpaceContentSection from './PeerSpaceContentSection';
@@ -75,21 +76,28 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   const { activeTab, handleTabChange, filterContentByTab } = usePeerSpaceTabs('featured');
 
   useEffect(() => {
-    if (address) {
-      // Load contents from localStorage based on the address
-      const loadedContents = getPeerSpaceContents(address);
-      setContents(loadedContents);
-      
-      // Load section order from localStorage
-      const storedSections = getSectionOrder(address, config.sections);
-      setSections(storedSections);
-      
-      // Load hidden sections from localStorage
-      const storedHiddenSections = localStorage.getItem(`peer_space_${address}_hidden_sections`);
-      if (storedHiddenSections) {
-        setHiddenSections(JSON.parse(storedHiddenSections));
+    const loadContents = async () => {
+      if (address) {
+        try {
+          // Load contents from localStorage based on the address
+          const loadedContents = await getPeerSpaceContents(address);
+          setContents(loadedContents);
+          
+          // Load section order from localStorage
+          const storedSections = getSectionOrder(address, config.sections);
+          setSections(storedSections);
+          
+          // Load hidden sections from localStorage
+          const storedHiddenSections = localStorage.getItem(`peer_space_${address}_hidden_sections`);
+          if (storedHiddenSections) {
+            setHiddenSections(JSON.parse(storedHiddenSections));
+          }
+        } catch (error) {
+          console.error("Error loading contents:", error);
+        }
       }
-    }
+    };
+    loadContents();
   }, [address, config.sections]);
 
   // Persist hidden sections to localStorage whenever they change
@@ -99,43 +107,74 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
     }
   }, [hiddenSections, address]);
 
-  const handleAddContent = (formValues: ContentFormValues) => {
+  const handleAddContent = async (formValues: ContentFormValues) => {
     if (!address) return;
 
     const now = new Date().toISOString();
     
     // Create a new content object
-    const newContent: Content = {
-      id: `content-${Date.now()}`,
-      title: formValues.title,
-      description: formValues.description,
-      imageUrl: formValues.imageUrl,
-      type: formValues.type,
-      date: now,
-      price: formValues.price,
-      likes: 0,
-      comments: 0,
-      views: 0,
-      saves: 0,
-    };
+      const newContent: Omit<Content, 'id' | 'createdAt' | 'updatedAt'> = {
+        peerSpaceAddress: address,
+        title: formValues.title,
+        description: formValues.description,
+        imageUrl: formValues.imageUrl || '',
+        type: formValues.type as ContentType,
+        date: now,
+        price: formValues.price ? Number(formValues.price) : 0,
+        likes: 0,
+        comments: 0,
+        views: 0,
+        saves: 0,
+        externalUrl: '',
+        tags: [],
+        category: '',
+        badges: [],
+        ecosystem: {},
+        attributes: {},
+      };
     
-    // Add the new content and update state
-    const updatedContents = [...contents, newContent];
-    setContents(updatedContents);
-    
-    // Save to localStorage
-    savePeerSpaceContents(address, updatedContents);
-    
-    toast({
-      title: "콘텐츠 추가 완료",
-      description: "새로운 콘텐츠가 성공적으로 등록되었습니다.",
-    });
+    try {
+      // Create content using service with explicit type assertion
+      const contentId = await createContent(newContent);
+      
+      // Add the new content and update state
+      const updatedContent: Content = {
+        ...newContent,
+        id: contentId,
+        likes: 0,
+        comments: 0,
+        views: 0,
+        saves: 0,
+        createdAt: '',
+        updatedAt: ''
+      };
+      
+      const updatedContents = [...contents, updatedContent];
+      setContents(updatedContents as Content[]);
+      
+      toast({
+        title: "콘텐츠 추가 완료",
+        description: "새로운 콘텐츠가 성공적으로 등록되었습니다.",
+      });
+    } catch (error) {
+      console.error("콘텐츠 생성 오류:", error);
+      toast({
+        title: "콘텐츠 추가 실패",
+        description: "콘텐츠 등록 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleProductAdded = (product: Content) => {
     // Add the product and update state
-    const updatedContents = [...contents, product];
-    setContents(updatedContents);
+    const updatedContents = [...contents, {
+      ...product,
+      peerSpaceAddress: address,
+      createdAt: product.createdAt || new Date().toISOString(),
+      updatedAt: product.updatedAt || new Date().toISOString()
+    }];
+    setContents(updatedContents as Content[]);
     
     // Close product form dialog
     setShowProductForm(false);
@@ -398,14 +437,14 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         return (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div className="lg:col-span-3">
-              <PeerSpaceTabs
-                activeTab={activeTab}
-                onTabChange={handleTabChange}
-                featuredContent={contents}
-                isOwner={isOwner}
-                onAddContent={handleShowProductForm}
-                onContentClick={handleContentClick}
-              />
+          <PeerSpaceTabs
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            featuredContent={contents as Content[]}
+            isOwner={isOwner}
+            onAddContent={handleShowProductForm}
+            onContentClick={handleContentClick}
+          />
             </div>
             {!hiddenSections.includes('activityFeed') && (
               <div className="lg:col-span-1">
