@@ -41,7 +41,7 @@ export const initDatabase = (): Promise<IDBDatabase> => {
   }
 
   dbPromise = new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    const request = indexedDB.open(DB_NAME, 3); // 버전을 명시적으로 3으로 설정
 
     request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
       const db = (event.target as IDBOpenDBRequest).result;
@@ -140,6 +140,15 @@ function createInitialStores(db: IDBDatabase) {
     contentsStore.createIndex('by_peerSpace', 'peerSpaceAddress', {
       unique: false,
     });
+    contentsStore.createIndex('by_type', 'type', { unique: false });
+    contentsStore.createIndex('by_tags', 'tags', {
+      unique: false,
+      multiEntry: true,
+    });
+    contentsStore.createIndex('by_date', 'date', { unique: false });
+    contentsStore.createIndex('by_status', 'status', { unique: false });
+    contentsStore.createIndex('by_price', 'price', { unique: false });
+    contentsStore.createIndex('by_category', 'category', { unique: false });
     contentsStore.createIndex('by_type', 'type', { unique: false });
     contentsStore.createIndex('by_tags', 'tags', {
       unique: false,

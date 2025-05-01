@@ -29,6 +29,7 @@ import PeerSpaceTabs from './PeerSpaceTabs';
 import GuestbookSection from './GuestbookSection';
 import QuestEventSection from './QuestEventSection';
 import { Link } from 'react-router-dom';
+import { add } from '@/utils/indexedDBService';
 
 interface PeerSpaceHomeProps {
   isOwner: boolean;
@@ -166,7 +167,15 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
     }
   };
 
-  const handleProductAdded = (product: Content) => {
+  const handleProductAdded = async (product: Content) => {
+    // Save to IndexedDB
+    await add('products', {
+      ...product,
+      peerSpaceAddress: address,
+      createdAt: product.createdAt || new Date().toISOString(),
+      updatedAt: product.updatedAt || new Date().toISOString()
+    });
+    
     // Add the product and update state
     const updatedContents = [...contents, {
       ...product,

@@ -6,11 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import CreatePeermallModal from './CreatePeermallModal';
 import { toast } from '@/hooks/use-toast';
 
-interface CreatePeermallProps {
-  // Add any props if needed
-}
-
-const CreatePeermall: React.FC<CreatePeermallProps> = () => {
+const CreatePeermall = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
   
@@ -58,44 +54,7 @@ const CreatePeermall: React.FC<CreatePeermallProps> = () => {
 
   return (
     <>
-      <section className="my-12 bg-white shadow-md rounded-lg overflow-hidden">
-        <div className="grid md:grid-cols-2">
-          <div className="bg-primary-100 p-8">
-            <h2 className="text-3xl font-bold mb-4">나만의 피어몰을<br />시작하세요</h2>
-            <p className="text-text-200 mb-6">맞춤형 온라인 홈페이지를 생성하고 관리하여 제품과 콘텐츠를 공유하세요.</p>
-            
-            <Button 
-              onClick={openModal}
-              className="btn-accent flex items-center mb-6"
-            >
-              <Store className="h-5 w-5 mr-2" />
-              피어몰 만들기
-            </Button>
-            
-            <a href="#" className="story-link text-accent-200 flex items-center">
-              가이드 보기
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </a>
-          </div>
-          
-          <div className="p-8">
-            <h3 className="text-xl font-bold mb-4">간단한 4단계 프로세스</h3>
-            <div className="space-y-4">
-              {steps.map((step, index) => (
-                <div key={index} className="flex items-start">
-                  <div className="bg-bg-100 p-2 rounded-full mr-4">
-                    {step.icon}
-                  </div>
-                  <div>
-                    <h4 className="font-bold">{`${index + 1}. ${step.title}`}</h4>
-                    <p className="text-sm text-text-200">{step.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      
       
       <CreatePeermallModal 
         isOpen={isModalOpen} 

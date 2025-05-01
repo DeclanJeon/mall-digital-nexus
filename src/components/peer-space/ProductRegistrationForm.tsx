@@ -72,6 +72,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Content, ContentType } from './types';
 import { addPeerSpaceContent } from "@/utils/peerSpaceStorage";
+import { add } from "@/utils/indexedDBService";
 import { QRCodeSVG } from 'qrcode.react';
 import ProductRegistrationPreview from "./ProductRegistrationPreview";
 
@@ -247,18 +248,22 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
 
   // Handle form submission
   const onSubmit = async (values: ProductFormValues) => {
+
+    console.log("submit check : ", values)
+
     setIsSubmitting(true);
     
     try {
       // Create the content object
       const newProduct: Content = {
         id: `product-${Date.now()}`,
+        peerSpaceAddress: address,
         title: values.name,
         description: values.description || '',
         imageUrl: values.imageUrl,
         type: 'product' as ContentType,
         date: new Date().toISOString(),
-        price: values.price,
+        price: Number(values.price),
         likes: 0,
         comments: 0,
         views: 0,
@@ -266,11 +271,20 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
         isExternal: !!values.saleUrl,
         externalUrl: values.saleUrl,
         source: values.manufacturer || 'Direct',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
       
       // Add the product to storage and notify parent component
-      const addedProduct = addPeerSpaceContent(address, newProduct);
-      onProductAdded(addedProduct);
+      const content: Content = {
+        ...newProduct,
+        peerSpaceAddress: address,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      await addPeerSpaceContent(address, content);
+      onProductAdded(content);
       
       toast({
         title: "상품이 성공적으로 등록되었습니다",
@@ -950,7 +964,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                         type="submit"
                         className="flex-1"
                         size="lg"
-                        disabled={isSubmitting}
+                        
                       >
                         {isSubmitting ? (
                           <>

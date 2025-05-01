@@ -5,7 +5,7 @@ import { DB_NAME, DB_VERSION, STORES } from './indexedDB';
 // 데이터베이스 연결 가져오기
 export const getDBConnection = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION); // DB 버전 명시 추가
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onsuccess = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
