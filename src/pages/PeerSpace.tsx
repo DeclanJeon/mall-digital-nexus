@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import PeerSpaceHome from '@/components/peer-space/PeerSpaceHome';
@@ -79,6 +80,7 @@ const PeerSpace = () => {
               experience: 0,
               nextLevelExperience: 100,
               isVerified: false,
+              skin: 'default',
               sections: ['hero', 'content', 'community', 'events', 'reviews', 'infoHub', 'map', 'trust', 'relatedMalls', 'activityFeed', 'liveCollaboration'],
               customizations: {
                 primaryColor: '#71c4ef',
@@ -87,7 +89,7 @@ const PeerSpace = () => {
                 allowComments: true,
                 showBadges: true,
               },
-              location: {
+              location: peermallDetails.location || {
                 lat: 37.5665,
                 lng: 126.9780,
                 address: 'Seoul, South Korea'
@@ -112,6 +114,7 @@ const PeerSpace = () => {
               experience: 0,
               nextLevelExperience: 100,
               isVerified: false,
+              skin: 'default',
               sections: ['hero', 'content', 'community', 'events', 'reviews', 'infoHub', 'map', 'trust', 'relatedMalls', 'activityFeed', 'liveCollaboration'],
               customizations: {
                 primaryColor: '#71c4ef',

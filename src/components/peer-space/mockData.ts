@@ -2,8 +2,7 @@ import { Content, Review, CommunityPost, PeerSpaceData, Quest } from './types';
 
 export const learningHubData: PeerSpaceData = {
   id: 'myspace123',
-  address: 'learning-hub',
-  name: '게이미피케이션 학습 공간',
+  title: '게이미피케이션 학습 공간',
   description: '지속적인 도전과 피드백을 통한 효과적인 학습 환경',
   owner: '김피어',
   peerNumber: 'P-12345-6789',
@@ -18,6 +17,7 @@ export const learningHubData: PeerSpaceData = {
   },
   contactPhone: '02-123-4567',
   contactEmail: 'contact@peermall.com',
+  address: '서울시 강남구 테헤란로 123',
   level: 10,
   experience: 50,
   achievements: 5,
@@ -27,8 +27,7 @@ export const learningHubData: PeerSpaceData = {
 
 export const peerSpaceData: PeerSpaceData = {
   id: 'myspace123',
-  address: 'peer-space',
-  name: '게이미피케이션 학습 공간',
+  title: '게이미피케이션 학습 공간',
   description: '지속적인 도전과 피드백을 통한 효과적인 학습 환경',
   owner: '김피어',
   peerNumber: 'P-12345-6789',
@@ -43,6 +42,7 @@ export const peerSpaceData: PeerSpaceData = {
   },
   contactPhone: '02-123-4567',
   contactEmail: 'contact@peermall.com',
+  address: '서울시 강남구 테헤란로 123',
   level: 18,
   experience: 75,
   achievements: 28,
@@ -77,14 +77,14 @@ export const featuredContent: Content[] = [
     imageUrl:
       'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80',
     type: 'event',
-    price: '150,000원~', // String price is now allowed by the interface
+    price: '150,000원~', // String price
     date: '2025년 5월 15일',
     likes: 85,
     comments: 0,
     views: 0,
     saves: 0,
     isExternal: false,
-    participants: 24, // Number is now allowed by the interface
+    participants: 24,
     maxParticipants: 30,
     createdAt: '2025-04-29T12:00:00Z',
     updatedAt: '2025-04-29T12:00:00Z',
@@ -98,13 +98,13 @@ export const featuredContent: Content[] = [
       'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80',
     type: 'quest',
     date: '진행중 (12일 남음)',
-    price: '무료', // String price is now allowed by the interface
+    price: '무료', // String price
     likes: 212,
     comments: 0,
     views: 0,
     saves: 0,
     isExternal: false,
-    participants: 156, // Number is now allowed by the interface
+    participants: 156,
     createdAt: '2025-04-29T12:00:00Z',
     updatedAt: '2025-04-29T12:00:00Z',
   },
@@ -116,7 +116,7 @@ export const featuredContent: Content[] = [
     imageUrl:
       'https://images.unsplash.com/photo-1559336197-ded8aaa244bc?auto=format&fit=crop&q=80',
     type: 'product',
-    price: '300,000원', // String price is now allowed by the interface
+    price: '300,000원', // String price
     date: '',
     likes: 78,
     comments: 0,
@@ -139,16 +139,8 @@ export const activeQuests: Quest[] = [
     deadline: '4일 남음',
     goal: 100,
     type: 'community',
-    difficulty: 'intermediate',
     imageUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80',
-    participants: ['user1', 'user2', 'user3', 'user4', 'user5', 'user6', 'user7', 'user8', 'user9', 'user10', 'user11', 'user12'],
-    maxParticipants: 20,
-    startDate: '2025-04-15T00:00:00Z',
-    endDate: '2025-05-15T00:00:00Z',
-    status: 'active',
-    completion: 60,
-    creator: 'Admin',
-    creatorId: 'admin-id'
+    participants: 12
   },
   {
     id: 'quest2',
@@ -159,16 +151,8 @@ export const activeQuests: Quest[] = [
     deadline: '7일 남음',
     goal: 3,
     type: 'individual',
-    difficulty: 'beginner',
     imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80',
-    participants: ['user1'],
-    maxParticipants: 1,
-    startDate: '2025-04-20T00:00:00Z',
-    endDate: '2025-05-20T00:00:00Z',
-    status: 'active',
-    completion: 33,
-    creator: 'Admin',
-    creatorId: 'admin-id'
+    participants: 1
   },
   {
     id: 'quest3',
@@ -179,16 +163,8 @@ export const activeQuests: Quest[] = [
     deadline: '오늘까지',
     goal: 10,
     type: 'individual',
-    difficulty: 'beginner',
     imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80',
-    participants: ['user1', 'user2', 'user3', 'user4', 'user5', 'user6', 'user7', 'user8'],
-    maxParticipants: 10,
-    startDate: '2025-04-25T00:00:00Z',
-    endDate: '2025-05-02T00:00:00Z',
-    status: 'active',
-    completion: 90,
-    creator: 'Admin',
-    creatorId: 'admin-id'
+    participants: 8
   },
 ];
 

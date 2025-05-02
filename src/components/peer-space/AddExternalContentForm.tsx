@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +10,7 @@ interface ExternalPreview {
   title: string;
   description: string;
   imageUrl: string;
-  price?: number;
+  price?: string | number; // Updated to accept string or number
   type?: ContentType;
   isExternal: boolean;
   externalUrl: string;
@@ -52,7 +51,7 @@ export const AddExternalContentForm = ({ onBack, onSubmit }: AddExternalContentF
         title: '가져온 콘텐츠 제목 (자동)',
         description: '외부 페이지 설명...',
         imageUrl: 'https://via.placeholder.com/150/d4eaf7/3b3c3d?text=Preview',
-        price: contentType === 'product' ? 50000 : undefined,
+        price: contentType === 'product' ? '50,000원 (추정)' : undefined,
         type: contentType,
         isExternal: true,
         externalUrl: externalUrlInput,
