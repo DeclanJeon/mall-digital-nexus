@@ -1,1022 +1,436 @@
-
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDropzone } from 'react-dropzone';
+import { v4 as uuidv4 } from 'uuid';
+import { Editor } from '@toast-ui/react-editor';
+import '@toast-ui/editor/dist/toastui-editor.css';
+import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
+import 'tui-color-picker/dist/tui-color-picker.css';
+import '@toast-ui/editor-plugin-color-syntax/dist/toastui-editor-plugin-color-syntax.css';
+import { Prism } from '@toast-ui/editor-plugin-code-syntax-highlight';
+import '@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight.css';
+import 'prismjs/themes/prism.css';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Search, MessageSquare, Users, Send, Globe, Circle, Star, Bell, Plus, Edit, Trash2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { useToast } from '@/components/ui/use-toast';
-// Removed import for Toast UI Editor
+import { toast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Switch } from "@/components/ui/switch"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import { Separator } from "@/components/ui/separator"
+import { Slider } from "@/components/ui/slider"
+import { Checkbox } from "@/components/ui/checkbox"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
+import { CalendarIcon } from "lucide-react"
+import { MultiSelect } from '@/components/ui/multi-select';
+import { useTheme } from "@/components/theme-provider"
 
-// Define planet types
-interface Planet {
-  id: string;
-  name: string;
-  description: string;
-  color: string;
-  position: [number, number, number];
-  size: number;
-  activeUsers: number;
-  recentPosts: number;
-  texture?: string;
-}
-
-// Define post type
-interface Post {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  authorAvatar: string;
-  date: string;
-  likes: number;
-  comments: number;
-  tags: string[];
-  country: string;
-  htmlContent?: string; // HTML 형식의 콘텐츠 (Toast UI Editor용)
-}
-
-// Define chat message type
-interface ChatMessage {
-  id: string;
-  author: string;
-  authorAvatar: string;
-  content: string;
-  timestamp: string;
-  country: string;
-}
-
-// Define forum post form data
-interface ForumPostFormData {
-  title: string;
-  content: string;
-  tags: string;
-}
+const formSchema = z.object({
+  title: z.string().min(2, {
+    message: "제목은 2글자 이상이어야 합니다.",
+  }),
+  content: z.string().min(10, {
+    message: "내용은 10글자 이상이어야 합니다.",
+  }),
+  tags: z.array(z.string()).optional(),
+  category: z.string().optional(),
+  isPublic: z.boolean().default(true),
+  date: z.date().optional(),
+  priority: z.string().optional(),
+  terms: z.boolean().default(false).refine((val) => val === true, {
+    message: "이용 약관에 동의해야 합니다.",
+  }),
+  slider: z.number().min(1).max(100).optional(),
+  checkbox: z.array(z.string()).optional(),
+  radio: z.string().optional(),
+})
 
 const NewCommunity = () => {
-  const [activePlanet, setActivePlanet] = useState<Planet | null>(null);
-  const [showBoardView, setShowBoardView] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState('서울, 대한민국');
-  const [activeTab, setActiveTab] = useState('posts');
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [username, setUsername] = useState<string>("");
-  const [darkMode, setDarkMode] = useState(true);
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [showNewPostForm, setShowNewPostForm] = useState(false);
-  const [editingPost, setEditingPost] = useState<Post | null>(null);
-  const { toast } = useToast();
-  
-  // Form for new posts
-  const form = useForm<ForumPostFormData>({
+  const navigate = useNavigate();
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [image, setImage] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
+  const [category, setCategory] = useState('');
+  const [isPublic, setIsPublic] = useState(true);
+  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [priority, setPriority] = useState('');
+  const [terms, setTerms] = useState(false);
+  const [slider, setSlider] = useState<number | undefined>(undefined);
+  const [checkbox, setCheckbox] = useState<string[]>([]);
+  const [radio, setRadio] = useState<string | undefined>(undefined);
+  const editorRef = useRef<Editor>(null);
+  const [editorContent, setEditorContent] = useState('');
+  const { theme } = useTheme()
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      title: '',
-      content: '',
-      tags: ''
-    }
-  });
+      title: "",
+      content: "",
+    },
+  })
 
-  // Mock data - Planets
-  const planets: Planet[] = [
-    {
-      id: 'earth',
-      name: '지구',
-      description: '글로벌 커뮤니티 허브, 지역별 게시판 이용 가능',
-      color: '#1E88E5',
-      position: [0, 0, 0],
-      size: 2,
-      activeUsers: 2453,
-      recentPosts: 178
-    },
-    {
-      id: 'techverse',
-      name: '테크버스',
-      description: '기술 토론, 코딩 도움, 가젯 리뷰',
-      color: '#E53935',
-      position: [6, 1, -3],
-      size: 1.3,
-      activeUsers: 982,
-      recentPosts: 76
-    },
-    {
-      id: 'artsphere',
-      name: '아트스피어',
-      description: '디지털 및 전통 아티스트를 위한 창조적 예술 커뮤니티',
-      color: '#43A047',
-      position: [-5, -1, -4],
-      size: 1.5,
-      activeUsers: 754,
-      recentPosts: 92
-    },
-    {
-      id: 'marketjupiter',
-      name: '마켓주피터',
-      description: '이커머스 논의, 판매 팁, 시장 트렌드',
-      color: '#FB8C00',
-      position: [8, -2, 1],
-      size: 1.8,
-      activeUsers: 534,
-      recentPosts: 43
-    }
-  ];
-  
-  // IndexedDB 함수들
-  const initDB = () => {
-    const request = indexedDB.open("CommunityDB", 1);
-    
-    request.onupgradeneeded = (event: any) => {
-      const db = event.target.result;
-      
-      // posts 객체 스토어 생성
-      if (!db.objectStoreNames.contains("posts")) {
-        const objectStore = db.createObjectStore("posts", { keyPath: "id" });
-        objectStore.createIndex("author", "author", { unique: false });
-        objectStore.createIndex("date", "date", { unique: false });
-      }
-    };
-    
-    request.onsuccess = () => {
-      console.log("IndexedDB 초기화 성공");
-      loadPosts();
-    };
-    
-    request.onerror = (event: any) => {
-      console.error("IndexedDB 초기화 오류:", event.target.error);
-    };
-  };
-  
-  // 게시글 불러오기
-  const loadPosts = () => {
-    const request = indexedDB.open("CommunityDB", 1);
-    
-    request.onsuccess = (event: any) => {
-      const db = event.target.result;
-      const transaction = db.transaction(["posts"], "readonly");
-      const objectStore = transaction.objectStore("posts");
-      const getAllRequest = objectStore.getAll();
-      
-      getAllRequest.onsuccess = () => {
-        if (getAllRequest.result.length > 0) {
-          setPosts(getAllRequest.result);
-        } else {
-          // 기본 샘플 데이터 사용
-          const initialPosts = [
-            {
-              id: '1',
-              title: '새로운 피어몰 기능 업데이트 안내',
-              content: '안녕하세요, 피어몰 커뮤니티에 새로운 기능이 업데이트되었습니다. 이제 3D 인터랙션을 통해 더욱 직관적인 커뮤니케이션이 가능해졌습니다.',
-              htmlContent: '<p>안녕하세요, 피어몰 커뮤니티에 새로운 기능이 업데이트되었습니다. 이제 3D 인터랙션을 통해 더욱 직관적인 커뮤니케이션이 가능해졌습니다.</p><h3>주요 업데이트 내용</h3><ul><li>3D 우주 인터페이스</li><li>실시간 채팅 개선</li><li>게시판 기능 향상</li></ul>',
-              author: '관리자',
-              authorAvatar: 'https://api.dicebear.com/7.x/personas/svg?seed=admin',
-              date: '2025-05-01',
-              likes: 42,
-              comments: 7,
-              tags: ['공지사항', '업데이트'],
-              country: '대한민국'
-            },
-            {
-              id: '2',
-              title: '디자인 포트폴리오 피드백 부탁드립니다',
-              content: '안녕하세요, UX/UI 디자이너로 활동하고 있는 김디자인입니다. 최근 작업한 포트폴리오에 대한 피드백을 부탁드립니다.',
-              htmlContent: '<p>안녕하세요, UX/UI 디자이너로 활동하고 있는 김디자인입니다. 최근 작업한 포트폴리오에 대한 피드백을 부탁드립니다.</p><p>포트폴리오 링크: <a href="#">포트폴리오 보기</a></p><p>특히 색상 선택과 사용자 흐름에 대한 의견을 듣고 싶습니다.</p>',
-              author: '김디자인',
-              authorAvatar: 'https://api.dicebear.com/7.x/personas/svg?seed=design',
-              date: '2025-04-30',
-              likes: 15,
-              comments: 23,
-              tags: ['디자인', '포트폴리오', '피드백'],
-              country: '대한민국'
-            },
-            {
-              id: '3',
-              title: '서울 지역 디자이너 모임 안내',
-              content: '다음 주 토요일 오후 2시, 강남역 인근 카페에서 디자이너 네트워킹 모임을 갖습니다. 관심 있으신 분들은 댓글 남겨주세요.',
-              htmlContent: '<p>다음 주 토요일 오후 2시, 강남역 인근 카페에서 디자이너 네트워킹 모임을 갖습니다.</p><h4>모임 정보</h4><ul><li>일시: 2025년 5월 10일 오후 2시</li><li>장소: 강남역 2번 출구 카페</li><li>주제: 최신 UX 트렌드와 포트폴리오 공유</li></ul><p>관심 있으신 분들은 댓글 남겨주세요.</p>',
-              author: '이기획',
-              authorAvatar: 'https://api.dicebear.com/7.x/personas/svg?seed=planner',
-              date: '2025-04-29',
-              likes: 28,
-              comments: 15,
-              tags: ['모임', '네트워킹', '서울'],
-              country: '대한민국'
-            },
-            {
-              id: '4',
-              title: 'AI 기반 디자인 도구 추천해주세요',
-              content: '요즘 AI 기반 디자인 도구들이 많이 나오는데, 실제로 업무에 활용하기 좋은 툴이 있을까요? 경험담 공유 부탁드립니다.',
-              htmlContent: '<p>요즘 AI 기반 디자인 도구들이 많이 나오는데, 실제로 업무에 활용하기 좋은 툴이 있을까요?</p><p>현재 Figma와 Adobe XD를 주로 사용하고 있지만, AI 기능이 통합된 도구로 전환을 고려하고 있습니다. 실제 사용 경험과 장단점을 알려주시면 많은 도움이 될 것 같습니다.</p>',
-              author: '박테크',
-              authorAvatar: 'https://api.dicebear.com/7.x/personas/svg?seed=tech',
-              date: '2025-04-28',
-              likes: 32,
-              comments: 19,
-              tags: ['AI', '디자인툴', '추천'],
-              country: '대한민국'
-            },
-          ];
-          
-          // IndexedDB에 저장
-          saveInitialPostsToDB(initialPosts);
-          setPosts(initialPosts);
-        }
-      };
-    };
-  };
-  
-  // 초기 게시글 저장
-  const saveInitialPostsToDB = (initialPosts: Post[]) => {
-    const request = indexedDB.open("CommunityDB", 1);
-    
-    request.onsuccess = (event: any) => {
-      const db = event.target.result;
-      const transaction = db.transaction(["posts"], "readwrite");
-      const objectStore = transaction.objectStore("posts");
-      
-      initialPosts.forEach(post => {
-        objectStore.add(post);
-      });
-    };
-  };
-  
-  // 게시글 저장
-  const savePostToDB = (post: Post) => {
-    const request = indexedDB.open("CommunityDB", 1);
-    
-    request.onsuccess = (event: any) => {
-      const db = event.target.result;
-      const transaction = db.transaction(["posts"], "readwrite");
-      const objectStore = transaction.objectStore("posts");
-      
-      const addRequest = objectStore.add(post);
-      
-      addRequest.onsuccess = () => {
-        toast({
-          title: "게시글이 등록되었습니다.",
-          description: "성공적으로 게시글이 저장되었습니다.",
-        });
-        
-        setPosts(prevPosts => [...prevPosts, post]);
-        setShowNewPostForm(false);
-        form.reset();
-      };
-      
-      addRequest.onerror = () => {
-        toast({
-          title: "게시글 등록 실패",
-          description: "게시글을 저장하는 중 오류가 발생했습니다.",
-          variant: "destructive"
-        });
-      };
-    };
-  };
-  
-  // 게시글 업데이트
-  const updatePostInDB = (post: Post) => {
-    const request = indexedDB.open("CommunityDB", 1);
-    
-    request.onsuccess = (event: any) => {
-      const db = event.target.result;
-      const transaction = db.transaction(["posts"], "readwrite");
-      const objectStore = transaction.objectStore("posts");
-      
-      const updateRequest = objectStore.put(post);
-      
-      updateRequest.onsuccess = () => {
-        toast({
-          title: "게시글이 수정되었습니다.",
-          description: "성공적으로 게시글이 수정되었습니다.",
-        });
-        
-        setPosts(prevPosts => prevPosts.map(p => p.id === post.id ? post : p));
-        setEditingPost(null);
-        setShowNewPostForm(false);
-        form.reset();
-      };
-    };
-  };
-  
-  // 게시글 삭제
-  const deletePostFromDB = (postId: string) => {
-    const request = indexedDB.open("CommunityDB", 1);
-    
-    request.onsuccess = (event: any) => {
-      const db = event.target.result;
-      const transaction = db.transaction(["posts"], "readwrite");
-      const objectStore = transaction.objectStore("posts");
-      
-      const deleteRequest = objectStore.delete(postId);
-      
-      deleteRequest.onsuccess = () => {
-        toast({
-          title: "게시글이 삭제되었습니다.",
-          description: "성공적으로 게시글이 삭제되었습니다.",
-        });
-        
-        setPosts(prevPosts => prevPosts.filter(p => p.id !== postId));
-      };
-    };
-  };
-  
-  // Mock data - Chat messages
-  const initialMessages: ChatMessage[] = [
-    {
-      id: '1',
-      author: 'John Doe',
-      authorAvatar: 'https://api.dicebear.com/7.x/personas/svg?seed=john',
-      content: 'Hello everyone! Joining from New York today.',
-      timestamp: '10:30 AM',
-      country: 'USA'
-    },
-    {
-      id: '2',
-      author: '김민지',
-      authorAvatar: 'https://api.dicebear.com/7.x/personas/svg?seed=minji',
-      content: '안녕하세요! 서울에서 접속했습니다.',
-      timestamp: '10:32 AM',
-      country: '대한민국'
-    },
-    {
-      id: '3',
-      author: 'Maria Garcia',
-      authorAvatar: 'https://api.dicebear.com/7.x/personas/svg?seed=maria',
-      content: '¡Hola desde Madrid! ¿Alguien habla español aquí?',
-      timestamp: '10:35 AM',
-      country: 'Spain'
-    },
-    {
-      id: '4',
-      author: '李伟',
-      authorAvatar: 'https://api.dicebear.com/7.x/personas/svg?seed=wei',
-      content: '大家好！来自北京。',
-      timestamp: '10:40 AM',
-      country: 'China'
-    }
-  ];
-
-  useEffect(() => {
-    // Get username from local storage or generate a random animal name
-    const storedUsername = localStorage.getItem('peerspace_username');
-    const generatedUsername = storedUsername || getRandomAnimalName();
-    
-    if (!storedUsername) {
-      localStorage.setItem('peerspace_username', generatedUsername);
-    }
-    
-    setUsername(generatedUsername);
-    setMessages(initialMessages);
-    
-    // Initialize IndexedDB
-    initDB();
-  }, []);
-  
-  // 게시글 작성 폼 제출 처리
-  const onSubmit = useCallback((data: ForumPostFormData) => {
-    // Convert form textarea content to simple HTML
-    const htmlContent = `<p>${data.content.replace(/\n/g, '</p><p>')}</p>`;
-    const tagsArray = data.tags.split(',').map(tag => tag.trim());
-    
-    if (editingPost) {
-      // 게시글 수정
-      const updatedPost: Post = {
-        ...editingPost,
-        title: data.title,
-        content: data.content,
-        htmlContent,
-        tags: tagsArray,
-      };
-      
-      updatePostInDB(updatedPost);
-    } else {
-      // 새 게시글 작성
-      const newPost: Post = {
-        id: `post-${Date.now()}`,
-        title: data.title,
-        content: data.content,
-        htmlContent,
-        author: username,
-        authorAvatar: `https://api.dicebear.com/7.x/personas/svg?seed=${username}`,
-        date: new Date().toISOString().split('T')[0],
-        likes: 0,
-        comments: 0,
-        tags: tagsArray,
-        country: '대한민국'
-      };
-      
-      savePostToDB(newPost);
-    }
-  }, [username, editingPost, form]);
-  
-  // 게시글 수정 시작
-  const handleEditPost = useCallback((post: Post) => {
-    setEditingPost(post);
-    setShowNewPostForm(true);
-    
-    form.setValue('title', post.title);
-    form.setValue('content', post.content);
-    form.setValue('tags', post.tags.join(', '));
-  }, [form]);
-  
-  function getRandomAnimalName(): string {
-    const animals = ['토끼', '사자', '호랑이', '기린', '코끼리', '팬더', '곰', '여우', '늑대', '사슴'];
-    const randomIndex = Math.floor(Math.random() * animals.length);
-    return `익명 ${animals[randomIndex]}`;
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    toast({
+      title: "제출 완료.",
+      description: "성공적으로 제출되었습니다.",
+    })
   }
 
-  const handlePlanetClick = (planet: Planet) => {
-    setActivePlanet(planet);
-    if (planet.id === 'earth') {
-      setShowBoardView(true);
+  const onImageDrop = (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    setImage(file);
+    setImageUrl(URL.createObjectURL(file));
+  };
+
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: 'image/*',
+    onDrop: onImageDrop,
+  });
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+  };
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setContent(e.target.value);
+  };
+
+  const handleTagChange = (newTags: string[]) => {
+    setTags(newTags);
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCategory(e.target.value);
+  };
+
+  const handleIsPublicChange = (checked: boolean) => {
+    setIsPublic(checked);
+  };
+
+  const handleDateChange = (date: Date | undefined) => {
+    setDate(date);
+  };
+
+  const handlePriorityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setPriority(e.target.value);
+  };
+
+  const handleTermsChange = (checked: boolean) => {
+    setTerms(checked);
+  };
+
+  const handleSliderChange = (value: number[]) => {
+    setSlider(value[0]);
+  };
+
+  const handleCheckboxChange = (value: string[]) => {
+    setCheckbox(value);
+  };
+
+  const handleRadioChange = (value: string) => {
+    setRadio(value);
+  };
+
+  const handleSubmit = () => {
+    if (!title || !content) {
+      toast({
+        title: "필수 항목을 입력해주세요.",
+        description: "제목과 내용을 모두 입력해야 합니다.",
+        variant: "destructive",
+      });
+      return;
     }
-  };
 
-  // Handle sending a chat message
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
-    
-    const newChatMessage: ChatMessage = {
-      id: Date.now().toString(),
-      author: username,
-      authorAvatar: `https://api.dicebear.com/7.x/personas/svg?seed=${username}`,
-      content: newMessage,
-      timestamp: new Intl.DateTimeFormat('ko-KR', {
-        hour: 'numeric',
-        minute: 'numeric'
-      }).format(new Date()),
-      country: '대한민국'
+    // Save to localStorage
+    const newPost = {
+      id: uuidv4(),
+      title,
+      content,
+      imageUrl,
+      tags,
+      category,
+      isPublic,
+      date,
+      priority,
+      terms,
+      slider,
+      checkbox,
+      radio,
     };
-    
-    setMessages(prevMessages => [...prevMessages, newChatMessage]);
-    setNewMessage('');
+
+    let posts = JSON.parse(localStorage.getItem('communityPosts') || '[]') as any[];
+    posts.push(newPost);
+    localStorage.setItem('communityPosts', JSON.stringify(posts));
+
+    toast({
+      title: "게시글 작성 완료!",
+      description: "성공적으로 게시글이 작성되었습니다.",
+    });
+
+    navigate('/community');
   };
 
-  // Handle returning to universe view
-  const handleReturnToUniverse = () => {
-    setShowBoardView(false);
-    setActivePlanet(null);
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.getInstance().addHook('addImageBlobHook',
+        async (blob: Blob, callback: (imageUrl: string, altText: string) => void) => {
+          const imageUrl = URL.createObjectURL(blob);
+          callback(imageUrl, 'image');
+          return false;
+        }
+      );
+    }
+  }, []);
+
+  const handleEditorChange = () => {
+    if (editorRef.current) {
+      const editorInstance = editorRef.current.getInstance();
+      const contentMarkdown = editorInstance.getMarkdown();
+      setEditorContent(contentMarkdown);
+    }
   };
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-b from-[#0a0a1a] to-[#1a1a2e]' : 'bg-gray-50'} text-white`}>
-      {/* Header */}
-      <div className="border-b border-white/10 bg-black/20 backdrop-blur-xl">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Globe className="h-6 w-6 text-blue-400" />
-            <h1 className="text-xl font-bold">피어스페이스 Universe</h1>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <button 
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-full bg-white/5 hover:bg-white/10"
-            >
-              {darkMode ? (
-                <Circle className="h-5 w-5 text-yellow-300" />
-              ) : (
-                <Star className="h-5 w-5 text-blue-300" />
-              )}
-            </button>
-            
-            <div className="relative">
-              <Bell className="h-5 w-5 text-blue-300" />
-              <span className="absolute -top-1 -right-1 bg-red-500 rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
-                3
-              </span>
-            </div>
-            
-            <Avatar className="h-8 w-8">
-              <AvatarImage 
-                src={`https://api.dicebear.com/7.x/personas/svg?seed=${username}`}
-                alt={username}
-              />
-              <AvatarFallback>{username.substring(0, 2)}</AvatarFallback>
-            </Avatar>
-          </div>
-        </div>
-      </div>
-      
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-6">
-        {/* Universe View */}
-        {!showBoardView ? (
-          <div className="relative">
-            {/* Planet hover info */}
-            {activePlanet && (
-              <div className="absolute top-4 left-4 z-10 p-4 rounded-lg bg-black/60 backdrop-blur-md max-w-md">
-                <h2 className="text-xl font-bold mb-2">{activePlanet.name}</h2>
-                <p className="text-blue-300 mb-3">{activePlanet.description}</p>
-                <div className="flex space-x-4 text-sm">
-                  <div className="flex items-center space-x-1">
-                    <Users className="h-4 w-4 text-green-400" />
-                    <span>{activePlanet.activeUsers.toLocaleString()} 활동 사용자</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <MessageSquare className="h-4 w-4 text-yellow-400" />
-                    <span>{activePlanet.recentPosts.toLocaleString()} 최근 게시물</span>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* 2D Universe Canvas with animated effects */}
-            <div className="w-full h-[80vh] rounded-2xl overflow-hidden bg-[#0a0a1a] relative">
-              {/* Stars background with parallax effect */}
-              <div className="absolute inset-0 stars-small"></div>
-              <div className="absolute inset-0 stars-medium"></div>
-              <div className="absolute inset-0 stars-large"></div>
-              
-              {/* Nebula effect */}
-              <div className="absolute inset-0 opacity-30" 
-                style={{ 
-                  background: 'radial-gradient(circle at 50% 40%, rgba(76, 0, 255, 0.3), rgba(125, 0, 125, 0.2) 40%, transparent 70%)'
-                }}>
-              </div>
-              
-              {/* Planets */}
-              {planets.map((planet) => {
-                // Calculate position for 2D representation
-                const left = 50 + (planet.position[0] * 5);
-                const top = 50 + (planet.position[1] * 5);
-                const size = planet.size * 40;
-                
-                return (
-                  <div
-                    key={planet.id}
-                    className="absolute rounded-full cursor-pointer transition-transform hover:scale-110 planet-pulse"
-                    style={{
-                      left: `${left}%`,
-                      top: `${top}%`,
-                      width: `${size}px`,
-                      height: `${size}px`,
-                      backgroundColor: planet.color,
-                      transform: 'translate(-50%, -50%)',
-                      boxShadow: `0 0 ${size/2}px ${size/8}px ${planet.color}40`
-                    }}
-                    onClick={() => handlePlanetClick(planet)}
-                    onMouseEnter={() => setActivePlanet(planet)}
-                    onMouseLeave={() => setActivePlanet(null)}
-                  >
-                    <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs whitespace-nowrap">
-                      {planet.name}
-                    </div>
-                  </div>
-                );
-              })}
-              
-              {/* Shooting stars effect */}
-              <div className="shooting-star" style={{ 
-                left: '10%', 
-                top: '20%', 
-                animationDelay: '0s' 
-              }}></div>
-              <div className="shooting-star" style={{ 
-                left: '60%', 
-                top: '50%', 
-                animationDelay: '3s' 
-              }}></div>
-              <div className="shooting-star" style={{ 
-                left: '30%', 
-                top: '70%', 
-                animationDelay: '6s' 
-              }}></div>
-              
-              {/* Particle effects */}
-              <div className="particles"></div>
-              
-              {/* Active user points with pulse effect */}
-              {Array.from({ length: 50 }).map((_, i) => {
-                const left = Math.random() * 100;
-                const top = Math.random() * 100;
-                const size = Math.random() * 2 + 1;
-                const opacity = Math.random() * 0.8 + 0.2;
-                const pulseDelay = Math.random() * 5;
-                
-                return (
-                  <div
-                    key={`star-${i}`}
-                    className="absolute rounded-full bg-blue-400 user-pulse"
-                    style={{
-                      left: `${left}%`,
-                      top: `${top}%`,
-                      width: `${size}px`,
-                      height: `${size}px`,
-                      opacity,
-                      animationDelay: `${pulseDelay}s`
-                    }}
-                  />
-                );
-              })}
-            </div>
-            
-            {/* Instructions */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center bg-black/60 backdrop-blur-md p-3 rounded-full">
-              <p className="text-sm">행성을 클릭하여 다양한 커뮤니티를 탐색하세요</p>
-            </div>
-          </div>
-        ) : (
-          /* Board View */
-          <div className="bg-black/20 backdrop-blur-xl rounded-2xl p-6 animate-fade-in">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <button 
-                    onClick={handleReturnToUniverse}
-                    className="text-blue-400 hover:text-blue-300 flex items-center space-x-1"
-                  >
-                    <Globe className="h-5 w-5" />
-                    <span>우주로 돌아가기</span>
-                  </button>
-                </div>
-                <h1 className="text-2xl font-bold">{selectedLocation} 커뮤니티</h1>
-              </div>
-              
-              <div className="flex space-x-4">
-                <div className="relative w-64">
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="게시글 검색..."
-                    className="pl-9 bg-white/10 border-white/20 text-white"
-                  />
-                </div>
-                <Button 
-                  onClick={() => {
-                    setEditingPost(null);
-                    setShowNewPostForm(true);
-                    form.reset();
-                  }}
-                >새 글쓰기</Button>
-              </div>
-            </div>
-            
-            {/* New Post Form - Modified to use simple textarea instead of Toast UI Editor */}
-            {showNewPostForm && (
-              <Card className="bg-white/5 border-white/10 mb-6 overflow-hidden">
-                <CardHeader>
-                  <CardTitle>{editingPost ? '게시글 수정' : '새 게시글 작성'}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="title"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>제목</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="제목을 입력하세요" 
-                                className="bg-white/10 border-white/20 text-white" 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="tags"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>태그</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="쉼표로 구분하여 태그를 입력하세요 (예: 디자인, 포트폴리오)" 
-                                className="bg-white/10 border-white/20 text-white" 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="content"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>내용</FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                placeholder="내용을 입력하세요..." 
-                                className="min-h-[300px] bg-white/10 border-white/20 text-white resize-none" 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <div className="flex justify-end space-x-2">
-                        <Button 
-                          type="button" 
-                          variant="outline"
-                          onClick={() => {
-                            setShowNewPostForm(false);
-                            setEditingPost(null);
-                          }}
-                        >
-                          취소
-                        </Button>
-                        <Button type="submit">
-                          {editingPost ? '수정하기' : '게시하기'}
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            )}
-            
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              <div className="lg:col-span-3">
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="mb-4 bg-white/5">
-                    <TabsTrigger value="posts">게시글</TabsTrigger>
-                    <TabsTrigger value="trending">인기글</TabsTrigger>
-                    <TabsTrigger value="following">팔로우</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="posts" className="space-y-4">
-                    {posts.map(post => (
-                      <Card key={post.id} className="bg-white/5 border-white/10 animate-fade-in">
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center space-x-3 mb-3">
-                              <Avatar>
-                                <AvatarImage src={post.authorAvatar} alt={post.author} />
-                                <AvatarFallback>{post.author[0]}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium">{post.author}</p>
-                                <p className="text-xs text-gray-400">{post.date}</p>
-                              </div>
-                            </div>
-                            
-                            {post.author === username && (
-                              <div className="flex space-x-2">
-                                <button 
-                                  onClick={() => handleEditPost(post)}
-                                  className="text-gray-400 hover:text-gray-200 transition-colors"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </button>
-                                <button 
-                                  onClick={() => deletePostFromDB(post.id)}
-                                  className="text-gray-400 hover:text-red-400 transition-colors"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                          
-                          <h3 className="text-lg font-bold mb-2">{post.title}</h3>
-                          {post.htmlContent ? (
-                            <div 
-                              className="text-gray-300 mb-4 prose-sm prose-invert max-w-none" 
-                              dangerouslySetInnerHTML={{ __html: post.htmlContent }}
-                            />
-                          ) : (
-                            <p className="text-gray-300 mb-4">{post.content}</p>
-                          )}
-                          
-                          <div className="flex flex-wrap gap-2 mb-4">
-                            {post.tags.map(tag => (
-                              <Badge key={tag} variant="outline" className="text-blue-300 border-blue-300/30">
-                                #{tag}
-                              </Badge>
-                            ))}
-                          </div>
-                          
-                          <div className="flex justify-between text-sm text-gray-400">
-                            <div className="flex items-center space-x-4">
-                              <button className="flex items-center space-x-1 hover:text-blue-300 transition-colors">
-                                <Star className="h-4 w-4" />
-                                <span>{post.likes}</span>
-                              </button>
-                              <div className="flex items-center space-x-1">
-                                <MessageSquare className="h-4 w-4" />
-                                <span>{post.comments}</span>
-                              </div>
-                            </div>
-                            <Button variant="ghost" size="sm" className="text-blue-400">
-                              자세히 보기
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </TabsContent>
-                  
-                  <TabsContent value="trending">
-                    <div className="p-8 text-center">
-                      <p>인기 콘텐츠가 여기에 표시됩니다.</p>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="following">
-                    <div className="p-8 text-center">
-                      <p>팔로우한 사용자의 콘텐츠가 여기에 표시됩니다.</p>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
-              
-              {/* Live Chat */}
-              <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden flex flex-col h-[700px]">
-                <div className="p-4 border-b border-white/10 flex justify-between items-center">
-                  <h3 className="font-bold">글로벌 채팅</h3>
-                  <Badge variant="outline" className="bg-green-900/30 text-green-400 border-green-500/30">
-                    <Circle className="h-2 w-2 mr-1 fill-green-500" />
-                    <span>42명 온라인</span>
-                  </Badge>
-                </div>
-                
-                <div className="flex-grow overflow-y-auto p-4 space-y-4">
-                  {messages.map((message) => (
-                    <div 
-                      key={message.id}
-                      className={`flex ${message.author === username ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div className={`flex ${message.author === username ? 'flex-row-reverse' : 'flex-row'} items-end space-x-2`}>
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={message.authorAvatar} alt={message.author} />
-                          <AvatarFallback>{message.author[0]}</AvatarFallback>
-                        </Avatar>
-                        
-                        <div 
-                          className={`max-w-[80%] px-4 py-2 rounded-2xl ${
-                            message.author === username 
-                              ? 'bg-blue-600 text-white rounded-br-none ml-2' 
-                              : 'bg-white/10 text-white rounded-bl-none mr-2'
-                          }`}
-                        >
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="text-xs font-medium">{message.author}</span>
-                            <span className="text-xs opacity-70">{message.timestamp}</span>
-                          </div>
-                          <p>{message.content}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="p-3 border-t border-white/10 bg-black/20">
-                  <div className="flex space-x-2">
-                    <Input
-                      placeholder="메시지를 입력하세요..."
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleSendMessage();
-                        }
-                      }}
-                      className="bg-white/5 border-white/20"
-                    />
-                    <Button 
-                      size="icon" 
-                      onClick={handleSendMessage}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-      
-      {/* CSS for animations */}
-      <style jsx>{`
-        /* Star backgrounds with parallax */
-        .stars-small {
-          background-image: radial-gradient(1px 1px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent),
-                            radial-gradient(1px 1px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent),
-                            radial-gradient(1px 1px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent),
-                            radial-gradient(1px 1px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent),
-                            radial-gradient(1px 1px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent),
-                            radial-gradient(1px 1px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent);
-          background-size: 200px 200px;
-          animation: twinkle 7s ease-in-out infinite alternate;
-        }
-        
-        .stars-medium {
-          background-image: radial-gradient(1.5px 1.5px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent),
-                            radial-gradient(1.5px 1.5px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent),
-                            radial-gradient(1.5px 1.5px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent);
-          background-size: 300px 300px;
-          animation: twinkle 15s ease-in-out infinite alternate;
-        }
-        
-        .stars-large {
-          background-image: radial-gradient(2px 2px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent),
-                            radial-gradient(2px 2px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent);
-          background-size: 400px 400px;
-          animation: twinkle 20s ease-in-out infinite alternate;
-        }
-        
-        @keyframes twinkle {
-          0% { opacity: 0.5; }
-          50% { opacity: 1; }
-          100% { opacity: 0.7; }
-        }
-        
-        /* Shooting stars */
-        .shooting-star {
-          position: absolute;
-          width: 2px;
-          height: 2px;
-          background-color: white;
-          border-radius: 50%;
-          opacity: 0;
-          animation: shoot 10s linear infinite;
-        }
-        
-        @keyframes shoot {
-          0% {
-            transform: translate(0, 0) rotate(-45deg) scale(1);
-            opacity: 0;
-          }
-          5% {
-            opacity: 1;
-            transform: translate(20px, 20px) rotate(-45deg) scale(1);
-          }
-          10% {
-            transform: translate(100px, 100px) rotate(-45deg) scale(0);
-            opacity: 0;
-          }
-          100% {
-            transform: translate(100px, 100px) rotate(-45deg) scale(0);
-            opacity: 0;
-          }
-        }
-        
-        /* Planet pulse effect */
-        .planet-pulse {
-          animation: pulse 4s ease-in-out infinite alternate;
-        }
-        
-        @keyframes pulse {
-          0% { box-shadow: 0 0 15px 5px rgba(100, 100, 255, 0.5); }
-          100% { box-shadow: 0 0 25px 10px rgba(100, 100, 255, 0.8); }
-        }
-        
-        /* User point pulse effect */
-        .user-pulse {
-          animation: userPulse 3s ease-in-out infinite;
-        }
-        
-        @keyframes userPulse {
-          0% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.5); opacity: 0.7; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        
-        /* Particle effects */
-        .particles {
-          background-image: 
-            radial-gradient(1px 1px at ${Math.random() * 100}% ${Math.random() * 100}%, rgba(100, 100, 255, 0.3), transparent),
-            radial-gradient(1px 1px at ${Math.random() * 100}% ${Math.random() * 100}%, rgba(100, 100, 255, 0.3), transparent),
-            radial-gradient(1px 1px at ${Math.random() * 100}% ${Math.random() * 100}%, rgba(100, 100, 255, 0.3), transparent);
-          background-size: 300px 300px;
-          animation: drift 30s linear infinite;
-          opacity: 0.3;
-          position: absolute;
+    <div className="min-h-screen flex flex-col">
+      <style>
+        {`.space-background {
+          position: fixed;
           top: 0;
           left: 0;
-          right: 0;
-          bottom: 0;
-        }
-        
-        @keyframes drift {
-          0% { background-position: 0 0; }
-          100% { background-position: 300px 300px; }
-        }
-        
-        /* Fade in animation */
-        .animate-fade-in {
-          animation: fadeIn 0.5s ease-in-out forwards;
-        }
-        
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+          width: 100%;
+          height: 100%;
+          z-index: -1;
+          background: linear-gradient(135deg, #0c0e17, #1f2d3d);
+        }`}
+      </style>
+      <div className="space-background"></div>
+
+      <div className="container mx-auto p-4 text-white">
+        <h1 className="text-3xl font-bold mb-4">새 게시글 작성</h1>
+
+        <div className="mb-4">
+          <Label htmlFor="title" className="block text-sm font-medium mb-1">제목</Label>
+          <Input
+            type="text"
+            id="title"
+            placeholder="제목을 입력하세요"
+            value={title}
+            onChange={handleTitleChange}
+            className="text-black"
+          />
+        </div>
+
+        <div className="mb-4">
+          <Label htmlFor="content" className="block text-sm font-medium mb-1">내용</Label>
+          <Textarea
+            id="content"
+            placeholder="내용을 입력하세요"
+            value={content}
+            onChange={handleContentChange}
+            className="text-black"
+          />
+        </div>
+
+        <div className="mb-4">
+          <Label className="block text-sm font-medium mb-1">태그</Label>
+          <MultiSelect value={tags} onChange={handleTagChange} />
+        </div>
+
+        <div className="mb-4">
+          <Label htmlFor="category" className="block text-sm font-medium mb-1">카테고리</Label>
+          <Select onValueChange={setCategory}>
+            <SelectTrigger className="w-[180px] text-black">
+              <SelectValue placeholder="선택" />
+            </SelectTrigger>
+            <SelectContent className={`${theme === "dark" ? 'bg-gray-800' : 'bg-white'}`}>
+              <SelectItem value="공지">공지</SelectItem>
+              <SelectItem value="자유">자유</SelectItem>
+              <SelectItem value="질문">질문</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="mb-4 flex items-center">
+          <Label htmlFor="isPublic" className="mr-2 text-sm font-medium">공개 설정</Label>
+          <Switch
+            id="isPublic"
+            checked={isPublic}
+            onCheckedChange={handleIsPublicChange}
+          />
+        </div>
+
+        <div className="mb-4">
+          <Label htmlFor="date" className="block text-sm font-medium mb-1">날짜</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal text-black",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? format(date, "yyyy-MM-dd") : <span>날짜 선택</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div className="mb-4">
+          <Label htmlFor="priority" className="block text-sm font-medium mb-1">우선순위</Label>
+          <Select onValueChange={setPriority}>
+            <SelectTrigger className="w-[180px] text-black">
+              <SelectValue placeholder="선택" />
+            </SelectTrigger>
+            <SelectContent className={`${theme === "dark" ? 'bg-gray-800' : 'bg-white'}`}>
+              <SelectItem value="높음">높음</SelectItem>
+              <SelectItem value="보통">보통</SelectItem>
+              <SelectItem value="낮음">낮음</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="mb-4 flex items-center">
+          <Label htmlFor="terms" className="mr-2 text-sm font-medium">이용 약관 동의</Label>
+          <Switch
+            id="terms"
+            checked={terms}
+            onCheckedChange={handleTermsChange}
+          />
+        </div>
+
+        <div className="mb-4">
+          <Label htmlFor="slider" className="block text-sm font-medium mb-1">슬라이더 값</Label>
+          <Slider
+            defaultValue={[slider || 50]}
+            max={100}
+            min={1}
+            step={1}
+            onValueChange={(value) => setSlider(value[0])}
+          />
+          <p className="text-sm text-gray-500 mt-1">현재 값: {slider}</p>
+        </div>
+
+        <div className="mb-4">
+          <Label className="block text-sm font-medium mb-1">체크박스</Label>
+          <div className="flex flex-wrap gap-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="checkbox1"
+                checked={checkbox.includes("옵션 1")}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setCheckbox([...checkbox, "옵션 1"]);
+                  } else {
+                    setCheckbox(checkbox.filter((item) => item !== "옵션 1"));
+                  }
+                }}
+              />
+              <Label htmlFor="checkbox1">옵션 1</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="checkbox2"
+                checked={checkbox.includes("옵션 2")}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setCheckbox([...checkbox, "옵션 2"]);
+                  } else {
+                    setCheckbox(checkbox.filter((item) => item !== "옵션 2"));
+                  }
+                }}
+              />
+              <Label htmlFor="checkbox2">옵션 2</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="checkbox3"
+                checked={checkbox.includes("옵션 3")}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setCheckbox([...checkbox, "옵션 3"]);
+                  } else {
+                    setCheckbox(checkbox.filter((item) => item !== "옵션 3"));
+                  }
+                }}
+              />
+              <Label htmlFor="checkbox3">옵션 3</Label>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <Label className="block text-sm font-medium mb-1">라디오 버튼</Label>
+          <RadioGroup defaultValue={radio} onValueChange={setRadio} className="flex flex-col space-y-1">
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="라디오 1" id="radio1" />
+              <Label htmlFor="radio1">라디오 1</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="라디오 2" id="radio2" />
+              <Label htmlFor="radio2">라디오 2</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="라디오 3" id="radio3" />
+              <Label htmlFor="radio3">라디오 3</Label>
+            </div>
+          </RadioGroup>
+        </div>
+
+        <div className="mb-4">
+          <Label className="block text-sm font-medium mb-1">이미지 업로드</Label>
+          <div {...getRootProps()} className="dropzone border rounded-md p-4 cursor-pointer bg-gray-700">
+            <input {...getInputProps()} />
+            {imageUrl ? (
+              <img src={imageUrl} alt="Uploaded" className="max-h-48 rounded-md" />
+            ) : (
+              <p className="text-gray-300">이미지를 드래그하거나 클릭하여 업로드하세요.</p>
+            )}
+          </div>
+        </div>
+
+        <Button onClick={handleSubmit} className="w-full">게시글 작성</Button>
+      </div>
     </div>
   );
 };

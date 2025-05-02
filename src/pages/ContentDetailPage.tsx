@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
@@ -72,7 +71,6 @@ const ContentDetailPage = () => {
             experience: 0,
             nextLevelExperience: 100,
             isVerified: false,
-            skin: 'default',
             sections: ['hero', 'content', 'community', 'events', 'reviews'],
             customizations: {
               primaryColor: '#71c4ef',
