@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +17,7 @@ import PeerSpace from "./pages/PeerSpace";
 import PeerSpaceSettings from "./pages/PeerSpaceSettings";
 import LearningHub from "./pages/LearningHub";
 import ContentDetailPage from "./pages/ContentDetailPage";
+import NewCommunity from './pages/NewCommunity';
 
 const queryClient = new QueryClient();
 
@@ -33,6 +33,7 @@ const AppContent = () => {
         <Route path="/shopping" element={<Shopping />} />
         <Route path="/curation-links" element={<CurationLinks />} />
         <Route path="/community" element={<Community />} />
+        <Route path="/community-universe" element={<NewCommunity />} />
         <Route path="/login" element={<Login />} />
         <Route path="/service" element={<ServicePage />} />
         <Route path="/my-info" element={<MyInfoPage />} />
