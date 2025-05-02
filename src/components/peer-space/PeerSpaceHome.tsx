@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -225,8 +224,9 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
     saveSectionOrder(address, newSections);
   };
 
+  // Update the getSectionDisplayName function to handle all section types
   const getSectionDisplayName = (sectionType: SectionType): string => {
-    const sectionNames: Record<SectionType, string> = {
+    const sectionNames: Record<string, string> = {
       'hero': '히어로',
       'content': '콘텐츠/상품',
       'community': '커뮤니티',
@@ -244,7 +244,14 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       'qrCodeList': 'QR 코드',
       'support': '고객 지원',
       'relatedMalls': '관련 피어몰',
-      'activityFeed': '활동 피드'
+      'activityFeed': '활동 피드',
+      'about': '소개',
+      'products': '상품',
+      'services': '서비스',
+      'contact': '연락처',
+      'featured': '특징',
+      'achievements': '업적',
+      'learning': '학습'
     };
     
     return sectionNames[sectionType] || sectionType;
@@ -496,7 +503,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         return config.location ? 
           <PeerSpaceMapSection 
             location={config.location} 
-            title={config.title} 
+            title={config.title || ''} 
           /> : null;
       case 'trust':
         return <PeerSpaceTrustSection config={config} />;

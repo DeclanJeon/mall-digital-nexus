@@ -89,7 +89,7 @@ const PeerSpaceReviewSection: React.FC<PeerSpaceReviewSectionProps> = ({
               <div className="flex items-center mb-3">
                 <Avatar className="h-8 w-8 mr-2">
                   <AvatarImage src={review.authorImage} alt={review.author} />
-                  <AvatarFallback>{review.author.substring(0, 1)}</AvatarFallback>
+                  <AvatarFallback>{review.author?.substring(0, 1) || '?'}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
                   <p className="font-medium text-sm">{review.author}</p>
@@ -114,12 +114,12 @@ const PeerSpaceReviewSection: React.FC<PeerSpaceReviewSectionProps> = ({
               </div>
               
               <p className="text-sm text-gray-700 mb-3 line-clamp-3">
-                {review.content}
+                {review.content || review.text}
               </p>
               
               <div className="flex justify-between items-center text-xs text-gray-500">
                 <div>
-                  {review.peerMall.name}
+                  {review.peerMall?.name || config.name || '피어몰'}
                 </div>
                 <button 
                   className="flex items-center gap-1 hover:text-blue-600 transition"

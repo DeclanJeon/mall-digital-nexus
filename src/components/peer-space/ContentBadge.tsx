@@ -23,7 +23,8 @@ export default function ContentBadge({ type }: ContentBadgeProps) {
     workshop: { text: '워크숍', className: 'bg-indigo-100' },
     challenge: { text: '챌린지', className: 'bg-pink-100' },
     tool: { text: '도구', className: 'bg-gray-100' },
-    external: { text: '외부', className: 'bg-gray-300' }
+    external: { text: '외부', className: 'bg-gray-300' },
+    livestream: { text: '라이브', className: 'bg-red-200' }
   };
 
   // Use the mapping or default to product if type is not found
