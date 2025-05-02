@@ -1,3 +1,4 @@
+
 // components/peer-space/types.ts
 export type ContentType = 
   | 'product'
@@ -55,7 +56,7 @@ export interface Content {
   views: number;
   saves: number;
   category?: string;
-  price?: number; 
+  price?: number | string; // Updated to allow string or number
   tags?: string[];
   location?: string;
   relatedBadges?: string[];
@@ -66,7 +67,7 @@ export interface Content {
   ecosystem?: ContentEcosystem;
   completion?: number;
   maxParticipants?: number;
-  participants?: string[];
+  participants?: string[] | number; // Updated to allow number or string[]
   htmlContent?: string;
   rating?: number;
   attributes?: Record<string, any>;
@@ -89,7 +90,7 @@ export interface PeerMallConfig {
     lat: number;
     lng: number;
     address: string;
-  };
+  } | string;
   category?: string;
   tags?: string[];
   themeColor?: string;
@@ -133,7 +134,13 @@ export interface PeerSpaceData {
   completedChallenges?: number;
   activeQuests?: number;
   peerNumber?: string;
-  profileImage?: string; // Added profileImage property
+  profileImage?: string;
+  badges?: string[];  // Added badges property
+  followers?: number;
+  recommendations?: number;
+  socialLinks?: { [key: string]: string };
+  contactPhone?: string;
+  contactEmail?: string;
 }
 
 export interface Review {
