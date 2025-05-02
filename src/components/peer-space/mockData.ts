@@ -53,55 +53,79 @@ export const peerSpaceData: PeerSpaceData = {
 export const featuredContent: Content[] = [
   {
     id: 'content1',
+    peerSpaceAddress: 'example-space',
     title: '효과적인 학습 방법론',
     description: '게임 메커니즘을 활용한 지속적 학습 동기 부여 기법',
     imageUrl:
       'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?auto=format&fit=crop&q=80',
-    type: 'post',  // Changed from 'course' to 'post'
+    type: 'post',
     date: '2일 전',
     likes: 124,
+    comments: 0,
+    views: 0,
+    saves: 0,
     isExternal: false,
     completion: 68,
+    createdAt: '2025-04-29T12:00:00Z',
+    updatedAt: '2025-04-29T12:00:00Z',
   },
   {
     id: 'content2',
+    peerSpaceAddress: 'example-space',
     title: '인터랙티브 학습 워크샵',
     description: '실시간 피드백을 통한 체험형 교육 방식 학습하기',
     imageUrl:
       'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80',
-    type: 'event',  // Changed from 'workshop' to 'event'
-    price: '150,000원~',
+    type: 'event',
+    price: '150,000원~', // String price
     date: '2025년 5월 15일',
     likes: 85,
+    comments: 0,
+    views: 0,
+    saves: 0,
     isExternal: false,
     participants: 24,
     maxParticipants: 30,
+    createdAt: '2025-04-29T12:00:00Z',
+    updatedAt: '2025-04-29T12:00:00Z',
   },
   {
     id: 'content3',
+    peerSpaceAddress: 'example-space',
     title: '학습 몰입도 향상 챌린지',
     description: '21일 동안 진행되는 학습 습관 형성 프로그램',
     imageUrl:
       'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80',
-    type: 'quest',  // Changed from 'challenge' to 'quest'
+    type: 'quest',
     date: '진행중 (12일 남음)',
-    price: '무료',
+    price: '무료', // String price
     likes: 212,
+    comments: 0,
+    views: 0,
+    saves: 0,
     isExternal: false,
     participants: 156,
+    createdAt: '2025-04-29T12:00:00Z',
+    updatedAt: '2025-04-29T12:00:00Z',
   },
   {
     id: 'content4',
+    peerSpaceAddress: 'example-space',
     title: '교육용 게임 디자인 도구',
     description: '게임 요소를 활용한 맞춤형 교육 콘텐츠 제작 솔루션',
     imageUrl:
       'https://images.unsplash.com/photo-1559336197-ded8aaa244bc?auto=format&fit=crop&q=80',
-    type: 'product',  // Changed from 'tool' to 'product'
-    price: '300,000원',
+    type: 'product',
+    price: '300,000원', // String price
     date: '',
     likes: 78,
+    comments: 0,
+    views: 0,
+    saves: 0,
     isExternal: true,
     source: 'edutools.com',
+    createdAt: '2025-04-29T12:00:00Z',
+    updatedAt: '2025-04-29T12:00:00Z',
   },
 ];
 
@@ -144,7 +168,6 @@ export const activeQuests: Quest[] = [
   },
 ];
 
-// Keep the rest of the mockData.ts file unchanged
 export const achievements = [
   {
     id: 'ach1',

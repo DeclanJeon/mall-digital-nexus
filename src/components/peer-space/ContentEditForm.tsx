@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -32,8 +31,8 @@ const contentSchema = z.object({
   type: z.enum([
     'portfolio', 'service', 'product', 'event', 'post', 
     'review', 'quest', 'advertisement', 'stream', 'guestbook',
-    'course', 'workshop', 'challenge', 'tool'
-  ]),
+    'course', 'workshop', 'challenge', 'tool', 'external'
+  ] as const),
   price: z.string().optional(),
   externalUrl: z.string().url({ message: '올바른 URL을 입력해주세요' }).optional().or(z.literal('')),
 });
@@ -51,9 +50,9 @@ const ContentEditForm: React.FC<ContentEditFormProps> = ({ initialContent, onSub
     defaultValues: {
       title: initialContent.title,
       description: initialContent.description,
-      imageUrl: initialContent.imageUrl,
+      imageUrl: initialContent.imageUrl || '',
       type: initialContent.type,
-      price: initialContent.price || '',
+      price: initialContent.price?.toString() || '',
       externalUrl: initialContent.externalUrl || '',
     },
   });
@@ -61,13 +60,21 @@ const ContentEditForm: React.FC<ContentEditFormProps> = ({ initialContent, onSub
   const handleFormSubmit = (values: ContentFormValues) => {
     const updatedContent: Content = {
       ...initialContent,
-      ...values,
-      // Maintain other properties that might not be in the form
+      title: values.title,
+      description: values.description,
+      imageUrl: values.imageUrl,
+      type: values.type,
+      price: values.price ? values.price : undefined,
+      externalUrl: values.externalUrl || undefined,
+      // Maintain other properties
       date: initialContent.date,
       likes: initialContent.likes,
       comments: initialContent.comments,
       saves: initialContent.saves,
       views: initialContent.views,
+      peerSpaceAddress: initialContent.peerSpaceAddress,
+      createdAt: initialContent.createdAt,
+      updatedAt: new Date().toISOString(),
     };
     
     onSubmit(updatedContent);
@@ -87,7 +94,8 @@ const ContentEditForm: React.FC<ContentEditFormProps> = ({ initialContent, onSub
     { value: 'course', label: '코스' },
     { value: 'workshop', label: '워크샵' },
     { value: 'challenge', label: '챌린지' },
-    { value: 'tool', label: '도구' }
+    { value: 'tool', label: '도구' },
+    { value: 'external', label: '외부' }
   ];
 
   return (

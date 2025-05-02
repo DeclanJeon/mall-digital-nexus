@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +10,7 @@ interface ExternalPreview {
   title: string;
   description: string;
   imageUrl: string;
-  price?: string;
+  price?: string | number; // Updated to accept string or number
   type?: ContentType;
   isExternal: boolean;
   externalUrl: string;
@@ -76,9 +75,19 @@ export const AddExternalContentForm = ({ onBack, onSubmit }: AddExternalContentF
     
     if (!externalPreview) return;
     
-    const contentWithMemo = {
+    // Create a partial content object with default values for missing required fields
+    const contentWithMemo: Partial<Content> = {
       ...externalPreview,
-      description: memo || externalPreview.description
+      description: memo || externalPreview.description,
+      // Add default values for required fields in Content interface
+      peerSpaceAddress: 'external',
+      date: new Date().toISOString(),
+      likes: 0,
+      comments: 0,
+      views: 0,
+      saves: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
     
     onSubmit(contentWithMemo);

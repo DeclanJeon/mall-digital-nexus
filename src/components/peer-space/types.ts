@@ -40,7 +40,7 @@ export interface PeerSpaceContent {
   imageUrl?: string;
   type: ContentType;
   date: string;
-  price?: number;
+  price?: number | string; // Updated to accept string or number
   likes: number;
   comments: number;
   views: number;
@@ -97,7 +97,7 @@ export interface Content {
   imageUrl?: string;
   type: ContentType;
   date: string;
-  price?: number;
+  price?: number | string; // Updated to accept string or number
   likes: number;
   comments: number;
   views: number;

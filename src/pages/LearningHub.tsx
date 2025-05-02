@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -63,21 +62,37 @@ const LearningHub: React.FC = () => {
     }
   ];
   
-  // Mock featured content
+  // Mock featured content with all required fields
   const featuredContent: Content[] = [
     {
       id: 'content-1',
+      peerSpaceAddress: 'learning-hub',
       title: 'React 기초 강의',
       description: 'React의 기본 개념과 사용법을 배워봅시다.',
       imageUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee',
-      type: 'course'
+      type: 'course',
+      date: '2025-05-01',
+      likes: 0,
+      comments: 0,
+      views: 0,
+      saves: 0,
+      createdAt: '2025-05-01T00:00:00Z',
+      updatedAt: '2025-05-01T00:00:00Z'
     },
     {
       id: 'content-2',
+      peerSpaceAddress: 'learning-hub',
       title: '데이터 분석 특강',
       description: '실무에서 사용하는 데이터 분석 기법을 알아봅니다.',
       imageUrl: 'https://images.unsplash.com/photo-1543286386-713bdd548da4',
-      type: 'workshop'
+      type: 'workshop',
+      date: '2025-05-10',
+      likes: 0,
+      comments: 0,
+      views: 0,
+      saves: 0,
+      createdAt: '2025-05-01T00:00:00Z',
+      updatedAt: '2025-05-01T00:00:00Z'
     }
   ];
   

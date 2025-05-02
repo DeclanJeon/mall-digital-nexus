@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -54,8 +53,8 @@ export const PeerSpaceTabs = ({
     setSelectedContent(content);
     setEditedTitle(content.title);
     setEditedDescription(content.description);
-    setEditedImageUrl(content.imageUrl);
-    setEditedPrice(content.price || "");
+    setEditedImageUrl(content.imageUrl || '');
+    setEditedPrice(content.price ? content.price.toString() : '');
     setIsEditDialogOpen(true);
   };
 
