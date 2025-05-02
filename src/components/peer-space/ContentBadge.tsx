@@ -34,4 +34,4 @@ export default function ContentBadge({ type }: ContentBadgeProps) {
       {config.text}
     </Badge>
   );
-};
+}

@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -47,13 +46,6 @@ interface ChatMessage {
 }
 
 const NewCommunity = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<THREE.Scene | null>(null);
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-  const controlsRef = useRef<OrbitControls | null>(null);
-  const earthRef = useRef<THREE.Mesh | null>(null);
-
   const [activePlanet, setActivePlanet] = useState<Planet | null>(null);
   const [showBoardView, setShowBoardView] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState('Seoul, South Korea');
@@ -214,203 +206,12 @@ const NewCommunity = () => {
     return `익명 ${animals[randomIndex]}`;
   }
 
-  // Initialize Three.js scene
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    // Create scene
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0a1a);
-    sceneRef.current = scene;
-
-    // Create camera
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      containerRef.current.clientWidth / containerRef.current.clientHeight,
-      0.1,
-      1000
-    );
-    camera.position.z = 10;
-    cameraRef.current = camera;
-
-    // Create renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
-    containerRef.current.appendChild(renderer.domElement);
-    rendererRef.current = renderer;
-
-    // Add ambient light
-    const ambientLight = new THREE.AmbientLight(0x404040, 1);
-    scene.add(ambientLight);
-
-    // Add directional light
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(5, 3, 5);
-    scene.add(directionalLight);
-
-    // Add stars
-    const starGeometry = new THREE.BufferGeometry();
-    const starCount = 1000;
-    const starPositions = new Float32Array(starCount * 3);
-    
-    for (let i = 0; i < starCount * 3; i += 3) {
-      starPositions[i] = (Math.random() - 0.5) * 100;
-      starPositions[i + 1] = (Math.random() - 0.5) * 100;
-      starPositions[i + 2] = (Math.random() - 0.5) * 100;
+  const handlePlanetClick = (planet: Planet) => {
+    setActivePlanet(planet);
+    if (planet.id === 'earth') {
+      setShowBoardView(true);
     }
-    
-    starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-    const starMaterial = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 0.1,
-    });
-    const stars = new THREE.Points(starGeometry, starMaterial);
-    scene.add(stars);
-
-    // Add Earth
-    const earthGeometry = new THREE.SphereGeometry(planets[0].size, 32, 32);
-    const earthMaterial = new THREE.MeshPhongMaterial({
-      color: planets[0].color,
-      emissive: 0x112244,
-      emissiveIntensity: 0.2,
-      shininess: 50,
-    });
-    const earth = new THREE.Mesh(earthGeometry, earthMaterial);
-    scene.add(earth);
-    earthRef.current = earth;
-
-    // Add planets
-    planets.slice(1).forEach((planet) => {
-      const geometry = new THREE.SphereGeometry(planet.size, 32, 32);
-      const material = new THREE.MeshPhongMaterial({
-        color: planet.color,
-        emissive: new THREE.Color(planet.color).multiplyScalar(0.2),
-        shininess: 30,
-      });
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.set(...planet.position);
-      mesh.userData = { planetId: planet.id };
-      scene.add(mesh);
-    });
-
-    // Add orbit controls
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.rotateSpeed = 0.5;
-    controlsRef.current = controls;
-
-    // Handle window resize
-    const handleResize = () => {
-      if (!containerRef.current) return;
-      const width = containerRef.current.clientWidth;
-      const height = containerRef.current.clientHeight;
-      
-      if (cameraRef.current) {
-        cameraRef.current.aspect = width / height;
-        cameraRef.current.updateProjectionMatrix();
-      }
-      
-      if (rendererRef.current) {
-        rendererRef.current.setSize(width, height);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    // Animation loop
-    const animate = () => {
-      requestAnimationFrame(animate);
-      
-      if (controlsRef.current) {
-        controlsRef.current.update();
-      }
-      
-      if (earthRef.current) {
-        earthRef.current.rotation.y += 0.001;
-      }
-      
-      if (rendererRef.current && sceneRef.current && cameraRef.current) {
-        rendererRef.current.render(sceneRef.current, cameraRef.current);
-      }
-    };
-
-    animate();
-
-    // Click event handler
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-
-    const onClick = (event: MouseEvent) => {
-      if (!containerRef.current || !cameraRef.current || !sceneRef.current) return;
-      
-      const rect = containerRef.current.getBoundingClientRect();
-      mouse.x = ((event.clientX - rect.left) / containerRef.current.clientWidth) * 2 - 1;
-      mouse.y = -((event.clientY - rect.top) / containerRef.current.clientHeight) * 2 + 1;
-      
-      raycaster.setFromCamera(mouse, cameraRef.current);
-      const intersects = raycaster.intersectObjects(sceneRef.current.children);
-      
-      if (intersects.length > 0 && intersects[0].object instanceof THREE.Mesh) {
-        const selectedObject = intersects[0].object;
-        const planetId = selectedObject.userData.planetId;
-        
-        if (planetId) {
-          const selectedPlanet = planets.find(p => p.id === planetId);
-          if (selectedPlanet) {
-            setActivePlanet(selectedPlanet);
-            if (planetId === 'earth') {
-              // Zoom to Earth and show location-based board
-              zoomToEarth();
-            }
-          }
-        } else if (selectedObject === earthRef.current) {
-          setActivePlanet(planets[0]);
-          zoomToEarth();
-        }
-      }
-    };
-
-    containerRef.current.addEventListener('click', onClick);
-
-    const zoomToEarth = () => {
-      if (!cameraRef.current || !controlsRef.current) return;
-      
-      // Animate camera position
-      const targetPosition = new THREE.Vector3(0, 0, 3.5);
-      const startPosition = cameraRef.current.position.clone();
-      
-      const duration = 1000; // ms
-      const startTime = Date.now();
-      
-      const zoomAnimation = () => {
-        const elapsedTime = Date.now() - startTime;
-        const progress = Math.min(elapsedTime / duration, 1);
-        
-        if (cameraRef.current) {
-          cameraRef.current.position.lerpVectors(startPosition, targetPosition, progress);
-        }
-        
-        if (progress < 1) {
-          requestAnimationFrame(zoomAnimation);
-        } else {
-          // Show board view after zoom animation completes
-          setShowBoardView(true);
-        }
-      };
-      
-      zoomAnimation();
-    };
-
-    // Clean up
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (containerRef.current) {
-        containerRef.current.removeEventListener('click', onClick);
-        containerRef.current.innerHTML = '';
-      }
-    };
-  }, []);
+  };
 
   // Handle sending a chat message
   const handleSendMessage = () => {
@@ -436,10 +237,6 @@ const NewCommunity = () => {
   const handleReturnToUniverse = () => {
     setShowBoardView(false);
     setActivePlanet(null);
-    
-    if (cameraRef.current) {
-      cameraRef.current.position.set(0, 0, 10);
-    }
   };
 
   return (
@@ -505,12 +302,68 @@ const NewCommunity = () => {
               </div>
             )}
             
-            {/* 3D Universe Canvas */}
-            <div 
-              ref={containerRef} 
-              className="w-full h-[80vh] rounded-2xl overflow-hidden"
-              style={{ outline: 'none' }}
-            ></div>
+            {/* 2D Universe Canvas (Temporary until Three.js is working) */}
+            <div className="w-full h-[80vh] rounded-2xl overflow-hidden bg-[#0a0a1a] relative">
+              {/* Stars background */}
+              <div className="absolute inset-0" style={{ 
+                backgroundImage: 'radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px)',
+                backgroundSize: '50px 50px',
+                opacity: 0.5
+              }}></div>
+              
+              {/* Planets */}
+              {planets.map((planet) => {
+                // Calculate position for 2D representation
+                const left = 50 + (planet.position[0] * 5);
+                const top = 50 + (planet.position[1] * 5);
+                const size = planet.size * 40;
+                
+                return (
+                  <div
+                    key={planet.id}
+                    className="absolute rounded-full cursor-pointer transition-transform hover:scale-110"
+                    style={{
+                      left: `${left}%`,
+                      top: `${top}%`,
+                      width: `${size}px`,
+                      height: `${size}px`,
+                      backgroundColor: planet.color,
+                      transform: 'translate(-50%, -50%)',
+                      boxShadow: `0 0 ${size/2}px ${size/8}px ${planet.color}40`
+                    }}
+                    onClick={() => handlePlanetClick(planet)}
+                    onMouseEnter={() => setActivePlanet(planet)}
+                    onMouseLeave={() => setActivePlanet(null)}
+                  >
+                    <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs whitespace-nowrap">
+                      {planet.name}
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {/* Active user points */}
+              {Array.from({ length: 50 }).map((_, i) => {
+                const left = Math.random() * 100;
+                const top = Math.random() * 100;
+                const size = Math.random() * 2 + 1;
+                const opacity = Math.random() * 0.8 + 0.2;
+                
+                return (
+                  <div
+                    key={`star-${i}`}
+                    className="absolute rounded-full bg-blue-400"
+                    style={{
+                      left: `${left}%`,
+                      top: `${top}%`,
+                      width: `${size}px`,
+                      height: `${size}px`,
+                      opacity
+                    }}
+                  />
+                );
+              })}
+            </div>
             
             {/* Instructions */}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center bg-black/60 backdrop-blur-md p-3 rounded-full">
@@ -626,7 +479,7 @@ const NewCommunity = () => {
                 </div>
                 
                 <div className="flex-grow overflow-y-auto p-4 space-y-4">
-                  {messages.map((message, index) => (
+                  {messages.map((message) => (
                     <div 
                       key={message.id}
                       className={`flex ${message.author === username ? 'justify-end' : 'justify-start'}`}
