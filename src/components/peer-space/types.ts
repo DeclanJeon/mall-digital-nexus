@@ -69,6 +69,8 @@ export interface Content {
   participants?: string[];
   htmlContent?: string; // HTML 콘텐츠 (Toast UI Editor 용)
   rating?: number; // Added for components referencing this property
+  attributes?: Record<string, any>; // Add for extra attributes
+  badges?: string[]; // Add for badges
 }
 
 // Additional type definitions needed by other components
@@ -90,6 +92,19 @@ export interface PeerMallConfig {
   socialLinks?: { [key: string]: string };
   establishedDate?: string;
   status: 'active' | 'inactive' | 'pending';
+  title?: string; // Add for components referencing this property
+  profileImage?: string; // Add for components referencing this property
+  peerNumber?: string; // Add for components referencing this property
+  followers?: number; // Add for components referencing this property
+  recommendations?: number; // Add for components referencing this property
+  badges?: string[]; // Add for components referencing this property
+  coverImage?: string; // Add for components referencing this property
+  customizations?: {
+    primaryColor?: string;
+    showChat?: boolean;
+    allowComments?: boolean;
+    showBadges?: boolean;
+  }; // Add for components referencing this property
 }
 
 export interface PeerSpaceData {
@@ -102,6 +117,7 @@ export interface PeerSpaceData {
   experience?: number;
   achievements?: number;
   memberCount?: number;
+  title?: string; // Add for components referencing this property
 }
 
 export interface Review {
@@ -116,6 +132,11 @@ export interface Review {
   likes: number;
   images?: string[];
   verified: boolean;
+  author?: string; // Add for components referencing this property
+  authorImage?: string; // Add for components referencing this property
+  source?: string; // Add for components referencing this property
+  sourceSite?: string; // Add for components referencing this property
+  content?: string; // Add for components referencing this property
 }
 
 export interface CommunityPost {
@@ -154,6 +175,9 @@ export interface Quest {
   steps?: { title: string; description: string; completed: boolean }[];
   category?: string;
   tags?: string[];
+  progress?: number; // Add for components referencing this property
+  deadline?: string; // Add for components referencing this property
+  goal?: number; // Add for components referencing this property
 }
 
 export interface Event {
@@ -172,6 +196,8 @@ export interface Event {
   category?: string;
   tags?: string[];
   status: 'upcoming' | 'ongoing' | 'completed' | 'canceled';
+  type?: string; // Add for components referencing this property
+  date?: string; // Add for components referencing this property
 }
 
 export interface GuestbookEntry {
@@ -228,6 +254,8 @@ export interface BadgeData {
   earnedAt?: string;
   issuer?: string;
   issuerId?: string;
+  color?: string; // Add for components referencing this property
+  icon?: any; // Add for components referencing this property
 }
 
 export type SectionType = 
@@ -245,7 +273,12 @@ export type SectionType =
   | 'featured'
   | 'achievements'
   | 'learning'
-  | 'quests';
+  | 'quests'
+  | 'content' // Add for components referencing this section type
+  | 'infoHub' // Add for components referencing this section type
+  | 'activityFeed' // Add for components referencing this section type
+  | 'relatedMalls' // Add for components referencing this section type
+  | 'liveCollaboration'; // Add for components referencing this section type
 
 export interface FeaturedContentSectionProps {
   title: string;
@@ -253,4 +286,8 @@ export interface FeaturedContentSectionProps {
   viewAll?: string;
   maxItems?: number;
   layout?: 'grid' | 'carousel' | 'list';
+  isOwner?: boolean; // Add for components referencing this property
+  onAddContent?: () => void; // Add for components referencing this property
+  onContentClick?: (content: Content) => void; // Add for components referencing this property
 }
+

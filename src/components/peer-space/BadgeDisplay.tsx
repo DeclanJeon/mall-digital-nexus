@@ -2,6 +2,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { BadgeData } from './types';
+import { CircleIcon } from 'lucide-react';
 
 interface BadgeDisplayProps {
   badges: BadgeData[];
@@ -32,10 +33,10 @@ export const BadgeDisplay = ({
         <Badge 
           key={badge.id} 
           variant="outline" 
-          className={`${sizeClasses[size]} border-opacity-50 ${badge.color?.replace('text-', 'border-')} ${badge.color}`}
+          className={`${sizeClasses[size]} border-opacity-50 ${badge.color ? badge.color.replace('text-', 'border-') : 'border-gray-500'} ${badge.color || 'text-gray-700'}`}
           title={showTooltip ? badge.description : undefined}
         >
-          <badge.icon className="h-3 w-3 mr-1.5" />
+          {badge.icon ? <badge.icon className="h-3 w-3 mr-1.5" /> : <CircleIcon className="h-3 w-3 mr-1.5" />}
           {badge.name}
         </Badge>
       ))}

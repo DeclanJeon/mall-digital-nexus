@@ -31,10 +31,10 @@ export const ActiveQuestsSection = ({ quests, onQuestClick }: ActiveQuestsSectio
             <CardContent className="pb-2">
               <p className="text-sm text-text-200 mb-3 line-clamp-2">{quest.description}</p>
               <div className="space-y-1">
-                <Progress value={quest.progress} className="h-2" />
+                <Progress value={quest.completion} className="h-2" />
                 <div className="flex justify-between text-xs text-text-200">
-                  <span>{quest.progress}% 완료</span>
-                  <span>{quest.deadline}</span>
+                  <span>{quest.completion}% 완료</span>
+                  <span>{quest.deadline || quest.endDate}</span>
                 </div>
               </div>
             </CardContent>

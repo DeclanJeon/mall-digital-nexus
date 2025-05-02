@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -64,7 +65,7 @@ const ContentEditForm: React.FC<ContentEditFormProps> = ({ initialContent, onSub
       description: values.description,
       imageUrl: values.imageUrl,
       type: values.type,
-      price: values.price ? values.price : undefined,
+      price: values.price ? Number(values.price) : undefined,
       externalUrl: values.externalUrl || undefined,
       // Maintain other properties
       date: initialContent.date,
