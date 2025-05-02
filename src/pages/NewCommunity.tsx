@@ -11,8 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/components/ui/use-toast';
-import { Editor } from '@toast-ui/react-editor';
-import '@toast-ui/editor/dist/toastui-editor.css';
+// Removed import for Toast UI Editor
 
 // Define planet types
 interface Planet {
@@ -72,9 +71,6 @@ const NewCommunity = () => {
   const [showNewPostForm, setShowNewPostForm] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const { toast } = useToast();
-  
-  // Editor ref
-  const editorRef = useRef<any>(null);
   
   // Form for new posts
   const form = useForm<ForumPostFormData>({
@@ -380,16 +376,8 @@ const NewCommunity = () => {
   
   // 게시글 작성 폼 제출 처리
   const onSubmit = useCallback((data: ForumPostFormData) => {
-    if (!editorRef.current) {
-      toast({
-        title: "에디터 오류",
-        description: "에디터를 불러오는 중 문제가 발생했습니다.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const htmlContent = editorRef.current.getInstance().getHTML();
+    // Convert form textarea content to simple HTML
+    const htmlContent = `<p>${data.content.replace(/\n/g, '</p><p>')}</p>`;
     const tagsArray = data.tags.split(',').map(tag => tag.trim());
     
     if (editingPost) {
@@ -400,7 +388,6 @@ const NewCommunity = () => {
         content: data.content,
         htmlContent,
         tags: tagsArray,
-        updatedAt: new Date().toISOString()
       };
       
       updatePostInDB(updatedPost);
@@ -422,7 +409,7 @@ const NewCommunity = () => {
       
       savePostToDB(newPost);
     }
-  }, [username, editingPost, form, editorRef]);
+  }, [username, editingPost, form]);
   
   // 게시글 수정 시작
   const handleEditPost = useCallback((post: Post) => {
@@ -432,13 +419,6 @@ const NewCommunity = () => {
     form.setValue('title', post.title);
     form.setValue('content', post.content);
     form.setValue('tags', post.tags.join(', '));
-    
-    // 에디터 내용 설정
-    setTimeout(() => {
-      if (editorRef.current && post.htmlContent) {
-        editorRef.current.getInstance().setHTML(post.htmlContent);
-      }
-    }, 100);
   }, [form]);
   
   function getRandomAnimalName(): string {
@@ -668,17 +648,12 @@ const NewCommunity = () => {
                     setEditingPost(null);
                     setShowNewPostForm(true);
                     form.reset();
-                    setTimeout(() => {
-                      if (editorRef.current) {
-                        editorRef.current.getInstance().setHTML('');
-                      }
-                    }, 100);
                   }}
                 >새 글쓰기</Button>
               </div>
             </div>
             
-            {/* New Post Form */}
+            {/* New Post Form - Modified to use simple textarea instead of Toast UI Editor */}
             {showNewPostForm && (
               <Card className="bg-white/5 border-white/10 mb-6 overflow-hidden">
                 <CardHeader>
@@ -730,23 +705,11 @@ const NewCommunity = () => {
                           <FormItem>
                             <FormLabel>내용</FormLabel>
                             <FormControl>
-                              <div className="min-h-[300px] border border-white/20 rounded-md overflow-hidden text-black">
-                                <Editor
-                                  initialValue=" "
-                                  previewStyle="vertical"
-                                  height="300px"
-                                  initialEditType="wysiwyg"
-                                  useCommandShortcut={true}
-                                  ref={editorRef}
-                                  onChange={() => {
-                                    if (editorRef.current) {
-                                      const plainText = editorRef.current.getInstance().getMarkdown();
-                                      field.onChange(plainText);
-                                    }
-                                  }}
-                                  language="ko-KR"
-                                />
-                              </div>
+                              <Textarea 
+                                placeholder="내용을 입력하세요..." 
+                                className="min-h-[300px] bg-white/10 border-white/20 text-white resize-none" 
+                                {...field} 
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -1042,6 +1005,16 @@ const NewCommunity = () => {
         @keyframes drift {
           0% { background-position: 0 0; }
           100% { background-position: 300px 300px; }
+        }
+        
+        /* Fade in animation */
+        .animate-fade-in {
+          animation: fadeIn 0.5s ease-in-out forwards;
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>
