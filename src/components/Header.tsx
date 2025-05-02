@@ -104,7 +104,7 @@ const Header = () => {
               <input
                 type="text"
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-primary-200"
-                placeholder="피어몰, 피어스페이스, 콘텐츠 검색..."
+                placeholder="피어몰, 피어스페이스, 콘텐츠 검색... "
               />
               <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
@@ -112,7 +112,7 @@ const Header = () => {
 
           {/* Navigation Links (desktop) */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/shopping" className="text-text-200 hover:text-primary-300">쇼핑</Link>
+            <Link to="/shopping" className="text-text-200 hover:text-primary-300">쇼핑abc</Link>
             <Link to="/curation-links" className="text-text-200 hover:text-primary-300">큐레이션</Link>
             <Link to="/community" className="text-text-200 hover:text-primary-300">커뮤니티</Link>
             {isLoggedIn && (
