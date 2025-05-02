@@ -112,7 +112,7 @@ const Header = () => {
 
           {/* Navigation Links (desktop) */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/shopping" className="text-text-200 hover:text-primary-300">쇼핑abc</Link>
+            <Link to="/shopping" className="text-text-200 hover:text-primary-300">쇼핑</Link>
             <Link to="/curation-links" className="text-text-200 hover:text-primary-300">큐레이션</Link>
             <Link to="/community" className="text-text-200 hover:text-primary-300">커뮤니티</Link>
             {isLoggedIn && (
