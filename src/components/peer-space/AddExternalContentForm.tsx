@@ -11,7 +11,7 @@ interface ExternalPreview {
   title: string;
   description: string;
   imageUrl: string;
-  price?: number; // Changed to number only
+  price?: number;
   type?: ContentType;
   isExternal: boolean;
   externalUrl: string;
@@ -52,7 +52,7 @@ export const AddExternalContentForm = ({ onBack, onSubmit }: AddExternalContentF
         title: '가져온 콘텐츠 제목 (자동)',
         description: '외부 페이지 설명...',
         imageUrl: 'https://via.placeholder.com/150/d4eaf7/3b3c3d?text=Preview',
-        price: contentType === 'product' ? 50000 : undefined, // Changed to number
+        price: contentType === 'product' ? 50000 : undefined,
         type: contentType,
         isExternal: true,
         externalUrl: externalUrlInput,

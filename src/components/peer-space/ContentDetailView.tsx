@@ -1,10 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageSquare, Share2, ThumbsUp, ExternalLink, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { 
+  Heart, MessageSquare, Share2, ThumbsUp, ExternalLink, 
+  MoreHorizontal, Edit, Trash2, ArrowRight, Star 
+} from 'lucide-react';
 import {
   Sheet,
   SheetContent,

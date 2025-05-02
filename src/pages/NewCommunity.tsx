@@ -1,15 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDropzone } from 'react-dropzone';
 import { v4 as uuidv4 } from 'uuid';
-import { Editor } from '@toast-ui/react-editor';
-import '@toast-ui/editor/dist/toastui-editor.css';
-import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
-import 'tui-color-picker/dist/tui-color-picker.css';
-import '@toast-ui/editor-plugin-color-syntax/dist/toastui-editor-plugin-color-syntax.css';
-import { Prism } from '@toast-ui/editor-plugin-code-syntax-highlight';
-import '@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight.css';
-import 'prismjs/themes/prism.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -50,8 +42,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
-import { MultiSelect } from '@/components/ui/multi-select';
-import { useTheme } from "@/components/theme-provider"
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -77,7 +67,6 @@ const NewCommunity = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [image, setImage] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [category, setCategory] = useState('');
@@ -85,12 +74,9 @@ const NewCommunity = () => {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [priority, setPriority] = useState('');
   const [terms, setTerms] = useState(false);
-  const [slider, setSlider] = useState<number | undefined>(undefined);
+  const [slider, setSlider] = useState<number>(50);
   const [checkbox, setCheckbox] = useState<string[]>([]);
   const [radio, setRadio] = useState<string | undefined>(undefined);
-  const editorRef = useRef<Editor>(null);
-  const [editorContent, setEditorContent] = useState('');
-  const { theme } = useTheme()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -98,25 +84,14 @@ const NewCommunity = () => {
       title: "",
       content: "",
     },
-  })
+  });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     toast({
       title: "제출 완료.",
       description: "성공적으로 제출되었습니다.",
-    })
+    });
   }
-
-  const onImageDrop = (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    setImage(file);
-    setImageUrl(URL.createObjectURL(file));
-  };
-
-  const { getRootProps, getInputProps } = useDropzone({
-    accept: 'image/*',
-    onDrop: onImageDrop,
-  });
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
@@ -128,38 +103,6 @@ const NewCommunity = () => {
 
   const handleTagChange = (newTags: string[]) => {
     setTags(newTags);
-  };
-
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCategory(e.target.value);
-  };
-
-  const handleIsPublicChange = (checked: boolean) => {
-    setIsPublic(checked);
-  };
-
-  const handleDateChange = (date: Date | undefined) => {
-    setDate(date);
-  };
-
-  const handlePriorityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setPriority(e.target.value);
-  };
-
-  const handleTermsChange = (checked: boolean) => {
-    setTerms(checked);
-  };
-
-  const handleSliderChange = (value: number[]) => {
-    setSlider(value[0]);
-  };
-
-  const handleCheckboxChange = (value: string[]) => {
-    setCheckbox(value);
-  };
-
-  const handleRadioChange = (value: string) => {
-    setRadio(value);
   };
 
   const handleSubmit = () => {
@@ -201,30 +144,11 @@ const NewCommunity = () => {
     navigate('/community');
   };
 
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.getInstance().addHook('addImageBlobHook',
-        async (blob: Blob, callback: (imageUrl: string, altText: string) => void) => {
-          const imageUrl = URL.createObjectURL(blob);
-          callback(imageUrl, 'image');
-          return false;
-        }
-      );
-    }
-  }, []);
-
-  const handleEditorChange = () => {
-    if (editorRef.current) {
-      const editorInstance = editorRef.current.getInstance();
-      const contentMarkdown = editorInstance.getMarkdown();
-      setEditorContent(contentMarkdown);
-    }
-  };
-
   return (
     <div className="min-h-screen flex flex-col">
       <style>
-        {`.space-background {
+        {`
+        .space-background {
           position: fixed;
           top: 0;
           left: 0;
@@ -232,7 +156,8 @@ const NewCommunity = () => {
           height: 100%;
           z-index: -1;
           background: linear-gradient(135deg, #0c0e17, #1f2d3d);
-        }`}
+        }
+        `}
       </style>
       <div className="space-background"></div>
 
@@ -259,12 +184,17 @@ const NewCommunity = () => {
             value={content}
             onChange={handleContentChange}
             className="text-black"
+            rows={8}
           />
         </div>
 
         <div className="mb-4">
           <Label className="block text-sm font-medium mb-1">태그</Label>
-          <MultiSelect value={tags} onChange={handleTagChange} />
+          <Input
+            placeholder="태그를 입력하세요 (쉼표로 구분)"
+            onChange={(e) => setTags(e.target.value.split(',').map(tag => tag.trim()))}
+            className="text-black"
+          />
         </div>
 
         <div className="mb-4">
@@ -273,7 +203,7 @@ const NewCommunity = () => {
             <SelectTrigger className="w-[180px] text-black">
               <SelectValue placeholder="선택" />
             </SelectTrigger>
-            <SelectContent className={`${theme === "dark" ? 'bg-gray-800' : 'bg-white'}`}>
+            <SelectContent>
               <SelectItem value="공지">공지</SelectItem>
               <SelectItem value="자유">자유</SelectItem>
               <SelectItem value="질문">질문</SelectItem>
@@ -286,7 +216,7 @@ const NewCommunity = () => {
           <Switch
             id="isPublic"
             checked={isPublic}
-            onCheckedChange={handleIsPublicChange}
+            onCheckedChange={setIsPublic}
           />
         </div>
 
@@ -311,6 +241,7 @@ const NewCommunity = () => {
                 selected={date}
                 onSelect={setDate}
                 initialFocus
+                className="p-3 pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
@@ -322,7 +253,7 @@ const NewCommunity = () => {
             <SelectTrigger className="w-[180px] text-black">
               <SelectValue placeholder="선택" />
             </SelectTrigger>
-            <SelectContent className={`${theme === "dark" ? 'bg-gray-800' : 'bg-white'}`}>
+            <SelectContent>
               <SelectItem value="높음">높음</SelectItem>
               <SelectItem value="보통">보통</SelectItem>
               <SelectItem value="낮음">낮음</SelectItem>
@@ -335,14 +266,14 @@ const NewCommunity = () => {
           <Switch
             id="terms"
             checked={terms}
-            onCheckedChange={handleTermsChange}
+            onCheckedChange={setTerms}
           />
         </div>
 
         <div className="mb-4">
           <Label htmlFor="slider" className="block text-sm font-medium mb-1">슬라이더 값</Label>
           <Slider
-            defaultValue={[slider || 50]}
+            defaultValue={[slider]}
             max={100}
             min={1}
             step={1}
@@ -418,15 +349,18 @@ const NewCommunity = () => {
         </div>
 
         <div className="mb-4">
-          <Label className="block text-sm font-medium mb-1">이미지 업로드</Label>
-          <div {...getRootProps()} className="dropzone border rounded-md p-4 cursor-pointer bg-gray-700">
-            <input {...getInputProps()} />
-            {imageUrl ? (
-              <img src={imageUrl} alt="Uploaded" className="max-h-48 rounded-md" />
-            ) : (
-              <p className="text-gray-300">이미지를 드래그하거나 클릭하여 업로드하세요.</p>
-            )}
-          </div>
+          <Label className="block text-sm font-medium mb-1">이미지 URL</Label>
+          <Input
+            type="text"
+            placeholder="이미지 URL을 입력하세요"
+            onChange={(e) => setImageUrl(e.target.value)}
+            className="text-black"
+          />
+          {imageUrl && (
+            <div className="mt-2">
+              <img src={imageUrl} alt="Preview" className="max-h-48 rounded-md" />
+            </div>
+          )}
         </div>
 
         <Button onClick={handleSubmit} className="w-full">게시글 작성</Button>

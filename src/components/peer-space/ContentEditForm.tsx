@@ -1,212 +1,210 @@
 
-import React from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/hooks/use-toast';
 import { Content, ContentType } from './types';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { LoaderCircle } from 'lucide-react';
 
-// Validation schema for content editing
-const contentSchema = z.object({
-  title: z.string().min(1, { message: '제목을 입력해주세요' }),
-  description: z.string().min(1, { message: '설명을 입력해주세요' }),
-  imageUrl: z.string().url({ message: '올바른 이미지 URL을 입력해주세요' }),
-  type: z.enum([
-    'portfolio', 'service', 'product', 'event', 'post', 
-    'review', 'quest', 'advertisement', 'stream', 'guestbook',
-    'course', 'workshop', 'challenge', 'tool', 'external'
-  ] as const),
-  price: z.string().optional(),
-  externalUrl: z.string().url({ message: '올바른 URL을 입력해주세요' }).optional().or(z.literal('')),
-});
-
-type ContentFormValues = z.infer<typeof contentSchema>;
-
-interface ContentEditFormProps {
-  initialContent: Content;
-  onSubmit: (content: Content) => void;
+// Define ContentFormValues type
+export interface ContentFormValues {
+  title: string;
+  description: string;
+  type: ContentType;
+  imageUrl?: string;
+  price?: number;
+  status?: string;
+  tags?: string[];
+  category?: string;
+  isExternal?: boolean;
+  externalUrl?: string;
 }
 
-const ContentEditForm: React.FC<ContentEditFormProps> = ({ initialContent, onSubmit }) => {
-  const form = useForm<ContentFormValues>({
-    resolver: zodResolver(contentSchema),
-    defaultValues: {
-      title: initialContent.title,
-      description: initialContent.description,
-      imageUrl: initialContent.imageUrl || '',
-      type: initialContent.type,
-      price: initialContent.price?.toString() || '',
-      externalUrl: initialContent.externalUrl || '',
-    },
+interface ContentEditFormProps {
+  initialValues?: Partial<Content>;
+  onSubmit: (values: ContentFormValues) => void;
+  onCancel: () => void;
+}
+
+export const ContentEditForm: React.FC<ContentEditFormProps> = ({
+  initialValues = {},
+  onSubmit,
+  onCancel,
+}) => {
+  const [formValues, setFormValues] = useState<ContentFormValues>({
+    title: initialValues.title || '',
+    description: initialValues.description || '',
+    type: initialValues.type || 'post',
+    imageUrl: initialValues.imageUrl || '',
+    price: initialValues.price || 0,
+    status: initialValues.status || 'draft',
+    tags: initialValues.tags || [],
+    category: initialValues.category || '',
+    isExternal: initialValues.isExternal || false,
+    externalUrl: initialValues.externalUrl || '',
   });
 
-  const handleFormSubmit = (values: ContentFormValues) => {
-    const updatedContent: Content = {
-      ...initialContent,
-      title: values.title,
-      description: values.description,
-      imageUrl: values.imageUrl,
-      type: values.type,
-      price: values.price ? Number(values.price) : undefined,
-      externalUrl: values.externalUrl || undefined,
-      // Maintain other properties
-      date: initialContent.date,
-      likes: initialContent.likes,
-      comments: initialContent.comments,
-      saves: initialContent.saves,
-      views: initialContent.views,
-      peerSpaceAddress: initialContent.peerSpaceAddress,
-      createdAt: initialContent.createdAt,
-      updatedAt: new Date().toISOString(),
-    };
-    
-    onSubmit(updatedContent);
+  const handleChange = (field: keyof ContentFormValues, value: any) => {
+    setFormValues(prev => ({ ...prev, [field]: value }));
   };
 
-  const contentTypeOptions = [
-    { value: 'portfolio', label: '포트폴리오' },
-    { value: 'service', label: '서비스' },
-    { value: 'product', label: '상품' },
-    { value: 'event', label: '이벤트' },
-    { value: 'post', label: '게시글' },
-    { value: 'review', label: '리뷰' },
-    { value: 'quest', label: '퀘스트' },
-    { value: 'advertisement', label: '광고' },
-    { value: 'stream', label: '스트림' },
-    { value: 'guestbook', label: '방명록' },
-    { value: 'course', label: '코스' },
-    { value: 'workshop', label: '워크샵' },
-    { value: 'challenge', label: '챌린지' },
-    { value: 'tool', label: '도구' },
-    { value: 'external', label: '외부' }
-  ];
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formValues.title || !formValues.description) {
+      toast({
+        title: "입력 오류",
+        description: "제목과 설명은 필수 입력사항입니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Convert price to number
+    const finalValues = {
+      ...formValues,
+      price: formValues.price ? Number(formValues.price) : undefined,
+    };
+
+    onSubmit(finalValues);
+  };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>제목</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="title">제목</Label>
+        <Input
+          id="title"
+          value={formValues.title}
+          onChange={(e) => handleChange('title', e.target.value)}
+          placeholder="콘텐츠 제목"
+          required
         />
-        
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>콘텐츠 유형</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="유형 선택" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {contentTypeOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      </div>
 
-          <FormField
-            control={form.control}
-            name="price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>가격 (선택사항)</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="예: ₩30,000" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+      <div>
+        <Label htmlFor="description">설명</Label>
+        <Textarea
+          id="description"
+          value={formValues.description}
+          onChange={(e) => handleChange('description', e.target.value)}
+          placeholder="콘텐츠 설명"
+          rows={4}
+          required
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="type">콘텐츠 유형</Label>
+          <Select
+            value={formValues.type}
+            onValueChange={(value) => handleChange('type', value as ContentType)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="콘텐츠 유형 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="product">상품</SelectItem>
+              <SelectItem value="portfolio">포트폴리오</SelectItem>
+              <SelectItem value="service">서비스</SelectItem>
+              <SelectItem value="event">이벤트</SelectItem>
+              <SelectItem value="post">게시글</SelectItem>
+              <SelectItem value="review">리뷰</SelectItem>
+              <SelectItem value="quest">퀘스트</SelectItem>
+              <SelectItem value="advertisement">광고</SelectItem>
+              <SelectItem value="stream">스트림</SelectItem>
+              <SelectItem value="guestbook">방명록</SelectItem>
+              <SelectItem value="course">강의</SelectItem>
+              <SelectItem value="workshop">워크숍</SelectItem>
+              <SelectItem value="challenge">챌린지</SelectItem>
+              <SelectItem value="tool">도구</SelectItem>
+              <SelectItem value="external">외부</SelectItem>
+              <SelectItem value="livestream">라이브</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="category">카테고리</Label>
+          <Input
+            id="category"
+            value={formValues.category || ''}
+            onChange={(e) => handleChange('category', e.target.value)}
+            placeholder="카테고리"
           />
         </div>
-        
-        <FormField
-          control={form.control}
-          name="imageUrl"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>이미지 URL</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      </div>
 
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>설명</FormLabel>
-              <FormControl>
-                <Textarea {...field} rows={5} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+      <div>
+        <Label htmlFor="imageUrl">이미지 URL</Label>
+        <Input
+          id="imageUrl"
+          value={formValues.imageUrl || ''}
+          onChange={(e) => handleChange('imageUrl', e.target.value)}
+          placeholder="이미지 URL"
         />
-        
-        <FormField
-          control={form.control}
-          name="externalUrl"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>외부 URL (선택사항)</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="https://example.com" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {formValues.imageUrl && (
+          <div className="mt-2">
+            <img src={formValues.imageUrl} alt="미리보기" className="w-40 h-40 object-cover rounded-md" />
+          </div>
+        )}
+      </div>
 
-        <div className="flex justify-end gap-4">
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
-            저장하기
-          </Button>
+      {(formValues.type === 'product' || formValues.type === 'service') && (
+        <div>
+          <Label htmlFor="price">가격</Label>
+          <Input
+            id="price"
+            type="number"
+            value={formValues.price || ''}
+            onChange={(e) => handleChange('price', e.target.value ? Number(e.target.value) : '')}
+            placeholder="가격"
+          />
         </div>
-      </form>
-    </Form>
+      )}
+
+      <div>
+        <Label htmlFor="tags">태그</Label>
+        <Input
+          id="tags"
+          value={(formValues.tags || []).join(', ')}
+          onChange={(e) => handleChange('tags', e.target.value.split(',').map(tag => tag.trim()))}
+          placeholder="쉼표로 구분된 태그"
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="isExternal"
+          checked={formValues.isExternal || false}
+          onCheckedChange={(checked) => handleChange('isExternal', checked)}
+        />
+        <Label htmlFor="isExternal">외부 콘텐츠</Label>
+      </div>
+
+      {formValues.isExternal && (
+        <div>
+          <Label htmlFor="externalUrl">외부 URL</Label>
+          <Input
+            id="externalUrl"
+            value={formValues.externalUrl || ''}
+            onChange={(e) => handleChange('externalUrl', e.target.value)}
+            placeholder="https://..."
+          />
+        </div>
+      )}
+
+      <div className="flex justify-end space-x-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          취소
+        </Button>
+        <Button type="submit">저장</Button>
+      </div>
+    </form>
   );
 };
 

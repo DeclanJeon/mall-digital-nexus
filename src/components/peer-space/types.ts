@@ -55,7 +55,7 @@ export interface Content {
   views: number;
   saves: number;
   category?: string;
-  price?: number;  // Keep as number
+  price?: number; 
   tags?: string[];
   location?: string;
   relatedBadges?: string[];
@@ -67,7 +67,7 @@ export interface Content {
   completion?: number;
   maxParticipants?: number;
   participants?: string[];
-  htmlContent?: string; // HTML 콘텐츠 (Toast UI Editor 용)
+  htmlContent?: string;
   rating?: number;
   attributes?: Record<string, any>;
   badges?: string[];
@@ -133,6 +133,7 @@ export interface PeerSpaceData {
   completedChallenges?: number;
   activeQuests?: number;
   peerNumber?: string;
+  profileImage?: string; // Added profileImage property
 }
 
 export interface Review {
@@ -152,7 +153,7 @@ export interface Review {
   source?: string;
   sourceSite?: string;
   content?: string;
-  peerMall?: { name: string; id?: string; };
+  peerMall?: { name: string; id?: string; }; // Added peerMall property
 }
 
 export interface CommunityPost {
