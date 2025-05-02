@@ -1,4 +1,3 @@
-
 // components/peer-space/types.ts
 export type ContentType = 
   | 'product'
@@ -56,7 +55,7 @@ export interface Content {
   views: number;
   saves: number;
   category?: string;
-  price?: number | string; // Updated to allow string or number
+  price?: number;  // Keep as number
   tags?: string[];
   location?: string;
   relatedBadges?: string[];
@@ -67,8 +66,8 @@ export interface Content {
   ecosystem?: ContentEcosystem;
   completion?: number;
   maxParticipants?: number;
-  participants?: string[] | number; // Updated to allow number or string[]
-  htmlContent?: string;
+  participants?: string[];
+  htmlContent?: string; // HTML 콘텐츠 (Toast UI Editor 용)
   rating?: number;
   attributes?: Record<string, any>;
   badges?: string[];
@@ -90,7 +89,7 @@ export interface PeerMallConfig {
     lat: number;
     lng: number;
     address: string;
-  } | string;
+  };
   category?: string;
   tags?: string[];
   themeColor?: string;
@@ -134,13 +133,6 @@ export interface PeerSpaceData {
   completedChallenges?: number;
   activeQuests?: number;
   peerNumber?: string;
-  profileImage?: string;
-  badges?: string[];  // Added badges property
-  followers?: number;
-  recommendations?: number;
-  socialLinks?: { [key: string]: string };
-  contactPhone?: string;
-  contactEmail?: string;
 }
 
 export interface Review {
@@ -160,7 +152,7 @@ export interface Review {
   source?: string;
   sourceSite?: string;
   content?: string;
-  peerMall?: { name: string; id?: string; }; // Added peerMall property
+  peerMall?: { name: string; id?: string; };
 }
 
 export interface CommunityPost {
