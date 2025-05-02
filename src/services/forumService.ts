@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { add, get, getAll, update, remove, getByIndex } from '../utils/indexedDBService';
 import { STORES } from '../utils/indexedDB';
@@ -288,7 +289,7 @@ export const initializeForumData = async (): Promise<void> => {
         planetId: 'planet-marketplace',
         name: '마켓플레이스',
         description: '상품 및 서비스 거래',
-        icon: 'star',
+        icon: 'planet',
         color: '#7E69AB'
       }
     ];
