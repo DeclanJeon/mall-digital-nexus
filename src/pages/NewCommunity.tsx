@@ -55,7 +55,8 @@ const NewCommunity = () => {
         )}
       </div>
       
-      <style jsx>{`
+      <style>
+        {`
         .stars {
           position: absolute;
           top: 0;
@@ -90,7 +91,8 @@ const NewCommunity = () => {
           from { background-position: 0 0; }
           to { background-position: 200px 200px; }
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };

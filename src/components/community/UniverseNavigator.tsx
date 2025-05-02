@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { 
   MessageSquare,
   Globe, 
-  Planet,
+  Star,
   Edit,
   Folder,
   FolderOpen,
@@ -82,8 +82,8 @@ const UniverseNavigator: React.FC<UniverseNavigatorProps> = ({ onChannelSelect }
         return <MessageSquare />;
       case 'globe':
         return <Globe />;
-      case 'planet':
-        return <Planet />;
+      case 'star':
+        return <Star />;
       case 'edit':
         return <Edit />;
       case 'folder':
