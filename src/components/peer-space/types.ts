@@ -1,3 +1,4 @@
+
 // components/peer-space/types.ts
 export type ContentType = 
   | 'product'
@@ -14,8 +15,7 @@ export type ContentType =
   | 'workshop'
   | 'challenge'
   | 'tool'
-  | 'external'
-  | 'livestream';  // Added 'livestream' to ContentType
+  | 'external';  // Ensuring 'external' is included in ContentType
 
 export interface ContentAuthor {
   id: string;
@@ -55,7 +55,7 @@ export interface Content {
   views: number;
   saves: number;
   category?: string;
-  price?: number;  // Keep as number
+  price?: number;
   tags?: string[];
   location?: string;
   relatedBadges?: string[];
@@ -68,55 +68,43 @@ export interface Content {
   maxParticipants?: number;
   participants?: string[];
   htmlContent?: string; // HTML 콘텐츠 (Toast UI Editor 용)
-  rating?: number;
-  attributes?: Record<string, any>;
-  badges?: string[];
+  rating?: number; // Added for components referencing this property
+  attributes?: Record<string, any>; // Add for extra attributes
+  badges?: string[]; // Add for badges
 }
 
 // Additional type definitions needed by other components
 export interface PeerMallConfig {
   id: string;
-  address?: string;
-  name?: string;
-  title?: string;
+  address: string;
+  name: string;
   description: string;
   logo?: string;
   bannerImage?: string;
   owner: string;
   contactEmail?: string;
   contactPhone?: string;
-  location?: {
-    lat: number;
-    lng: number;
-    address: string;
-  };
-  category?: string;
-  tags?: string[];
-  themeColor?: string;
+  location?: string;
+  category: string;
+  tags: string[];
+  themeColor: string;
   sections: SectionType[];
   socialLinks?: { [key: string]: string };
   establishedDate?: string;
-  status?: 'active' | 'inactive' | 'pending';
-  profileImage?: string;
-  peerNumber?: string;
-  followers?: number;
-  recommendations?: number;
-  badges?: string[];
-  coverImage?: string;
-  isVerified?: boolean;
-  level?: number;
-  experience?: number;
-  nextLevelExperience?: number;
-  familyGuilds?: { id: string; name: string; imageUrl?: string; }[];
-  completedChallenges?: number;
-  activeQuests?: number;
+  status: 'active' | 'inactive' | 'pending';
+  title?: string; // Add for components referencing this property
+  profileImage?: string; // Add for components referencing this property
+  peerNumber?: string; // Add for components referencing this property
+  followers?: number; // Add for components referencing this property
+  recommendations?: number; // Add for components referencing this property
+  badges?: string[]; // Add for components referencing this property
+  coverImage?: string; // Add for components referencing this property
   customizations?: {
     primaryColor?: string;
-    secondaryColor?: string;
     showChat?: boolean;
     allowComments?: boolean;
     showBadges?: boolean;
-  };
+  }; // Add for components referencing this property
 }
 
 export interface PeerSpaceData {
@@ -129,10 +117,7 @@ export interface PeerSpaceData {
   experience?: number;
   achievements?: number;
   memberCount?: number;
-  title?: string;
-  completedChallenges?: number;
-  activeQuests?: number;
-  peerNumber?: string;
+  title?: string; // Add for components referencing this property
 }
 
 export interface Review {
@@ -147,12 +132,11 @@ export interface Review {
   likes: number;
   images?: string[];
   verified: boolean;
-  author?: string;
-  authorImage?: string;
-  source?: string;
-  sourceSite?: string;
-  content?: string;
-  peerMall?: { name: string; id?: string; };
+  author?: string; // Add for components referencing this property
+  authorImage?: string; // Add for components referencing this property
+  source?: string; // Add for components referencing this property
+  sourceSite?: string; // Add for components referencing this property
+  content?: string; // Add for components referencing this property
 }
 
 export interface CommunityPost {
@@ -191,9 +175,9 @@ export interface Quest {
   steps?: { title: string; description: string; completed: boolean }[];
   category?: string;
   tags?: string[];
-  progress?: number;
-  deadline?: string;
-  goal?: number;
+  progress?: number; // Add for components referencing this property
+  deadline?: string; // Add for components referencing this property
+  goal?: number; // Add for components referencing this property
 }
 
 export interface Event {
@@ -212,8 +196,8 @@ export interface Event {
   category?: string;
   tags?: string[];
   status: 'upcoming' | 'ongoing' | 'completed' | 'canceled';
-  type?: string;
-  date?: string;
+  type?: string; // Add for components referencing this property
+  date?: string; // Add for components referencing this property
 }
 
 export interface GuestbookEntry {
@@ -270,8 +254,8 @@ export interface BadgeData {
   earnedAt?: string;
   issuer?: string;
   issuerId?: string;
-  color?: string;
-  icon?: any;
+  color?: string; // Add for components referencing this property
+  icon?: any; // Add for components referencing this property
 }
 
 export type SectionType = 
@@ -290,12 +274,11 @@ export type SectionType =
   | 'achievements'
   | 'learning'
   | 'quests'
-  | 'content'
-  | 'infoHub'
-  | 'activityFeed'
-  | 'relatedMalls'
-  | 'liveCollaboration'
-  | 'livestream';  // Added livestream to SectionType
+  | 'content' // Add for components referencing this section type
+  | 'infoHub' // Add for components referencing this section type
+  | 'activityFeed' // Add for components referencing this section type
+  | 'relatedMalls' // Add for components referencing this section type
+  | 'liveCollaboration'; // Add for components referencing this section type
 
 export interface FeaturedContentSectionProps {
   title: string;
@@ -303,7 +286,8 @@ export interface FeaturedContentSectionProps {
   viewAll?: string;
   maxItems?: number;
   layout?: 'grid' | 'carousel' | 'list';
-  isOwner?: boolean;
-  onAddContent?: () => void;
-  onContentClick?: (content: Content) => void;
+  isOwner?: boolean; // Add for components referencing this property
+  onAddContent?: () => void; // Add for components referencing this property
+  onContentClick?: (content: Content) => void; // Add for components referencing this property
 }
+
