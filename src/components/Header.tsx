@@ -113,7 +113,7 @@ const Header = () => {
           <nav className="hidden md:flex items-center space-x-6">
             <Link to="/shopping" className="text-text-200 hover:text-primary-300">쇼핑</Link>
             <Link to="/curation-links" className="text-text-200 hover:text-primary-300">큐레이션</Link>
-            <Link to="/community-universe" className="text-text-200 hover:text-primary-300">커뮤니티</Link>
+            <Link to="/community" className="text-text-200 hover:text-primary-300">커뮤니티</Link>
             {isLoggedIn && (
               <>
                 <button 
@@ -205,7 +205,7 @@ const Header = () => {
             <nav className="flex flex-col space-y-3">
               <Link to="/shopping" className="py-2 text-text-200 hover:text-primary-300">쇼핑</Link>
               <Link to="/curation-links" className="py-2 text-text-200 hover:text-primary-300">큐레이션</Link>
-              <Link to="/community-universe" className="py-2 text-text-200 hover:text-primary-300">커뮤니티</Link>
+              <Link to="/community" className="py-2 text-text-200 hover:text-primary-300">커뮤니티</Link>
               {isLoggedIn && (
                 <>
                   <button 

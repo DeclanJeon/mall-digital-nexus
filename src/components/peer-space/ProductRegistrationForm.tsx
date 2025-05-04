@@ -324,9 +324,9 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={togglePreview}
                     className="flex items-center gap-1"
                   >
@@ -404,7 +404,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                     </div>
                   )}
 
-                  <Separator className="my-3" />
+                  <Separator />
 
                   {(form.watch("distributor") || form.watch("manufacturer")) && (
                     <div className="mt-3 space-y-2 text-sm text-gray-600">
@@ -540,7 +540,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
             <div>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-1">
-                  <Tabs defaultValue="basic" value={activeTab} onValueChange={setActiveTab}>
+                  <Tabs value={activeTab} onValueChange={setActiveTab}>
                     <TabsList className="mb-4 grid grid-cols-3">
                       <TabsTrigger value="basic">기본 정보</TabsTrigger>
                       <TabsTrigger value="details">상세 정보</TabsTrigger>

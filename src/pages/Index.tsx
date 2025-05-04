@@ -205,10 +205,10 @@ const Index = () => {
           </section>
         </div>
         
-        <ServiceCardsSection />
+        {/* <ServiceCardsSection /> */}
       </main>
       
-      <CommunicationWidget />
+      {/* <CommunicationWidget /> */}
 
       <PeermallMap 
         isOpen={isMapOpen}

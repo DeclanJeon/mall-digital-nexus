@@ -125,3 +125,14 @@
     @apply border border-primary-300 text-primary-300 px-4 py-2 rounded-md hover:bg-primary-100 hover:text-text-100 transition-colors duration-200 font-medium;
   }
 }
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Star, MapPin } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import {Button} from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
 interface PeermallCardProps {
@@ -102,14 +102,12 @@ const PeermallCard = ({
                 <MapPin className="h-4 w-4" />
               </Button>
             )}
-            <Button 
-              variant="link" 
-              size="sm" 
-              className="text-accent-200 hover:text-accent-100 p-0"
-              asChild
+            <Link
+              to={`/space/${id}`}
+              className="text-accent-200 hover:text-accent-100 p-0 text-sm"
             >
-              <Link to={`/space/${id}`}>방문하기</Link>
-            </Button>
+              방문하기
+            </Link>
           </div>
         </div>
       </div>
