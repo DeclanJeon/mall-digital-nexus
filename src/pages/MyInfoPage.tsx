@@ -10,6 +10,7 @@ import QRCodeSection from '@/components/my-info/QRCodeSection';
 import SettingsSection from '@/components/my-info/SettingsSection';
 import { Button } from '@/components/ui/button';
 import { Search, Filter } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { openDB } from 'idb';
 import CreatePeermallModal from '@/components/CreatePeermallModal';
 import { TransactionItem } from '@/components/my-info/ActivitySection';
@@ -19,6 +20,12 @@ interface PeerMall {
   name: string;
   type: string;
   createdAt: string;
+  status: 'active' | 'inactive' | 'pending';
+  stats: {
+    visitors: number;
+    followers: number;
+    reviews: number;
+  };
 }
 
 const MyInfoPage = () => {
@@ -39,7 +46,7 @@ const MyInfoPage = () => {
     ]
   });
 
-  const [createdMalls, setCreatedMalls] = useState<any[]>([]);
+  const [createdMalls, setCreatedMalls] = useState<PeerMall[]>([]);
   
   const authMethods = [
     { type: '이메일', value: 'example@peermall.com', verified: true, primary: true },
@@ -120,29 +127,29 @@ const MyInfoPage = () => {
   ];
   
   const transactions = [
-    { 
-      id: '1', 
-      type: 'purchase' as 'purchase', 
+    {
+      id: '1',
+      type: 'purchase' as const,
       title: '디자인 툴킷 구매',
       amount: -45000,
       timestamp: '어제',
-      status: 'completed' as 'completed'
+      status: 'completed' as const
     },
-    { 
-      id: '2', 
-      type: 'reward' as 'reward', 
+    {
+      id: '2',
+      type: 'reward' as const,
       title: '리뷰 작성 보상',
       amount: 5000,
       timestamp: '3일 전',
-      status: 'completed' as 'completed'
+      status: 'completed' as const
     },
-    { 
-      id: '3', 
-      type: 'refund' as 'refund', 
+    {
+      id: '3',
+      type: 'refund' as const,
       title: '상품 반품 환불',
       amount: 25000,
       timestamp: '일주일 전',
-      status: 'pending' as 'pending'
+      status: 'pending' as const
     }
   ];
   
@@ -262,7 +269,7 @@ const MyInfoPage = () => {
       title: '2024년 UI/UX 디자인 트렌드',
       type: '가이드',
       createdAt: '2024-03-15',
-      status: 'published' as 'published',
+      status: 'published' as const,
       views: 1234,
       likes: 87
     },
@@ -271,7 +278,7 @@ const MyInfoPage = () => {
       title: '푸드 스타일링 기초 가이드',
       type: '튜토리얼',
       createdAt: '2024-02-10',
-      status: 'published' as 'published',
+      status: 'published' as const,
       views: 856,
       likes: 42
     },
@@ -280,7 +287,7 @@ const MyInfoPage = () => {
       title: '디지털 아트 작업 과정',
       type: '프로세스',
       createdAt: '2024-04-02',
-      status: 'draft' as 'draft',
+      status: 'draft' as const,
       thumbnail: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=300'
     },
     {
@@ -288,7 +295,7 @@ const MyInfoPage = () => {
       title: '초보자를 위한 웹 디자인 가이드',
       type: '가이드',
       createdAt: '2024-01-20',
-      status: 'published' as 'published',
+      status: 'published' as const,
       views: 2145,
       likes: 156
     }
@@ -298,7 +305,7 @@ const MyInfoPage = () => {
     {
       id: '1',
       title: '효과적인 브랜딩 전략',
-      type: 'content' as 'content',
+      type: 'content' as const,
       source: '디자인 랩',
       savedAt: '2024-04-10',
       thumbnail: 'https://images.unsplash.com/photo-1672701527516-d11ec74c1fc3?auto=format&fit=crop&w=300'
@@ -306,21 +313,21 @@ const MyInfoPage = () => {
     {
       id: '2',
       title: '프리미엄 스케치북 세트',
-      type: 'product' as 'product',
+      type: 'product' as const,
       source: '아트 서플라이',
       savedAt: '2024-03-28'
     },
     {
       id: '3',
       title: '디자인 씽킹의 5단계',
-      type: 'content' as 'content',
+      type: 'content' as const,
       source: '이지우의 디자인 랩',
       savedAt: '2024-03-15'
     },
     {
       id: '4',
       title: '아이패드 프로 M2',
-      type: 'product' as 'product',
+      type: 'product' as const,
       source: '테크 마켓',
       savedAt: '2024-02-20',
       thumbnail: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=300'
@@ -328,7 +335,7 @@ const MyInfoPage = () => {
     {
       id: '5',
       title: '사용자 인터뷰 기법 10가지',
-      type: 'content' as 'content',
+      type: 'content' as const,
       source: 'UX 리서치 허브',
       savedAt: '2024-02-10'
     }
@@ -573,65 +580,76 @@ const MyInfoPage = () => {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-7 space-y-6">
-          <ProfileSection userProfile={userProfile} setUserProfile={setUserProfile} />
-          
-          <PeermallManagementSection 
-            createdMalls={createdMalls} 
-            followedMalls={followedMalls}
-            onCreatePeermall={handleCreatePeermall}
-          />
-          
-          <ContentSection 
-            contents={contents}
-            savedItems={savedItems}
-            reviews={reviews}
-          />
-          
-          <SecuritySection 
-            authMethods={authMethods} 
-            loginRecords={loginRecords}
-            privacySettings={privacySettings}
-          />
-        </div>
-        
-        <div className="lg:col-span-5 space-y-6">
-          <ActivitySection 
-            activities={activities}
-            transactions={transactions}
-            level={14}
-            maxLevel={50}
-            experience={7500}
-            nextLevelExperience={10000}
-            badges={badges}
-            quests={quests}
-            points={points}
-          />
-          
-          <NetworkSection 
-            friends={friends}
-            followers={followers}
-            following={following}
-            recommenders={recommenders}
-            recommendees={recommendees}
-            family={family}
-          />
-          
-          <CommunicationSection 
-            messages={messages}
-            notificationSettings={notificationSettings}
-          />
-          
-          <QRCodeSection qrCodes={qrCodes} />
-          
-          <SettingsSection 
-            darkMode={false}
-            language="ko"
-            dataExportOptions={dataExportOptions}
-            analyticsData={analyticsData}
-          />
-        </div>
+      <div className="flex flex-col lg:flex-row gap-6">
+        <Tabs orientation="vertical" defaultValue="profile" className="w-full lg:flex lg:flex-row">
+          <div className="w-full lg:w-64 mb-6 lg:mb-0">
+            <TabsList className="flex lg:flex-col justify-start lg:justify-start gap-2 lg:gap-4">
+              <TabsTrigger value="profile" className="w-full justify-start">내 정보</TabsTrigger>
+              <TabsTrigger value="content" className="w-full justify-start">콘텐츠</TabsTrigger>
+              <TabsTrigger value="network" className="w-full justify-start">네트워크</TabsTrigger>
+            </TabsList>
+          </div>
+          <div className="flex-1">
+            <TabsContent value="profile">
+              <div className="space-y-6">
+                <ProfileSection userProfile={userProfile} setUserProfile={setUserProfile} />
+                <SecuritySection
+                  authMethods={authMethods}
+                  loginRecords={loginRecords}
+                  privacySettings={privacySettings}
+                />
+                <SettingsSection
+                  darkMode={false}
+                  language="ko"
+                  dataExportOptions={dataExportOptions}
+                  analyticsData={analyticsData}
+                />
+              </div>
+            </TabsContent>
+            <TabsContent value="content">
+              <div className="space-y-6">
+                <ContentSection
+                  contents={contents}
+                  savedItems={savedItems}
+                  reviews={reviews}
+                />
+                <ActivitySection
+                  activities={activities}
+                  transactions={transactions}
+                  level={14}
+                  maxLevel={50}
+                  experience={7500}
+                  nextLevelExperience={10000}
+                  badges={badges}
+                  quests={quests}
+                  points={points}
+                />
+              </div>
+            </TabsContent>
+            <TabsContent value="network">
+              <div className="space-y-6">
+                <NetworkSection
+                  friends={friends}
+                  followers={followers}
+                  following={following}
+                  recommenders={recommenders}
+                  recommendees={recommendees}
+                  family={family}
+                />
+                <PeermallManagementSection
+                  createdMalls={createdMalls}
+                  followedMalls={followedMalls}
+                  onCreatePeermall={handleCreatePeermall}
+                />
+                <CommunicationSection
+                  messages={messages}
+                  notificationSettings={notificationSettings}
+                />
+                <QRCodeSection qrCodes={qrCodes} />
+              </div>
+            </TabsContent>
+          </div>
+        </Tabs>
       </div>
       
       <CreatePeermallModal 

@@ -142,12 +142,10 @@ const Community = () => {
     request.onsuccess = () => {
       console.log("IndexedDB 초기화 성공");
       loadPosts();
-      // Add new initialization logic here
-      initializeCustomData();
     };
     
-    request.onerror = (event: any) => {
-      console.error("IndexedDB 초기화 오류:", event.target.error);
+    request.onerror = (event: Event) => {
+      console.error("IndexedDB 초기화 오류:", (event.target as IDBRequest).error);
     };
   };
   
@@ -155,8 +153,8 @@ const Community = () => {
   const loadPosts = () => {
     const request = indexedDB.open("CommunityDB", 1);
     
-    request.onsuccess = (event: any) => {
-      const db = event.target.result;
+    request.onsuccess = (event: Event) => {
+      const db = (event.target as IDBRequest).result as IDBDatabase;
       const transaction = db.transaction(["posts"], "readonly");
       const objectStore = transaction.objectStore("posts");
       const getAllRequest = objectStore.getAll();
@@ -233,8 +231,8 @@ const Community = () => {
   const saveInitialPostsToDB = (initialPosts: Post[]) => {
     const request = indexedDB.open("CommunityDB", 1);
     
-    request.onsuccess = (event: any) => {
-      const db = event.target.result;
+    request.onsuccess = (event: Event) => {
+      const db = (event.target as IDBRequest).result as IDBDatabase;
       const transaction = db.transaction(["posts"], "readwrite");
       const objectStore = transaction.objectStore("posts");
       
@@ -248,8 +246,8 @@ const Community = () => {
   const savePostToDB = (post: Post) => {
     const request = indexedDB.open("CommunityDB", 1);
     
-    request.onsuccess = (event: any) => {
-      const db = event.target.result;
+    request.onsuccess = (event: Event) => {
+      const db = (event.target as IDBRequest).result as IDBDatabase;
       const transaction = db.transaction(["posts"], "readwrite");
       const objectStore = transaction.objectStore("posts");
       
@@ -280,8 +278,8 @@ const Community = () => {
   const updatePostInDB = (post: Post) => {
     const request = indexedDB.open("CommunityDB", 1);
     
-    request.onsuccess = (event: any) => {
-      const db = event.target.result;
+    request.onsuccess = (event: Event) => {
+      const db = (event.target as IDBRequest).result as IDBDatabase;
       const transaction = db.transaction(["posts"], "readwrite");
       const objectStore = transaction.objectStore("posts");
       
@@ -305,8 +303,8 @@ const Community = () => {
   const deletePostFromDB = (postId: string) => {
     const request = indexedDB.open("CommunityDB", 1);
     
-    request.onsuccess = (event: any) => {
-      const db = event.target.result;
+    request.onsuccess = (event: Event) => {
+      const db = (event.target as IDBRequest).result as IDBDatabase;
       const transaction = db.transaction(["posts"], "readwrite");
       const objectStore = transaction.objectStore("posts");
       
