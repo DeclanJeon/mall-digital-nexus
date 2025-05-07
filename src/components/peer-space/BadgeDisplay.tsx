@@ -50,7 +50,8 @@ export const BadgeDisplay = ({
           className={`${sizeClasses[size]} border-opacity-50 ${badge.color ? badge.color.replace('text-', 'border-') : 'border-gray-500'} ${badge.color || 'text-gray-700'}`}
           title={showTooltip ? badge.description : undefined}
         >
-          {badge.icon ? renderBadgeIcon(badge.icon) : <CircleIcon className="h-3 w-3 mr-1.5" />}
+          {badge.icon && renderBadgeIcon(badge.icon)}
+          {!badge.icon && <CircleIcon className="h-3 w-3 mr-1.5" />}
           {badge.name}
         </Badge>
       ))}

@@ -25,8 +25,6 @@ import BadgeSelector from './BadgeSelector';
 import { ContentFormValues } from './AddContentForm';
 import { usePeerSpaceTabs } from '@/hooks/usePeerSpaceTabs';
 import PeerSpaceTabs from './PeerSpaceTabs';
-import GuestbookSection from './GuestbookSection';
-import QuestEventSection from './QuestEventSection';
 import { Link } from 'react-router-dom';
 import { add } from '@/utils/indexedDBService';
 
@@ -229,25 +227,28 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       'hero': '히어로',
       'content': '콘텐츠/상품',
       'community': '커뮤니티',
-      'liveCollaboration': '실시간 연결',
-      'livestream': '라이브 스트리밍',
-      'infoHub': '정보 허브',
-      'map': '지도',
-      'introduction': '소개',
-      'advertising': '광고',
-      'reviews': '리뷰',
-      'quests': '퀘스트',
+      'about': '소개',
+      'products': '제품',
+      'services': '서비스',
       'events': '이벤트',
+      'reviews': '리뷰',
+      'contact': '연락처',
+      'map': '지도',
       'guestbook': '방명록',
       'trust': '신뢰도',
-      'qrCodeList': 'QR 코드',
-      'support': '고객 지원',
+      'featured': '추천',
+      'achievements': '성과',
+      'learning': '학습',
+      'quests': '퀘스트',
+      'infoHub': '정보 허브',
+      'activityFeed': '활동 피드',
       'relatedMalls': '관련 피어몰',
-      'activityFeed': '활동 피드'
-    };
-    
-    return sectionNames[sectionType] || sectionType;
+      'liveCollaboration': '실시간 연결',
+      'livestream': '라이브 스트림'
   };
+  
+  return sectionNames[sectionType] || sectionType;
+};
 
   const handleShare = () => {
     // Copy current URL to clipboard

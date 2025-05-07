@@ -1,3 +1,4 @@
+
 import { Review } from '@/components/peer-space/types';
 
 /**
@@ -41,6 +42,7 @@ export const generateRandomReviews = (contentId: string, count: number = 5): Rev
       userName: names[randomNameIndex],
       author: names[randomNameIndex],
       authorImage: `https://api.dicebear.com/7.x/personas/svg?seed=${names[randomNameIndex]}`,
+      text: reviewContents[randomContentIndex],
       content: reviewContents[randomContentIndex],
       rating: randomRating,
       date: date.toISOString(),

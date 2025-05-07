@@ -1,3 +1,4 @@
+
 import type { ReactNode } from 'react';
 // components/peer-space/types.ts
 export type ContentType =
@@ -147,7 +148,8 @@ export interface Review {
   userName: string;
   userAvatar?: string;
   rating: number;
-  text: string;
+  text?: string;
+  content?: string; // Make content optional
   date: string;
   likes: number;
   images?: string[];
@@ -156,7 +158,6 @@ export interface Review {
   authorImage?: string;
   source?: string;
   sourceSite?: string;
-  content?: string;
   peerMall?: { // Added peerMall for PeerSpaceReviewSection and contentHelper.ts
     id: string;
     name: string;

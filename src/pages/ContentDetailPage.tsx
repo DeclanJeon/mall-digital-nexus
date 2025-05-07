@@ -60,6 +60,10 @@ const ContentDetailPage = () => {
           // Create a default config based on peermall details
           const defaultConfig: PeerMallConfig = {
             id: address,
+            address: address,
+            name: peermallDetails.title || 'Default Mall',
+            category: 'general',
+            tags: ['default'],
             title: peermallDetails.title,
             description: peermallDetails.description || '',
             owner: peermallDetails.owner || '나',
@@ -73,6 +77,8 @@ const ContentDetailPage = () => {
             nextLevelExperience: 100,
             isVerified: false,
             skin: 'default',
+            themeColor: '#71c4ef',
+            status: 'active',
             sections: ['hero', 'content', 'community', 'events', 'reviews'],
             customizations: {
               primaryColor: '#71c4ef',
