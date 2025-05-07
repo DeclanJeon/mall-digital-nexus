@@ -30,6 +30,7 @@ export const BadgeDisplay = ({
   // Helper function to render badge icon
   const renderBadgeIcon = (icon: any) => {
     if (React.isValidElement(icon)) {
+      // Clone the element with proper props
       return React.cloneElement(icon, { 
         className: `h-3 w-3 mr-1.5` 
       });
@@ -38,6 +39,11 @@ export const BadgeDisplay = ({
     if (typeof icon === 'function') {
       const IconComponent = icon;
       return <IconComponent className="h-3 w-3 mr-1.5" />;
+    }
+    
+    if (typeof icon === 'string') {
+      // Handle string-based icon (could be an icon name or path)
+      return <span className="h-3 w-3 mr-1.5">{icon}</span>;
     }
     
     return <CircleIcon className="h-3 w-3 mr-1.5" />;
