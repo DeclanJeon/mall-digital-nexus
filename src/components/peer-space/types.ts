@@ -1,6 +1,5 @@
-
 import type { ReactNode } from 'react';
-// components/peer-space/types.ts
+
 export type ContentType =
   | 'product'
   | 'portfolio'
@@ -17,7 +16,7 @@ export type ContentType =
   | 'challenge'
   | 'tool'
   | 'external'
-  | 'livestream'; // Added livestream to ContentType
+  | 'livestream';
 
 export interface ContentAuthor {
   id: string;
@@ -57,7 +56,7 @@ export interface Content {
   views: number;
   saves: number;
   category?: string;
-  price?: number | string; // Updated to accept string or number
+  price?: number | string;
   tags?: string[];
   location?: string;
   relatedBadges?: string[];
@@ -68,14 +67,13 @@ export interface Content {
   ecosystem?: ContentEcosystem;
   completion?: number;
   maxParticipants?: number;
-  participants?: string[] | number; // Updated to accept number
-  htmlContent?: string; // HTML 콘텐츠 (Toast UI Editor 용)
-  rating?: number; // Added for components referencing this property
-  attributes?: Record<string, unknown>; // Add for extra attributes
-  badges?: string[]; // Add for badges
+  participants?: string[] | number;
+  htmlContent?: string;
+  rating?: number;
+  attributes?: Record<string, unknown>;
+  badges?: string[];
 }
 
-// Additional type definitions needed by other components
 export interface PeerMallConfig {
   id: string;
   address: string;
@@ -103,15 +101,15 @@ export interface PeerMallConfig {
   coverImage?: string;
   isVerified?: boolean;
   skin?: string;
-  level?: number; // Added for PeerSpaceTrustSection
-  experience?: number; // Added for PeerSpaceTrustSection
-  nextLevelExperience?: number; // Added for PeerSpaceTrustSection
-  completedChallenges?: number; // Added for PeerSpaceTrustSection
-  activeQuests?: number; // Added for PeerSpaceTrustSection
-  familyGuilds?: { id: string; name: string; imageUrl: string }[]; // Added for PeerSpaceTrustSection
+  level?: number;
+  experience?: number;
+  nextLevelExperience?: number;
+  completedChallenges?: number;
+  activeQuests?: number;
+  familyGuilds?: { id: string; name: string; imageUrl: string }[];
   customizations?: {
     primaryColor?: string;
-    secondaryColor?: string; // Added secondaryColor
+    secondaryColor?: string;
     showChat?: boolean;
     allowComments?: boolean;
     showBadges?: boolean;
@@ -129,16 +127,16 @@ export interface PeerSpaceData {
   achievements?: number;
   memberCount?: number;
   title?: string;
-  peerNumber?: string; // Added for mockData.ts
-  profileImage?: string; // Added for mockData.ts
-  badges?: string[]; // Added for mockData.ts
-  followers?: number; // Added for mockData.ts
-  recommendations?: number; // Added for mockData.ts
-  socialLinks?: { [key: string]: string }; // Added for mockData.ts
-  contactPhone?: string; // Added for mockData.ts
-  contactEmail?: string; // Added for mockData.ts
-  completedChallenges?: number; // Added for UserLevelDisplay
-  activeQuests?: number; // Added for UserLevelDisplay
+  peerNumber?: string;
+  profileImage?: string;
+  badges?: string[];
+  followers?: number;
+  recommendations?: number;
+  socialLinks?: { [key: string]: string };
+  contactPhone?: string;
+  contactEmail?: string;
+  completedChallenges?: number;
+  activeQuests?: number;
 }
 
 export interface Review {
@@ -149,7 +147,7 @@ export interface Review {
   userAvatar?: string;
   rating: number;
   text?: string;
-  content?: string; // Make content optional
+  content?: string;
   date: string;
   likes: number;
   images?: string[];
@@ -158,7 +156,7 @@ export interface Review {
   authorImage?: string;
   source?: string;
   sourceSite?: string;
-  peerMall?: { // Added peerMall for PeerSpaceReviewSection and contentHelper.ts
+  peerMall?: {
     id: string;
     name: string;
     address: string;
@@ -201,9 +199,9 @@ export interface Quest {
   steps?: { title: string; description: string; completed: boolean }[];
   category?: string;
   tags?: string[];
-  progress?: number; // Add for components referencing this property
-  deadline?: string; // Add for components referencing this property
-  goal?: number; // Add for components referencing this property
+  progress?: number;
+  deadline?: string;
+  goal?: number;
 }
 
 export interface Event {
@@ -222,8 +220,8 @@ export interface Event {
   category?: string;
   tags?: string[];
   status: 'upcoming' | 'ongoing' | 'completed' | 'canceled';
-  type?: string; // Add for components referencing this property
-  date?: string; // Add for components referencing this property
+  type?: string;
+  date?: string;
 }
 
 export interface GuestbookEntry {
@@ -280,8 +278,8 @@ export interface BadgeData {
   earnedAt?: string;
   issuer?: string;
   issuerId?: string;
-  color?: string; // Add for components referencing this property
-  icon?: string | ReactNode; // Add for components referencing this property
+  color?: string;
+  icon?: string | ReactNode;
 }
 
 export type SectionType =
@@ -300,11 +298,12 @@ export type SectionType =
   | 'achievements'
   | 'learning'
   | 'quests'
-  | 'content' // Add for components referencing this section type
-  | 'infoHub' // Add for components referencing this section type
-  | 'activityFeed' // Add for components referencing this section type
-  | 'relatedMalls' // Add for components referencing this section type
-  | 'liveCollaboration'; // Add for components referencing this section type
+  | 'content'
+  | 'infoHub'
+  | 'activityFeed'
+  | 'relatedMalls'
+  | 'liveCollaboration'
+  | 'livestream';
 
 export interface FeaturedContentSectionProps {
   title: string;
@@ -312,7 +311,7 @@ export interface FeaturedContentSectionProps {
   viewAll?: string;
   maxItems?: number;
   layout?: 'grid' | 'carousel' | 'list';
-  isOwner?: boolean; // Add for components referencing this property
-  onAddContent?: () => void; // Add for components referencing this property
-  onContentClick?: (content: Content) => void; // Add for components referencing this property
+  isOwner?: boolean;
+  onAddContent?: () => void;
+  onContentClick?: (content: Content) => void;
 }

@@ -30,7 +30,9 @@ export const BadgeDisplay = ({
   // Helper function to render badge icon
   const renderBadgeIcon = (icon: any) => {
     if (React.isValidElement(icon)) {
-      return React.cloneElement(icon, { className: "h-3 w-3 mr-1.5" });
+      return React.cloneElement(icon, { 
+        className: `h-3 w-3 mr-1.5` 
+      });
     }
     
     if (typeof icon === 'function') {

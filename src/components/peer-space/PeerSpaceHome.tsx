@@ -446,14 +446,14 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         return (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div className="lg:col-span-3">
-          <PeerSpaceTabs
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            featuredContent={contents as Content[]}
-            isOwner={isOwner}
-            onAddContent={handleShowProductForm}
-            onContentClick={handleContentClick}
-          />
+              <PeerSpaceTabs
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                featuredContent={contents as Content[]}
+                isOwner={isOwner}
+                onAddContent={handleShowProductForm}
+                onContentClick={handleContentClick}
+              />
             </div>
             {!hiddenSections.includes('activityFeed') && (
               <div className="lg:col-span-1">
@@ -479,7 +479,9 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       case 'events':
         return (
           <PeerSpaceEventsSection
-            peerAddress={address}
+            config={config}
+            events={[]}
+            quests={[]}
             isOwner={isOwner}
           />
         );
@@ -488,7 +490,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       case 'reviews':
         return (
           <PeerSpaceReviewSection
-            peerAddress={address}
+            config={config}
             isOwner={isOwner}
           />
         );
@@ -509,6 +511,13 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         return null; // Handled within content section
       case 'liveCollaboration':
         return <PeerSpaceLiveCollaboration />;
+      case 'livestream':
+        return <div className="mb-10">
+          <h2 className="text-2xl font-bold mb-6">라이브 스트림</h2>
+          <div className="bg-gray-50 p-8 rounded-lg text-center">
+            <p className="text-gray-500">라이브 스트림이 현재 없습니다.</p>
+          </div>
+        </div>;
       default:
         return null;
     }
