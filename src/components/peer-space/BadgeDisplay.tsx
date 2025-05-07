@@ -27,25 +27,30 @@ export const BadgeDisplay = ({
     lg: 'px-3 py-1.5'
   };
   
-  // Helper function to render badge icon
-  const renderBadgeIcon = (icon: any) => {
+  // Helper function to render badge icon with proper TypeScript support
+  const renderBadgeIcon = (icon: React.ReactNode | React.ComponentType | string) => {
+    // Handle React elements - avoid directly cloning due to unknown prop types
     if (React.isValidElement(icon)) {
-      // Clone the element with proper props
-      return React.cloneElement(icon, { 
-        className: `h-3 w-3 mr-1.5` 
-      });
+      // For valid elements, we'll wrap them in a span with our desired styling
+      return (
+        <span className="inline-flex h-3 w-3 mr-1.5">
+          {icon}
+        </span>
+      );
     }
     
+    // Handle component types (functions)
     if (typeof icon === 'function') {
-      const IconComponent = icon;
+      const IconComponent = icon as React.ComponentType<{ className?: string }>;
       return <IconComponent className="h-3 w-3 mr-1.5" />;
     }
     
+    // Handle string-based icon (could be an icon name or path)
     if (typeof icon === 'string') {
-      // Handle string-based icon (could be an icon name or path)
       return <span className="h-3 w-3 mr-1.5">{icon}</span>;
     }
     
+    // Default fallback
     return <CircleIcon className="h-3 w-3 mr-1.5" />;
   };
   
