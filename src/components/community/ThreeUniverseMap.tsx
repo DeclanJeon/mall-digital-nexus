@@ -1,7 +1,6 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { OrbitControls as ThreeOrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GUI } from 'dat.gui';
 import gsap from 'gsap';
 import { Planet, Constellation } from './types';
@@ -29,7 +28,7 @@ const ThreeUniverseMap: React.FC<ThreeUniverseMapProps> = ({
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const controlsRef = useRef<OrbitControls | null>(null);
+  const controlsRef = useRef<ThreeOrbitControls | null>(null);
   const planetObjectsRef = useRef<Map<string, THREE.Object3D>>(new Map());
   const guiRef = useRef<GUI | null>(null);
   const animationFrameRef = useRef<number>(0);
@@ -71,7 +70,7 @@ const ThreeUniverseMap: React.FC<ThreeUniverseMapProps> = ({
     rendererRef.current = renderer;
 
     // Initialize controls
-    const controls = new OrbitControls(camera, renderer.domElement);
+    const controls = new ThreeOrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.screenSpacePanning = false;
@@ -763,11 +762,14 @@ const ThreeUniverseMap: React.FC<ThreeUniverseMapProps> = ({
         planetMesh.rotation.y += 0.001;
         
         // Animate smoke
-        const positions = smoke.geometry.attributes.position.array;
+        const positions = smoke.geometry.attributes.position;
         for (let i = 0; i < smokeCount; i++) {
-          positions[i * 3 + 1] += 0.01;
-          if (positions[i * 3 + 1] > radius) {
-            positions[i * 3 + 1] = -radius;
+          // Use get method instead of direct array access
+          const y = positions.getY(i) + 0.01;
+          if (y > radius) {
+            positions.setY(i, -radius);
+          } else {
+            positions.setY(i, y);
           }
         }
         smoke.geometry.attributes.position.needsUpdate = true;
