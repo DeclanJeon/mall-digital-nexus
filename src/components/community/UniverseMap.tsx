@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ZoomIn, ZoomOut, Search, Filter, Plus, Compass, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -402,7 +401,8 @@ const UniverseMap: React.FC<UniverseMapProps> = ({
       </div>
       
       {/* CSS animations */}
-      <style jsx>{`
+      <style>
+        {`
         /* Star backgrounds with parallax */
         .stars-small {
           background-image: radial-gradient(1px 1px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent),
@@ -430,7 +430,8 @@ const UniverseMap: React.FC<UniverseMapProps> = ({
           50% { opacity: 1; }
           100% { opacity: 0.7; }
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
