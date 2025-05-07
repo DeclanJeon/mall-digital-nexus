@@ -22,7 +22,8 @@ const CustomerSupport = () => {
   const [activeTab, setActiveTab] = useState('main');
 
   return (
-    <div className="min-h-screen bg-[#f5f4f1]">
+    // <div className="min-h-screen bg-[#f5f4f1]">
+    <div className="bg-[#f5f4f1]">
       <CustomerSupportHeader />
       
       <main className="container mx-auto px-4 py-8">
@@ -30,24 +31,24 @@ const CustomerSupport = () => {
           {/* Main Content */}
           <div className="flex-grow">
             <Tabs defaultValue="main" value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full mb-6 grid grid-cols-4 h-auto bg-[#d4eaf7]">
+              <TabsList className="w-full mb-6 grid grid-cols-2 h-auto bg-[#d4eaf7]">
                 <TabsTrigger value="main" className="py-3 data-[state=active]:bg-[#71c4ef] data-[state=active]:text-white">
                   메인
                 </TabsTrigger>
-                <TabsTrigger value="faq" className="py-3 data-[state=active]:bg-[#71c4ef] data-[state=active]:text-white">
+                {/* <TabsTrigger value="faq" className="py-3 data-[state=active]:bg-[#71c4ef] data-[state=active]:text-white">
                   자주 묻는 질문
-                </TabsTrigger>
+                </TabsTrigger> */}
                 <TabsTrigger value="inquiry" className="py-3 data-[state=active]:bg-[#71c4ef] data-[state=active]:text-white">
                   1:1 문의
                 </TabsTrigger>
-                <TabsTrigger value="my-inquiries" className="py-3 data-[state=active]:bg-[#71c4ef] data-[state=active]:text-white">
+                {/* <TabsTrigger value="my-inquiries" className="py-3 data-[state=active]:bg-[#71c4ef] data-[state=active]:text-white">
                   문의 내역
-                </TabsTrigger>
+                </TabsTrigger> */}
               </TabsList>
               
               <TabsContent value="main" className="mt-0">
-                <CategoryCards />
-                <PopularFAQs />
+                {/* <CategoryCards /> */}
+                {/* <PopularFAQs /> */}
                 <SupportChannels onSwitchTab={setActiveTab} />
               </TabsContent>
               
@@ -194,9 +195,9 @@ const CustomerSupport = () => {
           </div>
           
           {/* Sidebar - only shown on desktop */}
-          <div className="hidden lg:block w-80">
+          {/* <div className="hidden lg:block w-80">
             <SupportSidebar onSwitchTab={setActiveTab} />
-          </div>
+          </div> */}
         </div>
       </main>
     </div>

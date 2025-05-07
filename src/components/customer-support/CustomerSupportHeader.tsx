@@ -19,11 +19,7 @@ const CustomerSupportHeader = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center">
-            <Link to="/" className="mr-8 flex items-center">
-              <h1 className="text-2xl font-bold text-primary-300">PeerMall</h1>
-              <span className="mx-2 text-gray-400">|</span>
-              <span className="text-xl font-semibold text-[#00668c]">고객센터</span>
-            </Link>
+            
           </div>
           
           <form onSubmit={handleSearch} className="flex-1 max-w-xl">

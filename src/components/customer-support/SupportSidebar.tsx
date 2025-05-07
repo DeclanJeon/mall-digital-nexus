@@ -23,13 +23,13 @@ const SupportSidebar: React.FC<SupportSidebarProps> = ({ onSwitchTab }) => {
           </div>
         </div>
         
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <div className="flex justify-between text-sm mb-1">
             <span>도움말 레벨</span>
             <span className="font-medium">3/10</span>
           </div>
           <Progress value={30} className="h-2 bg-[#d4eaf7]" />
-        </div>
+        </div> */}
         
         <div className="text-sm">
           <div className="flex justify-between mb-1">
@@ -40,10 +40,10 @@ const SupportSidebar: React.FC<SupportSidebarProps> = ({ onSwitchTab }) => {
             <span>진행 중인 문의</span>
             <span className="text-[#ffc107] font-medium">2</span>
           </div>
-          <div className="flex justify-between">
+          {/* <div className="flex justify-between">
             <span>도움이 됨 평가</span>
             <span>12</span>
-          </div>
+          </div> */}
         </div>
       </div>
       

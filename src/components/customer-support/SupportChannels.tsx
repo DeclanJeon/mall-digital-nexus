@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { MessageSquare, Headphones } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,8 +11,8 @@ const SupportChannels: React.FC<SupportChannelsProps> = ({ onSwitchTab }) => {
     <div className="bg-white rounded-lg border border-[#cccbc8] shadow-sm p-6 mb-8">
       <h2 className="text-xl font-semibold mb-6">지원 채널</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="border border-[#cccbc8] rounded-lg p-5 bg-[#f5f4f1]">
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+        <div className="border border-[#cccbc8] rounded-lg p-5 bg-[#f5f4f1] flex-col">
           <div className="mb-4 h-12 w-12 rounded-full bg-[#d4eaf7] flex items-center justify-center text-[#00668c]">
             <MessageSquare className="h-6 w-6" />
           </div>
@@ -23,13 +22,13 @@ const SupportChannels: React.FC<SupportChannelsProps> = ({ onSwitchTab }) => {
           </p>
           <Button 
             onClick={() => onSwitchTab('inquiry')}
-            className="w-full bg-[#00668c] hover:bg-[#00668c]/90"
+            className="bg-[#00668c] hover:bg-[#00668c]/90"
           >
             문의하기
           </Button>
         </div>
         
-        <div className="border border-[#cccbc8] rounded-lg p-5 bg-[#f5f4f1]">
+        {/* <div className="border border-[#cccbc8] rounded-lg p-5 bg-[#f5f4f1]">
           <div className="mb-4 h-12 w-12 rounded-full bg-[#d4eaf7] flex items-center justify-center text-[#00668c]">
             <Headphones className="h-6 w-6" />
           </div>
@@ -41,12 +40,14 @@ const SupportChannels: React.FC<SupportChannelsProps> = ({ onSwitchTab }) => {
             운영시간: 평일 오전 9시 ~ 오후 6시
           </div>
           <Button 
+            onClick={() => onSwitchTab('tie-support')} // Assuming 'tie-support' is the tab for TIE real-time support.
+                                                    // This might also trigger a chat modal or external link in a real app.
             variant="outline" 
             className="w-full border-[#00668c] text-[#00668c] hover:bg-[#d4eaf7] hover:text-[#00668c]"
           >
             TIE 연결하기
           </Button>
-        </div>
+        </div> */}
       </div>
       
       <div className="mt-6 p-4 bg-[#d4eaf7] rounded-md flex items-center justify-between">

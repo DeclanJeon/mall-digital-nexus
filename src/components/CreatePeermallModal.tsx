@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // useEffect 추가 (필요시)
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -50,7 +50,7 @@ const formSchema = z.object({
   representativeName: z.string().min(1, { message: '대표자 이름을 입력해주세요' }),
   email: z.string().email({ message: '유효한 이메일을 입력해주세요' }),
   membershipType: z.enum(['personal', 'family', 'enterprise'], {
-    message: '멤버십 유형을 선택해주세요'
+    message: '멤버십 유형을 선택해주세요' // 기본값은 form defaultValues에서 설정
   }),
 
   // 선택 항목
@@ -59,12 +59,14 @@ const formSchema = z.object({
   referralCode: z.string().optional(),
 });
 
+// localStorage 키 정의
+const LOCAL_STORAGE_PEERMALL_KEY_PREFIX = 'peermall_';
+
 const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   
-  // 폼 초기화
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -73,104 +75,136 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
       description: '',
       representativeName: '',
       email: '',
-      membershipType: 'personal',
+      membershipType: 'personal', // 기본 멤버십 유형 설정
       imageUrl: '',
       hashtags: '',
       referralCode: '',
     },
   });
 
-  // 이미지 업로드 처리
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = () => {
-        form.setValue('imageUrl', reader.result as string);
+      reader.onloadend = () => { // onloadend 사용 권장 (성공/실패 모두 처리)
+        form.setValue('imageUrl', reader.result as string, { shouldValidate: true });
+      };
+      reader.onerror = () => {
+        console.error("이미지 읽기 오류");
+        toast({
+          title: "이미지 업로드 실패",
+          description: "이미지를 읽는 중 오류가 발생했습니다.",
+          variant: "destructive",
+        });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // 다음 단계로 이동
   const handleNextStep = async () => {
-    // 첫 단계에서는 필수 입력 필드 검증
     if (step === 1) {
       const isValid = await form.trigger(['address', 'name', 'description']);
       if (isValid) setStep(2);
     }
   };
 
-  // 이전 단계로 이동
   const handlePrevStep = () => {
     setStep(1);
   };
 
-  // 폼 제출 처리
   const onSubmit = async (values) => {
     setIsLoading(true);
     try {
-      // 해시태그 처리
-      const processedValues = {
-        ...values,
-        hashtags: values.hashtags?.split(',').map(tag => {
+      const processedHashtags = values.hashtags
+        ?.split(',')
+        .map(tag => {
           const trimmedTag = tag.trim();
-          return trimmedTag.startsWith('#') ? trimmedTag : `#${trimmedTag}`;
-        }).filter(tag => tag !== '') || [],
-      };
-      
-      console.log('피어몰 생성 데이터:', processedValues);
-      
-      // API 호출 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // 피어몰 ID 생성
+          // 이미 #으로 시작하면 그대로, 아니면 # 추가, 빈 태그는 필터링
+          return trimmedTag && (trimmedTag.startsWith('#') ? trimmedTag : `#${trimmedTag}`);
+        })
+        .filter(tag => tag) || []; // null 또는 빈 문자열일 경우 빈 배열
+
       const peermallId = values.address.toLowerCase().replace(/\s+/g, '-');
 
-      // IndexedDB에 피어몰 정보 저장
-      await add(STORES.PEER_SPACES, {
-        address: peermallId,
+      const peermallDataForStorage = {
+        address: peermallId, // IndexedDB와 동일한 식별자 사용
         title: values.name,
         description: values.description,
-        owner: values.representativeName,
-        imageUrl: values.imageUrl,
-        category: values.membershipType,
-        tags: Array.isArray(processedValues.hashtags) ? processedValues.hashtags : [],
+        owner: values.representativeName, // 대표자 이름
+        email: values.email, // 이메일 추가
+        imageUrl: values.imageUrl || '', // 빈 문자열로 기본값
+        category: values.membershipType, // 멤버십 유형을 카테고리로 사용 (혹은 별도 필드)
+        tags: processedHashtags,
         membershipType: values.membershipType,
-        referralCode: values.referralCode,
+        referralCode: values.referralCode || '', // 빈 문자열로 기본값
+        // IndexedDB에 저장하는 추가 정보들 (localStorage에도 동일하게 저장하려면 추가)
         rating: 0,
         reviewCount: 0,
-        location: {
-          address: values.address,
-          lat: 0,
-          lng: 0,
+        location: { // location 정보도 저장
+          address: values.address, // 사용자가 입력한 주소 (실제 지도 좌표는 추후 업데이트)
+          lat: 0, // 기본값 또는 추후 지오코딩
+          lng: 0, // 기본값 또는 추후 지오코딩
         },
-      });
+        createdAt: new Date().toISOString(), // 생성 시간 추가
+      };
+      
+      console.log('피어몰 생성 데이터 (저장용):', peermallDataForStorage);
+      
+      // API 호출 시뮬레이션 (실제 API가 있다면 이 부분 대체)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // 1. IndexedDB에 피어몰 정보 저장
+      await add(STORES.PEER_SPACES, peermallDataForStorage);
+
+      // 2. localStorage에 피어몰 정보 저장
+      try {
+        // 각 피어몰 주소를 키로 사용하여 저장
+        localStorage.setItem(`${LOCAL_STORAGE_PEERMALL_KEY_PREFIX}${peermallId}`, JSON.stringify(peermallDataForStorage));
+        
+        // (선택적) 모든 피어몰 주소 목록을 관리하는 키도 업데이트 가능
+        const allPeermallAddresses = JSON.parse(localStorage.getItem('all_peermall_addresses') || '[]');
+        if (!allPeermallAddresses.includes(peermallId)) {
+          allPeermallAddresses.push(peermallId);
+          localStorage.setItem('all_peermall_addresses', JSON.stringify(allPeermallAddresses));
+        }
+        console.log('localStorage에 피어몰 정보 저장 완료:', peermallId);
+
+      } catch (storageError) {
+        console.error('localStorage 저장 오류:', storageError);
+        // localStorage 저장 실패 시 사용자에게 알릴 필요는 없을 수 있으나, 로깅은 중요
+        toast({
+          title: "데이터 저장 경고",
+          description: "피어몰 정보는 등록되었으나, 일부 로컬 데이터 저장에 실패했습니다.",
+          variant: "default", // 경고 레벨
+        });
+      }
 
       toast({
         title: "피어몰 등록 완료",
-        description: "피어몰이 성공적으로 등록되었습니다.",
+        description: `${values.name} 피어몰이 성공적으로 등록되었습니다.`,
         variant: "default",
       });
     
-      // 폼 초기화
       form.reset();
+      setStep(1); // 성공 후 첫 단계로 초기화
       
-      // 성공 콜백 호출
       if (onSuccess) {
+        // onSuccess 콜백에 생성된 피어몰의 주요 정보 전달 가능
         onSuccess({
+          id: peermallId,
           name: values.name,
-          type: '기타'
+          type: values.membershipType, // 예시로 멤버십 유형 전달
+          ...peermallDataForStorage // 전체 데이터 전달도 가능
         });
       } else {
-        onClose();
+        onClose(); // onSuccess가 없으면 그냥 모달 닫기
       }
-    } catch (error) {
 
-      console.log(error)
+    } catch (error) {
+      console.error("피어몰 등록 중 전체 오류:", error);
       toast({
         title: "피어몰 등록 실패",
-        description: "피어몰 등록 중 오류가 발생했습니다. 다시 시도해주세요.",
+        description: "피어몰 등록 중 오류가 발생했습니다. 입력 내용을 확인하고 다시 시도해주세요.",
         variant: "destructive",
       });
     } finally {
@@ -178,7 +212,6 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
     }
   };
 
-  // 필수 라벨 컴포넌트
   const RequiredLabel = ({ children }) => (
     <div className="flex items-center gap-1">
       {children}
@@ -186,49 +219,68 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
     </div>
   );
 
-  const handleClose = () => {
-    onClose();
+  const handleCloseAndReset = () => {
+    form.reset(); // 폼 상태 초기화
+    setStep(1);   // 단계 초기화
+    onClose();    // 부모 컴포넌트의 닫기 핸들러 호출
   };
 
+  // 해시태그 입력 필드에서 Enter 키 처리 (다음 필드로 포커스 이동 방지)
+  const handleHashtagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); 
+      // 원하는 경우, Enter 시 태그를 확정하는 로직 추가 가능
+    }
+  };
+
+  // 현재 입력된 해시태그를 칩 형태로 보여주기 위한 상태 (선택적 UI 개선)
+  const hashtagsValue = form.watch('hashtags'); // hashtags 필드의 현재 값 감시
+  const displayHashtags = hashtagsValue
+    ?.split(',')
+    .map(tag => tag.trim())
+    .filter(tag => tag) // 빈 태그 제거
+    .map(tag => (tag.startsWith('#') ? tag : `#${tag}`)) || [];
+
+
   return (
-    // onOpenChange에 handleClose 연결하여 외부 클릭/ESC 시 상태 초기화
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Store className="h-5 w-5 text-accent-100" />
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) { // 모달이 닫힐 때
+        handleCloseAndReset();
+      }
+    }}>
+      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto p-6">
+        <DialogHeader className="mb-4"> {/* 헤더와 폼 사이 간격 */}
+          <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
+            <Store className="h-5 w-5 text-blue-500" /> {/* 아이콘 색상 변경 */}
             피어몰 만들기 {step === 1 ? '(1/2)' : '(2/2)'}
           </DialogTitle>
-          <div>
+          <div className="text-sm text-muted-foreground">
             {step === 1 
               ? "피어몰의 기본 정보를 입력해주세요." 
               : "대표자 정보와 추가 정보를 입력해주세요."}
-            <div className="mt-1 text-sm flex items-center gap-1 text-red-500">
-              <AlertCircle className="h-3 w-3" /> 
-              <span>* 표시는 필수 입력 항목입니다</span>
-            </div>
+          </div>
+          <div className="mt-1 text-xs flex items-center gap-1 text-red-600"> {/* 빨간색 강조 */}
+            <AlertCircle className="h-3.5 w-3.5" /> 
+            <span>\* 표시는 필수 입력 항목입니다.</span>
           </div>
         </DialogHeader>
         
         <Form {...form}>
-          {/* onSubmit 핸들러는 form 요소에 직접 연결 */}
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* 단계 1: 피어몰 기본 정보 */}
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5"> {/* 필드 간 간격 조정 */}
             {step === 1 && (
-              <div className="space-y-4">
-                {/* 피어몰 주소 */}
+              <div className="space-y-5">
                 <FormField
                   control={form.control}
                   name="address"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <RequiredLabel>피어몰 주소</RequiredLabel>
+                        <RequiredLabel>피어몰 주소 (URL)</RequiredLabel>
                       </FormLabel>
                       <FormControl>
-                        <div className="flex items-center">
-                          <span className="text-sm text-muted-foreground mr-1">peermall.com/space/</span>
-                          <Input placeholder="my-awesome-store" {...field} />
+                        <div className="flex items-center rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                          <span className="text-sm text-muted-foreground pl-3 pr-1 py-2 bg-gray-50 border-r">peermall.com/space/</span>
+                          <Input placeholder="my-store" {...field} className="border-0 rounded-l-none focus:ring-0 flex-1" />
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -236,7 +288,6 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                   )}
                 />
                 
-                {/* 피어몰 이름 */}
                 <FormField
                   control={form.control}
                   name="name"
@@ -246,14 +297,13 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                         <RequiredLabel>피어몰 이름</RequiredLabel>
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="내 멋진 피어몰" {...field} />
+                        <Input placeholder="예: 내 멋진 가게" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 
-                {/* 피어몰 설명 */}
                 <FormField
                   control={form.control}
                   name="description"
@@ -264,8 +314,8 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                       </FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="피어몰에 대한 간단한 소개를 작성해주세요 (10자 이상)"
-                          className="min-h-[80px]"
+                          placeholder="피어몰을 잘 나타내는 설명을 작성해주세요 (최소 10자)."
+                          className="min-h-[100px]" // 높이 살짝 늘림
                           {...field}
                         />
                       </FormControl>
@@ -274,49 +324,43 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                   )}
                 />
                 
-                {/* 해시태그 */}
                 <FormField
                   control={form.control}
                   name="hashtags"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-1">
-                        <FileText className="h-4 w-4" /> 해시태그 (쉼표로 구분)
-                        <span className="text-gray-400 text-xs ml-1">(선택사항)</span>
+                        <FileText className="h-4 w-4 text-muted-foreground" /> 해시태그 (쉼표로 구분)
+                        <span className="text-xs text-muted-foreground ml-1">(선택)</span>
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="예: #맛집, 핸드메이드, #서울"
+                          placeholder="#패션, #핸드메이드, #맛집"
                           {...field}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                            }
-                          }}
+                          onKeyDown={handleHashtagKeyDown} // Enter 키 처리
                         />
                       </FormControl>
                       <FormMessage />
-                      {/* 입력된 해시태그를 칩 형태로 표시 */}
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {field.value && field.value.split(',').map((tag, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700"
-                          >
-                            {tag.startsWith('#') ? tag : `#${tag}`}
-                          </span>
-                        ))}
-                      </div>
+                      {displayHashtags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {displayHashtags.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center rounded-full bg-blue-100 text-blue-700 px-2.5 py-0.5 text-xs font-medium"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </FormItem>
                   )}
                 />
               </div>
             )}
             
-            {/* 단계 2: 대표자 정보 및 추가 정보 */}
             {step === 2 && (
-              <div className="space-y-4">
-                {/* 대표자 이름 */}
+              <div className="space-y-5">
                 <FormField
                   control={form.control}
                   name="representativeName"
@@ -324,7 +368,7 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                     <FormItem>
                       <FormLabel>
                         <RequiredLabel>
-                           <User className="h-4 w-4 inline-block mr-1" /> 대표자 이름
+                           <User className="h-4 w-4 inline-block mr-1 text-muted-foreground" /> 대표자 이름
                         </RequiredLabel>
                       </FormLabel>
                       <FormControl>
@@ -335,7 +379,6 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                   )}
                 />
 
-                {/* 이메일 */}
                 <FormField
                   control={form.control}
                   name="email"
@@ -343,39 +386,37 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                     <FormItem>
                       <FormLabel>
                         <RequiredLabel>
-                          <Mail className="h-4 w-4 inline-block mr-1" /> 이메일
+                          <Mail className="h-4 w-4 inline-block mr-1 text-muted-foreground" /> 이메일 주소
                         </RequiredLabel>
                       </FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="example@email.com" {...field} />
+                        <Input type="email" placeholder="contact@example.com" {...field} />
                       </FormControl>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        알림 서비스를 사용하고 싶으시면 개인정보 관리 페이지에서 추가 정보를 입력해주세요.
+                      <div className="text-xs text-muted-foreground mt-1.5">
+                        알림 및 중요 안내 수신에 사용됩니다.
                       </div>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* 추천인 코드 */}
                 <FormField
                   control={form.control}
                   name="referralCode"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-1">
-                        <Globe className="h-4 w-4" /> 추천인 코드
-                        <span className="text-gray-400 text-xs ml-1">(선택사항)</span>
+                        <Globe className="h-4 w-4 text-muted-foreground" /> 추천인 코드
+                        <span className="text-xs text-muted-foreground ml-1">(선택)</span>
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="추천인 코드 입력" {...field} />
+                        <Input placeholder="추천코드가 있다면 입력하세요" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* 멤버십 유형 */}
                 <FormField
                   control={form.control}
                   name="membershipType"
@@ -386,8 +427,7 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                       </FormLabel>
                       <FormControl>
                          <select
-                           value={field.value}
-                           onChange={field.onChange}
+                           {...field} // Zod 스키마와 react-hook-form이 자동으로 value와 onChange를 관리
                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                          >
                            <option value="personal">개인</option>
@@ -400,47 +440,42 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                   )}
                 />
 
-                {/* 대표 이미지 */}
                 <FormField
                   control={form.control}
-                  name="imageUrl" // Zod 스키마와 이름 일치
-                  render={({ field }) => ( // field는 이제 imageUrl(base64) 값을 가짐
+                  name="imageUrl"
+                  render={({ field: { onChange, value, ...restField } }) => ( // onChange만 직접 사용, 나머지는 react-hook-form에 위임
                     <FormItem>
                       <FormLabel className="flex items-center gap-1">
-                        <ImageIcon className="h-4 w-4" /> 대표 이미지
-                        <span className="text-gray-400 text-xs ml-1">(선택사항)</span>
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" /> 대표 이미지
+                        <span className="text-xs text-muted-foreground ml-1">(선택)</span>
                       </FormLabel>
                       <FormControl>
                         <div className="flex items-center gap-3">
-                          {/* 숨겨진 파일 입력 */}
                           <Input
                             id="imageUpload"
                             type="file"
                             accept="image/*"
-                            onChange={handleImageUpload}
+                            onChange={handleImageUpload} // 커스텀 핸들러 사용
                             className="hidden"
+                            {...restField} // name, ref 등 react-hook-form이 필요로 하는 props 전달
                           />
-                          {/* 파일 선택 버튼 */}
                           <Button
-                            type="button" // form 제출 방지
+                            type="button"
                             variant="outline"
                             onClick={() => document.getElementById('imageUpload')?.click()}
                             size="sm"
                           >
-                            이미지 업로드
+                            이미지 선택
                           </Button>
-                          {/* 이미지 미리보기 */}
-                          {field.value && (
-                            <div className="h-12 w-12 rounded overflow-hidden border">
+                          {value && typeof value === 'string' && ( // value가 문자열(Base64)인지 확인
+                            <div className="h-12 w-12 rounded-md overflow-hidden border bg-gray-100">
                               <img
-                                src={field.value} // 미리보기 URL 사용
-                                alt="미리보기"
+                                src={value}
+                                alt="이미지 미리보기"
                                 className="w-full h-full object-cover"
                               />
                             </div>
                           )}
-                          {/* 실제 값(Base64)은 field에 의해 관리되지만, 화면에 직접 표시할 필요는 없음 */}
-                          {/* <input type="hidden" {...field} /> -> useForm이 관리하므로 필요 없음 */}
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -450,33 +485,33 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
               </div>
             )}
             
-            <Separator className="my-6" /> {/* 간격 조정 */}
+            <Separator className="my-6" />
             
-            <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between w-full gap-2">
+            <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between w-full gap-2 pt-2">
               {step === 1 ? (
                 <>
-                  <Button type="button" variant="outline" onClick={handleClose} className="w-full sm:w-auto">
+                  <Button type="button" variant="outline" onClick={handleCloseAndReset} className="w-full sm:w-auto">
                     취소
                   </Button>
                   <Button
-                    type="button" // form 제출 방지
+                    type="button"
                     onClick={handleNextStep}
-                    className="bg-accent-100 hover:bg-accent-100/90 text-white w-full sm:w-auto"
+                    className="bg-blue-500 hover:bg-blue-600 text-white w-full sm:w-auto" // 버튼 색상 변경
                   >
-                    다음 <ChevronRight className="ml-1 h-4 w-4" />
+                    다음 단계 <ChevronRight className="ml-1.5 h-4 w-4" />
                   </Button>
                 </>
               ) : (
                 <>
                   <Button type="button" variant="outline" onClick={handlePrevStep} className="w-full sm:w-auto">
-                    <ChevronLeft className="mr-1 h-4 w-4" /> 이전
+                    <ChevronLeft className="mr-1.5 h-4 w-4" /> 이전 단계
                   </Button>
                   <Button
-                    type="submit" // form 제출 버튼
-                    className="bg-accent-100 hover:bg-accent-100/90 text-white w-full sm:w-auto"
-                    disabled={isLoading}
+                    type="submit"
+                    className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto" // 버튼 색상 변경
+                    disabled={isLoading || !form.formState.isValid} // 폼 유효성 검사 추가
                   >
-                    {isLoading ? "등록 중..." : "피어몰 생성하기"}
+                    {isLoading ? "등록 중..." : "피어몰 생성 완료"}
                   </Button>
                 </>
               )}
