@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { Toaster } from '@/components/ui/sonner';
-import UniverseMap from '@/components/community/UniverseMap';
+import ThreeUniverseMap from '@/components/community/ThreeUniverseMap';
 import PlanetCreationWizard from '@/components/community/PlanetCreationWizard';
 import PlanetDashboard from '@/components/community/PlanetDashboard';
 import { Planet, Constellation } from '@/components/community/types';
@@ -278,7 +277,7 @@ const Community = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6">
         {!activePlanet ? (
-          <UniverseMap 
+          <ThreeUniverseMap 
             planets={planets}
             constellations={constellations}
             selectedPlanet={selectedPlanet}
