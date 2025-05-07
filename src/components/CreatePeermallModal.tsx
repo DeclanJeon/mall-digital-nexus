@@ -7,15 +7,11 @@ import {
   FileText, 
   Image as ImageIcon, 
   User, 
-  Phone, 
-  X,
-  Hash,
+  Mail,
   Globe,
-  Eye,
-  EyeOff,
-  Bookmark,
   AlertCircle,
-  Ticket
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
 
 import {
@@ -23,7 +19,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 
@@ -34,130 +29,115 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from '@/components/ui/form';
 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Separator } from '@/components/ui/separator';
+import { add } from '@/utils/indexedDBService';
+import { STORES } from '@/utils/indexedDB';
 
-// Define the form schema with validation
+// 간소화된 스키마 정의
 const formSchema = z.object({
+  // 필수 항목
   address: z.string()
     .min(1, { message: '피어몰 주소를 입력해주세요' })
     .regex(/^[a-z0-9-]+$/, { message: '소문자, 숫자, 하이픈(-)만 사용 가능합니다' }),
   name: z.string().min(2, { message: '피어몰 이름은 2자 이상이어야 합니다' }),
-  type: z.string().default('기타'),
   description: z.string().min(10, { message: '설명은 10자 이상이어야 합니다' }),
-  hashtags: z.string().optional(),
-  logoUrl: z.string().optional(),
-  faviconUrl: z.string().optional(),
-  imageUrl: z.string().optional(),
   representativeName: z.string().min(1, { message: '대표자 이름을 입력해주세요' }),
-  phoneNumber: z.string().optional(),
-  email: z.string().optional(),
+  email: z.string().email({ message: '유효한 이메일을 입력해주세요' }),
+  membershipType: z.enum(['personal', 'family', 'enterprise'], {
+    message: '멤버십 유형을 선택해주세요'
+  }),
+
+  // 선택 항목
+  imageUrl: z.string().optional(),
+  hashtags: z.string().optional(),
   referralCode: z.string().optional(),
-  hasReferral: z.boolean().default(false),
-  isPublic: z.boolean().default(true),
 });
 
-type FormValues = z.infer<typeof formSchema>;
-
-interface CreatePeermallModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess?: (peermallData: {name: string; type: string}) => void;
-}
-
-const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({ 
-  isOpen, 
-  onClose,
-  onSuccess
-}) => {
+const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("basic");
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   
-  const handleConfirmClose = () => {
-    setIsConfirmOpen(false);
-  };
-  
-  // Initialize form
-  const form = useForm<FormValues>({
+  // 폼 초기화
+  const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       address: '',
       name: '',
       description: '',
-      hashtags: '',
-      logoUrl: '',
-      faviconUrl: '',
-      imageUrl: '',
       representativeName: '',
-      phoneNumber: '',
       email: '',
+      membershipType: 'personal',
+      imageUrl: '',
+      hashtags: '',
       referralCode: '',
-      hasReferral: false,
-      isPublic: true,
     },
   });
 
-  // Image upload handlers
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'imageUrl' | 'logoUrl' | 'faviconUrl') => {
+  // 이미지 업로드 처리
+  const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      // In a real implementation, you would upload the file to a server
-      // Here we're just creating a fake URL
-      const fakeImageUrl = URL.createObjectURL(file);
-      form.setValue(fieldName, fakeImageUrl);
+      const reader = new FileReader();
+      reader.onload = () => {
+        form.setValue('imageUrl', reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  // Form submission handler
-  const [isLoading, setIsLoading] = useState(false);
+  // 다음 단계로 이동
+  const handleNextStep = async () => {
+    // 첫 단계에서는 필수 입력 필드 검증
+    if (step === 1) {
+      const isValid = await form.trigger(['address', 'name', 'description']);
+      if (isValid) setStep(2);
+    }
+  };
 
-  const onSubmit = async (values: FormValues) => {
+  // 이전 단계로 이동
+  const handlePrevStep = () => {
+    setStep(1);
+  };
+
+  // 폼 제출 처리
+  const onSubmit = async (values) => {
     setIsLoading(true);
     try {
-      // Process hashtag (split string into array, trim whitespace)
+      // 해시태그 처리
       const processedValues = {
         ...values,
-        hashtags: values.hashtags?.split(',').map(tag => tag.trim()).filter(tag => tag !== '') || [],
+        hashtags: values.hashtags?.split(',').map(tag => {
+          const trimmedTag = tag.trim();
+          return trimmedTag.startsWith('#') ? trimmedTag : `#${trimmedTag}`;
+        }).filter(tag => tag !== '') || [],
       };
+      
       console.log('피어몰 생성 데이터:', processedValues);
       
-      // Simulate API call
+      // API 호출 시뮬레이션
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Generate a mock peermall ID based on the address
+      // 피어몰 ID 생성
       const peermallId = values.address.toLowerCase().replace(/\s+/g, '-');
 
-      // 로컬 스토리지에 피어몰 정보 저장
-      const storedPeermalls = localStorage.getItem('peermalls');
-      const peermalls = storedPeermalls ? JSON.parse(storedPeermalls) : [];
-      peermalls.push({
-        id: peermallId,
+      // IndexedDB에 피어몰 정보 저장
+      await add(STORES.PEER_SPACES, {
+        address: peermallId,
         title: values.name,
         description: values.description,
         owner: values.representativeName,
         imageUrl: values.imageUrl,
-        category: '기타', // 기본값
-        tags: Array.isArray(values.hashtags) ? values.hashtags : [],
+        category: values.membershipType,
+        tags: Array.isArray(processedValues.hashtags) ? processedValues.hashtags : [],
+        membershipType: values.membershipType,
+        referralCode: values.referralCode,
         rating: 0,
         reviewCount: 0,
         location: {
@@ -166,7 +146,6 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
           lng: 0,
         },
       });
-      localStorage.setItem('peermalls', JSON.stringify(peermalls));
 
       toast({
         title: "피어몰 등록 완료",
@@ -174,20 +153,21 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
         variant: "default",
       });
     
-      // Reset the form
+      // 폼 초기화
       form.reset();
       
-      // Call onSuccess callback if provided
+      // 성공 콜백 호출
       if (onSuccess) {
         onSuccess({
           name: values.name,
-          type: values.type
+          type: '기타'
         });
       } else {
-        // Just close the modal if no callback provided
         onClose();
       }
     } catch (error) {
+
+      console.log(error)
       toast({
         title: "피어몰 등록 실패",
         description: "피어몰 등록 중 오류가 발생했습니다. 다시 시도해주세요.",
@@ -198,494 +178,313 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
     }
   };
 
-  // Helper component for required field label
-  const RequiredLabel: React.FC<{children: React.ReactNode}> = ({ children }) => (
+  // 필수 라벨 컴포넌트
+  const RequiredLabel = ({ children }) => (
     <div className="flex items-center gap-1">
       {children}
       <span className="text-red-500">*</span>
     </div>
   );
 
+  const handleClose = () => {
+    onClose();
+  };
+
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto z-[1000]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-2xl">
-              <Store className="h-6 w-6 text-accent-100" />
-              피어몰 만들기
-            </DialogTitle>
-          <DialogDescription className="text-base">
-            새로운 피어몰을 생성하기 위한 정보를 입력해주세요.
-            <span className="mt-2 text-sm flex items-center gap-1 text-red-500">
-              <AlertCircle className="h-4 w-4" /> 
-              <span className="font-medium">표시는 필수 입력 항목입니다.</span>
-            </span>
-          </DialogDescription>
-          </DialogHeader>
-          
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <Tabs 
-                defaultValue="basic" 
-                value={activeTab} 
-                onValueChange={setActiveTab}
-                className="w-full"
-              >
-                <TabsList className="grid grid-cols-3 mb-4">
-                  <TabsTrigger value="basic" className="relative">
-                    <span className="flex items-center">
-                      기본 정보
-                      <span className="text-red-500 ml-1">*</span>
-                    </span>
-                  </TabsTrigger>
-                  <TabsTrigger value="appearance">
-                    <span className="flex items-center">
-                      디자인
-                      <span className="text-gray-400 text-xs ml-1">(선택사항)</span>
-                    </span>
-                  </TabsTrigger>
-                  <TabsTrigger value="advanced">
-                    <span className="flex items-center">
-                      고급 설정
-                      <span className="text-gray-400 text-xs ml-1">(선택사항)</span>
-                    </span>
-                  </TabsTrigger>
-                </TabsList>
+    // onOpenChange에 handleClose 연결하여 외부 클릭/ESC 시 상태 초기화
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <Store className="h-5 w-5 text-accent-100" />
+            피어몰 만들기 {step === 1 ? '(1/2)' : '(2/2)'}
+          </DialogTitle>
+          <div>
+            {step === 1 
+              ? "피어몰의 기본 정보를 입력해주세요." 
+              : "대표자 정보와 추가 정보를 입력해주세요."}
+            <div className="mt-1 text-sm flex items-center gap-1 text-red-500">
+              <AlertCircle className="h-3 w-3" /> 
+              <span>* 표시는 필수 입력 항목입니다</span>
+            </div>
+          </div>
+        </DialogHeader>
+        
+        <Form {...form}>
+          {/* onSubmit 핸들러는 form 요소에 직접 연결 */}
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* 단계 1: 피어몰 기본 정보 */}
+            {step === 1 && (
+              <div className="space-y-4">
+                {/* 피어몰 주소 */}
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <RequiredLabel>피어몰 주소</RequiredLabel>
+                      </FormLabel>
+                      <FormControl>
+                        <div className="flex items-center">
+                          <span className="text-sm text-muted-foreground mr-1">peermall.com/space/</span>
+                          <Input placeholder="my-awesome-store" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 
-                {/* 기본 정보 탭 */}
-                <TabsContent value="basic" className="space-y-4">
-                  <Card>
-                    <CardContent className="pt-4 space-y-4">
-                      {/* 피어몰 주소 */}
-                      <FormField
-                        control={form.control}
-                        name="address"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-1">
-                              <Globe className="h-4 w-4 text-accent-100" /> 
-                              <RequiredLabel>피어몰 주소</RequiredLabel>
-                            </FormLabel>
-                            <FormControl>
-                              <div className="flex items-center">
-                                <span className="text-sm text-muted-foreground mr-1 select-none">peermall.com/space/</span>
-                                <Input placeholder="mystore" {...field} />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      {/* 피어몰 이름 */}
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-1">
-                              <Store className="h-4 w-4 text-accent-100" /> 
-                              <RequiredLabel>피어몰 이름</RequiredLabel>
-                            </FormLabel>
-                            <FormControl>
-                              <Input placeholder="내 멋진 피어몰" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      {/* 피어몰 설명 */}
-                      <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-1">
-                              <FileText className="h-4 w-4 text-accent-100" /> 
-                              <RequiredLabel>피어몰 설명</RequiredLabel>
-                            </FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                placeholder="피어몰에 대한 간단한 소개를 작성해주세요" 
-                                className="min-h-[100px]"
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      {/* 해시태그 */}
-                      <FormField
-                        control={form.control}
-                        name="hashtags"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-1">
-                              <Hash className="h-4 w-4 text-accent-100" /> 해시태그 (쉼표로 구분)
-                              <span className="text-gray-400 text-xs ml-1">(선택사항)</span>
-                            </FormLabel>
-                            <FormControl>
-                              <Input placeholder="예: #맛집, #핸드메이드, #서울" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardContent className="pt-4 space-y-4">
-                      {/* 대표자 이름 */}
-                      <FormField
-                        control={form.control}
-                        name="representativeName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-1">
-                              <User className="h-4 w-4 text-accent-100" /> 
-                              <RequiredLabel>대표자 이름</RequiredLabel>
-                            </FormLabel>
-                            <FormControl>
-                              <Input placeholder="홍길동" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      {/* 연락처 */}
-                      <FormField
-                        control={form.control}
-                        name="phoneNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-1">
-                              <Phone className="h-4 w-4 text-accent-100" /> 
-                              <RequiredLabel>전화번호</RequiredLabel>
-                            </FormLabel>
-                            <FormControl>
-                              <Input placeholder="전화번호를 입력해주세요" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      {/* 이메일 */}
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-1">
-                              <Phone className="h-4 w-4 text-accent-100" /> 
-                              <RequiredLabel>이메일</RequiredLabel>
-                            </FormLabel>
-                            <FormControl>
-                              <Input placeholder="이메일을 입력해주세요" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </CardContent>
-                  </Card>
-
-                  {/* 대표 이미지 */}
-                  <Card>
-                    <CardContent className="pt-4">
-                      <FormField
-                        control={form.control}
-                        name="imageUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-1">
-                              <ImageIcon className="h-4 w-4 text-accent-100" /> 
-                              대표 이미지
-                            </FormLabel>
-                            <FormControl>
-                              <div className="flex flex-col gap-2">
-                                <Input
-                                  id="imageUpload"
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => handleImageUpload(e, 'imageUrl')}
-                                  className="hidden"
-                                />
-                                <div className="flex items-center gap-4">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => document.getElementById('imageUpload')?.click()}
-                                  >
-                                    이미지 업로드
-                                  </Button>
-                                  {field.value && (
-                                    <div className="relative">
-                                      <img 
-                                        src={field.value} 
-                                        alt="Preview" 
-                                        className="w-20 h-20 object-cover rounded-md"
-                                      />
-                                      <button
-                                        type="button"
-                                        className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1"
-                                        onClick={() => form.setValue('imageUrl', '')}
-                                      >
-                                        <X className="h-3 w-3 text-white" />
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                                <input type="hidden" {...field} />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+                {/* 피어몰 이름 */}
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <RequiredLabel>피어몰 이름</RequiredLabel>
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="내 멋진 피어몰" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 
-                {/* 디자인 탭 */}
-                <TabsContent value="appearance" className="space-y-4">
-                  <div className="flex items-center p-2 bg-blue-50 rounded-md border border-blue-100 mb-2">
-                    <div className="text-blue-600 text-sm">
-                      디자인 설정은 선택사항입니다. 나중에 언제든지 수정할 수 있습니다.
-                    </div>
-                  </div>
-                  <Card>
-                    <CardContent className="pt-4 space-y-4">
-                      {/* 로고 이미지 */}
-                      <FormField
-                        control={form.control}
-                        name="logoUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-1">
-                              <Bookmark className="h-4 w-4 text-accent-100" /> 로고 이미지
-                            </FormLabel>
-                            <FormControl>
-                              <div className="flex flex-col gap-2">
-                                <Input
-                                  id="logoUpload"
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => handleImageUpload(e, 'logoUrl')}
-                                  className="hidden"
-                                />
-                                <div className="flex items-center gap-4">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => document.getElementById('logoUpload')?.click()}
-                                  >
-                                    로고 업로드
-                                  </Button>
-                                  {field.value && (
-                                    <div className="relative">
-                                      <img 
-                                        src={field.value} 
-                                        alt="Logo Preview" 
-                                        className="w-16 h-16 object-contain rounded-md"
-                                      />
-                                      <button
-                                        type="button"
-                                        className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1"
-                                        onClick={() => form.setValue('logoUrl', '')}
-                                      >
-                                        <X className="h-3 w-3 text-white" />
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                                <input type="hidden" {...field} />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      {/* 파비콘 */}
-                      <FormField
-                        control={form.control}
-                        name="faviconUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-1">
-                              <Globe className="h-4 w-4 text-accent-100" /> 파비콘 (브라우저 탭 아이콘)
-                            </FormLabel>
-                            <FormControl>
-                              <div className="flex flex-col gap-2">
-                                <Input
-                                  id="faviconUpload"
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => handleImageUpload(e, 'faviconUrl')}
-                                  className="hidden"
-                                />
-                                <div className="flex items-center gap-4">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => document.getElementById('faviconUpload')?.click()}
-                                  >
-                                    파비콘 업로드
-                                  </Button>
-                                  {field.value && (
-                                    <div className="relative">
-                                      <img 
-                                        src={field.value} 
-                                        alt="Favicon Preview" 
-                                        className="w-10 h-10 object-contain rounded-md"
-                                      />
-                                      <button
-                                        type="button"
-                                        className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1"
-                                        onClick={() => form.setValue('faviconUrl', '')}
-                                      >
-                                        <X className="h-3 w-3 text-white" />
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                                <input type="hidden" {...field} />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-                
-                {/* 고급 설정 탭 */}
-                <TabsContent value="advanced" className="space-y-4">
-                  <div className="flex items-center p-2 bg-blue-50 rounded-md border border-blue-100 mb-2">
-                    <div className="text-blue-600 text-sm">
-                      고급 설정은 선택사항입니다. 나중에 언제든지 수정할 수 있습니다.
-                    </div>
-                  </div>
-                  <Card>
-                    <CardContent className="pt-4 space-y-4">
-                      {/* 추천인 코드 */}
-                      <FormField
-                        control={form.control}
-                        name="hasReferral"
-                        render={({ field }) => (
-                          <FormItem>
-                            <div className="flex items-center gap-2">
-                              <FormControl>
-                                <input
-                                  type="checkbox"
-                                  checked={field.value}
-                                  onChange={(e) => {
-                                    field.onChange(e.target.checked);
-                                    if (!e.target.checked) {
-                                      form.setValue('referralCode', '');
-                                    }
-                                  }}
-                                  className="w-4 h-4"
-                                />
-                              </FormControl>
-                              <FormLabel className="flex items-center gap-1 m-0">
-                                <Ticket className="h-4 w-4 text-accent-100" /> 추천인 코드 / 스폰서 등록
-                              </FormLabel>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                      
-                      {form.watch('hasReferral') && (
-                        <FormField
-                          control={form.control}
-                          name="referralCode"
-                          render={({ field }) => (
-                            <FormItem className="ml-6">
-                              <FormControl>
-                                <Input placeholder="추천인 코드를 입력하세요" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                {/* 피어몰 설명 */}
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <RequiredLabel>피어몰 설명</RequiredLabel>
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="피어몰에 대한 간단한 소개를 작성해주세요 (10자 이상)"
+                          className="min-h-[80px]"
+                          {...field}
                         />
-                      )}
-                      
-                      {/* 공개/비공개 설정 */}
-                      <FormField
-                        control={form.control}
-                        name="isPublic"
-                        render={({ field }) => (
-                          <FormItem>
-                            <div className="flex items-center justify-between">
-                              <FormLabel className="flex items-center gap-1">
-                                {field.value ? <Eye className="h-4 w-4 text-accent-100" /> : <EyeOff className="h-4 w-4 text-accent-100" />}
-                                {field.value ? "공개 피어몰" : "비공개 피어몰"}
-                              </FormLabel>
-                              <FormControl>
-                                <Switch
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* 해시태그 */}
+                <FormField
+                  control={form.control}
+                  name="hashtags"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1">
+                        <FileText className="h-4 w-4" /> 해시태그 (쉼표로 구분)
+                        <span className="text-gray-400 text-xs ml-1">(선택사항)</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="예: #맛집, 핸드메이드, #서울"
+                          {...field}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                      {/* 입력된 해시태그를 칩 형태로 표시 */}
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {field.value && field.value.split(',').map((tag, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700"
+                          >
+                            {tag.startsWith('#') ? tag : `#${tag}`}
+                          </span>
+                        ))}
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+            
+            {/* 단계 2: 대표자 정보 및 추가 정보 */}
+            {step === 2 && (
+              <div className="space-y-4">
+                {/* 대표자 이름 */}
+                <FormField
+                  control={form.control}
+                  name="representativeName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <RequiredLabel>
+                           <User className="h-4 w-4 inline-block mr-1" /> 대표자 이름
+                        </RequiredLabel>
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="홍길동" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* 이메일 */}
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <RequiredLabel>
+                          <Mail className="h-4 w-4 inline-block mr-1" /> 이메일
+                        </RequiredLabel>
+                      </FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="example@email.com" {...field} />
+                      </FormControl>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        알림 서비스를 사용하고 싶으시면 개인정보 관리 페이지에서 추가 정보를 입력해주세요.
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* 추천인 코드 */}
+                <FormField
+                  control={form.control}
+                  name="referralCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1">
+                        <Globe className="h-4 w-4" /> 추천인 코드
+                        <span className="text-gray-400 text-xs ml-1">(선택사항)</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="추천인 코드 입력" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* 멤버십 유형 */}
+                <FormField
+                  control={form.control}
+                  name="membershipType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <RequiredLabel>멤버십 유형</RequiredLabel>
+                      </FormLabel>
+                      <FormControl>
+                         <select
+                           value={field.value}
+                           onChange={field.onChange}
+                           className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                         >
+                           <option value="personal">개인</option>
+                           <option value="family">가족</option>
+                           <option value="enterprise">기업</option>
+                         </select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* 대표 이미지 */}
+                <FormField
+                  control={form.control}
+                  name="imageUrl" // Zod 스키마와 이름 일치
+                  render={({ field }) => ( // field는 이제 imageUrl(base64) 값을 가짐
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1">
+                        <ImageIcon className="h-4 w-4" /> 대표 이미지
+                        <span className="text-gray-400 text-xs ml-1">(선택사항)</span>
+                      </FormLabel>
+                      <FormControl>
+                        <div className="flex items-center gap-3">
+                          {/* 숨겨진 파일 입력 */}
+                          <Input
+                            id="imageUpload"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                          />
+                          {/* 파일 선택 버튼 */}
+                          <Button
+                            type="button" // form 제출 방지
+                            variant="outline"
+                            onClick={() => document.getElementById('imageUpload')?.click()}
+                            size="sm"
+                          >
+                            이미지 업로드
+                          </Button>
+                          {/* 이미지 미리보기 */}
+                          {field.value && (
+                            <div className="h-12 w-12 rounded overflow-hidden border">
+                              <img
+                                src={field.value} // 미리보기 URL 사용
+                                alt="미리보기"
+                                className="w-full h-full object-cover"
+                              />
                             </div>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {field.value 
-                                ? "모든 사용자가 검색 및 접근 가능합니다." 
-                                : "초대받은 사용자만 접근 가능합니다."}
-                            </p>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-              
-              <Separator className="my-4" />
-              
-                <DialogFooter className="gap-2">
-                  <Button type="button" variant="outline" onClick={onClose}>
+                          )}
+                          {/* 실제 값(Base64)은 field에 의해 관리되지만, 화면에 직접 표시할 필요는 없음 */}
+                          {/* <input type="hidden" {...field} /> -> useForm이 관리하므로 필요 없음 */}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+            
+            <Separator className="my-6" /> {/* 간격 조정 */}
+            
+            <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between w-full gap-2">
+              {step === 1 ? (
+                <>
+                  <Button type="button" variant="outline" onClick={handleClose} className="w-full sm:w-auto">
                     취소
                   </Button>
-                  <Button 
-                    type="submit"
-                    className="bg-accent-100 hover:bg-accent-100/90 text-white"
+                  <Button
+                    type="button" // form 제출 방지
+                    onClick={handleNextStep}
+                    className="bg-accent-100 hover:bg-accent-100/90 text-white w-full sm:w-auto"
+                  >
+                    다음 <ChevronRight className="ml-1 h-4 w-4" />
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button type="button" variant="outline" onClick={handlePrevStep} className="w-full sm:w-auto">
+                    <ChevronLeft className="mr-1 h-4 w-4" /> 이전
+                  </Button>
+                  <Button
+                    type="submit" // form 제출 버튼
+                    className="bg-accent-100 hover:bg-accent-100/90 text-white w-full sm:w-auto"
                     disabled={isLoading}
                   >
                     {isLoading ? "등록 중..." : "피어몰 생성하기"}
                   </Button>
-                </DialogFooter>
-                <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>피어몰 생성 취소</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        입력한 정보가 저장되지 않습니다. 정말 취소하시겠습니까?
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>취소</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleConfirmClose}>
-                        확인
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-    </>
+                </>
+              )}
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 };
 

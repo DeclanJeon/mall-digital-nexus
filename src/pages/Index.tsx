@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import PeermallGrid from '../components/PeermallGrid';
 import CommunicationWidget from '@/components/CommunicationWidget';
@@ -11,8 +10,9 @@ import CommunityHighlights from '@/components/CommunityHighlights';
 import CreatePeermall from '@/components/CreatePeermall';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
+import { getDB, STORES } from '@/utils/indexedDB';
 
-interface Peermall {
+export interface Peermall {
   title: string;
   description: string;
   owner: string;
@@ -46,33 +46,30 @@ const Index = () => {
   const [isMySpacesOpen, setIsMySpacesOpen] = useState(false);
   const [mySpaces, setMySpaces] = useState<Peermall[]>([]);
 
-  // Load peermalls from localStorage
+  // Load peermalls from indexedDB
   useEffect(() => {
-    const loadFromStorage = () => {
+    const loadFromIndexedDB = async () => {
       try {
-        const storedPeermalls = localStorage.getItem('peermalls');
-        if (storedPeermalls) {
-          const parsedPeermalls = JSON.parse(storedPeermalls);
-          setPeermalls(parsedPeermalls);
-          
-          // Also set my spaces
-          setMySpaces(parsedPeermalls.filter((mall: Peermall) => mall.owner === '나'));
-        }
+        const db = await getDB();
+        const transaction = db.transaction(STORES.PEER_SPACES, 'readonly');
+        const store = transaction.objectStore(STORES.PEER_SPACES);
+        const request = store.getAll();
+        const peermallsFromDB: Peermall[] = await new Promise<Peermall[]>((resolve, reject) => {
+          request.onsuccess = (event) => {
+            resolve((event.target as IDBRequest).result as Peermall[]);
+          };
+          request.onerror = (event) => {
+            reject((event.target as IDBRequest).error);
+          };
+        });
+        setPeermalls(peermallsFromDB);
+        setMySpaces(peermallsFromDB.filter((mall: Peermall) => mall.owner === '나'));
       } catch (error) {
-        console.error('Error loading peermalls from localStorage:', error);
+        console.error('Error loading peermalls from indexedDB:', error);
       }
     };
-    
-    // Initial load
-    loadFromStorage();
-    
-    // Set up event listener for storage changes
-    window.addEventListener('storage', loadFromStorage);
-    
-    // Clean up
-    return () => {
-      window.removeEventListener('storage', loadFromStorage);
-    };
+
+    loadFromIndexedDB();
   }, []);
 
   const hashtagOptions: HashtagFilterOption[] = [

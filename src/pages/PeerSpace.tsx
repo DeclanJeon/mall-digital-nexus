@@ -4,6 +4,8 @@ import { useLocation, useParams } from 'react-router-dom';
 import PeerSpaceHome from '@/components/peer-space/PeerSpaceHome';
 import { toast } from '@/hooks/use-toast';
 import { PeerMallConfig } from '@/components/peer-space/types';
+import { getDB, STORES } from '@/utils/indexedDB';
+import type { Peermall } from '@/pages/Index';
 
 // Function to get PeerSpace configuration from localStorage
 const getPeerSpaceConfig = (address: string): PeerMallConfig | null => {
@@ -20,17 +22,24 @@ const getPeerSpaceConfig = (address: string): PeerMallConfig | null => {
   }
 };
 
-// Function to get peermall details from localStorage
-const getPeermallDetails = (address: string) => {
+// Function to get peermall details from IndexedDB
+const getPeermallDetails = async (address: string) => {
   try {
-    const peermalls = localStorage.getItem('peermalls');
-    if (peermalls) {
-      const parsedPeermalls = JSON.parse(peermalls);
-      return parsedPeermalls.find((peermall: any) => peermall.id === address);
-    }
-    return null;
+    const db = await getDB();
+    const transaction = db.transaction(STORES.PEER_SPACES, 'readonly');
+    const store = transaction.objectStore(STORES.PEER_SPACES);
+    const request = store.get(address);
+    const peermall = await new Promise<Peermall | null>((resolve, reject) => {
+      request.onsuccess = (event) => {
+        resolve((event.target as IDBRequest).result);
+      };
+      request.onerror = (event) => {
+        reject((event.target as IDBRequest).error);
+      };
+    });
+    return peermall;
   } catch (error) {
-    console.error("Error loading peermall details:", error);
+    console.error("Error loading peermall details from IndexedDB:", error);
     return null;
   }
 };
@@ -54,42 +63,56 @@ const PeerSpace = () => {
 
   useEffect(() => {
     // Simulate data loading and fetch configuration
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
       if (address) {
         const storedConfig = getPeerSpaceConfig(address);
+
+        console.log(storedConfig)
         
         if (storedConfig) {
           setConfig(storedConfig);
         } else {
           // If config doesn't exist, try to load from peermall details
-          const peermallDetails = getPeermallDetails(address);
+          const peermallDetails = await getPeermallDetails(address);
+
+          console.log(peermallDetails)
           
           if (peermallDetails) {
             // Create a default config from peermall details
             const defaultConfig: PeerMallConfig = {
               id: address,
+              address: address,
+              name: peermallDetails.title || '내 피어스페이스',
               title: peermallDetails.title || '내 피어스페이스',
               description: peermallDetails.description || '나만의 공간을 구성해보세요',
+              category: peermallDetails.category || '기타',
+              tags: peermallDetails.tags || [],
+              themeColor: '#71c4ef',
+              status: 'active',
               owner: peermallDetails.owner || '나',
               peerNumber: `P-${Math.floor(10000 + Math.random() * 90000)}-${Math.floor(1000 + Math.random() * 9000)}`,
               profileImage: peermallDetails.imageUrl || 'https://api.dicebear.com/7.x/personas/svg?seed=' + address,
               badges: [],
               followers: 0,
               recommendations: 0,
-              level: 1,
-              experience: 0,
-              nextLevelExperience: 100,
+              // level: 1,
+              // experience: 0,
+              // nextLevelExperience: 100,
               isVerified: false,
               skin: 'default',
               sections: ['hero', 'content', 'community', 'events', 'reviews', 'infoHub', 'map', 'trust', 'relatedMalls', 'activityFeed', 'liveCollaboration'],
               customizations: {
                 primaryColor: '#71c4ef',
-                secondaryColor: '#3B82F6',
+                // secondaryColor: '#3B82F6',
                 showChat: true,
                 allowComments: true,
                 showBadges: true,
               },
-              location: peermallDetails.location || {
+              location: peermallDetails.location ? {
+                lat: peermallDetails.location.lat,
+                lng: peermallDetails.location.lng,
+                address: peermallDetails.location.address
+              } : {
                 lat: 37.5665,
                 lng: 126.9780,
                 address: 'Seoul, South Korea'
@@ -98,41 +121,7 @@ const PeerSpace = () => {
             
             setConfig(defaultConfig);
             savePeerSpaceConfig(address, defaultConfig);
-          } else {
-            // If no details found, create a completely new default config
-            const defaultConfig: PeerMallConfig = {
-              id: address,
-              title: '내 피어스페이스',
-              description: '나만의 공간을 구성해보세요',
-              owner: '나',
-              peerNumber: `P-${Math.floor(10000 + Math.random() * 90000)}-${Math.floor(1000 + Math.random() * 9000)}`,
-              profileImage: 'https://api.dicebear.com/7.x/personas/svg?seed=' + address,
-              badges: [],
-              followers: 0,
-              recommendations: 0,
-              level: 1,
-              experience: 0,
-              nextLevelExperience: 100,
-              isVerified: false,
-              skin: 'default',
-              sections: ['hero', 'content', 'community', 'events', 'reviews', 'infoHub', 'map', 'trust', 'relatedMalls', 'activityFeed', 'liveCollaboration'],
-              customizations: {
-                primaryColor: '#71c4ef',
-                secondaryColor: '#3B82F6',
-                showChat: true,
-                allowComments: true,
-                showBadges: true,
-              },
-              location: {
-                lat: 37.5665,
-                lng: 126.9780,
-                address: 'Seoul, South Korea'
-              }
-            };
-            
-            setConfig(defaultConfig);
-            savePeerSpaceConfig(address, defaultConfig);
-          }
+          } 
         }
       }
       setIsLoading(false);

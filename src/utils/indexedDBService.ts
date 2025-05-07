@@ -41,7 +41,10 @@ export const getDBConnection = (): Promise<IDBDatabase> => {
 };
 
 // 생성 (Create)
-export const add = <T>(storeName: string, data: T): Promise<IDBValidKey> => {
+export const add = <T extends object>(
+  storeName: string,
+  data: T
+): Promise<IDBValidKey> => {
   return new Promise((resolve, reject) => {
     getDBConnection()
       .then((db) => {
@@ -49,6 +52,13 @@ export const add = <T>(storeName: string, data: T): Promise<IDBValidKey> => {
         const store = transaction.objectStore(storeName);
 
         const request = store.add(data);
+        const keyPath = store.keyPath as string;
+
+        // 키 경로가 존재하고, 데이터에 해당 키가 유효한지 확인
+        if (keyPath && (!(keyPath in data) || !data[keyPath])) {
+          reject(new Error(`Invalid or missing keyPath '${keyPath}' in data`));
+          return;
+        }
 
         request.onsuccess = () => {
           resolve(request.result);

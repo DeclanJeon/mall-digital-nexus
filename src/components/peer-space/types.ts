@@ -1,11 +1,11 @@
-
+import type { ReactNode } from 'react';
 // components/peer-space/types.ts
-export type ContentType = 
+export type ContentType =
   | 'product'
-  | 'portfolio' 
-  | 'service' 
-  | 'event' 
-  | 'post' 
+  | 'portfolio'
+  | 'service'
+  | 'event'
+  | 'post'
   | 'review'
   | 'quest'
   | 'advertisement'
@@ -15,7 +15,7 @@ export type ContentType =
   | 'workshop'
   | 'challenge'
   | 'tool'
-  | 'external';  // Ensuring 'external' is included in ContentType
+  | 'external'; // Ensuring 'external' is included in ContentType
 
 export interface ContentAuthor {
   id: string;
@@ -69,7 +69,7 @@ export interface Content {
   participants?: string[];
   htmlContent?: string; // HTML 콘텐츠 (Toast UI Editor 용)
   rating?: number; // Added for components referencing this property
-  attributes?: Record<string, any>; // Add for extra attributes
+  attributes?: Record<string, unknown>; // Add for extra attributes
   badges?: string[]; // Add for badges
 }
 
@@ -84,7 +84,7 @@ export interface PeerMallConfig {
   owner: string;
   contactEmail?: string;
   contactPhone?: string;
-  location?: string;
+  location?: string | { lat: number; lng: number; address: string };
   category: string;
   tags: string[];
   themeColor: string;
@@ -99,6 +99,8 @@ export interface PeerMallConfig {
   recommendations?: number; // Add for components referencing this property
   badges?: string[]; // Add for components referencing this property
   coverImage?: string; // Add for components referencing this property
+  isVerified?: boolean;
+  skin?: string;
   customizations?: {
     primaryColor?: string;
     showChat?: boolean;
@@ -255,17 +257,17 @@ export interface BadgeData {
   issuer?: string;
   issuerId?: string;
   color?: string; // Add for components referencing this property
-  icon?: any; // Add for components referencing this property
+  icon?: string | ReactNode; // Add for components referencing this property
 }
 
-export type SectionType = 
-  | 'hero' 
-  | 'about' 
-  | 'products' 
-  | 'services' 
-  | 'events' 
-  | 'community' 
-  | 'reviews' 
+export type SectionType =
+  | 'hero'
+  | 'about'
+  | 'products'
+  | 'services'
+  | 'events'
+  | 'community'
+  | 'reviews'
   | 'contact'
   | 'map'
   | 'guestbook'
@@ -290,4 +292,3 @@ export interface FeaturedContentSectionProps {
   onAddContent?: () => void; // Add for components referencing this property
   onContentClick?: (content: Content) => void; // Add for components referencing this property
 }
-

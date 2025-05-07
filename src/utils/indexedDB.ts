@@ -2,7 +2,7 @@
 
 // 데이터베이스 이름 및 버전
 export const DB_NAME = 'PeerMallDB';
-export const DB_VERSION = 3; // 버전 업데이트
+export const DB_VERSION = 5; // 버전 업데이트
 
 // 객체 저장소 이름
 export const STORES = {
