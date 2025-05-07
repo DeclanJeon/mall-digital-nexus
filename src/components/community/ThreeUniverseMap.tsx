@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { OrbitControls as ThreeOrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { OrbitControls as ThreeOrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GUI } from 'dat.gui';
 import gsap from 'gsap';
 import { Planet, Constellation } from './types';
@@ -763,14 +763,18 @@ const ThreeUniverseMap: React.FC<ThreeUniverseMapProps> = ({
         // Animate smoke
         const positions = smoke.geometry.attributes.position;
         const posArray = positions.array as Float32Array;
+        
         for (let i = 0; i < smokeCount; i++) {
-          // Direct array access instead of getY/setY
+          // Using direct array access with proper type assertion
           const yIndex = i * 3 + 1; // Y is the second component (index 1) in the [x,y,z] triplet
-          posArray[yIndex] += 0.01;
-          if (posArray[yIndex] > radius) {
-            posArray[yIndex] = -radius;
+          if (posArray && yIndex < posArray.length) {
+            posArray[yIndex] += 0.01;
+            if (posArray[yIndex] > radius) {
+              posArray[yIndex] = -radius;
+            }
           }
         }
+        
         positions.needsUpdate = true;
       };
       
