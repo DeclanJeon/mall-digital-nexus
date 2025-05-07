@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +18,7 @@ import PeerSpace from "./pages/PeerSpace";
 import PeerSpaceSettings from "./pages/PeerSpaceSettings";
 import LearningHub from "./pages/LearningHub";
 import ContentDetailPage from "./pages/ContentDetailPage";
+import CustomerSupport from "./pages/CustomerSupport";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +41,7 @@ const AppContent = () => {
         <Route path="/space/:address" element={<PeerSpace />} />
         <Route path="/space/:address/settings" element={<PeerSpaceSettings />} />
         <Route path="/space/:address/content/:contentId" element={<ContentDetailPage />} />
+        <Route path="/customer-support" element={<CustomerSupport />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

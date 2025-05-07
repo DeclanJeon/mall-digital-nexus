@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import PeermallGrid from '../components/PeermallGrid';
 import CommunicationWidget from '@/components/CommunicationWidget';
@@ -193,7 +194,23 @@ const Index = () => {
             </div>
             
             <div className="md:col-span-1">
-              <EcosystemMap />
+              <div className="mb-8">
+                <EcosystemMap />
+              </div>
+              
+              {/* Customer Support Button */}
+              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 mb-8">
+                <h3 className="text-xl font-semibold mb-4 text-primary-300">고객 지원</h3>
+                <p className="text-gray-600 mb-4">
+                  도움이 필요하신가요? 피어몰 고객센터에서 문제 해결 방법과 개인화된 지원을 받으세요.
+                </p>
+                <button 
+                  onClick={() => navigate('/customer-support')}
+                  className="w-full py-2.5 bg-accent-200 hover:bg-accent-200/90 text-white font-medium rounded-md flex items-center justify-center"
+                >
+                  <span>고객센터 방문하기</span>
+                </button>
+              </div>
             </div>
           </section>
           
@@ -201,8 +218,6 @@ const Index = () => {
             <CommunityHighlights />
           </section>
         </div>
-        
-        {/* <ServiceCardsSection /> */}
       </main>
       
       {/* <CommunicationWidget /> */}
