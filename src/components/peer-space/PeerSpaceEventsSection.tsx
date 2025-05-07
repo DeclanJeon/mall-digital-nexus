@@ -45,7 +45,7 @@ const PeerSpaceEventsSection: React.FC<PeerSpaceEventsSectionProps> = ({
         <div className="space-y-4">
           <h3 className="text-lg font-semibold mb-3">다가오는 이벤트</h3>
           
-          {events.length > 0 ? (
+          {events && events.length > 0 ? (
             events.slice(0, 2).map(event => (
               <Card key={event.id} className="overflow-hidden cursor-pointer hover:shadow-md">
                 <div className="flex flex-col sm:flex-row">
@@ -82,7 +82,7 @@ const PeerSpaceEventsSection: React.FC<PeerSpaceEventsSectionProps> = ({
                       
                       <div className="flex items-center text-gray-500">
                         <Users className="h-4 w-4 mr-2" /> 
-                        <span>{event.participants}/{event.maxParticipants} 명 참여</span>
+                        <span>{event.participants.length}/{event.maxParticipants} 명 참여</span>
                       </div>
                     </div>
                     
@@ -103,7 +103,7 @@ const PeerSpaceEventsSection: React.FC<PeerSpaceEventsSectionProps> = ({
             </div>
           )}
           
-          {events.length > 2 && (
+          {events && events.length > 2 && (
             <Button variant="outline" size="sm" className="w-full">
               모든 이벤트 보기 <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
@@ -114,7 +114,7 @@ const PeerSpaceEventsSection: React.FC<PeerSpaceEventsSectionProps> = ({
         <div className="space-y-4">
           <h3 className="text-lg font-semibold mb-3">진행중인 퀘스트</h3>
           
-          {quests.length > 0 ? (
+          {quests && quests.length > 0 ? (
             quests.slice(0, 2).map(quest => (
               <Card key={quest.id} className="overflow-hidden cursor-pointer hover:shadow-md">
                 <div className="flex flex-col sm:flex-row">
@@ -176,7 +176,7 @@ const PeerSpaceEventsSection: React.FC<PeerSpaceEventsSectionProps> = ({
             </div>
           )}
           
-          {quests.length > 2 && (
+          {quests && quests.length > 2 && (
             <Button variant="outline" size="sm" className="w-full">
               모든 퀘스트 보기 <ArrowRight className="ml-1 h-4 w-4" />
             </Button>

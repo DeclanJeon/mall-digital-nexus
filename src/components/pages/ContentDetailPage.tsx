@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
@@ -135,16 +134,16 @@ const ContentDetailPage = () => {
   return (
     <>
       <PeerSpaceHeader 
-        config={config}
+        config={config!}
         isOwner={isOwner}
         onAddContent={handleAddContent}
       />
       <ContentDetailView 
-        address={address} 
-        config={config}
+        address={address!} 
+        config={config!}
         isOwner={isOwner} 
       />
-      <PeerSpaceFooter config={config} />
+      <PeerSpaceFooter config={config!} />
     </>
   );
 };

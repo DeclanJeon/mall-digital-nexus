@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,7 @@ interface ExternalPreview {
   title: string;
   description: string;
   imageUrl: string;
-  price?: string | number; // Updated to accept string or number
+  price?: string | number; // Price can be string or number
   type?: ContentType;
   isExternal: boolean;
   externalUrl: string;

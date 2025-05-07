@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -81,44 +80,44 @@ const ContentDetailView: React.FC<ContentDetailViewProps> = ({ address, config, 
     ]
   };
 
-    useEffect(() => {
-      if (contentId && address) {
-        (async () => {
-          const allContents = await getPeerSpaceContents(address);
-          const foundContent = allContents.find(item => item.id === contentId);
+  useEffect(() => {
+    if (contentId && address) {
+      (async () => {
+        const allContents = await getPeerSpaceContents(address);
+        const foundContent = allContents.find(item => item.id === contentId);
+        
+        if (foundContent) {
+          setContent(foundContent);
           
-          if (foundContent) {
-            setContent(foundContent);
-            
-    // Find related contents (same type or by some other relation)
-    const related = allContents
-      .filter(item => item.id !== contentId && item.type === foundContent.type)
-      .slice(0, 4);
-    setRelatedContents(related);
-            
-    // Generate or load reviews
-    const generatedReviews = await generateRandomReviews(contentId, 5);
-    setReviews(generatedReviews);
-    
-    // Calculate average rating
-    if (generatedReviews.length > 0) {
-      setAverageRating(getAverageRating(generatedReviews));
-    }
-            
-            // Calculate average rating
+          // Find related contents (same type or by some other relation)
+          const related = allContents
+            .filter(item => item.id !== contentId && item.type === foundContent.type)
+            .slice(0, 4);
+          setRelatedContents(related);
+          
+          // Generate or load reviews
+          const generatedReviews = await generateRandomReviews(contentId, 5);
+          setReviews(generatedReviews);
+          
+          // Calculate average rating
+          if (generatedReviews.length > 0) {
             setAverageRating(getAverageRating(generatedReviews));
-          } else {
-            // Content not found
-            toast({
-              variant: "destructive",
-              title: "콘텐츠를 찾을 수 없습니다.",
-              description: "존재하지 않거나 삭제된 콘텐츠입니다."
-            });
-            navigate(`/space/${address}`);
           }
-        })();
-      }
-    }, [contentId, address, navigate]);
+          
+          // Calculate average rating
+          setAverageRating(getAverageRating(generatedReviews));
+        } else {
+          // Content not found
+          toast({
+            variant: "destructive",
+            title: "콘텐츠를 찾을 수 없습니다.",
+            description: "존재하지 않거나 삭제된 콘텐츠입니다."
+          });
+          navigate(`/space/${address}`);
+        }
+      })();
+    }
+  }, [contentId, address, navigate]);
 
   const handleEditContent = async (updatedContent: Content) => {
     if (!contentId || !address) return;
@@ -165,16 +164,21 @@ const ContentDetailView: React.FC<ContentDetailViewProps> = ({ address, config, 
     
     const newReviewObj: Review = {
       id: `review-${Date.now()}`,
+      contentId: contentId || '',
+      userId: `user-${Date.now()}`,
+      userName: "현재 사용자",
       author: "현재 사용자",
       authorImage: "https://api.dicebear.com/7.x/personas/svg?seed=current-user",
       content: newReview,
+      text: newReview,
       rating: newRating,
       date: new Date().toISOString(),
       source: 'internal',
       likes: 0,
+      verified: true,
       peerMall: {
         id: address,
-        name: config.title,
+        name: config.title || '',
         address: address
       }
     };
@@ -224,7 +228,7 @@ const ContentDetailView: React.FC<ContentDetailViewProps> = ({ address, config, 
     
     toast({
       title: newLikeStatus ? "좋아요 추가" : "좋아요 취소",
-      description: newLikeStatus ? "콘텐츠를 좋아합니다." : "좋아요를 취소했습니다."
+      description: newLikeStatus ? "콘텐츠를 좋아합니다." : "좋��요를 취소했습니다."
     });
   };
 
@@ -268,13 +272,14 @@ const ContentDetailView: React.FC<ContentDetailViewProps> = ({ address, config, 
       'review': '리뷰',
       'quest': '퀘스트',
       'advertisement': '광고',
-      'stream': '스트림',
+      'stream': '라이브 스트림',
       'guestbook': '방명록',
       'course': '코스',
       'workshop': '워크샵',
       'challenge': '챌린지',
       'tool': '도구',
-      'external': '외부'
+      'external': '외부',
+      'livestream': '라이브 스트림'
     };
     
     return typeMapping[type] || type;

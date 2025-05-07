@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -26,8 +25,6 @@ import BadgeSelector from './BadgeSelector';
 import { ContentFormValues } from './AddContentForm';
 import { usePeerSpaceTabs } from '@/hooks/usePeerSpaceTabs';
 import PeerSpaceTabs from './PeerSpaceTabs';
-import GuestbookSection from './GuestbookSection';
-import QuestEventSection from './QuestEventSection';
 import { Link } from 'react-router-dom';
 import { add } from '@/utils/indexedDBService';
 
@@ -230,23 +227,26 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       'hero': '히어로',
       'content': '콘텐츠/상품',
       'community': '커뮤니티',
-      'liveCollaboration': '실시간 연결',
-      'livestream': '라이브 스트리밍',
-      'infoHub': '정보 허브',
-      'map': '지도',
-      'introduction': '소개',
-      'advertising': '광고',
-      'reviews': '리뷰',
-      'quests': '퀘스트',
+      'about': '소개',
+      'products': '제품',
+      'services': '서비스',
       'events': '이벤트',
+      'reviews': '리뷰',
+      'contact': '연락처',
+      'map': '지도',
       'guestbook': '방명록',
       'trust': '신뢰도',
-      'qrCodeList': 'QR 코드',
-      'support': '고객 지원',
+      'featured': '추천',
+      'achievements': '성과',
+      'learning': '학습',
+      'quests': '퀘스트',
+      'infoHub': '정보 허브',
+      'activityFeed': '활동 피드',
       'relatedMalls': '관련 피어몰',
-      'activityFeed': '활동 피드'
+      'liveCollaboration': '실시간 연결',
+      'livestream': '라이브 스트림'
     };
-    
+  
     return sectionNames[sectionType] || sectionType;
   };
 
@@ -446,14 +446,14 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         return (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div className="lg:col-span-3">
-          <PeerSpaceTabs
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            featuredContent={contents as Content[]}
-            isOwner={isOwner}
-            onAddContent={handleShowProductForm}
-            onContentClick={handleContentClick}
-          />
+              <PeerSpaceTabs
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                featuredContent={contents as Content[]}
+                isOwner={isOwner}
+                onAddContent={handleShowProductForm}
+                onContentClick={handleContentClick}
+              />
             </div>
             {!hiddenSections.includes('activityFeed') && (
               <div className="lg:col-span-1">
@@ -478,8 +478,10 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         );
       case 'events':
         return (
-          <QuestEventSection
-            peerAddress={address}
+          <PeerSpaceEventsSection
+            config={config}
+            events={[]}
+            quests={[]}
             isOwner={isOwner}
           />
         );
@@ -487,15 +489,18 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         return <PeerSpaceInfoHub config={config} />;
       case 'reviews':
         return (
-          <GuestbookSection
-            peerAddress={address}
+          <PeerSpaceReviewSection
+            config={config}
             isOwner={isOwner}
           />
         );
       case 'map':
         return config.location ? 
           <PeerSpaceMapSection 
-            location={config.location} 
+            location={typeof config.location === 'string' ? 
+              { lat: 37.5665, lng: 126.9780, address: config.location } : 
+              config.location
+            } 
             title={config.title} 
           /> : null;
       case 'trust':
@@ -506,6 +511,13 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         return null; // Handled within content section
       case 'liveCollaboration':
         return <PeerSpaceLiveCollaboration />;
+      case 'livestream':
+        return <div className="mb-10">
+          <h2 className="text-2xl font-bold mb-6">라이브 스트림</h2>
+          <div className="bg-gray-50 p-8 rounded-lg text-center">
+            <p className="text-gray-500">라이브 스트림이 현재 없습니다.</p>
+          </div>
+        </div>;
       default:
         return null;
     }

@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import PeermallGrid from '../components/PeermallGrid';
 import CommunicationWidget from '@/components/CommunicationWidget';
@@ -193,7 +194,10 @@ const Index = () => {
             </div>
             
             <div className="md:col-span-1">
-              <EcosystemMap />
+              <div className="mb-8">
+                <EcosystemMap />
+              </div>
+
             </div>
           </section>
           
@@ -201,8 +205,6 @@ const Index = () => {
             <CommunityHighlights />
           </section>
         </div>
-        
-        {/* <ServiceCardsSection /> */}
       </main>
       
       {/* <CommunicationWidget /> */}

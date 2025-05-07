@@ -2,6 +2,8 @@ import { Content, Review, CommunityPost, PeerSpaceData, Quest } from './types';
 
 export const learningHubData: PeerSpaceData = {
   id: 'myspace123',
+  address: 'myspace123',
+  name: 'Game Learning Hub',
   title: '게이미피케이션 학습 공간',
   description: '지속적인 도전과 피드백을 통한 효과적인 학습 환경',
   owner: '김피어',
@@ -17,7 +19,6 @@ export const learningHubData: PeerSpaceData = {
   },
   contactPhone: '02-123-4567',
   contactEmail: 'contact@peermall.com',
-  address: '서울시 강남구 테헤란로 123',
   level: 10,
   experience: 50,
   achievements: 5,
@@ -27,6 +28,8 @@ export const learningHubData: PeerSpaceData = {
 
 export const peerSpaceData: PeerSpaceData = {
   id: 'myspace123',
+  address: 'myspace123',
+  name: 'Game Learning Hub',
   title: '게이미피케이션 학습 공간',
   description: '지속적인 도전과 피드백을 통한 효과적인 학습 환경',
   owner: '김피어',
@@ -42,7 +45,6 @@ export const peerSpaceData: PeerSpaceData = {
   },
   contactPhone: '02-123-4567',
   contactEmail: 'contact@peermall.com',
-  address: '서울시 강남구 테헤란로 123',
   level: 18,
   experience: 75,
   achievements: 28,
@@ -77,14 +79,14 @@ export const featuredContent: Content[] = [
     imageUrl:
       'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80',
     type: 'event',
-    price: '150,000원~', // String price
+    price: '150,000원~',
     date: '2025년 5월 15일',
     likes: 85,
     comments: 0,
     views: 0,
     saves: 0,
     isExternal: false,
-    participants: 24,
+    participants: ['user1', 'user2', 'user3'], // Changed to string array
     maxParticipants: 30,
     createdAt: '2025-04-29T12:00:00Z',
     updatedAt: '2025-04-29T12:00:00Z',
@@ -98,13 +100,13 @@ export const featuredContent: Content[] = [
       'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80',
     type: 'quest',
     date: '진행중 (12일 남음)',
-    price: '무료', // String price
+    price: '무료',
     likes: 212,
     comments: 0,
     views: 0,
     saves: 0,
     isExternal: false,
-    participants: 156,
+    participants: ['user1', 'user2', 'user3'], // Changed to string array
     createdAt: '2025-04-29T12:00:00Z',
     updatedAt: '2025-04-29T12:00:00Z',
   },
@@ -116,7 +118,7 @@ export const featuredContent: Content[] = [
     imageUrl:
       'https://images.unsplash.com/photo-1559336197-ded8aaa244bc?auto=format&fit=crop&q=80',
     type: 'product',
-    price: '300,000원', // String price
+    price: '300,000원',
     date: '',
     likes: 78,
     comments: 0,
@@ -140,7 +142,15 @@ export const activeQuests: Quest[] = [
     goal: 100,
     type: 'community',
     imageUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80',
-    participants: 12
+    participants: ['user1', 'user2', 'user3'],
+    maxParticipants: 5,
+    startDate: '2025-04-01',
+    endDate: '2025-04-30',
+    status: 'active',
+    completion: 60,
+    creator: '김피어',
+    creatorId: 'user123',
+    difficulty: 'beginner'
   },
   {
     id: 'quest2',
@@ -151,8 +161,16 @@ export const activeQuests: Quest[] = [
     deadline: '7일 남음',
     goal: 3,
     type: 'individual',
-    imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80',
-    participants: 1
+    imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd04022da1?auto=format&fit=crop&q=80',
+    participants: ['user1'],
+    maxParticipants: 1,
+    startDate: '2025-04-01',
+    endDate: '2025-04-30',
+    status: 'active',
+    completion: 33,
+    creator: '김피어',
+    creatorId: 'user123',
+    difficulty: 'intermediate'
   },
   {
     id: 'quest3',
@@ -164,7 +182,15 @@ export const activeQuests: Quest[] = [
     goal: 10,
     type: 'individual',
     imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80',
-    participants: 8
+    participants: ['user1', 'user2', 'user3', 'user4', 'user5', 'user6', 'user7', 'user8'],
+    maxParticipants: 10,
+    startDate: '2025-04-01',
+    endDate: '2025-04-30',
+    status: 'active',
+    completion: 90,
+    creator: '김피어',
+    creatorId: 'user123',
+    difficulty: 'beginner'
   },
 ];
 

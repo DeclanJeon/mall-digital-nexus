@@ -27,6 +27,33 @@ export const BadgeDisplay = ({
     lg: 'px-3 py-1.5'
   };
   
+  // Helper function to render badge icon with proper TypeScript support
+  const renderBadgeIcon = (icon: React.ReactNode | React.ComponentType | string) => {
+    // Handle React elements - avoid directly cloning due to unknown prop types
+    if (React.isValidElement(icon)) {
+      // For valid elements, we'll wrap them in a span with our desired styling
+      return (
+        <span className="inline-flex h-3 w-3 mr-1.5">
+          {icon}
+        </span>
+      );
+    }
+    
+    // Handle component types (functions)
+    if (typeof icon === 'function') {
+      const IconComponent = icon as React.ComponentType<{ className?: string }>;
+      return <IconComponent className="h-3 w-3 mr-1.5" />;
+    }
+    
+    // Handle string-based icon (could be an icon name or path)
+    if (typeof icon === 'string') {
+      return <span className="h-3 w-3 mr-1.5">{icon}</span>;
+    }
+    
+    // Default fallback
+    return <CircleIcon className="h-3 w-3 mr-1.5" />;
+  };
+  
   return (
     <div className="flex flex-wrap gap-2">
       {displayBadges.map((badge) => (
@@ -36,7 +63,8 @@ export const BadgeDisplay = ({
           className={`${sizeClasses[size]} border-opacity-50 ${badge.color ? badge.color.replace('text-', 'border-') : 'border-gray-500'} ${badge.color || 'text-gray-700'}`}
           title={showTooltip ? badge.description : undefined}
         >
-          {badge.icon ? <badge.icon className="h-3 w-3 mr-1.5" /> : <CircleIcon className="h-3 w-3 mr-1.5" />}
+          {badge.icon && renderBadgeIcon(badge.icon)}
+          {!badge.icon && <CircleIcon className="h-3 w-3 mr-1.5" />}
           {badge.name}
         </Badge>
       ))}

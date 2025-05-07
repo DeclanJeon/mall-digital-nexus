@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PeerSpaceData } from './types';
 import { Progress } from '@/components/ui/progress';
@@ -28,8 +27,8 @@ export const UserLevelDisplay = ({ peerSpaceData }: UserLevelDisplayProps) => {
             </div>
             <Progress 
               value={peerSpaceData.experience} 
-              className="h-2 bg-primary-200" 
-              indicatorClassName="bg-yellow-300"
+              className="h-2 bg-primary-200"
+              indicatorColor="#FACC15" // yellow-300 equivalent
             />
             <div className="flex justify-between mt-1 text-xs text-primary-100">
               <Badge variant="outline" className="text-xs bg-primary-200/50 text-white border-primary-200">
@@ -49,12 +48,12 @@ export const UserLevelDisplay = ({ peerSpaceData }: UserLevelDisplayProps) => {
           </div>
           <div className="flex flex-col items-center">
             <Target className="h-5 w-5 text-green-300 mb-1" />
-            <p className="text-2xl font-bold">{peerSpaceData.completedChallenges}</p>
+            <p className="text-2xl font-bold">{peerSpaceData.completedChallenges || 0}</p>
             <p className="text-xs text-primary-100">완료한 챌린지</p>
           </div>
           <div className="flex flex-col items-center">
             <Award className="h-5 w-5 text-blue-300 mb-1" />
-            <p className="text-2xl font-bold">{peerSpaceData.activeQuests}</p>
+            <p className="text-2xl font-bold">{peerSpaceData.activeQuests || 0}</p>
             <p className="text-xs text-primary-100">진행 중인 퀘스트</p>
           </div>
         </div>

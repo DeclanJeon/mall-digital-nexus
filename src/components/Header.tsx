@@ -114,6 +114,8 @@ const Header = () => {
             <Link to="/shopping" className="text-text-200 hover:text-primary-300">쇼핑</Link>
             <Link to="/curation-links" className="text-text-200 hover:text-primary-300">큐레이션</Link>
             <Link to="/community" className="text-text-200 hover:text-primary-300">커뮤니티</Link>
+            <Link to="/customer-support" className="text-text-200 hover:text-primary-300">고객센터</Link>
+            
             {isLoggedIn && (
               <>
                 <button 

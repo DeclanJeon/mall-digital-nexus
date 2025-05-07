@@ -1,107 +1,102 @@
-
-import React from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
 import { Content, ContentType } from './types';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { LoaderCircle } from 'lucide-react';
-
-// Validation schema for content editing
-const contentSchema = z.object({
-  title: z.string().min(1, { message: '제목을 입력해주세요' }),
-  description: z.string().min(1, { message: '설명을 입력해주세요' }),
-  imageUrl: z.string().url({ message: '올바른 이미지 URL을 입력해주세요' }),
-  type: z.enum([
-    'portfolio', 'service', 'product', 'event', 'post', 
-    'review', 'quest', 'advertisement', 'stream', 'guestbook',
-    'course', 'workshop', 'challenge', 'tool', 'external'
-  ] as const),
-  price: z.string().optional(),
-  externalUrl: z.string().url({ message: '올바른 URL을 입력해주세요' }).optional().or(z.literal('')),
-});
-
-type ContentFormValues = z.infer<typeof contentSchema>;
 
 interface ContentEditFormProps {
   initialContent: Content;
-  onSubmit: (content: Content) => void;
+  onSubmit: (values: Content) => void;
 }
 
+const formSchema = z.object({
+  title: z.string().min(2, {
+    message: "제목은 최소 2글자 이상이어야 합니다.",
+  }),
+  description: z.string().min(10, {
+    message: "설명은 최소 10글자 이상이어야 합니다.",
+  }),
+  imageUrl: z.string().url({
+    message: "유효한 URL을 입력해주세요.",
+  }),
+  type: z.enum(['post', 'product', 'service', 'event', 'review', 'quest', 'portfolio', 'course', 'stream', 'livestream', 'advertisement', 'guestbook', 'workshop', 'challenge', 'tool', 'external']),
+  price: z.string().optional(),
+  isExternal: z.boolean().default(false),
+  externalUrl: z.string().url({
+    message: "유효한 외부 URL을 입력해주세요.",
+  }).optional(),
+})
+
+const typeOptions = [
+  { value: 'post', label: '게시글' },
+  { value: 'product', label: '상품' },
+  { value: 'service', label: '서비스' },
+  { value: 'event', label: '이벤트' },
+  { value: 'review', label: '리뷰' },
+  { value: 'quest', label: '퀘스트' },
+  { value: 'portfolio', label: '포트폴리오' },
+  { value: 'course', label: '코스' },
+  { value: 'stream', label: '스트림' },
+  { value: 'livestream', label: '라이브 스트림' },
+  { value: 'advertisement', label: '광고' },
+  { value: 'guestbook', label: '방명록' },
+  { value: 'workshop', label: '워크샵' },
+  { value: 'challenge', label: '챌린지' },
+  { value: 'tool', label: '도구' },
+  { value: 'external', label: '외부 링크' },
+] as const;
+
 const ContentEditForm: React.FC<ContentEditFormProps> = ({ initialContent, onSubmit }) => {
-  const form = useForm<ContentFormValues>({
-    resolver: zodResolver(contentSchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       title: initialContent.title,
       description: initialContent.description,
       imageUrl: initialContent.imageUrl || '',
       type: initialContent.type,
-      price: initialContent.price?.toString() || '',
+      price: initialContent.price ? String(initialContent.price) : '',
+      isExternal: initialContent.isExternal || false,
       externalUrl: initialContent.externalUrl || '',
     },
-  });
+  })
 
-  const handleFormSubmit = (values: ContentFormValues) => {
+  const [isExternal, setIsExternal] = useState(initialContent.isExternal || false);
+
+  useEffect(() => {
+    form.setValue("isExternal", isExternal);
+  }, [isExternal, form.setValue]);
+
+  function onSubmitForm(values: z.infer<typeof formSchema>) {
     const updatedContent: Content = {
       ...initialContent,
       title: values.title,
       description: values.description,
       imageUrl: values.imageUrl,
-      type: values.type,
-      price: values.price ? Number(values.price) : undefined,
-      externalUrl: values.externalUrl || undefined,
-      // Maintain other properties
-      date: initialContent.date,
-      likes: initialContent.likes,
-      comments: initialContent.comments,
-      saves: initialContent.saves,
-      views: initialContent.views,
-      peerSpaceAddress: initialContent.peerSpaceAddress,
-      createdAt: initialContent.createdAt,
-      updatedAt: new Date().toISOString(),
+      type: values.type as ContentType,
+      price: values.price,
+      isExternal: values.isExternal,
+      externalUrl: values.externalUrl,
     };
-    
     onSubmit(updatedContent);
-  };
-
-  const contentTypeOptions = [
-    { value: 'portfolio', label: '포트폴리오' },
-    { value: 'service', label: '서비스' },
-    { value: 'product', label: '상품' },
-    { value: 'event', label: '이벤트' },
-    { value: 'post', label: '게시글' },
-    { value: 'review', label: '리뷰' },
-    { value: 'quest', label: '퀘스트' },
-    { value: 'advertisement', label: '광고' },
-    { value: 'stream', label: '스트림' },
-    { value: 'guestbook', label: '방명록' },
-    { value: 'course', label: '코스' },
-    { value: 'workshop', label: '워크샵' },
-    { value: 'challenge', label: '챌린지' },
-    { value: 'tool', label: '도구' },
-    { value: 'external', label: '외부' }
-  ];
+  }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmitForm)} className="space-y-8">
         <FormField
           control={form.control}
           name="title"
@@ -109,68 +104,12 @@ const ContentEditForm: React.FC<ContentEditFormProps> = ({ initialContent, onSub
             <FormItem>
               <FormLabel>제목</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input placeholder="콘텐츠 제목을 입력하세요" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>콘텐츠 유형</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="유형 선택" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {contentTypeOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>가격 (선택사항)</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="예: ₩30,000" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        <FormField
-          control={form.control}
-          name="imageUrl"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>이미지 URL</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <FormField
           control={form.control}
           name="description"
@@ -178,33 +117,103 @@ const ContentEditForm: React.FC<ContentEditFormProps> = ({ initialContent, onSub
             <FormItem>
               <FormLabel>설명</FormLabel>
               <FormControl>
-                <Textarea {...field} rows={5} />
+                <Textarea
+                  placeholder="콘텐츠에 대한 설명을 입력하세요"
+                  className="resize-none"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        
         <FormField
           control={form.control}
-          name="externalUrl"
+          name="imageUrl"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>외부 URL (선택사항)</FormLabel>
+              <FormLabel>이미지 URL</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="https://example.com" />
+                <Input placeholder="이미지 URL을 입력하세요" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
-        <div className="flex justify-end gap-4">
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
-            저장하기
-          </Button>
-        </div>
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>유형</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="콘텐츠 유형을 선택하세요" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {typeOptions.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="price"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>가격 (선택 사항)</FormLabel>
+              <FormControl>
+                <Input placeholder="가격을 입력하세요" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="isExternal"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">외부 컨텐츠</FormLabel>
+                <FormDescription>
+                  외부 링크를 통해 제공되는 컨텐츠인 경우 선택하세요.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={isExternal}
+                  onCheckedChange={(checked) => {
+                    setIsExternal(checked);
+                    field.onChange(checked);
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        {isExternal && (
+          <FormField
+            control={form.control}
+            name="externalUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>외부 URL</FormLabel>
+                <FormControl>
+                  <Input placeholder="외부 URL을 입력하세요" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        <Button type="submit">수정하기</Button>
       </form>
     </Form>
   );
