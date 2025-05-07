@@ -1,6 +1,7 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { OrbitControls as ThreeOrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GUI } from 'dat.gui';
 import gsap from 'gsap';
 import { Planet, Constellation } from './types';
@@ -28,7 +29,7 @@ const ThreeUniverseMap: React.FC<ThreeUniverseMapProps> = ({
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const controlsRef = useRef<ThreeOrbitControls | null>(null);
+  const controlsRef = useRef<OrbitControls | null>(null);
   const planetObjectsRef = useRef<Map<string, THREE.Object3D>>(new Map());
   const guiRef = useRef<GUI | null>(null);
   const animationFrameRef = useRef<number>(0);
@@ -70,7 +71,7 @@ const ThreeUniverseMap: React.FC<ThreeUniverseMapProps> = ({
     rendererRef.current = renderer;
 
     // Initialize controls
-    const controls = new ThreeOrbitControls(camera, renderer.domElement);
+    const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.screenSpacePanning = false;
@@ -526,8 +527,8 @@ const ThreeUniverseMap: React.FC<ThreeUniverseMapProps> = ({
         flareSizes[i] = Math.random() * 0.5 + 0.1;
       }
       
-      flareGeometry.setAttribute('position', new THREE.BufferAttribute(flarePositions, 3));
-      flareGeometry.setAttribute('size', new THREE.BufferAttribute(flareSizes, 1));
+      flareGeometry.setAttribute('position', new THREE.Float32BufferAttribute(flarePositions, 3));
+      flareGeometry.setAttribute('size', new THREE.Float32BufferAttribute(flareSizes, 1));
       
       const flareMaterial = new THREE.ShaderMaterial({
         uniforms: {
@@ -741,8 +742,8 @@ const ThreeUniverseMap: React.FC<ThreeUniverseMapProps> = ({
         smokeSizes[i] = Math.random() * 0.5 + 0.5;
       }
       
-      smokeGeometry.setAttribute('position', new THREE.BufferAttribute(smokePositions, 3));
-      smokeGeometry.setAttribute('size', new THREE.BufferAttribute(smokeSizes, 1));
+      smokeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(smokePositions, 3));
+      smokeGeometry.setAttribute('size', new THREE.Float32BufferAttribute(smokeSizes, 1));
       
       const smokeMaterial = new THREE.PointsMaterial({
         color: 0x444444,
@@ -762,16 +763,17 @@ const ThreeUniverseMap: React.FC<ThreeUniverseMapProps> = ({
         
         // Animate smoke
         const positions = smoke.geometry.attributes.position;
-        const posArray = positions.array as Float32Array;
+        const positionAttribute = positions as THREE.BufferAttribute;
         
         for (let i = 0; i < smokeCount; i++) {
           // Using direct array access with proper type assertion
           const yIndex = i * 3 + 1; // Y is the second component (index 1) in the [x,y,z] triplet
-          if (posArray && yIndex < posArray.length) {
-            posArray[yIndex] += 0.01;
-            if (posArray[yIndex] > radius) {
-              posArray[yIndex] = -radius;
-            }
+          
+          const y = positionAttribute.getY(i);
+          positionAttribute.setY(i, y + 0.01);
+          
+          if (y + 0.01 > radius) {
+            positionAttribute.setY(i, -radius);
           }
         }
         
@@ -876,8 +878,8 @@ const ThreeUniverseMap: React.FC<ThreeUniverseMapProps> = ({
         crystalSizes[i] = Math.random() * 0.3 + 0.1;
       }
       
-      crystalGeometry.setAttribute('position', new THREE.BufferAttribute(crystalPositions, 3));
-      crystalGeometry.setAttribute('size', new THREE.BufferAttribute(crystalSizes, 1));
+      crystalGeometry.setAttribute('position', new THREE.Float32BufferAttribute(crystalPositions, 3));
+      crystalGeometry.setAttribute('size', new THREE.Float32BufferAttribute(crystalSizes, 1));
       
       const crystalMaterial = new THREE.ShaderMaterial({
         uniforms: {
@@ -1486,13 +1488,15 @@ const ThreeUniverseMap: React.FC<ThreeUniverseMapProps> = ({
         </div>
       )}
       
-      <style jsx>{`
+      <style>
+        {`
         .planet-label {
           transition: all 0.2s ease;
           pointer-events: none;
           z-index: 10;
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
