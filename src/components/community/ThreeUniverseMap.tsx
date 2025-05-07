@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -768,11 +769,14 @@ const ThreeUniverseMap: React.FC<ThreeUniverseMapProps> = ({
           // Using direct array access with proper type assertion
           const yIndex = i * 3 + 1; // Y is the second component (index 1) in the [x,y,z] triplet
           
-          const y = positionAttribute.getY(i);
-          positionAttribute.setY(i, y + 0.01);
-          
-          if (y + 0.01 > radius) {
-            positionAttribute.setY(i, -radius);
+          if (positionAttribute instanceof THREE.BufferAttribute) {
+            // Safe access using getAttribute methods
+            const y = positionAttribute.getY(i);
+            positionAttribute.setY(i, y + 0.01);
+            
+            if (y + 0.01 > radius) {
+              positionAttribute.setY(i, -radius);
+            }
           }
         }
         
@@ -789,4 +793,503 @@ const ThreeUniverseMap: React.FC<ThreeUniverseMapProps> = ({
         metalness: 0.1,
         roughness: 0.2,
         envMapIntensity: 1.5,
-        emissive: new
+        emissive: new THREE.Color('#80D8DA'),
+        emissiveIntensity: 0.3
+      });
+      
+      planetMesh = new THREE.Mesh(planetGeometry, planetMaterial);
+      
+      // Create ice crystal particles
+      const crystalCount = 200;
+      const crystalGeometry = new THREE.BufferGeometry();
+      const crystalPositions = new Float32Array(crystalCount * 3);
+      
+      for (let i = 0; i < crystalCount; i++) {
+        const phi = Math.random() * Math.PI * 2;
+        const theta = Math.random() * Math.PI;
+        const r = radius * 1.05;
+        
+        crystalPositions[i * 3] = r * Math.sin(theta) * Math.cos(phi);
+        crystalPositions[i * 3 + 1] = r * Math.sin(theta) * Math.sin(phi);
+        crystalPositions[i * 3 + 2] = r * Math.cos(theta);
+      }
+      
+      crystalGeometry.setAttribute('position', new THREE.BufferAttribute(crystalPositions, 3));
+      
+      const crystalMaterial = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: radius * 0.05,
+        transparent: true,
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending
+      });
+      
+      const crystals = new THREE.Points(crystalGeometry, crystalMaterial);
+      planetGroup.add(crystals);
+      
+      // Add time countdown effect
+      const timeRingGeometry = new THREE.RingGeometry(radius * 1.2, radius * 1.25, 64);
+      const timeRingMaterial = new THREE.MeshBasicMaterial({
+        color: 0x00ffff,
+        transparent: true,
+        opacity: 0.7,
+        side: THREE.DoubleSide
+      });
+      
+      const timeRing = new THREE.Mesh(timeRingGeometry, timeRingMaterial);
+      timeRing.rotation.x = Math.PI / 2;
+      planetGroup.add(timeRing);
+      
+      // Animate the time-limited planet
+      const animateTimeLimitedPlanet = () => {
+        planetMesh.rotation.y += 0.003;
+        crystals.rotation.y -= 0.002;
+        
+        // Pulse time ring
+        const pulse = Math.sin(performance.now() * 0.001) * 0.5 + 0.5;
+        timeRing.scale.set(1 + pulse * 0.05, 1 + pulse * 0.05, 1);
+        if (timeRingMaterial.opacity !== undefined) {
+          timeRingMaterial.opacity = 0.3 + pulse * 0.4;
+        }
+      };
+      
+      planetGroup.userData.animateFunction = animateTimeLimitedPlanet;
+      
+    } else {
+      // Standard planet
+      const planetGeometry = new THREE.SphereGeometry(radius, 64, 64);
+      const planetMaterial = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(planet.color || '#3E9BFF'),
+        roughness: 0.7,
+        metalness: 0.3,
+        emissive: new THREE.Color(planet.color || '#3E9BFF'),
+        emissiveIntensity: 0.2
+      });
+      
+      // Create simple texture for planet
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        // Base color
+        const baseColor = new THREE.Color(planet.color || '#3E9BFF');
+        ctx.fillStyle = `#${baseColor.getHexString()}`;
+        ctx.fillRect(0, 0, 1024, 512);
+        
+        // Add some noise
+        for (let i = 0; i < 10000; i++) {
+          ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.1})`;
+          ctx.fillRect(Math.random() * 1024, Math.random() * 512, 2, 2);
+        }
+        
+        // Create some land masses
+        for (let i = 0; i < 15; i++) {
+          const landSize = 50 + Math.random() * 100;
+          const x = Math.random() * 1024;
+          const y = Math.random() * 512;
+          
+          const darkColor = baseColor.clone().multiplyScalar(0.7);
+          
+          ctx.fillStyle = `#${darkColor.getHexString()}`;
+          
+          ctx.beginPath();
+          
+          // Create irregular shape
+          ctx.moveTo(x, y);
+          for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) {
+            const radius = landSize * (0.5 + Math.random() * 0.5);
+            const pointX = x + Math.cos(a) * radius;
+            const pointY = y + Math.sin(a) * radius;
+            ctx.lineTo(pointX, pointY);
+          }
+          
+          ctx.closePath();
+          ctx.fill();
+        }
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        planetMaterial.map = texture;
+        
+        // Create bump map for terrain
+        const bumpCanvas = document.createElement('canvas');
+        bumpCanvas.width = 1024;
+        bumpCanvas.height = 512;
+        const bumpCtx = bumpCanvas.getContext('2d');
+        
+        if (bumpCtx) {
+          bumpCtx.fillStyle = '#000000';
+          bumpCtx.fillRect(0, 0, 1024, 512);
+          
+          // Add terrain bumps
+          for (let i = 0; i < 30; i++) {
+            const size = Math.random() * 100 + 50;
+            const x = Math.random() * 1024;
+            const y = Math.random() * 512;
+            
+            const gradient = bumpCtx.createRadialGradient(x, y, 0, x, y, size);
+            gradient.addColorStop(0, 'rgba(255,255,255,1)');
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            
+            bumpCtx.fillStyle = gradient;
+            bumpCtx.fillRect(x - size, y - size, size * 2, size * 2);
+          }
+          
+          const bumpTexture = new THREE.CanvasTexture(bumpCanvas);
+          planetMaterial.bumpMap = bumpTexture;
+          planetMaterial.bumpScale = 0.05;
+        }
+      }
+      
+      planetMesh = new THREE.Mesh(planetGeometry, planetMaterial);
+      
+      // Add clouds for standard planet
+      const cloudGeometry = new THREE.SphereGeometry(radius * 1.02, 32, 32);
+      const cloudMaterial = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.4,
+        alphaMap: createCloudTexture(),
+        side: THREE.DoubleSide,
+        depthWrite: false
+      });
+      
+      const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
+      planetGroup.add(clouds);
+      
+      // Create cloud texture function
+      function createCloudTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        
+        if (ctx) {
+          ctx.fillStyle = "black";
+          ctx.fillRect(0, 0, 512, 512);
+          
+          // Create cloud puffs
+          for (let i = 0; i < 20; i++) {
+            const puffSize = 30 + Math.random() * 50;
+            const x = Math.random() * 512;
+            const y = Math.random() * 512;
+            
+            const gradient = ctx.createRadialGradient(x, y, 0, x, y, puffSize);
+            gradient.addColorStop(0, "rgba(255, 255, 255, 0.8)");
+            gradient.addColorStop(0.4, "rgba(255, 255, 255, 0.5)");
+            gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(x, y, puffSize, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        
+        return new THREE.CanvasTexture(canvas);
+      }
+      
+      // Animate standard planet
+      const animateStandardPlanet = () => {
+        planetMesh.rotation.y += 0.001;
+        
+        // Rotate clouds slightly faster
+        if (clouds) {
+          clouds.rotation.y += 0.0015;
+        }
+      };
+      
+      planetGroup.userData.animateFunction = animateStandardPlanet;
+    }
+    
+    // Add planet mesh to group
+    planetGroup.add(planetMesh);
+    
+    // Add label
+    const labelSize = radius * 0.5;
+    const labelCanvas = document.createElement('canvas');
+    labelCanvas.width = 512;
+    labelCanvas.height = 128;
+    const labelCtx = labelCanvas.getContext('2d');
+    
+    if (labelCtx) {
+      labelCtx.fillStyle = 'rgba(0,0,0,0)';
+      labelCtx.fillRect(0, 0, 512, 128);
+      
+      labelCtx.font = 'Bold 80px Arial';
+      labelCtx.fillStyle = 'white';
+      labelCtx.textAlign = 'center';
+      labelCtx.fillText(planet.name, 256, 76);
+      
+      const labelTexture = new THREE.CanvasTexture(labelCanvas);
+      const labelMaterial = new THREE.SpriteMaterial({
+        map: labelTexture,
+        transparent: true,
+        opacity: 0.8
+      });
+      
+      const label = new THREE.Sprite(labelMaterial);
+      label.position.set(0, radius + labelSize / 2, 0);
+      label.scale.set(labelSize * 4, labelSize, 1);
+      label.visible = showLabels;
+      
+      planetGroup.add(label);
+    }
+    
+    // Add event handling
+    planetGroup.userData.planet = planet;
+    planetGroup.userData.onClick = () => {
+      onPlanetSelect(planet.id);
+    };
+    
+    // Add planet to scene and ref
+    sceneRef.current.add(planetGroup);
+    planetObjectsRef.current.set(planet.id, planetGroup);
+  };
+  
+  // Create constellation connections
+  const createConstellationConnections = () => {
+    if (!sceneRef.current) return;
+    
+    // Remove existing connections
+    sceneRef.current.children.forEach(child => {
+      if (child.name && child.name.startsWith('constellation-')) {
+        sceneRef.current?.remove(child);
+      }
+    });
+    
+    // Create new connections
+    constellations.forEach(constellation => {
+      // Get all planets in this constellation
+      const constellationPlanets = constellation.planets
+        .map(id => planetObjectsRef.current.get(id))
+        .filter(p => p !== undefined);
+      
+      if (constellationPlanets.length < 2) return;
+      
+      // Create connections between all planets
+      for (let i = 0; i < constellationPlanets.length - 1; i++) {
+        const planetA = constellationPlanets[i];
+        
+        for (let j = i + 1; j < constellationPlanets.length; j++) {
+          const planetB = constellationPlanets[j];
+          
+          if (!planetA || !planetB) continue;
+          
+          // Create line geometry
+          const points = [planetA.position, planetB.position];
+          const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+          
+          // Determine line material based on constellation type
+          let lineMaterial;
+          
+          if (constellation.type === 'temporary') {
+            // Animated dashed line for temporary
+            lineMaterial = new THREE.LineDashedMaterial({
+              color: 0xff7043,
+              dashSize: 3,
+              gapSize: 2,
+              linewidth: 1
+            });
+          } else if (constellation.type === 'custom') {
+            // Glowing line for custom
+            lineMaterial = new THREE.LineBasicMaterial({
+              color: 0x71c4ef,
+              linewidth: 2,
+              transparent: true,
+              opacity: 0.7
+            });
+          } else {
+            // Basic line for others
+            lineMaterial = new THREE.LineBasicMaterial({
+              color: 0xffffff,
+              linewidth: 1,
+              transparent: true,
+              opacity: 0.3
+            });
+          }
+          
+          const line = new THREE.Line(lineGeometry, lineMaterial);
+          line.name = `constellation-${constellation.id}-${i}-${j}`;
+          sceneRef.current.add(line);
+        }
+      }
+    });
+  };
+  
+  return (
+    <div className="w-full h-[80vh] relative bg-[#0c0c1d] rounded-2xl overflow-hidden">
+      {/* Three.js container */}
+      <div 
+        ref={containerRef} 
+        className="absolute inset-0"
+      />
+      
+      {/* Map controls */}
+      <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="bg-black/30 text-white border-white/20 backdrop-blur-md hover:bg-black/40"
+          onClick={() => {
+            if (cameraRef.current) {
+              cameraRef.current.position.z = Math.max(10, cameraRef.current.position.z - 5);
+            }
+          }}
+        >
+          <ZoomIn className="h-4 w-4" />
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="bg-black/30 text-white border-white/20 backdrop-blur-md hover:bg-black/40"
+          onClick={() => {
+            if (cameraRef.current) {
+              cameraRef.current.position.z = Math.min(200, cameraRef.current.position.z + 5);
+            }
+          }}
+        >
+          <ZoomOut className="h-4 w-4" />
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="bg-black/30 text-white border-white/20 backdrop-blur-md hover:bg-black/40"
+          onClick={() => {
+            if (cameraRef.current && controlsRef.current) {
+              gsap.to(cameraRef.current.position, { 
+                x: 0, 
+                y: 30, 
+                z: 50, 
+                duration: 1.5 
+              });
+              gsap.to(controlsRef.current.target, { 
+                x: 0, 
+                y: 0, 
+                z: 0, 
+                duration: 1.5 
+              });
+            }
+          }}
+        >
+          <Compass className="h-4 w-4" />
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className={`${showLabels ? 'bg-blue-600/50' : 'bg-black/30'} text-white border-white/20 backdrop-blur-md hover:bg-black/40`}
+          onClick={() => setShowLabels(!showLabels)}
+        >
+          <Layers className="h-4 w-4" />
+        </Button>
+      </div>
+      
+      {/* Search bar */}
+      <div className="absolute top-4 left-4 z-10 w-64">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-white/50" />
+          <Input 
+            placeholder="행성이나 주제 검색..." 
+            className="pl-9 bg-black/30 text-white border-white/20 backdrop-blur-md"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+      
+      {/* Create planet button */}
+      <div className="absolute bottom-4 right-4 z-10">
+        <Button 
+          onClick={onCreatePlanet} 
+          className="bg-[#3e9bff] text-white hover:bg-[#3e9bff]/80"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          새 행성 만들기
+        </Button>
+      </div>
+      
+      {/* Filter badges */}
+      <div className="absolute bottom-4 left-4 z-10 flex flex-wrap gap-2">
+        <Badge 
+          className="bg-[#3e9bff] text-white cursor-pointer hover:bg-[#3e9bff]/80"
+        >
+          전체
+        </Badge>
+        <Badge 
+          variant="outline" 
+          className="bg-black/30 border-white/20 text-white cursor-pointer backdrop-blur-md"
+        >
+          내 행성
+        </Badge>
+        <Badge 
+          variant="outline" 
+          className="bg-black/30 border-white/20 text-white cursor-pointer backdrop-blur-md"
+        >
+          인기 행성
+        </Badge>
+        <Badge 
+          variant="outline" 
+          className="bg-black/30 border-white/20 text-white cursor-pointer backdrop-blur-md"
+        >
+          최근 활동
+        </Badge>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="h-6 text-white flex items-center gap-1"
+        >
+          <Filter className="h-3 w-3" />
+          <span className="text-xs">필터</span>
+        </Button>
+      </div>
+      
+      {/* Hovered planet tooltip */}
+      {hoveredPlanet && (
+        <div 
+          className="absolute z-20 bg-black/80 backdrop-blur-md p-3 rounded-lg border border-white/10 pointer-events-none animate-fade-in"
+          style={{ 
+            left: 100,
+            top: 100
+          }}
+        >
+          <h3 className="font-bold text-white mb-1">{hoveredPlanet.name}</h3>
+          <p className="text-blue-300 text-sm mb-2">{hoveredPlanet.description.substring(0, 100)}{hoveredPlanet.description.length > 100 ? '...' : ''}</p>
+          
+          <div className="flex gap-4 text-xs text-white/70">
+            <div className="flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              <span>{hoveredPlanet.members} 멤버</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Badge className="h-4 px-1.5 text-[10px]">
+                {hoveredPlanet.stage === 'asteroid' && '소행성'}
+                {hoveredPlanet.stage === 'planet' && '표준 행성'}
+                {hoveredPlanet.stage === 'gasGiant' && '가스 거인'}
+                {hoveredPlanet.stage === 'star' && '항성'}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Animation styles */}
+      <style>
+        {`
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        `}
+      </style>
+    </div>
+  );
+};
+
+export default ThreeUniverseMap;
