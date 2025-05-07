@@ -493,7 +493,6 @@ const ThreeUniverseMap: React.FC<ThreeUniverseMapProps> = ({
         `,
         fragmentShader: `
           uniform vec3 color;
-          uniform float starSize;
           varying float intensity;
           
           void main() {
@@ -763,16 +762,16 @@ const ThreeUniverseMap: React.FC<ThreeUniverseMapProps> = ({
         
         // Animate smoke
         const positions = smoke.geometry.attributes.position;
+        const posArray = positions.array as Float32Array;
         for (let i = 0; i < smokeCount; i++) {
-          // Use get method instead of direct array access
-          const y = positions.getY(i) + 0.01;
-          if (y > radius) {
-            positions.setY(i, -radius);
-          } else {
-            positions.setY(i, y);
+          // Direct array access instead of getY/setY
+          const yIndex = i * 3 + 1; // Y is the second component (index 1) in the [x,y,z] triplet
+          posArray[yIndex] += 0.01;
+          if (posArray[yIndex] > radius) {
+            posArray[yIndex] = -radius;
           }
         }
-        smoke.geometry.attributes.position.needsUpdate = true;
+        positions.needsUpdate = true;
       };
       
       planetGroup.userData.animateFunction = animatePrivatePlanet;
