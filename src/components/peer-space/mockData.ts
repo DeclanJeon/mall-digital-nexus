@@ -162,7 +162,15 @@ export const activeQuests: Quest[] = [
     goal: 3,
     type: 'individual',
     imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd04022da1?auto=format&fit=crop&q=80',
-    participants: 1
+    participants: ['user1'],
+    maxParticipants: 1,
+    startDate: '2025-04-01',
+    endDate: '2025-04-30',
+    status: 'active',
+    completion: 33,
+    creator: '김피어',
+    creatorId: 'user123',
+    difficulty: 'intermediate'
   },
   {
     id: 'quest3',
@@ -174,7 +182,15 @@ export const activeQuests: Quest[] = [
     goal: 10,
     type: 'individual',
     imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80',
-    participants: 8
+    participants: ['user1', 'user2', 'user3', 'user4', 'user5', 'user6', 'user7', 'user8'],
+    maxParticipants: 10,
+    startDate: '2025-04-01',
+    endDate: '2025-04-30',
+    status: 'active',
+    completion: 90,
+    creator: '김피어',
+    creatorId: 'user123',
+    difficulty: 'beginner'
   },
 ];
 

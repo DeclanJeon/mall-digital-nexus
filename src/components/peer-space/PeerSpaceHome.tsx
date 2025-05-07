@@ -245,10 +245,10 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       'relatedMalls': '관련 피어몰',
       'liveCollaboration': '실시간 연결',
       'livestream': '라이브 스트림'
-  };
+    };
   
-  return sectionNames[sectionType] || sectionType;
-};
+    return sectionNames[sectionType] || sectionType;
+  };
 
   const handleShare = () => {
     // Copy current URL to clipboard
@@ -478,7 +478,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         );
       case 'events':
         return (
-          <QuestEventSection
+          <PeerSpaceEventsSection
             peerAddress={address}
             isOwner={isOwner}
           />
@@ -487,7 +487,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         return <PeerSpaceInfoHub config={config} />;
       case 'reviews':
         return (
-          <GuestbookSection
+          <PeerSpaceReviewSection
             peerAddress={address}
             isOwner={isOwner}
           />

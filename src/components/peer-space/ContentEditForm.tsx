@@ -33,7 +33,7 @@ const formSchema = z.object({
   imageUrl: z.string().url({
     message: "유효한 URL을 입력해주세요.",
   }),
-  type: z.enum(['post', 'product', 'service', 'event', 'review', 'quest', 'portfolio', 'course', 'stream', 'livestream', 'external']),
+  type: z.enum(['post', 'product', 'service', 'event', 'review', 'quest', 'portfolio', 'course', 'stream', 'livestream', 'advertisement', 'guestbook', 'workshop', 'challenge', 'tool', 'external']),
   price: z.string().optional(),
   isExternal: z.boolean().default(false),
   externalUrl: z.string().url({
@@ -52,6 +52,11 @@ const typeOptions = [
   { value: 'course', label: '코스' },
   { value: 'stream', label: '스트림' },
   { value: 'livestream', label: '라이브 스트림' },
+  { value: 'advertisement', label: '광고' },
+  { value: 'guestbook', label: '방명록' },
+  { value: 'workshop', label: '워크샵' },
+  { value: 'challenge', label: '챌린지' },
+  { value: 'tool', label: '도구' },
   { value: 'external', label: '외부 링크' },
 ] as const;
 

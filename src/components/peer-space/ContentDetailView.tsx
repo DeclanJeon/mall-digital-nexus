@@ -278,7 +278,8 @@ const ContentDetailView: React.FC<ContentDetailViewProps> = ({ address, config, 
       'workshop': '워크샵',
       'challenge': '챌린지',
       'tool': '도구',
-      'external': '외부'
+      'external': '외부',
+      'livestream': '라이브 스트림'
     };
     
     return typeMapping[type] || type;
