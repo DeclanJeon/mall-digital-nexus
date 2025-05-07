@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ZoomIn, ZoomOut, Search, Filter, Plus, Compass, MapPin, Star, Plane, Earth, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -681,4 +682,37 @@ const UniverseMap: React.FC<UniverseMapProps> = ({
             opacity: 0;
           }
           100% { 
-            transform: translate(400px, 4
+            transform: translate(400px, 400px) rotate(45deg);
+            opacity: 0;
+          }
+        }
+        
+        @keyframes line-pulse {
+          0% { stroke-opacity: 0.3; }
+          50% { stroke-opacity: 0.8; }
+          100% { stroke-opacity: 0.3; }
+        }
+        
+        @keyframes line-dash {
+          to { stroke-dashoffset: -20; }
+        }
+        
+        @keyframes particle-move {
+          from { opacity: 0; }
+          25% { opacity: 1; }
+          75% { opacity: 1; }
+          to { opacity: 0; }
+        }
+        
+        @keyframes ray-pulse {
+          0% { stroke-opacity: 0.7; stroke-width: 2; }
+          50% { stroke-opacity: 0.3; stroke-width: 1; }
+          100% { stroke-opacity: 0.7; stroke-width: 2; }
+        }
+        `}
+      </style>
+    </div>
+  );
+};
+
+export default UniverseMap;
