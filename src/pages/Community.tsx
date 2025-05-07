@@ -72,7 +72,6 @@ const initialPlanetsData: Planet[] = [
   }
 ];
 
-// --- PlanetCreationWizard Component (Integrated and adapted) ---
 interface PlanetCreationWizardProps {
   isOpen: boolean;
   onClose: () => void;

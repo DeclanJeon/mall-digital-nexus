@@ -432,16 +432,16 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
     }
 
     switch(sectionType) {
-      case 'hero':
-        return (
-          <PeerSpaceHero 
-            config={config} 
-            isOwner={isOwner} 
-            onAddBadge={handleAddBadge}
-            onAddRecommendation={handleAddRecommendation}
-            onFollow={handleFollow}
-          />
-        );
+      // case 'hero':
+      //   return (
+      //     <PeerSpaceHero 
+      //       config={config} 
+      //       isOwner={isOwner} 
+      //       onAddBadge={handleAddBadge}
+      //       onAddRecommendation={handleAddRecommendation}
+      //       onFollow={handleFollow}
+      //     />
+      //   );
       case 'content':
         return (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -449,10 +449,13 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
               <PeerSpaceTabs
                 activeTab={activeTab}
                 onTabChange={handleTabChange}
-                featuredContent={contents as Content[]}
+                contents={contents}
                 isOwner={isOwner}
-                onAddContent={handleShowProductForm}
+                onAddContentClick={handleShowProductForm}
                 onContentClick={handleContentClick}
+                onEditContentClick={() => {}}
+                onDeleteContentClick={() => {}}
+                onSaveContentClick={() => {}}
               />
             </div>
             {!hiddenSections.includes('activityFeed') && (
@@ -466,34 +469,34 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         return (
           <div className="mb-10">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">커뮤니티</h2>
-              <Link to="/community">
+              {/* <h2 className="text-2xl font-bold">커뮤니티</h2> */}
+              {/* <Link to="/community">
                 <Button variant="outline">
                   모든 게시글 보기
                 </Button>
-              </Link>
+              </Link> */}
             </div>
             <PeerSpaceCommunitySection config={config} isOwner={isOwner} />
           </div>
         );
-      case 'events':
-        return (
-          <PeerSpaceEventsSection
-            config={config}
-            events={[]}
-            quests={[]}
-            isOwner={isOwner}
-          />
-        );
-      case 'infoHub':
-        return <PeerSpaceInfoHub config={config} />;
-      case 'reviews':
-        return (
-          <PeerSpaceReviewSection
-            config={config}
-            isOwner={isOwner}
-          />
-        );
+      // case 'events':
+      //   return (
+      //     <PeerSpaceEventsSection
+      //       config={config}
+      //       events={[]}
+      //       quests={[]}
+      //       isOwner={isOwner}
+      //     />
+      //   );
+      // case 'infoHub':
+      //   return <PeerSpaceInfoHub config={config} />;
+      // case 'reviews':
+      //   return (
+      //     <PeerSpaceReviewSection
+      //       config={config}
+      //       isOwner={isOwner}
+      //     />
+      //   );
       case 'map':
         return config.location ? 
           <PeerSpaceMapSection 
@@ -503,21 +506,21 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             } 
             title={config.title} 
           /> : null;
-      case 'trust':
-        return <PeerSpaceTrustSection config={config} />;
+      // case 'trust':
+      //   return <PeerSpaceTrustSection config={config} />;
       case 'relatedMalls':
         return <PeerSpaceRelatedMallsSection />;
       case 'activityFeed':
         return null; // Handled within content section
-      case 'liveCollaboration':
-        return <PeerSpaceLiveCollaboration />;
-      case 'livestream':
-        return <div className="mb-10">
-          <h2 className="text-2xl font-bold mb-6">라이브 스트림</h2>
-          <div className="bg-gray-50 p-8 rounded-lg text-center">
-            <p className="text-gray-500">라이브 스트림이 현재 없습니다.</p>
-          </div>
-        </div>;
+      // case 'liveCollaboration':
+      //   return <PeerSpaceLiveCollaboration />;
+      // case 'livestream':
+      //   return <div className="mb-10">
+      //     <h2 className="text-2xl font-bold mb-6">라이브 스트림</h2>
+      //     <div className="bg-gray-50 p-8 rounded-lg text-center">
+      //       <p className="text-gray-500">라이브 스트림이 현재 없습니다.</p>
+      //     </div>
+      //   </div>;
       default:
         return null;
     }
@@ -564,7 +567,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             </>
           )}
           
-          <Button onClick={handleShare} variant="outline" className="flex-1">
+          {/* <Button onClick={handleShare} variant="outline" className="flex-1">
             <Share2 className="mr-1 h-4 w-4" /> 공유
           </Button>
           <Button onClick={handleQRGenerate} variant="outline">
@@ -575,7 +578,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             <Button onClick={handleShowSettings} variant="outline" className="ml-auto">
               <Settings className="h-4 w-4 mr-1" /> 섹션 관리
             </Button>
-          )}
+          )} */}
         </div>
 
         {/* Render sections based on config */}

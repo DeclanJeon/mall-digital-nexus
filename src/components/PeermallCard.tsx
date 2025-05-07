@@ -23,6 +23,7 @@ interface PeermallCardProps {
   };
   onOpenMap?: (location: { lat: number; lng: number; address: string; title: string }) => void;
   id?: string; // Added ID for routing
+  address?: string;
 }
 
 const PeermallCard = ({ 
@@ -39,7 +40,8 @@ const PeermallCard = ({
   recommended,
   location,
   onOpenMap,
-  id = "sample-peermall" // Default ID if none provided
+  id,
+  address
 }: PeermallCardProps) => {
   return (
     <div className={`bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow ${featured ? 'ring-2 ring-accent-100' : ''}`}>
@@ -103,7 +105,7 @@ const PeermallCard = ({
               </Button>
             )}
             <Link
-              to={`/space/${id}`}
+              to={`/space/${address}`}
               className="text-accent-200 hover:text-accent-100 p-0 text-sm"
             >
               방문하기

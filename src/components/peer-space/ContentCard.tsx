@@ -8,11 +8,17 @@ import ExternalIndicator from './ExternalIndicator';
 
 interface ContentCardProps {
   content: Content;
+  onClick?: () => void;
 }
 
-const ContentCard = ({ content }: ContentCardProps) => {
+const ContentCard = ({ content, onClick }: ContentCardProps) => {
   const location = useLocation();
   const address = location.pathname.split('/')[2];
+
+  const handleCardClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    onClick?.();
+  };
 
   // Helper function to determine content type
   const getContentTypeBadge = (type: string) => {
@@ -37,10 +43,11 @@ const ContentCard = ({ content }: ContentCardProps) => {
   };
 
   return (
-    <Link to={`/space/${address}/content/${content.id}`}>
-      <div
-        className="block bg-white rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-shadow group cursor-pointer"
-      >
+    <div onClick={handleCardClick}>
+      <Link to={`/space/${address}/content/${content.id}`} onClick={(e) => e.stopPropagation()}>
+        <div
+          className="block bg-white rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-shadow group cursor-pointer"
+        >
         <div className="relative aspect-video bg-gray-100">
           {getContentTypeBadge(content.type)}
           
@@ -87,7 +94,8 @@ const ContentCard = ({ content }: ContentCardProps) => {
         </div>
       </div>
     </Link>
-  );
+  </div>
+);
 };
 
 export default ContentCard;

@@ -1,22 +1,25 @@
 import type { ReactNode } from 'react';
 
-export type ContentType =
-  | 'product'
-  | 'portfolio'
-  | 'service'
-  | 'event'
-  | 'post'
-  | 'review'
-  | 'quest'
-  | 'advertisement'
-  | 'stream'
-  | 'guestbook'
-  | 'course'
-  | 'workshop'
-  | 'challenge'
-  | 'tool'
-  | 'external'
-  | 'livestream';
+export const CONTENT_TYPES = [
+  'product',
+  'portfolio',
+  'service',
+  'event',
+  'post',
+  'review',
+  'quest',
+  'advertisement',
+  'stream',
+  'guestbook',
+  'course',
+  'workshop',
+  'challenge',
+  'tool',
+  'external',
+  'livestream',
+] as const;
+
+export type ContentType = (typeof CONTENT_TYPES)[number];
 
 export interface ContentAuthor {
   id: string;
@@ -72,6 +75,7 @@ export interface Content {
   rating?: number;
   attributes?: Record<string, unknown>;
   badges?: string[];
+  isFeatured?: boolean; // 추천 콘텐츠 여부
 }
 
 export interface PeerMallConfig {
@@ -315,3 +319,15 @@ export interface FeaturedContentSectionProps {
   onAddContent?: () => void;
   onContentClick?: (content: Content) => void;
 }
+
+// 탭 UI에 사용될 값과 레이블 정의
+export const TAB_DEFINITIONS = [
+  { value: 'featured', label: '추천 콘텐츠' },
+  { value: 'product', label: '제품' },
+  { value: 'content', label: '콘텐츠' }, // 일반 콘텐츠
+  { value: 'service', label: '서비스' },
+  { value: 'event', label: '이벤트' },
+  { value: 'quest', label: '퀘스트' },
+] as const;
+
+export type TabValue = (typeof TAB_DEFINITIONS)[number]['value'];

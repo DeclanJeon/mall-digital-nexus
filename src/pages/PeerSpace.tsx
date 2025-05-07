@@ -67,16 +67,14 @@ const PeerSpace = () => {
       if (address) {
         const storedConfig = getPeerSpaceConfig(address);
 
-        console.log(storedConfig)
         
         if (storedConfig) {
           setConfig(storedConfig);
         } else {
           // If config doesn't exist, try to load from peermall details
           const peermallDetails = await getPeermallDetails(address);
-
-          console.log(peermallDetails)
           
+          console.log(peermallDetails)
           if (peermallDetails) {
             // Create a default config from peermall details
             const defaultConfig: PeerMallConfig = {
