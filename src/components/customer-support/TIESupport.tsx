@@ -188,7 +188,7 @@ const TIESupport = () => {
             <div className="p-4 border-b border-[#cccbc8] flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-[#71c4ef] flex items-center justify-center text-white">
-                  <User className="h-5 w-5" />
+                  <User />
                 </div>
                 <div>
                   <h3 className="font-medium">상담사 김지원</h3>
@@ -264,7 +264,7 @@ const TIESupport = () => {
                       <Mic className="h-6 w-6" />
                     </Button>
                     <Button variant="destructive" size="icon" className="rounded-full h-12 w-12 bg-[#dc3545]">
-                      <PhoneOff className="h-6 w-6" />
+                      <PhoneOff />
                     </Button>
                   </div>
                 </div>
@@ -284,7 +284,7 @@ const TIESupport = () => {
                       <Video className="h-6 w-6" />
                     </Button>
                     <Button variant="destructive" size="icon" className="rounded-full h-12 w-12 bg-[#dc3545]">
-                      <PhoneOff className="h-6 w-6" />
+                      <PhoneOff />
                     </Button>
                   </div>
                 </div>
@@ -322,7 +322,7 @@ const TIESupport = () => {
   );
 };
 
-// Placeholder for icons
+// Define missing components
 const User = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>

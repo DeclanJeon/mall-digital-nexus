@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -56,6 +55,13 @@ interface ForumPostFormData {
   content: string;
   tags: string;
 }
+
+// Define missing initializeCustomData function
+const initializeCustomData = () => {
+  console.log('Initializing custom data for community page');
+  // This function would normally populate data or set up the community environment
+  // Add actual implementation as needed
+};
 
 const Community = () => {
   const [activePlanet, setActivePlanet] = useState<Planet | null>(null);
@@ -197,7 +203,7 @@ const Community = () => {
               id: '3',
               title: '서울 지역 디자이너 모임 안내',
               content: '다음 주 토요일 오후 2시, 강남역 인근 카페에서 디자이너 네트워킹 모임을 갖습니다. 관심 있으신 분들은 댓글 남겨주세요.',
-              htmlContent: '<p>다음 주 토요일 오후 2시, 강남역 인근 카페에서 디자이너 네트워킹 모임을 갖습니다.</p><h4>모임 정보</h4><ul><li>일시: 2025년 5월 10일 오후 2시</li><li>장소: 강남역 2번 출구 카페</li><li>주제: 최신 UX 트렌드와 포트폴리오 공유</li></ul><p>관심 있으신 분들은 댓글 남겨주세요.</p>',
+              htmlContent: '<p>다음 주 토요일 오후 2시, 강남역 인근 카페에서 디자이너 네트워킹 모임�� 갖습니다.</p><h4>모임 정보</h4><ul><li>일시: 2025년 5월 10일 오후 2시</li><li>장소: 강남역 2번 출구 카페</li><li>주제: 최신 UX 트렌드와 포트폴리오 공유</li></ul><p>관심 있으신 분들은 댓글 남겨주세요.</p>',
               author: '이기획',
               authorAvatar: 'https://api.dicebear.com/7.x/personas/svg?seed=planner',
               date: '2025-04-29',
@@ -290,7 +296,7 @@ const Community = () => {
       updateRequest.onsuccess = () => {
         toast({
           title: "게시글이 수정되었습니다.",
-          description: "성공적으로 게시글이 수정되었습니다.",
+          description: "성공적으로 게시글이 수���되었습니다.",
         });
         
         setPosts(prevPosts => prevPosts.map(p => p.id === post.id ? post : p));
@@ -814,7 +820,7 @@ const Community = () => {
                   
                   <TabsContent value="following">
                     <div className="p-8 text-center">
-                      <p>팔로우한 사용자의 콘텐츠가 여기에 표시됩니다.</p>
+                      <p>팔로우한 사용자의 콘텐츠가 ��기에 표시됩니다.</p>
                     </div>
                   </TabsContent>
                 </Tabs>

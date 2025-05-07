@@ -36,7 +36,9 @@ export const BadgeDisplay = ({
           className={`${sizeClasses[size]} border-opacity-50 ${badge.color ? badge.color.replace('text-', 'border-') : 'border-gray-500'} ${badge.color || 'text-gray-700'}`}
           title={showTooltip ? badge.description : undefined}
         >
-          {badge.icon ? <badge.icon className="h-3 w-3 mr-1.5" /> : <CircleIcon className="h-3 w-3 mr-1.5" />}
+          {typeof badge.icon === 'function' ? 
+            React.createElement(badge.icon, { className: "h-3 w-3 mr-1.5" }) : 
+            <CircleIcon className="h-3 w-3 mr-1.5" />}
           {badge.name}
         </Badge>
       ))}

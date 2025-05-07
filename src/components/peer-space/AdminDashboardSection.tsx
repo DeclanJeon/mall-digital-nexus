@@ -1,4 +1,3 @@
-
 import React from "react";
 import { BarChart2, User, FileText, ShoppingBag, Star, Bell, Calendar, MessageCircle, Shield, Zap, Target } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -104,21 +103,21 @@ const AdminDashboardSection: React.FC = () => {
                 <span>신뢰도 점수</span>
                 <span className="font-medium">87/100</span>
               </div>
-              <Progress value={87} className="h-2" indicatorClassName="bg-green-500" />
+              <Progress value={87} className="h-2" indicatorColor="#22c55e" />
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span>활동 레벨</span>
                 <span className="font-medium">높음</span>
               </div>
-              <Progress value={75} className="h-2" indicatorClassName="bg-blue-500" />
+              <Progress value={75} className="h-2" indicatorColor="#3b82f6" />
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span>콘텐츠 품질</span>
                 <span className="font-medium">매우 좋음</span>
               </div>
-              <Progress value={90} className="h-2" indicatorClassName="bg-purple-500" />
+              <Progress value={90} className="h-2" indicatorColor="#a855f7" />
             </div>
           </div>
         </Card>
