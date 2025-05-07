@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { ZoomIn, ZoomOut, Search, Filter, Plus, Compass, MapPin, Star, Planet, Earth, Layers } from 'lucide-react';
+import { ZoomIn, ZoomOut, Search, Filter, Plus, Compass, MapPin, Star, Plane, Earth, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -43,7 +42,7 @@ const UniverseMap: React.FC<UniverseMapProps> = ({
       },
       private: {
         gradient: 'radial-gradient(circle at 40% 40%, #FFCB8C 0%, #FF8F00 40%, #994D00 70%, #552B00 100%)',
-        overlay: 'url("data:image/svg+xml,%3Csvg width=\'100%25\' height=\'100%25\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cdefs%3E%3Cpattern id=\'stripes\' width=\'20\' height=\'20\' patternUnits=\'userSpaceOnUse\' patternTransform=\'rotate(45)\'%3E%3Cline x1=\'0\' y=\'0\' x2=\'0\' y2=\'20\' stroke=\'rgba(255,255,255,0.1)\' stroke-width=\'10\'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'url(%23stripes)\'/%3E%3C/svg%3E")'
+        overlay: 'url("data:image/svg+xml,%3Csvg width=\'100%25\' height=\'100%25\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cdefs%3E%3Cpattern id=\'stripes\' width=\'20\' height=\'20\' patternUnits=\'userSpaceOnUse\' patternTransform=\'rotate(45)\'%3E%3Cline x1=\'0\' y1=\'0\' x2=\'0\' y2=\'20\' stroke=\'rgba(255,255,255,0.1)\' stroke-width=\'10\'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'url(%23stripes)\'/%3E%3C/svg%3E")'
       },
       timeLimited: {
         gradient: 'radial-gradient(circle at 35% 35%, #E0F7FF 0%, #94E8FF 30%, #00A3CC 70%, #005266 100%)',
@@ -682,37 +681,4 @@ const UniverseMap: React.FC<UniverseMapProps> = ({
             opacity: 0;
           }
           100% { 
-            transform: translate(400px, 400px) rotate(45deg);
-            opacity: 0;
-          }
-        }
-        
-        @keyframes line-pulse {
-          0% { stroke-opacity: 0.3; }
-          50% { stroke-opacity: 0.8; }
-          100% { stroke-opacity: 0.3; }
-        }
-        
-        @keyframes line-dash {
-          to { stroke-dashoffset: -20; }
-        }
-        
-        @keyframes particle-move {
-          from { opacity: 0; }
-          25% { opacity: 1; }
-          75% { opacity: 1; }
-          to { opacity: 0; }
-        }
-        
-        @keyframes ray-pulse {
-          0% { stroke-opacity: 0.7; stroke-width: 2; }
-          50% { stroke-opacity: 0.3; stroke-width: 1; }
-          100% { stroke-opacity: 0.7; stroke-width: 2; }
-        }
-        `}
-      </style>
-    </div>
-  );
-};
-
-export default UniverseMap;
+            transform: translate(400px, 4
