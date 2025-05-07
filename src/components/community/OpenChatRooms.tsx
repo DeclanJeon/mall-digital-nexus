@@ -11,20 +11,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { MessageSquare, Mic, Video, FileText, ScreenShare, Globe, Lock, LockOpen, User, Users, Share2 } from 'lucide-react';
+import { ChatRoom } from './type';
 
-interface ChatRoom {
-  id: string;
-  name: string;
-  type: 'text' | 'voice' | 'video';
-  description: string;
-  creator: string;
-  participantsCount: number;
-  isPrivate: boolean;
-  password?: string;
-  features: string[];
-  timestamp: Date;
-  members?: string[]; // 멤버 목록 추가
-}
+
 
 const OpenChatRooms = () => {
   const navigate = useNavigate();

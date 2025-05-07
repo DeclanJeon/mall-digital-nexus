@@ -2,9 +2,11 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Content } from './types';
+// import { Content } from './types';
 import { Heart, BookmarkPlus, MessageCircle, Calendar } from 'lucide-react';
-import ExternalIndicator from './ExternalIndicator';
+// import ExternalIndicator from './ExternalIndicator';
+import { Content } from '@/components/peer-space/types';
+import ExternalIndicator from '../ui/ExternalIndicator';
 
 interface ContentCardProps {
   content: Content;

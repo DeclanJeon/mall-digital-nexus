@@ -18,7 +18,7 @@ const SupportChannels: React.FC<SupportChannelsProps> = ({ onSwitchTab }) => {
           </div>
           <h3 className="text-lg font-semibold mb-2">1:1 문의하기</h3>
           <p className="text-gray-600 mb-4">
-            FAQ에서 찾지 못한 질문이 있으신가요? 1:1 문의를 통해 자세한 답변을 받으실 수 있습니다.
+            1:1 문의를 통해 자세한 답변을 받으실 수 있습니다.
           </p>
           <Button 
             onClick={() => onSwitchTab('inquiry')}

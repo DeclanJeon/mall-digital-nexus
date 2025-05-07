@@ -29,7 +29,7 @@ import {
   Globe
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { Content, ContentType, PeerMallConfig, Review } from './types';
+import { Content, ContentType, PeerMallConfig, Review } from '../types';
 import { 
   getPeerSpaceContents, 
   savePeerSpaceContent,

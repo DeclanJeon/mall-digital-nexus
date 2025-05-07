@@ -2,11 +2,11 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
-import ContentDetailView from '@/components/peer-space/ContentDetailView';
-import PeerSpaceHeader from '@/components/peer-space/PeerSpaceHeader';
-import PeerSpaceFooter from '@/components/peer-space/PeerSpaceFooter';
 import { PeerMallConfig } from '@/components/peer-space/types';
-import { ContentFormValues } from '@/components/peer-space/AddContentForm';
+import { ContentFormValues } from '@/components/peer-space/forms/AddContentForm';
+import PeerSpaceFooter from '../components/peer-space/layout/PeerSpaceFooter';
+import PeerSpaceHeader from '../components/peer-space/layout/PeerSpaceHeader';
+import ContentDetailView from '../components/peer-space/content/ContentDetailView';
 
 // Function to get PeerSpace configuration from localStorage
 const getPeerSpaceConfig = (address: string): PeerMallConfig | null => {

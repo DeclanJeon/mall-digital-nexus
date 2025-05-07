@@ -17,77 +17,60 @@ import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'; // For Wizard
 import { Label } from '@/components/ui/label'; // For Wizard
 
-// Define PlanetType for the wizard and Planet interface
-type PlanetType = 'public' | 'private' | 'timeLimited';
+import { Comment, ChatRoomCreationData, Planet, PlanetCreationWizardProps, PlanetType, ChatMessage, Post, ForumPostFormData } from '@/components/community/type'; // 타입 import
 
-// Updated Planet interface
-interface Planet {
-  id: string;
-  name: string;
-  description: string;
-  color: string;
-  position: [number, number, number]; // [x, y, z] for map positioning
-  size: number;
-  activeUsers: number;
-  recentPosts: number;
-  texture?: string;
 
-  // Fields from/for PlanetCreationWizard
-  type: PlanetType;
-  topics: string[];
-  isPrivate: boolean;
-  expiryDate?: string;
-  stage: 'asteroid' | 'planet' | 'gasGiant' | 'star'; // Stage of development
-  owner: string; // Username of the creator
-  membersCount: number;
-  lastActivity: string; // ISO date string
-}
+const initialComments: Comment[] = [ // 예시 댓글 데이터
+    {id: 'comment-1', postId: 'post-123', author: '댓글러1', authorAvatar: '...', content: '첫번째 댓글입니다!', date: '2023-10-27', likes: 5, replies: [
+        {id: 'reply-1-1', postId: 'post-123', parentId: 'comment-1', author: '대댓글러', authorAvatar: '...', content: '대댓글입니다!', date: '2023-10-27', likes: 2},
+    ]},
+    {id: 'comment-2', postId: 'post-123', author: '댓글러2', authorAvatar: '...', content: '좋은 글 감사합니다.', date: '2023-10-28', likes: 3},
+];
 
-// Post, ChatMessage, ForumPostFormData interfaces remain the same
-interface Post { id: string; title: string; content: string; author: string; authorAvatar: string; date: string; likes: number; comments: number; tags: string[]; country: string; htmlContent?: string; }
-interface ChatMessage { id: string; author: string; authorAvatar: string; content: string; timestamp: string; country: string; }
-interface ForumPostFormData { title: string; content: string; tags: string; }
 
 // Initial Planet Data (updated with new fields)
 const initialPlanetsData: Planet[] = [
   {
     id: 'earth', name: '지구', description: '글로벌 커뮤니티 허브, 지역별 게시판 이용 가능', color: '#1E88E5',
     position: [0, 0, 0], size: 2, activeUsers: 2453, recentPosts: 178, type: 'public', topics: ['global', 'community'],
-    isPrivate: false, stage: 'planet', owner: 'System', membersCount: 2453, lastActivity: new Date().toISOString(),
+    isPrivate: false, stage: 'planet', owner: { name: 'System', avatar: null }, membersCount: 2453, lastActivity: new Date().toISOString(),
+    members: 0,
+    activities: 0,
+    health: 0,
+    createdAt: '',
+    expiryDate: ''
   },
   {
     id: 'techverse', name: '테크버스', description: '기술 토론, 코딩 도움, 가젯 리뷰', color: '#E53935',
     position: [6, 1, -3], size: 1.3, activeUsers: 982, recentPosts: 76, type: 'public', topics: ['tech', 'code', 'gadgets'],
-    isPrivate: false, stage: 'planet', owner: 'System', membersCount: 982, lastActivity: new Date().toISOString(),
+    isPrivate: false, stage: 'planet', owner: { name: 'System', avatar: null }, membersCount: 982, lastActivity: new Date().toISOString(),
+    members: 0,
+    activities: 0,
+    health: 0,
+    createdAt: '',
+    expiryDate: ''
   },
   {
     id: 'artsphere', name: '아트스피어', description: '디지털 및 전통 아티스트를 위한 창조적 예술 커뮤니티', color: '#43A047',
     position: [-5, -1, -4], size: 1.5, activeUsers: 754, recentPosts: 92, type: 'public', topics: ['art', 'design'],
-    isPrivate: false, stage: 'planet', owner: 'System', membersCount: 754, lastActivity: new Date().toISOString(),
+    isPrivate: false, stage: 'planet', owner: { name: 'System', avatar: null }, membersCount: 754, lastActivity: new Date().toISOString(),
+    members: 0,
+    activities: 0,
+    health: 0,
+    createdAt: '',
+    expiryDate: ''
   },
   {
     id: 'marketjupiter', name: '마켓주피터', description: '이커머스 논의, 판매 팁, 시장 트렌드', color: '#FB8C00',
     position: [8, -2, 1], size: 1.8, activeUsers: 534, recentPosts: 43, type: 'public', topics: ['ecommerce', 'business'],
-    isPrivate: false, stage: 'planet', owner: 'System', membersCount: 534, lastActivity: new Date().toISOString(),
+    isPrivate: false, stage: 'planet', owner: { name: 'System', avatar: null }, membersCount: 534, lastActivity: new Date().toISOString(),
+    members: 0,
+    activities: 0,
+    health: 0,
+    createdAt: '',
+    expiryDate: ''
   }
 ];
-
-interface PlanetCreationWizardProps {
-  isOpen: boolean;
-  onClose: () => void;
-  // This callback now provides data specific to wizard inputs
-  onCreatePlanet: (wizardData: {
-    name: string;
-    description: string;
-    type: PlanetType;
-    topics: string[];
-    color: string;
-    isPrivate: boolean;
-    expiryDate?: string;
-    size: number; // Wizard determines initial size
-    lastActivity: string;
-  }) => void;
-}
 
 const planetTemplates = [
   { name: '공개 커뮤니티', description: '누구나 참여할 수 있는 공개 커뮤니티', type: 'public' as PlanetType, color: '#3e9bff', icon: <Globe className="h-5 w-5" /> },
@@ -239,8 +222,14 @@ const Community = () => {
   const [isSelectingPlanetPosition, setIsSelectingPlanetPosition] = useState(false);
   const [newPlanetPositionForWizard, setNewPlanetPositionForWizard] = useState<[number, number, number] | null>(null);
   const [isPlanetWizardOpen, setIsPlanetWizardOpen] = useState(false);
-  const [cursorPositionHint, setCursorPositionHint] = useState<{x: number, y: number} | null>(null);
+  const [cursorPositionHint, setCursorPositionHint] = useState<{ x: number, y: number } | null>(null);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null); // 게시글 상세 보기를 위한 상태
+  const [comments, setComments] = useState<Comment[]>(initialComments); // 댓글 상태
+  const [showCreateChatRoomModal, setShowCreateChatRoomModal] = useState(false);
 
+  // --- LocalStorage Keys ---
+  const COMMENTS_STORAGE_KEY = 'peerspace_comments';
+  // ... (기존 스토리지 키들)
 
   const handleZoomIn = () => setZoomLevel(prev => Math.min(prev + 0.1, 2));
   const handleZoomOut = () => setZoomLevel(prev => Math.max(prev - 0.1, 0.5));
@@ -255,10 +244,24 @@ const Community = () => {
     planet.description.toLowerCase().includes(filter.toLowerCase())
   );
 
-  // IndexedDB functions (initDB, loadPosts, etc.) remain largely unchanged
-  // ... (Assume these are correctly defined as in your original code)
-    const initDB = () => { /* ... */ }; const loadPosts = () => { /* ... */ }; const saveInitialPostsToDB = (initialPosts: Post[]) => { /* ... */ }; const savePostToDB = (post: Post) => { /* ... */ }; const updatePostInDB = (post: Post) => { /* ... */ }; const deletePostFromDB = (postId: string) => { /* ... */ };
+  const initDB = () => { /* ... */ }; const loadPosts = () => { /* ... */ }; const saveInitialPostsToDB = (initialPosts: Post[]) => { /* ... */ }; const savePostToDB = (post: Post) => { /* ... */ }; const updatePostInDB = (post: Post) => { /* ... */ }; const deletePostFromDB = (postId: string) => { /* ... */ };
 
+
+  // --- LocalStorage Load/Save ---
+  const loadDataFromLocalStorage = useCallback(() => {
+    // ... (기존 데이터 로드)
+    const storedComments = localStorage.getItem(COMMENTS_STORAGE_KEY);
+    if (storedComments) setComments(JSON.parse(storedComments));
+    else setComments(initialComments); // 초기 댓글 로드
+  }, []);
+
+  const saveDataToLocalStorage = useCallback(() => {
+    // ... (기존 데이터 저장)
+    localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(comments));
+  }, [posts, planets, messages, comments]); // comments 추가
+
+  useEffect(() => { loadDataFromLocalStorage(); }, [loadDataFromLocalStorage]);
+  useEffect(() => { saveDataToLocalStorage(); }, [saveDataToLocalStorage]);
 
   useEffect(() => {
     const storedUsername = localStorage.getItem('peerspace_username');
@@ -284,13 +287,6 @@ const Community = () => {
     if (!isSelectingPlanetPosition || !universeMapRef.current) return;
 
     const rect = universeMapRef.current.getBoundingClientRect();
-    // Calculate click relative to the non-scaled container, then adjust for zoom
-    // This assumes the click is on the direct child that is scaled.
-    // Or, more simply, get coordinates relative to the scaled visual map.
-    // The planets are positioned based on percentages, so a click on the container
-    // needs to be translated to that percentage space.
-    
-    // Calculate click position relative to the viewport of the scaled map container
     const clickX = event.clientX - rect.left;
     const clickY = event.clientY - rect.top;
 
@@ -363,8 +359,12 @@ const Community = () => {
       activeUsers: 1,
       recentPosts: 0,
       stage: 'asteroid', // New planets start as asteroids
-      owner: username,
+      owner: { name: username, avatar: null },
       membersCount: 1,
+      members: 0,
+      activities: 0,
+      health: 0,
+      createdAt: ''
     };
 
     setPlanets(prev => [...prev, newPlanet]);

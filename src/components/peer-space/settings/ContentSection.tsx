@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import AdminDashboardSection from "@/components/peer-space/AdminDashboardSection";
-import BasicInfoSection from "@/components/peer-space/BasicInfoSection";
-import DesignSettingsSection from "@/components/peer-space/DesignSettingsSection";
-import ContentManagementSection from "@/components/peer-space/ContentManagementSection";
-import ProductManagementSection from "@/components/peer-space/ProductManagementSection";
+// import AdminDashboardSection from "@/components/peer-space/AdminDashboardSection";
+// import BasicInfoSection from "@/components/peer-space/BasicInfoSection";
+// import DesignSettingsSection from "@/components/peer-space/DesignSettingsSection";
+// import ContentManagementSection from "@/components/peer-space/ContentManagementSection";
+// import ProductManagementSection from "@/components/peer-space/ProductManagementSection";
 import CommunityManagementSection from './CommunityManagementSection';
 import QRCodeManagementSection from './QRCodeManagementSection';
 import RelationshipManagementSection from './RelationshipManagementSection';
@@ -20,6 +20,11 @@ import CustomerSupportSection from './CustomerSupportSection';
 import AdvertisementSection from './AdvertisementSection';
 import GamificationSection from './GamificationSection';
 import ReferralSystemSection from './ReferralSystemSection';
+import ProductManagementSection from '../sections/ProductManagementSection';
+import ContentManagementSection from '../content/ContentManagementSection';
+import DesignSettingsSection from '../sections/DesignSettingsSection';
+import BasicInfoSection from '../sections/BasicInfoSection';
+import AdminDashboardSection from '../sections/AdminDashboardSection';
 
 interface ContentSectionProps {
   activeSection: string;

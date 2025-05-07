@@ -6,27 +6,29 @@ import { Content, ContentType, PeerMallConfig, SectionType } from './types';
 import { Heart, MessageSquare, Share2, QrCode, Award, ThumbsUp, Settings } from 'lucide-react';
 import { createContent, updateContent } from '@/services/contentService';
 import { getPeerSpaceContents, savePeerSpaceContent } from '@/utils/peerSpaceStorage';
-import PeerSpaceHeader from './PeerSpaceHeader';
 import PeerSpaceHero from './PeerSpaceHero';
-import PeerSpaceContentSection from './PeerSpaceContentSection';
-import PeerSpaceCommunitySection from './PeerSpaceCommunitySection';
-import PeerSpaceEventsSection from './PeerSpaceEventsSection';
 import PeerSpaceInfoHub from './PeerSpaceInfoHub';
-import PeerSpaceReviewSection from './PeerSpaceReviewSection';
-import PeerSpaceMapSection from './PeerSpaceMapSection';
-import PeerSpaceTrustSection from './PeerSpaceTrustSection';
-import PeerSpaceRelatedMallsSection from './PeerSpaceRelatedMallsSection';
-import PeerSpaceActivityFeed from './PeerSpaceActivityFeed';
-import PeerSpaceLiveCollaboration from './PeerSpaceLiveCollaboration';
-import PeerSpaceFooter from './PeerSpaceFooter';
-import EmptyState from './EmptyState';
-import ProductRegistrationForm from './ProductRegistrationForm';
-import BadgeSelector from './BadgeSelector';
-import { ContentFormValues } from './AddContentForm';
+
+import { ContentFormValues } from './forms/AddContentForm';
 import { usePeerSpaceTabs } from '@/hooks/usePeerSpaceTabs';
 import PeerSpaceTabs from './PeerSpaceTabs';
 import { Link } from 'react-router-dom';
 import { add } from '@/utils/indexedDBService';
+import PeerSpaceRelatedMallsSection from './sections/PeerSpaceRelatedMallsSection';
+
+import ProductRegistrationForm from './products/ProductRegistrationForm';
+import EmptyState from './ui/EmptyState';
+import PeerSpaceFooter from './layout/PeerSpaceFooter';
+import BadgeSelector from './ui/BadgeSelector';
+import PeerSpaceLiveCollaboration from './others/PeerSpaceLiveCollaboration';
+import PeerSpaceActivityFeed from './others/PeerSpaceActivityFeed';
+import PeerSpaceTrustSection from './sections/PeerSpaceTrustSection';
+import PeerSpaceMapSection from './sections/PeerSpaceMapSection';
+import PeerSpaceReviewSection from './sections/PeerSpaceReviewSection';
+import PeerSpaceEventsSection from './sections/PeerSpaceEventsSection';
+import PeerSpaceCommunitySection from './sections/PeerSpaceCommunitySection';
+import PeerSpaceContentSection from './sections/PeerSpaceContentSection';
+import PeerSpaceHeader from './layout/PeerSpaceHeader';
 
 interface PeerSpaceHomeProps {
   isOwner: boolean;
