@@ -15,7 +15,8 @@ export type ContentType =
   | 'workshop'
   | 'challenge'
   | 'tool'
-  | 'external'; // Ensuring 'external' is included in ContentType
+  | 'external'
+  | 'livestream'; // Added livestream to ContentType
 
 export interface ContentAuthor {
   id: string;
@@ -55,7 +56,7 @@ export interface Content {
   views: number;
   saves: number;
   category?: string;
-  price?: number;
+  price?: number | string; // Updated to accept string or number
   tags?: string[];
   location?: string;
   relatedBadges?: string[];
@@ -66,7 +67,7 @@ export interface Content {
   ecosystem?: ContentEcosystem;
   completion?: number;
   maxParticipants?: number;
-  participants?: string[];
+  participants?: string[] | number; // Updated to accept number
   htmlContent?: string; // HTML 콘텐츠 (Toast UI Editor 용)
   rating?: number; // Added for components referencing this property
   attributes?: Record<string, unknown>; // Add for extra attributes
@@ -92,21 +93,28 @@ export interface PeerMallConfig {
   socialLinks?: { [key: string]: string };
   establishedDate?: string;
   status: 'active' | 'inactive' | 'pending';
-  title?: string; // Add for components referencing this property
-  profileImage?: string; // Add for components referencing this property
-  peerNumber?: string; // Add for components referencing this property
-  followers?: number; // Add for components referencing this property
-  recommendations?: number; // Add for components referencing this property
-  badges?: string[]; // Add for components referencing this property
-  coverImage?: string; // Add for components referencing this property
+  title?: string;
+  profileImage?: string;
+  peerNumber?: string;
+  followers?: number;
+  recommendations?: number;
+  badges?: string[];
+  coverImage?: string;
   isVerified?: boolean;
   skin?: string;
+  level?: number; // Added for PeerSpaceTrustSection
+  experience?: number; // Added for PeerSpaceTrustSection
+  nextLevelExperience?: number; // Added for PeerSpaceTrustSection
+  completedChallenges?: number; // Added for PeerSpaceTrustSection
+  activeQuests?: number; // Added for PeerSpaceTrustSection
+  familyGuilds?: { id: string; name: string; imageUrl: string }[]; // Added for PeerSpaceTrustSection
   customizations?: {
     primaryColor?: string;
+    secondaryColor?: string; // Added secondaryColor
     showChat?: boolean;
     allowComments?: boolean;
     showBadges?: boolean;
-  }; // Add for components referencing this property
+  };
 }
 
 export interface PeerSpaceData {
@@ -119,7 +127,17 @@ export interface PeerSpaceData {
   experience?: number;
   achievements?: number;
   memberCount?: number;
-  title?: string; // Add for components referencing this property
+  title?: string;
+  peerNumber?: string; // Added for mockData.ts
+  profileImage?: string; // Added for mockData.ts
+  badges?: string[]; // Added for mockData.ts
+  followers?: number; // Added for mockData.ts
+  recommendations?: number; // Added for mockData.ts
+  socialLinks?: { [key: string]: string }; // Added for mockData.ts
+  contactPhone?: string; // Added for mockData.ts
+  contactEmail?: string; // Added for mockData.ts
+  completedChallenges?: number; // Added for UserLevelDisplay
+  activeQuests?: number; // Added for UserLevelDisplay
 }
 
 export interface Review {
@@ -134,11 +152,16 @@ export interface Review {
   likes: number;
   images?: string[];
   verified: boolean;
-  author?: string; // Add for components referencing this property
-  authorImage?: string; // Add for components referencing this property
-  source?: string; // Add for components referencing this property
-  sourceSite?: string; // Add for components referencing this property
-  content?: string; // Add for components referencing this property
+  author?: string;
+  authorImage?: string;
+  source?: string;
+  sourceSite?: string;
+  content?: string;
+  peerMall?: { // Added peerMall for PeerSpaceReviewSection and contentHelper.ts
+    id: string;
+    name: string;
+    address: string;
+  };
 }
 
 export interface CommunityPost {

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -90,10 +89,16 @@ const PeerSpaceTrustSection: React.FC<PeerSpaceTrustSectionProps> = ({ config })
               {/* Level info */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-medium">레벨 {config.level}</h4>
-                  <span className="text-sm text-blue-600">{config.experience} / {config.nextLevelExperience} XP</span>
+                  <h4 className="font-medium">레벨 {config.level || 1}</h4>
+                  <span className="text-sm text-blue-600">
+                    {config.experience || 0} / {config.nextLevelExperience || 100} XP
+                  </span>
                 </div>
-                <Progress value={(config.experience / config.nextLevelExperience) * 100} className="h-2" />
+                <Progress 
+                  value={config.experience && config.nextLevelExperience ? 
+                    (config.experience / config.nextLevelExperience) * 100 : 0} 
+                  className="h-2" 
+                />
               </div>
               
               <div className="grid grid-cols-2 gap-3">

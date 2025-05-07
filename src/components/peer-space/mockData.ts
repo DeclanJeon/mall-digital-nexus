@@ -1,3 +1,4 @@
+
 import { Content, Review, CommunityPost, PeerSpaceData, Quest } from './types';
 
 export const learningHubData: PeerSpaceData = {
@@ -5,7 +6,7 @@ export const learningHubData: PeerSpaceData = {
   title: '게이미피케이션 학습 공간',
   description: '지속적인 도전과 피드백을 통한 효과적인 학습 환경',
   owner: '김피어',
-  peerNumber: 'P-12345-6789',
+  peerNumber: 'P-12345-6789', // Added to PeerSpaceData interface
   profileImage: 'https://api.dicebear.com/7.x/personas/svg?seed=currentUser',
   badges: ['교육전문가', '상위 10% 활동가', '게이미피케이션 마스터'],
   followers: 328,
@@ -30,7 +31,7 @@ export const peerSpaceData: PeerSpaceData = {
   title: '게이미피케이션 학습 공간',
   description: '지속적인 도전과 피드백을 통한 효과적인 학습 환경',
   owner: '김피어',
-  peerNumber: 'P-12345-6789',
+  peerNumber: 'P-12345-6789', // Added to PeerSpaceData interface
   profileImage: 'https://api.dicebear.com/7.x/personas/svg?seed=currentUser',
   badges: ['교육전문가', '상위 10% 활동가', '게이미피케이션 마스터'],
   followers: 328,
@@ -77,14 +78,14 @@ export const featuredContent: Content[] = [
     imageUrl:
       'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80',
     type: 'event',
-    price: '150,000원~', // String price
+    price: '150,000원~', // This is now valid as Content.price can be string | number
     date: '2025년 5월 15일',
     likes: 85,
     comments: 0,
     views: 0,
     saves: 0,
     isExternal: false,
-    participants: 24,
+    participants: 24, // This is now valid as Content.participants can be number
     maxParticipants: 30,
     createdAt: '2025-04-29T12:00:00Z',
     updatedAt: '2025-04-29T12:00:00Z',
@@ -98,13 +99,13 @@ export const featuredContent: Content[] = [
       'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80',
     type: 'quest',
     date: '진행중 (12일 남음)',
-    price: '무료', // String price
+    price: '무료', // This is now valid as Content.price can be string | number
     likes: 212,
     comments: 0,
     views: 0,
     saves: 0,
     isExternal: false,
-    participants: 156,
+    participants: 156, // This is now valid as Content.participants can be number
     createdAt: '2025-04-29T12:00:00Z',
     updatedAt: '2025-04-29T12:00:00Z',
   },
@@ -116,7 +117,7 @@ export const featuredContent: Content[] = [
     imageUrl:
       'https://images.unsplash.com/photo-1559336197-ded8aaa244bc?auto=format&fit=crop&q=80',
     type: 'product',
-    price: '300,000원', // String price
+    price: '300,000원', // This is now valid as Content.price can be string | number
     date: '',
     likes: 78,
     comments: 0,

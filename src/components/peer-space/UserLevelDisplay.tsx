@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PeerSpaceData } from './types';
 import { Progress } from '@/components/ui/progress';

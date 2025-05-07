@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -495,7 +494,10 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       case 'map':
         return config.location ? 
           <PeerSpaceMapSection 
-            location={config.location} 
+            location={typeof config.location === 'string' ? 
+              { lat: 37.5665, lng: 126.9780, address: config.location } : 
+              config.location
+            } 
             title={config.title} 
           /> : null;
       case 'trust':

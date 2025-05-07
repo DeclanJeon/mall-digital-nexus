@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -119,7 +118,7 @@ const PeerSpaceReviewSection: React.FC<PeerSpaceReviewSectionProps> = ({
               
               <div className="flex justify-between items-center text-xs text-gray-500">
                 <div>
-                  {review.peerMall.name}
+                  {review.peerMall?.name || ''}
                 </div>
                 <button 
                   className="flex items-center gap-1 hover:text-blue-600 transition"

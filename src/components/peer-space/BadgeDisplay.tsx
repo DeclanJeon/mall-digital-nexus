@@ -27,6 +27,20 @@ export const BadgeDisplay = ({
     lg: 'px-3 py-1.5'
   };
   
+  // Helper function to render badge icon
+  const renderBadgeIcon = (icon: any) => {
+    if (React.isValidElement(icon)) {
+      return React.cloneElement(icon, { className: "h-3 w-3 mr-1.5" });
+    }
+    
+    if (typeof icon === 'function') {
+      const IconComponent = icon;
+      return <IconComponent className="h-3 w-3 mr-1.5" />;
+    }
+    
+    return <CircleIcon className="h-3 w-3 mr-1.5" />;
+  };
+  
   return (
     <div className="flex flex-wrap gap-2">
       {displayBadges.map((badge) => (
@@ -36,9 +50,7 @@ export const BadgeDisplay = ({
           className={`${sizeClasses[size]} border-opacity-50 ${badge.color ? badge.color.replace('text-', 'border-') : 'border-gray-500'} ${badge.color || 'text-gray-700'}`}
           title={showTooltip ? badge.description : undefined}
         >
-          {typeof badge.icon === 'function' ? 
-            React.createElement(badge.icon, { className: "h-3 w-3 mr-1.5" }) : 
-            <CircleIcon className="h-3 w-3 mr-1.5" />}
+          {badge.icon ? renderBadgeIcon(badge.icon) : <CircleIcon className="h-3 w-3 mr-1.5" />}
           {badge.name}
         </Badge>
       ))}
