@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ExternalLink, Copy, Check, QrCode } from 'lucide-react';
 import Header from '../components/CategoryNav';
-import Footer from '../components/Footer';
+import Footer from '../components/layout/Footer';
 
 const CurationLinks = () => {
   const [copied, setCopied] = useState(false);

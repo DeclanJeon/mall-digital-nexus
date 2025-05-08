@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback } from 'react';
 import Header from '@/components/CategoryNav';
-import Footer from '@/components/Footer';
+import Footer from '@/components/layout/Footer';
 import CategoryNav from '@/components/CategoryNav';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';

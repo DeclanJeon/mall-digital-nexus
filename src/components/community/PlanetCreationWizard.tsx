@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { PlanetCreationWizardProps, PlanetType, PlanetWizardData } from './type';
+import { PlanetCreationWizardProps, PlanetType, PlanetWizardData } from './types';
 import { 
   Globe, Lock, Clock, CircleCheck, CirclePlus, ArrowRight, Calendar 
 } from 'lucide-react';

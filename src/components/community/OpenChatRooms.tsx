@@ -11,7 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { MessageSquare, Mic, Video, FileText, ScreenShare, Globe, Lock, LockOpen, User, Users, Share2 } from 'lucide-react';
-import { ChatRoom } from './type';
+import { ChatRoom } from './types';
 
 
 
