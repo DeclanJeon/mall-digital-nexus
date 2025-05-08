@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,11 +50,19 @@ const initialPosts: Post[] = [
   }
 ];
 
+type DraftPost = {
+  title: string;
+  content?: string;
+  tags: string | string[];
+  author?: string;
+  authorAvatar?: string;
+};
+
 const CommunitySection = () => {
   const [showNewPostForm, setShowNewPostForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [posts, setPosts] = useLocalStorage<Post[]>('community_posts', initialPosts);
-  const [draftPost, setDraftPost] = useLocalStorage<Partial<Post> | null>('draft_post', null);
+  const [draftPost, setDraftPost] = useLocalStorage<DraftPost | null>('draft_post', null);
   const [isPrivate, setIsPrivate] = useState(false);
   
   const editorRef = React.useRef<any>(null);
@@ -69,6 +76,15 @@ const CommunitySection = () => {
   const handleCreatePost = () => {
     if (editorRef.current && draftPost?.title) {
       const content = editorRef.current.getInstance().getMarkdown();
+      
+      // Process tags from string to array if needed
+      let processedTags: string[] = [];
+      if (typeof draftPost.tags === 'string') {
+        processedTags = draftPost.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+      } else {
+        processedTags = draftPost.tags || [];
+      }
+      
       const newPost: Post = {
         id: `post-${Date.now()}`,
         title: draftPost.title || '',
@@ -79,7 +95,7 @@ const CommunitySection = () => {
         isPrivate: isPrivate,
         likes: 0,
         comments: 0,
-        tags: draftPost.tags?.split(',').map(tag => tag.trim()) || []
+        tags: processedTags
       };
       
       setPosts([newPost, ...posts]);
@@ -92,7 +108,7 @@ const CommunitySection = () => {
     if (editorRef.current) {
       const content = editorRef.current.getInstance().getMarkdown();
       setDraftPost({
-        ...draftPost,
+        ...draftPost || { title: '', tags: '' },
         content: content
       });
     }
@@ -134,14 +150,14 @@ const CommunitySection = () => {
                 <Input
                   placeholder="제목을 입력하세요"
                   value={draftPost?.title || ''}
-                  onChange={(e) => setDraftPost({ ...draftPost || {}, title: e.target.value })}
+                  onChange={(e) => setDraftPost({ ...draftPost || {}, title: e.target.value, tags: draftPost?.tags || '' })}
                 />
               </div>
               <div>
                 <Input
                   placeholder="태그를 쉼표로 구분하여 입력하세요"
-                  value={draftPost?.tags || ''}
-                  onChange={(e) => setDraftPost({ ...draftPost || {}, tags: e.target.value })}
+                  value={typeof draftPost?.tags === 'string' ? draftPost.tags : (draftPost?.tags || []).join(', ')}
+                  onChange={(e) => setDraftPost({ ...draftPost || {}, tags: e.target.value, title: draftPost?.title || '' })}
                 />
               </div>
               <div className="min-h-[400px]">
@@ -164,9 +180,7 @@ const CommunitySection = () => {
                 </Badge>
               </div>
               <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => {
-                  handleDraft();
-                }}>임시 저장</Button>
+                <Button variant="outline" onClick={handleDraft}>임시 저장</Button>
                 <Button variant="outline" onClick={() => {
                   setShowNewPostForm(false);
                 }}>취소</Button>
