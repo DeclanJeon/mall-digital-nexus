@@ -1,5 +1,6 @@
-// src/components/community/PlanetBoardView.tsx
-import React from 'react';
+
+// src/components/community/board/PlanetBoardView.tsx
+import React, { useState } from 'react';
 import BoardHeader from './BoardHeader';
 import PostSection from './PostSection';
 import PostForm from './PostForm';
@@ -28,10 +29,19 @@ const PlanetBoardView: React.FC<PlanetBoardViewProps> = ({
   onTabChange,
   onViewPostDetail,
 }) => {
+  const [selectedPost, setSelectedPost] = useState(null);
+
+  const handleViewPostDetail = (post) => {
+    setSelectedPost(post);
+  };
+
+  const handleBackFromDetail = () => {
+    setSelectedPost(null);
+  };
+
   return (
     <div 
       className="bg-black/20 backdrop-blur-xl rounded-2xl p-6 animate-fade-in"
-      // style={{ '--board-view-height': 'calc(100vh - 150px)' } as React.CSSProperties} // JS에서 CSS 변수 설정
     >
       <BoardHeader
         selectedLocation={selectedLocation}
@@ -55,9 +65,11 @@ const PlanetBoardView: React.FC<PlanetBoardViewProps> = ({
             username={username}
             onEditPost={onEditPost}
             onDeletePost={onDeletePost}
-            onViewPostDetail={onViewPostDetail}
+            onViewPostDetail={handleViewPostDetail}
             activeTab={activeTab}
             onTabChange={onTabChange}
+            selectedPost={selectedPost}
+            onBackFromDetail={handleBackFromDetail}
           />
         </div>
         <div className="lg:col-span-1">
