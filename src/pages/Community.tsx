@@ -188,7 +188,6 @@ const Community = () => {
       </main>
       
       <style>{`
-        /* Global Styles */
         body { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.3) transparent; }
         *::-webkit-scrollbar { width: 8px; height: 8px; }
         *::-webkit-scrollbar-track { background: transparent; }
