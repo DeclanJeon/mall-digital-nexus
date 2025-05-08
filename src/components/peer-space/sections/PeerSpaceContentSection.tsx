@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Content } from '../types';
 import ContentCard from '../content/ContentCard';
@@ -20,8 +21,23 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
     setIsAddingContent(true);
   };
 
-  const handleContentSubmit = (newContent: Content) => {
-    // TODO: Implement content submission logic
+  const handleContentSubmit = (formValues: any) => {
+    // Create a new Content object from the form values
+    const newContent: Content = {
+      id: Date.now().toString(),
+      peerSpaceAddress: 'peer-space-address', // Should be dynamically set
+      title: formValues.title || '',
+      description: formValues.description || '',
+      type: formValues.type || 'post',
+      date: new Date().toISOString(),
+      imageUrl: formValues.imageUrl || '',
+      price: formValues.price || '',
+      likes: 0,
+      comments: 0,
+      views: 0,
+      saves: 0
+    };
+    
     console.log("새로운 콘텐츠:", newContent);
     setIsAddingContent(false);
   };
@@ -51,7 +67,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
         </div>
       ) : (
         <EmptyState 
-          message="콘텐츠가 없습니다."
+          title="콘텐츠가 없습니다."
           description="새로운 콘텐츠를 추가하여 피어 스페이스를 풍성하게 만들어보세요."
         />
       )}

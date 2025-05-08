@@ -12,6 +12,65 @@ export type {
   Review
 };
 
+// Add missing types from the error messages
+export interface CommunityPost {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+  authorId: string;
+  authorAvatar?: string;
+  date: string;
+  likes: number;
+  comments: number;
+  tags?: string[];
+  images?: string[];
+  category?: string;
+}
+
+export interface GuestbookEntry {
+  id: string;
+  author: string;
+  authorId: string;
+  authorAvatar?: string;
+  message: string;
+  date: string;
+  isPublic: boolean;
+}
+
+export interface LiveStream {
+  id: string;
+  title: string;
+  description: string;
+  streamUrl: string;
+  thumbnailUrl: string;
+  startTime: string;
+  endTime?: string;
+  creator: string;
+  creatorId: string;
+  isLive: boolean;
+  viewers: number;
+  likes: number;
+  category?: string;
+  tags?: string[];
+}
+
+export interface Advertisement {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  redirectUrl: string;
+  startDate: string;
+  endDate: string;
+  advertiser: string;
+  advertiserId: string;
+  views: number;
+  clicks: number;
+  placement: string;
+  status: 'active' | 'inactive' | 'pending';
+}
+
 export interface FeaturedContentSectionProps {
   title?: string;
   content: Content[];

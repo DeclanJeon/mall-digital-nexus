@@ -18,6 +18,24 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Content, ContentType } from '../types';
 
+// Export this type for use in ProductRegistrationPreview
+export interface ProductFormValues {
+  title: string;
+  description: string;
+  imageUrl: string;
+  type: ContentType;
+  price?: string;
+  isExternal: boolean;
+  externalUrl?: string;
+  name?: string;
+  categoryId?: string;
+  manufacturer?: string;
+  distributor?: string;
+  stock?: number;
+  isPublic?: boolean;
+  saleUrl?: string;
+}
+
 const formSchema = z.object({
   title: z.string().min(2, {
     message: "제목은 최소 2글자 이상이어야 합니다.",
@@ -34,6 +52,13 @@ const formSchema = z.object({
   externalUrl: z.string().url({
     message: "유효한 외부 URL을 입력해주세요.",
   }).optional(),
+  name: z.string().optional(),
+  categoryId: z.string().optional(),
+  manufacturer: z.string().optional(),
+  distributor: z.string().optional(),
+  stock: z.number().optional(),
+  isPublic: z.boolean().optional(),
+  saleUrl: z.string().optional(),
 })
 
 const typeOptions = [
@@ -56,9 +81,18 @@ const typeOptions = [
 
 interface ProductRegistrationFormProps {
   onSubmit: (values: Content) => void;
+  address?: string;
+  onClose?: () => void;
+  // Add the property that PeerSpaceHome is trying to pass
+  onProductAdded?: (product: Content) => Promise<void>;
 }
 
-const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({ onSubmit }) => {
+const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({ 
+  onSubmit, 
+  address = 'your_peer_space_address',
+  onClose,
+  onProductAdded 
+}) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -74,27 +108,39 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({ onSub
 
   const [isExternal, setIsExternal] = useState(false);
 
+  const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    const newContent: Content = {
+      id: Date.now().toString(),
+      peerSpaceAddress: address,
+      title: values.title,
+      description: values.description,
+      imageUrl: values.imageUrl,
+      type: values.type as ContentType,
+      date: new Date().toISOString(),
+      price: values.price,
+      isExternal: values.isExternal,
+      externalUrl: values.externalUrl,
+      likes: 0,
+      comments: 0,
+      views: 0,
+      saves: 0,
+    };
+    
+    // Call both callbacks if they exist
+    onSubmit(newContent);
+    
+    if (onProductAdded) {
+      onProductAdded(newContent);
+    }
+    
+    if (onClose) {
+      onClose();
+    }
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit((values) => {
-        const newContent: Content = {
-          id: Date.now().toString(),
-          peerSpaceAddress: 'your_peer_space_address',
-          title: values.title,
-          description: values.description,
-          imageUrl: values.imageUrl,
-          type: values.type as ContentType,
-          date: new Date().toISOString(),
-          price: values.price,
-          isExternal: values.isExternal,
-          externalUrl: values.externalUrl,
-          likes: 0,
-          comments: 0,
-          views: 0,
-          saves: 0,
-        };
-        onSubmit(newContent);
-      })} className="space-y-8">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
         <FormField
           control={form.control}
           name="title"

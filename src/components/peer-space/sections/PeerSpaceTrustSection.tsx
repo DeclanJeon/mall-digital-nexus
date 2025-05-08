@@ -1,5 +1,17 @@
+
 import React from 'react';
 import { PeerMallConfig } from '../types';
+import { 
+  Card, CardContent, CardHeader, CardTitle 
+} from '@/components/ui/card';
+import { 
+  Award, Shield, CheckCircle, Users, Zap, ThumbsUp 
+} from 'lucide-react';
+import { 
+  Avatar, AvatarImage, AvatarFallback 
+} from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 
 interface PeerSpaceTrustSectionProps {
   config: PeerMallConfig;
