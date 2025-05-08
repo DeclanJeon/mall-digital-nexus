@@ -3,7 +3,7 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowRight } from "lucide-react";
-import ContentCard from "@/components/peer-space/ContentCard";
+import ContentCard from "@/components/peer-space/content/ContentCard";
 import { Content } from "./types";
 
 export interface LearningHubTabsProps {

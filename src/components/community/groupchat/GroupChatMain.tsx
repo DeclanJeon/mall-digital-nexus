@@ -134,7 +134,6 @@ const GroupChatMain: React.FC<GroupChatMainProps> = ({
           setActiveView={setActiveView}
           setIsRecording={setIsRecording}
           toggleFullScreen={toggleFullScreen}
-          handleLeaveChannel={handleLeaveChannel}
           setChatOpen={setChatOpen}
           setParticipantsOpen={setParticipantsOpen}
           handleToggleMute={handleToggleMute}

@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { PeerMallConfig } from './types';
+import { PeerMallConfig } from '../types';
 
 interface PeerSpaceReviewSectionProps {
   config: PeerMallConfig;

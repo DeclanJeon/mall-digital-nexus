@@ -29,10 +29,10 @@ import {
 import { Button } from '@/components/ui/button'; 
 import { toast } from 'sonner';
 import { Dialog } from "@/components/ui/dialog"; // Only keep Dialog import
-import GroupChatSidebar from './groupchat/GroupChatSidebar'; 
-import GroupChatMain from './groupchat/GroupChatMain'; 
-import { ChatGroup, Message, ActiveMember, ScreenShareData } from './groupchat/types'; 
-import { MOCK_CHAT_GROUPS, MOCK_MESSAGES, ACTIVE_MEMBERS, SCREEN_SHARES } from './groupchat/mockData'; // Import mock data
+import GroupChatSidebar from './GroupChatSidebar'; 
+import GroupChatMain from './GroupChatMain'; 
+import { ChatGroup, Message, ActiveMember, ScreenShareData } from './types'; 
+import { MOCK_CHAT_GROUPS, MOCK_MESSAGES, ACTIVE_MEMBERS, SCREEN_SHARES } from './mockData'; // Import mock data
 
 // Remove inline type definitions and mock data declarations
 

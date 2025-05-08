@@ -1,3 +1,4 @@
+
 // Type definitions for Group Chat components
 
 export interface ChatGroup {

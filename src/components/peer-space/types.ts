@@ -128,6 +128,7 @@ export interface PeerSpaceData {
   owner: string;
   level?: number;
   experience?: number;
+  nextLevelExperience?: number;
   achievements?: number;
   memberCount?: number;
   title?: string;
@@ -310,7 +311,7 @@ export type SectionType =
   | 'livestream';
 
 export interface FeaturedContentSectionProps {
-  title: string;
+  title?: string;
   content: Content[];
   viewAll?: string;
   maxItems?: number;

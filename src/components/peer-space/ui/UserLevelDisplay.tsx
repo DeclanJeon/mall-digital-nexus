@@ -1,64 +1,48 @@
+
 import React from 'react';
-import { PeerSpaceData } from './types';
-import { Progress } from '@/components/ui/progress';
-import { Trophy, Award, Target } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { PeerSpaceData } from "../types";
 
 interface UserLevelDisplayProps {
-  peerSpaceData: PeerSpaceData;
+  userData: PeerSpaceData;
+  size?: 'sm' | 'md' | 'lg';
+  showExperience?: boolean;
 }
 
-export const UserLevelDisplay = ({ peerSpaceData }: UserLevelDisplayProps) => {
+const UserLevelDisplay: React.FC<UserLevelDisplayProps> = ({ 
+  userData, 
+  size = 'md', 
+  showExperience = true 
+}) => {
+  const { level = 1, experience = 0, nextLevelExperience = 100 } = userData;
+  
+  // Calculate progress percentage
+  const progress = Math.min(100, Math.floor((experience / nextLevelExperience) * 100));
+  
   return (
-    <section className="bg-gradient-to-r from-primary-300 to-primary-400 text-white py-6 px-4 shadow-md">
-      <div className="container mx-auto flex flex-col md:flex-row items-center justify-between">
-        <div className="flex flex-col md:flex-row items-center mb-4 md:mb-0">
-          <div className="text-center md:text-left md:mr-8">
-            <div className="flex items-center">
-              <Trophy className="h-6 w-6 text-yellow-300 mr-2" />
-              <h2 className="text-2xl font-bold">레벨 {peerSpaceData.level}</h2>
-            </div>
-            <p className="text-primary-100">학습 피어</p>
-          </div>
-          <div className="w-full md:w-64 mt-4 md:mt-0">
-            <div className="flex justify-between mb-1 text-xs">
-              <span>경험치</span>
-              <span>{peerSpaceData.experience}%</span>
-            </div>
-            <Progress 
-              value={peerSpaceData.experience} 
-              className="h-2 bg-primary-200"
-              indicatorColor="#FACC15" // yellow-300 equivalent
-            />
-            <div className="flex justify-between mt-1 text-xs text-primary-100">
-              <Badge variant="outline" className="text-xs bg-primary-200/50 text-white border-primary-200">
-                현재: {peerSpaceData.level}
-              </Badge>
-              <Badge variant="outline" className="text-xs bg-primary-200/50 text-white border-primary-200">
-                다음 레벨까지: {100 - peerSpaceData.experience}%
-              </Badge>
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-6 text-center">
-          <div className="flex flex-col items-center">
-            <Award className="h-5 w-5 text-yellow-300 mb-1" />
-            <p className="text-2xl font-bold">{peerSpaceData.achievements}</p>
-            <p className="text-xs text-primary-100">획득한 업적</p>
-          </div>
-          <div className="flex flex-col items-center">
-            <Target className="h-5 w-5 text-green-300 mb-1" />
-            <p className="text-2xl font-bold">{peerSpaceData.completedChallenges || 0}</p>
-            <p className="text-xs text-primary-100">완료한 챌린지</p>
-          </div>
-          <div className="flex flex-col items-center">
-            <Award className="h-5 w-5 text-blue-300 mb-1" />
-            <p className="text-2xl font-bold">{peerSpaceData.activeQuests || 0}</p>
-            <p className="text-xs text-primary-100">진행 중인 퀘스트</p>
-          </div>
-        </div>
+    <div className="flex items-center gap-2">
+      <div className={`
+        rounded-full bg-primary-300 text-white font-bold
+        ${size === 'sm' ? 'w-6 h-6 text-xs' : 
+          size === 'lg' ? 'w-10 h-10 text-lg' : 'w-8 h-8 text-sm'}
+        flex items-center justify-center
+      `}>
+        {level}
       </div>
-    </section>
+      
+      {showExperience && (
+        <div className="flex-1">
+          <div className="bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-primary-300 rounded-full h-2" 
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            {experience} / {nextLevelExperience} XP
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

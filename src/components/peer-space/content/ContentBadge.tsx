@@ -1,6 +1,5 @@
-
 import { Badge } from "@/components/ui/badge";
-import { ContentType } from "./types";
+import { ContentType } from "../types";
 
 interface ContentBadgeProps {
   type: ContentType;
