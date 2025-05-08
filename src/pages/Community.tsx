@@ -1,3 +1,4 @@
+
 // src/components/community/Community.tsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -104,6 +105,11 @@ const Community = () => {
     setActiveTab('posts');
   };
 
+  // Fixed: Changed to handle React.ChangeEvent<HTMLInputElement> properly
+  const handleNewMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessageText(e.target.value);
+  };
+
   const handleSendMessage = () => {
     if (newMessageText.trim() === '' || !username) return;
     const msg: ChatMessage = {
@@ -171,7 +177,7 @@ const Community = () => {
             onDeletePost={handleDeletePost}
             messages={messages}
             newMessage={newMessageText}
-            onNewMessageChange={setNewMessageText}
+            onNewMessageChange={handleNewMessageChange}
             onSendMessage={handleSendMessage}
             username={username}
             onReturnToUniverse={handleReturnToUniverse}

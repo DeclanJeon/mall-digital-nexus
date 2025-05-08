@@ -1,3 +1,4 @@
+
 // src/components/community/ChatPanel.tsx
 import React, { useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
@@ -68,7 +69,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
           <Input
             placeholder="메시지 입력..."
             value={newMessage}
-            onChange={(e) => onNewMessageChange(e.target.value)}
+            onChange={(e) => onNewMessageChange(e)}
             onKeyDown={handleKeyDown}
             className="bg-white/5 border-white/20 text-white flex-1"
             aria-label="채팅 메시지 입력"
