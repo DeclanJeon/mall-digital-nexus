@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,13 +10,14 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
-import { MessageSquare, Mic, Video, FileText, ScreenShare, Globe, Lock, LockOpen, User, Users, Share2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { MessageSquare, Mic, Video, FileText, ScreenShare, Globe, Lock, LockOpen, User, Users, Share2, Link, QrCode } from 'lucide-react';
 import { ChatRoom } from './types';
+import { QRCodeModal } from '@/components/peer-space/modals/QRCodeModal';
 
 
 
-const OpenChatRooms = () => {
+const OpenChatRooms = ({ planetId }: { planetId?: string }) => {
   const navigate = useNavigate();
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([
     {
@@ -28,7 +30,8 @@ const OpenChatRooms = () => {
       participantsCount: 15,
       isPrivate: false,
       features: ['파일전송', '화면공유'],
-      timestamp: new Date('2025-04-16T14:30:00')
+      timestamp: new Date('2025-04-16T14:30:00'),
+      planetId: planetId,
     },
     {
       id: '2',
@@ -40,7 +43,8 @@ const OpenChatRooms = () => {
       participantsCount: 8,
       isPrivate: false,
       features: ['텍스트채팅', '파일전송'],
-      timestamp: new Date('2025-04-16T18:45:00')
+      timestamp: new Date('2025-04-16T18:45:00'),
+      planetId: planetId,
     },
     {
       id: '3',
@@ -52,13 +56,16 @@ const OpenChatRooms = () => {
       participantsCount: 5,
       isPrivate: true,
       features: ['텍스트채팅', '화면공유', '웹공유'],
-      timestamp: new Date('2025-04-17T09:00:00')
+      timestamp: new Date('2025-04-17T09:00:00'),
+      planetId: planetId,
     },
   ]);
   
   const [filterType, setFilterType] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
+  const [qrModalOpen, setQrModalOpen] = useState<boolean>(false);
+  const [selectedRoomForQR, setSelectedRoomForQR] = useState<ChatRoom | null>(null);
   
   const [newRoom, setNewRoom] = useState<Omit<ChatRoom, 'id' | 'participantsCount' | 'timestamp'>>({
     name: '',
@@ -67,19 +74,27 @@ const OpenChatRooms = () => {
     creator: '익명 사용자',
     isPrivate: false,
     features: [],
-    participants: 0 // Added participants property
+    participants: 0,
+    planetId: planetId
   });
+
+  const { toast } = useToast();
 
   const filteredRooms = chatRooms.filter(room => {
     const matchesSearch = room.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          room.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === "all" || room.type === filterType;
-    return matchesSearch && matchesType;
+    const matchesPlanet = planetId ? room.planetId === planetId : true;
+    return matchesSearch && matchesType && matchesPlanet;
   });
 
   const handleCreateRoom = () => {
     if (!newRoom.name.trim()) {
-      toast.error("채팅방 이름을 입력해주세요.");
+      toast({
+        title: "오류",
+        description: "채팅방 이름을 입력해주세요.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -87,13 +102,16 @@ const OpenChatRooms = () => {
       ...newRoom,
       id: Math.random().toString(36).substring(2, 9),
       participantsCount: 1,
-      participants: 1, // Added participants property
+      participants: 1,
       timestamp: new Date(),
     };
 
     setChatRooms([createdRoom, ...chatRooms]);
     setCreateDialogOpen(false);
-    toast.success(`'${createdRoom.name}' 채팅방이 생성되었습니다.`);
+    toast({
+      title: "채팅방 생성 완료",
+      description: `'${createdRoom.name}' 채팅방이 생성되었습니다.`,
+    });
     
     setNewRoom({
       name: '',
@@ -102,7 +120,8 @@ const OpenChatRooms = () => {
       creator: '익명 사용자',
       isPrivate: false,
       features: [],
-      participants: 0 // Added participants property
+      participants: 0,
+      planetId: planetId
     });
   };
 
@@ -119,7 +138,15 @@ const OpenChatRooms = () => {
         }
       }
     });
-    toast.success(`'${room.name}' 채팅방에 입장합니다.`);
+    toast({
+      title: "채팅방 입장",
+      description: `'${room.name}' 채팅방에 입장합니다.`,
+    });
+  };
+
+  const handleShareRoom = (room: ChatRoom) => {
+    setSelectedRoomForQR(room);
+    setQrModalOpen(true);
   };
 
   const toggleFeature = (feature: string) => {
@@ -149,7 +176,9 @@ const OpenChatRooms = () => {
     }
   };
 
-  const formatTimeAgo = (date: Date) => {
+  const formatTimeAgo = (date?: Date) => {
+    if (!date) return '방금 전';
+    
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
     
@@ -160,7 +189,7 @@ const OpenChatRooms = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4">
       <div className="flex flex-col md:flex-row justify-between gap-4">
         <div className="flex-1">
           <Input
@@ -190,59 +219,69 @@ const OpenChatRooms = () => {
         </div>
       </div>
       
-      <ScrollArea className="h-[calc(100vh-300px)] pr-4">
+      <ScrollArea className="h-[calc(80vh-200px)] pr-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredRooms.map((room) => (
             <div 
               key={room.id} 
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all"
+              className="bg-white/5 border border-white/10 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all hover:bg-white/10"
             >
               <div className="p-5 space-y-4">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2">
                     <div className={`p-2 rounded-full 
-                      ${room.type === 'text' ? 'bg-blue-100 text-blue-600' : 
-                        room.type === 'voice' ? 'bg-green-100 text-green-600' : 
-                        'bg-purple-100 text-purple-600'}`}>
+                      ${room.type === 'text' ? 'bg-blue-900/30 text-blue-300' : 
+                        room.type === 'voice' ? 'bg-green-900/30 text-green-300' : 
+                        'bg-purple-900/30 text-purple-300'}`}>
                       {getRoomTypeIcon(room.type)}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg">{room.name}</h3>
-                      <p className="text-sm text-gray-500">
+                      <h3 className="font-semibold text-lg text-white">{room.name}</h3>
+                      <p className="text-sm text-gray-400">
                         {room.creator} • {room.timestamp && formatTimeAgo(room.timestamp)}
                       </p>
                     </div>
                   </div>
                   {room.isPrivate && (
-                    <Badge variant="outline" className="gap-1">
+                    <Badge variant="outline" className="gap-1 border-red-500/30 text-red-400">
                       <Lock className="h-3 w-3" /> 비공개
                     </Badge>
                   )}
                 </div>
                 
-                <p className="text-sm text-gray-600">{room.description}</p>
+                <p className="text-sm text-gray-300">{room.description}</p>
                 
                 <div className="flex flex-wrap gap-2">
                   {room.features.map((feature, idx) => (
-                    <Badge key={idx} variant="secondary" className="text-xs">{feature}</Badge>
+                    <Badge key={idx} variant="secondary" className="text-xs bg-white/5">{feature}</Badge>
                   ))}
                 </div>
                 
                 <div className="flex justify-between items-center pt-2">
-                  <div className="flex items-center text-sm text-gray-500">
+                  <div className="flex items-center text-sm text-gray-400">
                     <Users className="h-4 w-4 mr-1" />
                     {room.participants || room.participantsCount || 0}명 참여 중
                   </div>
-                  <Button size="sm" onClick={() => handleJoinRoom(room)}>
-                    입장하기
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="icon" 
+                      variant="outline" 
+                      className="h-8 w-8"
+                      onClick={() => handleShareRoom(room)}
+                    >
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" onClick={() => handleJoinRoom(room)}>
+                      입장하기
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
           ))}
           
           {filteredRooms.length === 0 && (
-            <div className="col-span-full flex flex-col items-center justify-center py-10 text-gray-500">
+            <div className="col-span-full flex flex-col items-center justify-center py-10 text-gray-400">
               <MessageSquare className="h-16 w-16 mb-4 opacity-30" />
               <p className="text-lg">검색 결과가 없습니다</p>
               <p className="text-sm">새로운 채팅방을 만들어보세요!</p>
@@ -259,7 +298,7 @@ const OpenChatRooms = () => {
       </ScrollArea>
       
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] bg-gray-900 border-gray-800">
           <DialogHeader>
             <DialogTitle>새 오픈채팅방 만들기</DialogTitle>
             <DialogDescription>
@@ -425,6 +464,15 @@ const OpenChatRooms = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {selectedRoomForQR && (
+        <QRCodeModal
+          open={qrModalOpen}
+          onOpenChange={setQrModalOpen}
+          url={`${window.location.origin}/community/chat/${selectedRoomForQR.id}`}
+          title={selectedRoomForQR.name}
+        />
+      )}
     </div>
   );
 };
