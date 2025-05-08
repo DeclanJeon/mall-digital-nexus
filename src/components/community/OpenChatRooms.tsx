@@ -24,6 +24,7 @@ const OpenChatRooms = () => {
       type: 'text',
       description: '다양한 취미에 대해 이야기해요',
       creator: '사용자123',
+      participants: 15,
       participantsCount: 15,
       isPrivate: false,
       features: ['파일전송', '화면공유'],
@@ -35,6 +36,7 @@ const OpenChatRooms = () => {
       type: 'voice',
       description: '좋아하는 음악을 들으며 대화해요',
       creator: '음악매니아',
+      participants: 8,
       participantsCount: 8,
       isPrivate: false,
       features: ['텍스트채팅', '파일전송'],
@@ -46,6 +48,7 @@ const OpenChatRooms = () => {
       type: 'video',
       description: '함께 공부하고 질문해요',
       creator: '스터디장',
+      participants: 5,
       participantsCount: 5,
       isPrivate: true,
       features: ['텍스트채팅', '화면공유', '웹공유'],
@@ -63,7 +66,8 @@ const OpenChatRooms = () => {
     description: '',
     creator: '익명 사용자',
     isPrivate: false,
-    features: []
+    features: [],
+    participants: 0 // Added participants property
   });
 
   const filteredRooms = chatRooms.filter(room => {
@@ -83,6 +87,7 @@ const OpenChatRooms = () => {
       ...newRoom,
       id: Math.random().toString(36).substring(2, 9),
       participantsCount: 1,
+      participants: 1, // Added participants property
       timestamp: new Date(),
     };
 
@@ -96,7 +101,8 @@ const OpenChatRooms = () => {
       description: '',
       creator: '익명 사용자',
       isPrivate: false,
-      features: []
+      features: [],
+      participants: 0 // Added participants property
     });
   };
 
@@ -106,7 +112,8 @@ const OpenChatRooms = () => {
         room: {
           ...room,
           creator: room.creator || '시스템',
-          participantsCount: room.participantsCount || 1,
+          participantsCount: room.participantsCount || room.participants || 1,
+          participants: room.participants || room.participantsCount || 1,
           members: room.members || ['기본참여자'],
           features: room.features || []
         }
@@ -202,7 +209,7 @@ const OpenChatRooms = () => {
                     <div>
                       <h3 className="font-semibold text-lg">{room.name}</h3>
                       <p className="text-sm text-gray-500">
-                        {room.creator} • {formatTimeAgo(room.timestamp)}
+                        {room.creator} • {room.timestamp && formatTimeAgo(room.timestamp)}
                       </p>
                     </div>
                   </div>
@@ -224,7 +231,7 @@ const OpenChatRooms = () => {
                 <div className="flex justify-between items-center pt-2">
                   <div className="flex items-center text-sm text-gray-500">
                     <Users className="h-4 w-4 mr-1" />
-                    {room.participantsCount}명 참여 중
+                    {room.participants || room.participantsCount || 0}명 참여 중
                   </div>
                   <Button size="sm" onClick={() => handleJoinRoom(room)}>
                     입장하기

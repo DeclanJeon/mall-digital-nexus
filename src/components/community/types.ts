@@ -1,5 +1,3 @@
-
-
 import { UseFormReturn } from 'react-hook-form';
 import { ReactNode, RefObject, MouseEvent, ChangeEvent, Dispatch, SetStateAction } from 'react';
 
@@ -67,14 +65,15 @@ export interface ChatRoom {
   id: string;
   name: string;
   description: string;
-  participants: number;
+  // Making participants optional since participantsCount is often used instead
+  participants?: number;
   lastActive?: string;
   isGlobal?: boolean;
   planetId?: string;
   // Additional properties needed by OpenChatRooms.tsx
   type: 'text' | 'voice' | 'video';
   creator: string;
-  timestamp: Date;
+  timestamp?: Date;
   isPrivate: boolean;
   features: string[];
   participantsCount?: number; // Alias for 'participants' for backwards compatibility
@@ -233,4 +232,3 @@ export interface PostDetailProps {
   onDelete?: (id: string | number) => void;
   isAuthor: boolean;
 }
-
