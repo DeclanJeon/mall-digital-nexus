@@ -188,27 +188,25 @@ const Community = () => {
       </main>
       
       <style>{`
+        /* Global Styles */
         body { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.3) transparent; }
         *::-webkit-scrollbar { width: 8px; height: 8px; }
         *::-webkit-scrollbar-track { background: transparent; }
         *::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,0.2); border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
         *::-webkit-scrollbar-thumb:hover { background-color: rgba(255,255,255,0.4); }
-        .stars-small, .stars-medium, .stars-large { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
-        .stars-small { background-image: radial-gradient(1px 1px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent), radial-gradient(1px 1px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent), radial-gradient(1px 1px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent), radial-gradient(1px 1px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent), radial-gradient(1px 1px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent), radial-gradient(1px 1px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent); background-size: 200px 200px; animation: twinkle 7s ease-in-out infinite alternate; }
-        .stars-medium { background-image: radial-gradient(1.5px 1.5px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent), radial-gradient(1.5px 1.5px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent), radial-gradient(1.5px 1.5px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent); background-size: 300px 300px; animation: twinkle 15s ease-in-out infinite alternate; }
-        .stars-large { background-image: radial-gradient(2px 2px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent), radial-gradient(2px 2px at ${Math.random() * 100}% ${Math.random() * 100}%, #fff, transparent); background-size: 400px 400px; animation: twinkle 20s ease-in-out infinite alternate; }
-        @keyframes twinkle { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
-        .shooting-star { position: absolute; width: 2px; height: 80px; background: linear-gradient(to bottom, rgba(255,255,255,0.8), transparent); border-radius: 50%; opacity: 0; animation: shoot 10s linear infinite; transform-origin: top center; pointer-events: none; }
-        @keyframes shoot { 0% { transform: translateY(-200px) translateX(0px) rotate(-45deg) scaleY(0.5); opacity:0; } 5% { opacity:1; transform: translateY(20px) translateX(20px) rotate(-45deg) scaleY(1); } 10% { transform: translateY(400px) translateX(400px) rotate(-45deg) scaleY(0); opacity:0; } 100% { transform: translateY(400px) translateX(400px) rotate(-45deg) scaleY(0); opacity:0; } }
+        
+        /* REMOVE or COMMENT OUT: .stars-small, .stars-medium, .stars-large, .particles, .nebula-bg, .shooting-star */
+        
         .planet-pulse { animation: pulse 3s ease-in-out infinite alternate; }
         @keyframes pulse { 0% { box-shadow: 0 0 var(--planet-dom-size, 15px) calc(var(--planet-dom-size, 40px) / 8) var(--planet-color-shadow, rgba(100,100,255,0.5)); } 100% { box-shadow: 0 0 calc(var(--planet-dom-size, 25px) * 1.5) calc(var(--planet-dom-size, 40px) / 4) var(--planet-color-shadow-strong, rgba(100,100,255,0.8)); } }
-        .particles { background-image: radial-gradient(1px 1px at ${Math.random()*100}% ${Math.random()*100}%, rgba(100,100,255,0.2), transparent), radial-gradient(1px 1px at ${Math.random()*100}% ${Math.random()*100}%, rgba(100,100,255,0.2), transparent), radial-gradient(1px 1px at ${Math.random()*100}% ${Math.random()*100}%, rgba(100,100,255,0.2), transparent); background-size: 300px 300px; animation: drift 45s linear infinite; opacity:0.3; position:absolute; top:0; left:0; right:0; bottom:0; z-index:-1; pointer-events: none; }
-        @keyframes drift { 0% { background-position:0 0; } 100% { background-position:300px 300px; } }
+        
         .animate-fade-in { animation: fadeIn 0.4s ease-in-out forwards; }
         @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+        
         .cursor-crosshair { cursor: crosshair; }
         .cursor-grab { cursor: grab; }
         .cursor-grabbing { cursor: grabbing; }
+
         .prose-sm { font-size: 0.875rem; line-height: 1.5; }
         .prose-invert { color: #d1d5db; }
         .prose-invert a { color: #93c5fd; }
