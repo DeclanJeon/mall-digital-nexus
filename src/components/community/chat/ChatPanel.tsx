@@ -16,12 +16,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   username,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isInitialRender = useRef(true);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(scrollToBottom, [messages]);
+  useEffect(() => {
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
+    } else {
+      scrollToBottom();
+    }
+  }, [messages]);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && !event.nativeEvent.isComposing && newMessage.trim() !== '') {
