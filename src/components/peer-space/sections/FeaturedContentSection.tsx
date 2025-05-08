@@ -2,8 +2,8 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowRight } from "lucide-react";
-import ContentCard from "./ContentCard";
-import { FeaturedContentSectionProps } from "./types";
+import ContentCard from "../content/ContentCard";
+import { FeaturedContentSectionProps } from "../types";
 
 const FeaturedContentSection = ({ content, isOwner, onAddContent, onContentClick }: FeaturedContentSectionProps) => (
   <section>

@@ -32,9 +32,10 @@ export type ContentFormValues = z.infer<typeof formSchema>;
 
 interface AddContentFormProps {
   onSubmit: (values: ContentFormValues) => void;
+  onCancel?: () => void; // Make onCancel optional
 }
 
-export default function AddContentForm({ onSubmit }: AddContentFormProps) {
+export default function AddContentForm({ onSubmit, onCancel }: AddContentFormProps) {
   const form = useForm<ContentFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -128,7 +129,12 @@ export default function AddContentForm({ onSubmit }: AddContentFormProps) {
           )}
         />
 
-        <Button type="submit" className="w-full">콘텐츠 등록</Button>
+        <div className="flex gap-2 justify-end">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>취소</Button>
+          )}
+          <Button type="submit">콘텐츠 등록</Button>
+        </div>
       </form>
     </Form>
   );

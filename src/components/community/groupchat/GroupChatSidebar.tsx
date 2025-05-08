@@ -13,15 +13,13 @@ import { Settings, Plus } from 'lucide-react';
 import ChannelListItem from './ChannelListItem'; 
 import { ChatGroup } from './types'; // Import ChatGroup from types.ts
 
-// Removed inline props definition, using imported ChatGroup
-
 interface GroupChatSidebarProps {
-  chatGroups: ChatGroup[]; // Use imported type
-  filteredGroups: ChatGroup[]; // Use imported type
-  activeGroup: ChatGroup | null; // Use imported type
+  chatGroups: ChatGroup[];
+  filteredGroups: ChatGroup[];
+  activeGroup: ChatGroup | null;
   searchQuery: string;
   handleSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  handleJoinChannel: (group: ChatGroup) => void; // Use imported type
+  handleJoinChannel: (group: ChatGroup) => void;
   getChannelTypeIcon: (type: 'text' | 'voice' | 'video', isActive?: boolean) => React.ReactNode;
   handleCreateChannel: () => void;
   isSettingsOpen: boolean;

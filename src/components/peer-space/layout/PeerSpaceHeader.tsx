@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { PeerMallConfig } from './types';
+import { PeerMallConfig } from '../types';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Plus, Settings, Package } from 'lucide-react';
-import { ContentFormValues } from './AddContentForm';
+import { ContentFormValues } from '../forms/AddContentForm';
 
 interface PeerSpaceHeaderProps {
   config: PeerMallConfig;

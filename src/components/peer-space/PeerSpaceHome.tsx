@@ -373,6 +373,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         </DialogHeader>
         <ProductRegistrationForm 
           onProductAdded={handleProductAdded} 
+          onSubmit={handleProductAdded} // Adding the missing onSubmit prop
           address={address}
           onClose={() => setShowProductForm(false)}
         />
