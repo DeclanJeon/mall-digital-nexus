@@ -16,7 +16,7 @@ import { Switch } from "@/components/ui/switch"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { Content, ContentType } from './types';
+import { Content, ContentType } from '../types';
 
 interface ContentEditFormProps {
   initialContent: Content;

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Content, Review, CommunityPost, Quest, Event, GuestbookEntry, LiveStream, Advertisement } from './types';
 import { ArrowRight } from 'lucide-react';
-import ContentCard from './ContentCard';
+import ContentCard from '../content/ContentCard';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface DynamicSectionProps {
   sectionId: string;

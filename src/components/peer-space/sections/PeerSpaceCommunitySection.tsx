@@ -1,12 +1,5 @@
-
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardContent, CardFooter, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
-import { ArrowRight, MessageSquare, Users, ThumbsUp, Clock, Edit } from 'lucide-react';
-
-import { PeerMallConfig } from './types';
+import React from 'react';
+import { PeerMallConfig } from '../types';
 
 interface PeerSpaceCommunityProps {
   config: PeerMallConfig;

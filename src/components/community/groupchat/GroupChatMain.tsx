@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { MessageSquare } from 'lucide-react';
 import TextChatInterface from './TextChatInterface'; 
@@ -142,6 +143,7 @@ const GroupChatMain: React.FC<GroupChatMainProps> = ({
           handleToggleScreenShare={handleToggleScreenShare}
           handleRaiseHand={handleRaiseHand}
           setViewLayout={setViewLayout}
+          handleLeaveChannel={handleLeaveChannel}
         />
       )}
     </div>

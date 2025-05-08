@@ -1,5 +1,5 @@
 
-import { Quest } from './types';
+import { Quest } from '../types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
