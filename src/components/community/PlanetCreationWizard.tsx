@@ -38,7 +38,7 @@ const planetTemplates = [
   }
 ];
 
-export const PlanetCreationWizard: React.FC<PlanetCreationWizardProps> = ({ 
+const PlanetCreationWizard: React.FC<PlanetCreationWizardProps> = ({
   isOpen, 
   onClose, 
   onCreatePlanet 
@@ -377,3 +377,5 @@ export const PlanetCreationWizard: React.FC<PlanetCreationWizardProps> = ({
     </Dialog>
   );
 };
+
+export default PlanetCreationWizard;
