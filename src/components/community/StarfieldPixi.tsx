@@ -1,8 +1,9 @@
+
 // src/components/community/StarfieldPixi.tsx
 import React, { useRef, useEffect, memo, useLayoutEffect } from 'react';
 import * as PIXI from 'pixi.js';
 
-// --- 데이터 인터페이스 ---
+// --- Data interfaces ---
 interface StarData {
   sprite: PIXI.Sprite;
   z: number;
@@ -20,20 +21,20 @@ interface ShootingStarData {
   vy: number;
   life: number;
   rotationSpeed: number;
-  lastUpdateTime?: number; // 선택적 속성으로 추가
+  lastUpdateTime?: number; // Optional property
 }
 
 interface ParticleData {
   sprite: PIXI.Sprite;
   vx: number;
   vy: number;
-  initialX: number; // baseX, baseY 대신 사용
-  initialY: number; // baseX, baseY 대신 사용
+  initialX: number;
+  initialY: number;
   zFactor: number;
   alphaDecay: number;
 }
 
-// --- 컴포넌트 Props ---
+// --- Component Props ---
 interface StarfieldPixiProps {
   mapOffset: { x: number; y: number };
   zoomLevel: number;
@@ -71,13 +72,13 @@ const StarfieldPixi: React.FC<StarfieldPixiProps> = ({
 
   const starTextureRef = useRef<PIXI.Texture | null>(null);
   const particleTextureRef = useRef<PIXI.Texture | null>(null);
-
+  
+  // Add a flag to track if the component is mounted
+  const isMountedRef = useRef<boolean>(true);
 
   useLayoutEffect(() => {
-    let app: PIXI.Application;
-
     if (canvasContainerRef.current && !appRef.current) {
-      app = new PIXI.Application();
+      const app = new PIXI.Application();
       appRef.current = app;
 
       (async () => {
@@ -89,6 +90,9 @@ const StarfieldPixi: React.FC<StarfieldPixiProps> = ({
             autoDensity: true,
             resolution: window.devicePixelRatio || 1,
           });
+
+          // Only proceed if component is still mounted
+          if (!isMountedRef.current) return;
 
           if (canvasContainerRef.current) {
             while (canvasContainerRef.current.firstChild) {
@@ -133,7 +137,9 @@ const StarfieldPixi: React.FC<StarfieldPixiProps> = ({
               flickerSpeed: 0.0015 + Math.random() * 0.003,
               flickerAmount: 0.15 + Math.random() * 0.25,
             });
-            starContainerRef.current!.addChild(sprite);
+            if (starContainerRef.current) {
+              starContainerRef.current.addChild(sprite);
+            }
           }
           starsDataRef.current = newStars;
 
@@ -154,28 +160,30 @@ const StarfieldPixi: React.FC<StarfieldPixiProps> = ({
               zFactor,
               alphaDecay: 0.0001 + Math.random() * 0.0002,
             });
-            particleContainerRef.current!.addChild(sprite);
+            if (particleContainerRef.current) {
+              particleContainerRef.current.addChild(sprite);
+            }
           }
           particlesDataRef.current = newParticles;
 
           const ticker = new PIXI.Ticker();
           tickerRef.current = ticker;
 
-          let lastShootingStarSpawnTime = 0; // 유성 생성 타이밍 제어
+          let lastShootingStarSpawnTime = 0; // Control shooting star spawn timing
 
           ticker.add((time) => {
-            const delta = time.deltaTime;
-            const elapsedMS = time.elapsedMS; // Ticker의 총 경과 시간 (애니메이션에 사용)
-            const currentTickerTime = ticker.lastTime; // Ticker의 현재 시간 (생성 간격 제어에 사용)
+            if (!isMountedRef.current) return; // Safety check
 
+            const delta = time.deltaTime;
+            const elapsedMS = time.elapsedMS; // Total elapsed time for animation
+            const currentTickerTime = ticker.lastTime; // Current time for spawn interval control
 
             starsDataRef.current.forEach(star => {
               star.sprite.alpha = star.initialAlpha * (1 + Math.sin(elapsedMS * star.flickerSpeed + star.baseX) * star.flickerAmount);
               star.sprite.alpha = Math.max(0.05, Math.min(1, star.sprite.alpha));
             });
 
-            // 유성 생성 (확률 대신 시간 간격 기반으로 변경 고려)
-            // 평균 shootingStarFrequency ms 마다 한번 생성 시도
+            // Shooting star creation (time interval based)
             const spawnInterval = 1 / (shootingStarFrequency || 0.001); // ms
             if (shootingStarContainerRef.current && currentTickerTime - lastShootingStarSpawnTime > spawnInterval * (0.5 + Math.random())) {
                 lastShootingStarSpawnTime = currentTickerTime;
@@ -209,18 +217,18 @@ const StarfieldPixi: React.FC<StarfieldPixiProps> = ({
                     vy: Math.sin(angle) * (10 + Math.random() * 10),
                     life: 1500 + Math.random() * 1000,
                     rotationSpeed: (Math.random() - 0.5) * 0.01,
-                    lastUpdateTime: currentTickerTime, // 초기 업데이트 시간 설정
+                    lastUpdateTime: currentTickerTime, // Set initial update time
                 });
                 shootingStarContainerRef.current.addChild(ssGraphics);
             }
 
             shootingStarsDataRef.current = shootingStarsDataRef.current.filter(ss => {
                 const timeSinceLastUpdate = currentTickerTime - (ss.lastUpdateTime || currentTickerTime);
-                ss.sprite.x += ss.vx * (timeSinceLastUpdate / (1000/60)); // delta 프레임 보정
+                ss.sprite.x += ss.vx * (timeSinceLastUpdate / (1000/60)); // Frame rate compensation
                 ss.sprite.y += ss.vy * (timeSinceLastUpdate / (1000/60));
                 ss.sprite.rotation += ss.rotationSpeed * (timeSinceLastUpdate / (1000/60));
                 ss.life -= timeSinceLastUpdate;
-                ss.lastUpdateTime = currentTickerTime; // 현재 시간으로 업데이트
+                ss.lastUpdateTime = currentTickerTime; // Update time
                 
                 ss.sprite.alpha = Math.max(0, ss.life / 2500);
 
@@ -257,22 +265,63 @@ const StarfieldPixi: React.FC<StarfieldPixiProps> = ({
       })();
     }
 
+    // Cleanup function
     return () => {
+      isMountedRef.current = false; // Mark component as unmounted
+      
+      // Clean up ticker first
       if (tickerRef.current) {
-        tickerRef.current.stop();
-        tickerRef.current.destroy();
+        try {
+          tickerRef.current.stop();
+          tickerRef.current.destroy();
+        } catch (e) {
+          console.warn('Error cleaning up ticker:', e);
+        }
         tickerRef.current = null;
       }
+      
+      // Clean up containers and sprites
+      const containers = [starContainerRef.current, shootingStarContainerRef.current, particleContainerRef.current];
+      containers.forEach(container => {
+        try {
+          if (container) {
+            container.destroy({ children: true });
+          }
+        } catch (e) {
+          console.warn('Error cleaning up container:', e);
+        }
+      });
+      
+      // Clean up textures
+      [starTextureRef.current, particleTextureRef.current].forEach(texture => {
+        try {
+          if (texture) {
+            texture.destroy(true);
+          }
+        } catch (e) {
+          console.warn('Error cleaning up texture:', e);
+        }
+      });
+      
+      // Clean up app last
       if (appRef.current) {
-        appRef.current.destroy(true, { children: true, texture: true });
+        try {
+          appRef.current.destroy(true, { children: true, texture: true });
+        } catch (e) {
+          console.warn('Error cleaning up PIXI application:', e);
+        }
         appRef.current = null;
       }
+      
+      // Reset refs
       starsDataRef.current = [];
       shootingStarsDataRef.current = [];
       particlesDataRef.current = [];
       starContainerRef.current = null;
       shootingStarContainerRef.current = null;
       particleContainerRef.current = null;
+      starTextureRef.current = null;
+      particleTextureRef.current = null;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [starCount, shootingStarFrequency, particleCount, worldSize.width, worldSize.height, backgroundColor, baseStarSize]);
@@ -304,7 +353,7 @@ const StarfieldPixi: React.FC<StarfieldPixiProps> = ({
       sprite.scale.set(initialScale);
     });
     particlesDataRef.current.forEach(particleData => {
-        const { sprite, initialX, initialY } = particleData; // 수정: initialX, initialY 사용
+        const { sprite, initialX, initialY } = particleData; 
         sprite.x = initialX;
         sprite.y = initialY;
     });
