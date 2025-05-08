@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Bell, Menu, X, User, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import CreatePeermallModal from '@/components/CreatePeermallModal';
+import CreatePeermallModal from '@/components/peermall-features/CreatePeermallModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface Peermall {

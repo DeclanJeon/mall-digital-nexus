@@ -1,13 +1,13 @@
 
 import React, { useState, useCallback } from 'react';
-import Header from '@/components/CategoryNav';
+import Header from '@/components/navigation/CategoryNav';
 import Footer from '@/components/layout/Footer';
-import CategoryNav from '@/components/CategoryNav';
+import CategoryNav from '@/components/navigation/CategoryNav';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import ShoppingFilter from '@/components/shopping/ShoppingFilter';
 import ProductGrid from '@/components/shopping/ProductGrid';
-import PeermallGrid from '@/components/PeermallGrid';
+import PeermallGrid from '@/components/peermall-features/PeermallGrid';
 import { ChevronRight, Filter, Grid, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';

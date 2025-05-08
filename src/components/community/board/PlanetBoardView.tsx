@@ -37,6 +37,7 @@ const PlanetBoardView: React.FC<PlanetBoardViewProps> = ({
   activeTab,
   onTabChange,
   onViewPostDetail,
+  onToggleLikePost, // props로 받음
 }) => {
   const [selectedPost, setSelectedPost] = useState(null);
   const [selectedCommunityTab, setSelectedCommunityTab] = useState("posts");
@@ -76,7 +77,7 @@ const PlanetBoardView: React.FC<PlanetBoardViewProps> = ({
             <Button 
               size="sm"
               variant="secondary"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-gray-200 hover:text-white"
               onClick={() => handleOpenQrModal(`${window.location.origin}/community/chat/${activePlanet?.id}`)}
             >
               <QrCode className="w-4 h-4" />
@@ -94,19 +95,19 @@ const PlanetBoardView: React.FC<PlanetBoardViewProps> = ({
         <div className="border-b border-white/10 mb-4">
           <TabsList className="bg-transparent border-b-0 mb-0">
             <TabsTrigger 
-              value="posts" 
-              className="data-[state=active]:text-blue-400 data-[state=active]:border-b-2 data-[state=active]:border-blue-400 rounded-none border-b-2 border-transparent"
+              value="posts"
+              className="data-[state=active]:text-sky-300 data-[state=active]:border-b-2 data-[state=active]:border-sky-300 rounded-none border-b-2 border-transparent text-gray-300 hover:text-sky-200"
             >
               <MessageSquare className="h-4 w-4 mr-2" />
               커뮤니티 게시판
             </TabsTrigger>
-            <TabsTrigger 
-              value="chat" 
-              className="data-[state=active]:text-blue-400 data-[state=active]:border-b-2 data-[state=active]:border-blue-400 rounded-none border-b-2 border-transparent"
+            <TabsTrigger
+              value="chat"
+              className="data-[state=active]:text-sky-300 data-[state=active]:border-b-2 data-[state=active]:border-sky-300 rounded-none border-b-2 border-transparent text-gray-300 hover:text-sky-200"
             >
               <Users className="h-4 w-4 mr-2" />
               오픈 채팅방
-              <Badge variant="secondary" className="ml-2 bg-blue-600/20 text-blue-400">New</Badge>
+              <Badge variant="secondary" className="ml-2 bg-sky-700/50 text-sky-200">New</Badge>
             </TabsTrigger>
           </TabsList>
         </div>
@@ -127,7 +128,7 @@ const PlanetBoardView: React.FC<PlanetBoardViewProps> = ({
                 activePlanet={activePlanet}
                 selectedCategoryId={selectedCategoryId}
                 onSelectCategory={setSelectedCategoryId}
-                postCount={posts.length}
+                posts={posts}
               />
             </div>
             
@@ -143,6 +144,7 @@ const PlanetBoardView: React.FC<PlanetBoardViewProps> = ({
                 selectedPost={selectedPost}
                 onBackFromDetail={handleBackFromDetail}
                 selectedCategoryId={selectedCategoryId}
+                onToggleLike={onToggleLikePost} // PostSection으로 onToggleLikePost 전달
               />
             </div>
           </div>

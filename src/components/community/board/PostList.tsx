@@ -12,12 +12,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+import { Post } from '../types'; // Post 타입을 가져옵니다.
+
 interface PostListProps {
-  posts: any[];
+  posts: Post[]; // 'any[]' 대신 'Post[]' 사용
   username: string;
-  onEditPost: (post: any) => void;
+  onEditPost: (post: Post) => void; // 'any' 대신 'Post' 사용
   onDeletePost: (id: string | number) => void;
-  onViewPostDetail: (post: any) => void;
+  onViewPostDetail: (post: Post) => void; // 'any' 대신 'Post' 사용
+  onToggleLike: (postId: string) => void; // 좋아요 토글 함수 추가
   viewMode?: "list" | "grid";
 }
 
@@ -27,6 +30,7 @@ const PostList: React.FC<PostListProps> = ({
   onEditPost,
   onDeletePost,
   onViewPostDetail,
+  onToggleLike, // props로 받음
   viewMode = "list"
 }) => {
   if (posts.length === 0) {
@@ -97,10 +101,21 @@ const PostList: React.FC<PostListProps> = ({
                   <Eye className="h-4 w-4 mr-1" />
                   {Math.floor(Math.random() * 100) + 10}
                 </div>
-                <div className="flex items-center text-gray-400">
-                  <Heart className="h-4 w-4 mr-1" />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation(); // 카드 전체 클릭 방지
+                    if (typeof onToggleLike === 'function') {
+                      onToggleLike(post.id);
+                    } else {
+                      console.error('onToggleLike is not a function', onToggleLike);
+                    }
+                  }}
+                  className="flex items-center text-gray-400 hover:text-pink-500 transition-colors"
+                  aria-label="좋아요"
+                >
+                  <Heart className={`h-4 w-4 mr-1 ${post.isLikedByCurrentUser ? 'fill-pink-500 text-pink-500' : ''}`} />
                   {post.likes}
-                </div>
+                </button>
                 <div className="flex items-center text-gray-400">
                   <MessageSquare className="h-4 w-4 mr-1" />
                   {post.comments}
@@ -188,10 +203,21 @@ const PostList: React.FC<PostListProps> = ({
                     <Eye className="h-4 w-4 mr-1.5" />
                     {Math.floor(Math.random() * 100) + 10}
                   </div>
-                  <div className="flex items-center text-gray-400">
-                    <Heart className="h-4 w-4 mr-1.5" />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); // 카드 전체 클릭 방지
+                      if (typeof onToggleLike === 'function') {
+                        onToggleLike(post.id);
+                      } else {
+                        console.error('onToggleLike is not a function', onToggleLike);
+                      }
+                    }}
+                    className="flex items-center text-gray-400 hover:text-pink-500 transition-colors"
+                    aria-label="좋아요"
+                  >
+                    <Heart className={`h-4 w-4 mr-1.5 ${post.isLikedByCurrentUser ? 'fill-pink-500 text-pink-500' : ''}`} />
                     {post.likes}
-                  </div>
+                  </button>
                   <div className="flex items-center text-gray-400">
                     <MessageSquare className="h-4 w-4 mr-1.5" />
                     {post.comments}

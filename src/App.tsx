@@ -18,6 +18,7 @@ import PeerSpace from "./pages/PeerSpace";
 import PeerSpaceSettings from "./pages/PeerSpaceSettings";
 import ContentDetailPage from "./pages/ContentDetailPage";
 import CustomerSupport from "./pages/CustomerSupport";
+import ChatRoomView from "./components/community/chat/ChatRoomView"; // Import the new component
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const AppContent = () => {
         <Route path="/space/:address/settings" element={<PeerSpaceSettings />} />
         <Route path="/space/:address/content/:contentId" element={<ContentDetailPage />} />
         <Route path="/customer-support" element={<CustomerSupport />} />
+        <Route path="/community/chat/:roomId" element={<ChatRoomView />} /> {/* Add the new route */}
 
         <Route path="*" element={<NotFound />} />
       </Routes>

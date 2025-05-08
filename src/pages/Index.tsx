@@ -1,14 +1,14 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
-import PeermallGrid from '../components/PeermallGrid';
-import CommunicationWidget from '@/components/CommunicationWidget';
-import HashtagFilter, { HashtagFilterOption, PeermallType } from '@/components/HashtagFilter';
-import PeermallMap from '@/components/PeermallMap';
-import ServiceCardsSection from '@/components/ServiceCardsSection';
-import FavoriteServicesSection from '@/components/FavoriteServicesSection';
+import PeermallGrid from '@/components/peermall-features/PeermallGrid';
+import CommunicationWidget from '@/components/user-interaction/CommunicationWidget';
+import HashtagFilter, { HashtagFilterOption, PeermallType } from '@/components/navigation/HashtagFilter';
+import PeermallMap from '@/components/peermall-features/PeermallMap';
+import ServiceCardsSection from '@/components/feature-sections/ServiceCardsSection';
+import FavoriteServicesSection from '@/components/feature-sections/FavoriteServicesSection';
 import EcosystemMap from '@/components/EcosystemMap';
 import CommunityHighlights from '@/components/CommunityHighlights';
-import CreatePeermall from '@/components/CreatePeermall';
+import CreatePeermall from '@/components/peermall-features/CreatePeermall';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
 import { getDB, STORES } from '@/utils/indexedDB';

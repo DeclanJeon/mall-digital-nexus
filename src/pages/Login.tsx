@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
-import LoginForm from "@/components/LoginForm";
+import LoginForm from "@/components/user-interaction/LoginForm";
 
 const Login = () => {
   const { toast } = useToast();

@@ -1,6 +1,12 @@
-
 import { UseFormReturn } from 'react-hook-form';
-import { ReactNode, RefObject, MouseEvent, ChangeEvent, Dispatch, SetStateAction } from 'react';
+import {
+  ReactNode,
+  RefObject,
+  MouseEvent,
+  ChangeEvent,
+  Dispatch,
+  SetStateAction,
+} from 'react';
 
 // Planet types
 export type PlanetType = 'public' | 'private' | 'timeLimited';
@@ -44,6 +50,7 @@ export interface Post {
   likes: number;
   comments: number;
   tags: string[];
+  isLikedByCurrentUser?: boolean; // 현재 사용자가 좋아요를 눌렀는지 여부
 }
 
 export interface ForumPostFormData {
@@ -79,6 +86,7 @@ export interface ChatRoom {
   participantsCount?: number;
   members?: string[];
   password?: string;
+  channelAddress?: string; // 고유 채널 주소 필드 추가
 }
 
 // Wizard types
@@ -106,7 +114,22 @@ export interface AppHeaderProps {
 export interface PlanetCreationWizardProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreatePlanet: (data: Omit<Planet, 'id' | 'position' | 'activeUsers' | 'recentPosts' | 'stage' | 'owner' | 'membersCount' | 'members' | 'activities' | 'health' | 'createdAt'> & { size: number }) => void;
+  onCreatePlanet: (
+    data: Omit<
+      Planet,
+      | 'id'
+      | 'position'
+      | 'activeUsers'
+      | 'recentPosts'
+      | 'stage'
+      | 'owner'
+      | 'membersCount'
+      | 'members'
+      | 'activities'
+      | 'health'
+      | 'createdAt'
+    > & { size: number }
+  ) => void;
 }
 
 export interface PlanetInfoPanelProps {
@@ -152,43 +175,47 @@ export interface UniverseViewProps {
 }
 
 export interface PostFormProps {
-  form: UseFormReturn<any>;
-  onSubmit: (data: any) => void;
+  form: UseFormReturn<ForumPostFormData>;
+  onSubmit: (data: ForumPostFormData) => void;
   onCancel: () => void;
-  editingPost?: any;
+  editingPost?: Post | null;
 }
 
 export interface PostSectionProps {
-  posts: any[];
+  posts: Post[];
   username: string;
-  onEditPost: (post: any) => void;
+  onEditPost: (post: Post) => void;
   onDeletePost: (id: string | number) => void;
-  onViewPostDetail: (post: any) => void;
+  onViewPostDetail: (post: Post) => void;
   activeTab: string;
   onTabChange: (value: string) => void;
-  selectedPost?: any;
+  selectedPost?: Post | null;
   onBackFromDetail?: () => void;
+  // ExtendedPostSectionProps에서 onToggleLike를 옵셔널로 처리하므로 여기서는 유지하거나,
+  // PostSectionProps 자체에 onToggleLike?: (postId: string) => void; 를 추가할 수 있습니다.
+  // 현재 구조상 ExtendedPostSectionProps에서 처리하는 것이 맞습니다.
 }
 
 export interface PostListProps {
-  posts: any[];
+  posts: Post[];
   username: string;
-  onEditPost: (post: any) => void;
+  onEditPost: (post: Post) => void;
   onDeletePost: (id: string | number) => void;
-  onViewPostDetail: (post: any) => void;
-  viewMode?: "list" | "grid";
+  onViewPostDetail: (post: Post) => void;
+  onToggleLike?: (postId: string) => void; // PostListProps의 onToggleLike를 옵셔널로 변경
+  viewMode?: 'list' | 'grid';
 }
 
 export interface PostItemProps {
-  post: any;
+  post: Post;
   isAuthor: boolean;
-  onEditPost: (post: any) => void;
+  onEditPost: (post: Post) => void;
   onDeletePost: (id: string | number) => void;
-  onViewPostDetail: (post: any) => void;
+  onViewPostDetail: (post: Post) => void;
 }
 
 export interface ChatPanelProps {
-  messages: any[];
+  messages: ChatMessage[];
   newMessage: string;
   onNewMessageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSendMessage: () => void;
@@ -196,24 +223,24 @@ export interface ChatPanelProps {
 }
 
 export interface BoardHeaderProps {
-  selectedLocation: any;
+  selectedLocation: Planet | null;
   onReturnToUniverse: () => void;
   onShowNewPostForm?: () => void;
 }
 
 export interface PlanetBoardViewProps {
-  activePlanet: any;
-  selectedLocation: any;
-  posts: any[];
-  editingPost: any;
+  activePlanet: Planet | null;
+  selectedLocation: Planet | null;
+  posts: Post[];
+  editingPost: Post | null;
   showNewPostForm: boolean;
   onShowNewPostForm: () => void;
   onHideNewPostForm: () => void;
-  forumForm: any;
-  onForumSubmit: (data: any) => void;
-  onEditPost: (post: any) => void;
+  forumForm: UseFormReturn<ForumPostFormData>;
+  onForumSubmit: (data: ForumPostFormData) => void;
+  onEditPost: (post: Post) => void;
   onDeletePost: (id: string | number) => void;
-  messages: any[];
+  messages: ChatMessage[];
   newMessage: string;
   onNewMessageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSendMessage: () => void;
@@ -221,9 +248,10 @@ export interface PlanetBoardViewProps {
   onReturnToUniverse: () => void;
   activeTab: string;
   onTabChange: (value: string) => void;
-  onViewPostDetail: (post: any) => void;
-  selectedPost?: any;
+  onViewPostDetail: (post: Post) => void;
+  selectedPost?: Post | null;
   onBackFromDetail?: () => void;
+  onToggleLikePost?: (postId: string) => void; // 좋아요 토글 콜백 함수를 옵셔널로 변경
 }
 
 export interface PostDetailProps {

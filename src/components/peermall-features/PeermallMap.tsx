@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Modal } from './ui/modal';
-import { Button } from './ui/button';
+import { Modal } from '@/components/ui/modal';
+import { Button } from '@/components/ui/button';
 import { X, Map as MapIcon } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';

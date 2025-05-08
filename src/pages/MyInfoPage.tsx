@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Search, Filter } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { openDB } from 'idb';
-import CreatePeermallModal from '@/components/CreatePeermallModal';
+import CreatePeermallModal from '@/components/peermall-features/CreatePeermallModal';
 import { TransactionItem } from '@/components/my-info/ActivitySection';
 
 interface PeerMall {
