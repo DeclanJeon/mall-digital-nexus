@@ -4,7 +4,7 @@ import { useLocation, useParams } from 'react-router-dom';
 import PeerSpaceHome from '@/components/peer-space/PeerSpaceHome';
 import { toast } from '@/hooks/use-toast';
 import { PeerMallConfig } from '@/components/peer-space/types';
-import { getDB, STORES } from '@/utils/indexedDB';
+// import { getDB, STORES } from '@/utils/indexedDB'; // IndexedDB 관련 import 주석 처리
 import type { Peermall } from '@/pages/Index';
 
 // Function to get PeerSpace configuration from localStorage
@@ -22,27 +22,44 @@ const getPeerSpaceConfig = (address: string): PeerMallConfig | null => {
   }
 };
 
-// Function to get peermall details from IndexedDB
-const getPeermallDetails = async (address: string) => {
+// // Function to get peermall details from IndexedDB (주석 처리)
+// const getPeermallDetails = async (address: string) => {
+//   try {
+//     const db = await getDB();
+//     const transaction = db.transaction(STORES.PEER_SPACES, 'readonly');
+//     const store = transaction.objectStore(STORES.PEER_SPACES);
+//     const request = store.get(address);
+//     const peermall = await new Promise<Peermall | null>((resolve, reject) => {
+//       request.onsuccess = (event) => {
+//         resolve((event.target as IDBRequest).result);
+//       };
+//       request.onerror = (event) => {
+//         reject((event.target as IDBRequest).error);
+//       };
+//     });
+//     return peermall;
+//   } catch (error) {
+//     console.error("Error loading peermall details from IndexedDB:", error);
+//     return null;
+//   }
+// };
+
+// Function to get peermall details from localStorage
+const getPeermallDetailsFromLocalStorage = (address: string): Peermall | null => {
   try {
-    const db = await getDB();
-    const transaction = db.transaction(STORES.PEER_SPACES, 'readonly');
-    const store = transaction.objectStore(STORES.PEER_SPACES);
-    const request = store.get(address);
-    const peermall = await new Promise<Peermall | null>((resolve, reject) => {
-      request.onsuccess = (event) => {
-        resolve((event.target as IDBRequest).result);
-      };
-      request.onerror = (event) => {
-        reject((event.target as IDBRequest).error);
-      };
-    });
-    return peermall;
+    const storedPeermalls = localStorage.getItem('peermalls');
+    if (storedPeermalls) {
+      const peermalls: Peermall[] = JSON.parse(storedPeermalls);
+      // address는 Peermall의 id와 일치한다고 가정
+      return peermalls.find(mall => mall.id === address) || null;
+    }
+    return null;
   } catch (error) {
-    console.error("Error loading peermall details from IndexedDB:", error);
+    console.error("Error loading peermall details from localStorage:", error);
     return null;
   }
 };
+
 
 // Function to save PeerSpace configuration to localStorage
 const savePeerSpaceConfig = (address: string, config: PeerMallConfig): void => {
@@ -71,10 +88,10 @@ const PeerSpace = () => {
         if (storedConfig) {
           setConfig(storedConfig);
         } else {
-          // If config doesn't exist, try to load from peermall details
-          const peermallDetails = await getPeermallDetails(address);
-          
-          console.log(peermallDetails)
+          // If config doesn't exist in localStorage, try to load peermall details from localStorage
+          const peermallDetails = getPeermallDetailsFromLocalStorage(address); // localStorage에서 로드
+
+          console.log("Loaded Peermall Details from localStorage:", peermallDetails); // 로그 추가
           if (peermallDetails) {
             // Create a default config from peermall details
             const defaultConfig: PeerMallConfig = {

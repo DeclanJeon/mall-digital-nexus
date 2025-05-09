@@ -11,7 +11,7 @@ import CommunityHighlights from '@/components/CommunityHighlights';
 import CreatePeermall from '@/components/peermall-features/CreatePeermall';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
-import { getDB, STORES } from '@/utils/indexedDB';
+// import { getDB, STORES } from '@/utils/indexedDB'; // IndexedDB 관련 import 주석 처리
 
 export interface Peermall {
   title: string;
@@ -47,31 +47,101 @@ const Index = () => {
   const [isMySpacesOpen, setIsMySpacesOpen] = useState(false);
   const [mySpaces, setMySpaces] = useState<Peermall[]>([]);
 
-  // Load peermalls from indexedDB
+  // Load data from localStorage on initial mount
   useEffect(() => {
-    const loadFromIndexedDB = async () => {
+    // // IndexedDB 로딩 로직 주석 처리 시작
+    // const loadFromIndexedDB = async () => {
+    //   try {
+    //     const db = await getDB();
+    //     const transaction = db.transaction(STORES.PEER_SPACES, 'readonly');
+    //     const store = transaction.objectStore(STORES.PEER_SPACES);
+    //     const request = store.getAll();
+    //     const peermallsFromDB: Peermall[] = await new Promise<Peermall[]>((resolve, reject) => {
+    //       request.onsuccess = (event) => {
+    //         resolve((event.target as IDBRequest).result as Peermall[]);
+    //       };
+    //       request.onerror = (event) => {
+    //         reject((event.target as IDBRequest).error);
+    //       };
+    //     });
+    //     setPeermalls(peermallsFromDB);
+    //     setMySpaces(peermallsFromDB.filter((mall: Peermall) => mall.owner === '나'));
+    //   } catch (error) {
+    //     console.error('Error loading peermalls from indexedDB:', error);
+    //   }
+    // };
+    // loadFromIndexedDB();
+    // // IndexedDB 로딩 로직 주석 처리 끝
+
+    // localStorage 로딩 로직
+    const loadFromLocalStorage = () => {
+      // Load Peermalls
       try {
-        const db = await getDB();
-        const transaction = db.transaction(STORES.PEER_SPACES, 'readonly');
-        const store = transaction.objectStore(STORES.PEER_SPACES);
-        const request = store.getAll();
-        const peermallsFromDB: Peermall[] = await new Promise<Peermall[]>((resolve, reject) => {
-          request.onsuccess = (event) => {
-            resolve((event.target as IDBRequest).result as Peermall[]);
-          };
-          request.onerror = (event) => {
-            reject((event.target as IDBRequest).error);
-          };
-        });
-        setPeermalls(peermallsFromDB);
-        setMySpaces(peermallsFromDB.filter((mall: Peermall) => mall.owner === '나'));
+        const storedPeermalls = localStorage.getItem('peermalls');
+        if (storedPeermalls) {
+          const peermallsFromStorage: Peermall[] = JSON.parse(storedPeermalls);
+          setPeermalls(peermallsFromStorage);
+          setMySpaces(peermallsFromStorage.filter((mall: Peermall) => mall.owner === '나'));
+        } else {
+          // localStorage에 데이터가 없으면 초기 데이터 설정 (선택적)
+          const initialPeermalls: Peermall[] = [
+             { id: '1', title: '첫번째 피어몰', description: '설명입니다.', owner: '나', imageUrl: 'https://via.placeholder.com/300x200?text=Peermall+1', category: '#디자인', tags: ['#디자인', '#아트'], rating: 4.5, reviewCount: 10, type: 'shop', location: { lat: 37.5665, lng: 126.9780, address: '서울시 중구' } },
+             { id: '2', title: '푸드 마켓', description: '맛있는 음식이 가득!', owner: '다른사람', imageUrl: 'https://via.placeholder.com/300x200?text=Food+Market', category: '#푸드', tags: ['#푸드'], rating: 4.0, reviewCount: 5, type: 'market', location: { lat: 37.5519, lng: 126.9918, address: '서울시 용산구' } },
+          ];
+          setPeermalls(initialPeermalls);
+          localStorage.setItem('peermalls', JSON.stringify(initialPeermalls));
+          setMySpaces(initialPeermalls.filter((mall: Peermall) => mall.owner === '나'));
+        }
       } catch (error) {
-        console.error('Error loading peermalls from indexedDB:', error);
+        console.error('Error loading peermalls from localStorage:', error);
+        setPeermalls([]); // 에러 발생 시 빈 배열로 초기화
+        setMySpaces([]);
       }
+
+      // Load Favorite Service IDs (즐겨찾기 기능이 있다면)
+      // try {
+      //   const storedFavoriteIds = localStorage.getItem('favoriteServiceIds');
+      //   if (storedFavoriteIds) {
+      //     setFavoriteServiceIds(JSON.parse(storedFavoriteIds));
+      //   }
+      // } catch (error) {
+      //   console.error('Error loading favoriteServiceIds from localStorage:', error);
+      //   setFavoriteServiceIds([]);
+      // }
     };
 
-    loadFromIndexedDB();
-  }, []);
+    loadFromLocalStorage();
+
+  }, []); // 최초 마운트 시 한 번만 실행
+
+  // 피어몰 생성 핸들러 (localStorage 저장 로직 추가/확인)
+  const handleCreatePeermall = (newMallData: Omit<Peermall, 'id' | 'rating' | 'reviewCount'>) => {
+    const newPeermallWithDefaults: Peermall = {
+      id: `pm-${Date.now().toString()}-${Math.random().toString(36).substring(2, 7)}`,
+      rating: 0,
+      reviewCount: 0,
+      owner: newMallData.owner || '나', // 실제 앱에서는 로그인 사용자 정보 사용
+      ...newMallData,
+    };
+
+    setPeermalls(prevMalls => {
+      const updatedMalls = [newPeermallWithDefaults, ...prevMalls];
+      // localStorage에 업데이트된 피어몰 목록 저장
+      try {
+        localStorage.setItem('peermalls', JSON.stringify(updatedMalls));
+      } catch (error) {
+        console.error('Error saving peermalls to localStorage:', error);
+        // 필요시 사용자에게 오류 알림
+      }
+      // '내 스페이스' 목록 업데이트
+      if (newPeermallWithDefaults.owner === '나') {
+        setMySpaces(prevMySpaces => [newPeermallWithDefaults, ...prevMySpaces]);
+      }
+      return updatedMalls;
+    });
+    handleCreateModalClose(); // 모달 닫기 (CreatePeermall 컴포넌트에서 호출될 수도 있음)
+  };
+
 
   const hashtagOptions: HashtagFilterOption[] = [
     { label: '전체', value: '전체' },
