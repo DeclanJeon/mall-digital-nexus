@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { PeerMallConfig } from '../types';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Settings, Package } from 'lucide-react';
+import { Plus, Settings, Package, Users } from 'lucide-react'; // Users 아이콘 추가
 import { ContentFormValues } from '../forms/AddContentForm';
 
 interface PeerSpaceHeaderProps {
@@ -12,13 +12,15 @@ interface PeerSpaceHeaderProps {
   isOwner: boolean;
   onAddContent: (content: ContentFormValues) => void;
   onAddProduct?: () => void;
+  // onNavigateToCommunity?: () => void; // Link로 변경하므로 prop 제거
 }
 
-const PeerSpaceHeader: React.FC<PeerSpaceHeaderProps> = ({ 
-  config, 
+const PeerSpaceHeader: React.FC<PeerSpaceHeaderProps> = ({
+  config,
   isOwner,
   onAddContent,
-  onAddProduct
+  onAddProduct,
+  // onNavigateToCommunity, // prop 제거
 }) => {
   return (
     <header className="bg-white border-b sticky top-0 z-50">
@@ -34,22 +36,32 @@ const PeerSpaceHeader: React.FC<PeerSpaceHeaderProps> = ({
           </div>
         </Link>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <Link to={`/space/${config.id}/community`}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="hidden md:flex items-center"
+            >
+              <Users className="mr-2 h-4 w-4" />
+              커뮤니티
+            </Button>
+          </Link>
           {isOwner ? (
             <>
               {onAddProduct && (
-                <Button 
-                  size="sm" 
-                  variant="outline" 
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={onAddProduct}
-                  className="hidden md:flex"
+                  className="hidden md:flex items-center"
                 >
                   <Package className="mr-2 h-4 w-4" />
                   제품 등록
                 </Button>
               )}
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 onClick={() => {
                   // This is a simplified approach, you should open a proper modal here
                   // For now, we'll just create a default content for demonstration
@@ -63,14 +75,14 @@ const PeerSpaceHeader: React.FC<PeerSpaceHeaderProps> = ({
                   
                   onAddContent(defaultContent);
                 }}
-                className="hidden md:flex"
+                className="hidden md:flex items-center"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 콘텐츠 추가
               </Button>
               <Link to={`/space/${config.id}/settings`}>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="ghost"
                 >
                   <Settings className="h-4 w-4" />
@@ -78,8 +90,9 @@ const PeerSpaceHeader: React.FC<PeerSpaceHeaderProps> = ({
               </Link>
             </>
           ) : (
+            // 소유자가 아닐 경우, 글로벌 커뮤니티 방문 버튼 유지 또는 다른 로직
             <Link to="/community">
-              <Button size="sm">커뮤니티 방문</Button>
+              <Button size="sm" variant="ghost" className="text-gray-600 hover:text-gray-900">전체 커뮤니티</Button>
             </Link>
           )}
         </div>

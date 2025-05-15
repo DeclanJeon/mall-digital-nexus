@@ -64,7 +64,12 @@ const PeermallMap: React.FC<PeermallMapProps> = ({
     markersLayer.current.clearLayers();
 
     // Add markers for all locations
+    // TODO: 각 location.address를 기반으로 정확한 위도(lat)와 경도(lng)를 얻기 위한 지오코딩 로직이 필요합니다.
+    // 현재는 Peermall 생성 시 lat/lng가 0,0 또는 기본값으로 설정될 수 있으며, 이 경우 마커가 의도치 않은 위치에 표시될 수 있습니다.
+    // 지오코딩은 비동기 작업이므로, useEffect 내에서 또는 데이터를 준비하는 상위 컴포넌트에서 처리해야 합니다.
     allLocations.forEach(location => {
+      // 유효한 위도/경도 값인지 확인 (0,0 이거나 기본값일 경우 지도에 표시하지 않거나, 사용자에게 알림)
+      // 여기서는 일단 모든 위치를 표시하도록 둡니다.
       const marker = L.marker([location.lat, location.lng])
         .bindPopup(`<b>${location.title}</b><br>${location.address}`)
         .addTo(markersLayer.current!);

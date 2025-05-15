@@ -7,11 +7,11 @@ import { Star, ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface ProductCardProps {
-  id: number;
+  id: number | string; // 타입을 number | string으로 변경
   title: string;
   description: string;
   price: number;
-  discountPrice: number | null;
+  discountPrice?: number | null; // 선택적 속성으로 변경
   imageUrl: string;
   rating: number;
   reviewCount: number;

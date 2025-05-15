@@ -593,17 +593,17 @@ const MyInfoPage = () => {
             <TabsContent value="profile">
               <div className="space-y-6">
                 <ProfileSection userProfile={userProfile} setUserProfile={setUserProfile} />
-                <SecuritySection
+                {/* <SecuritySection
                   authMethods={authMethods}
                   loginRecords={loginRecords}
                   privacySettings={privacySettings}
-                />
-                <SettingsSection
+                /> */}
+                {/* <SettingsSection
                   darkMode={false}
                   language="ko"
                   dataExportOptions={dataExportOptions}
                   analyticsData={analyticsData}
-                />
+                /> */}
               </div>
             </TabsContent>
             <TabsContent value="content">
@@ -613,7 +613,7 @@ const MyInfoPage = () => {
                   savedItems={savedItems}
                   reviews={reviews}
                 />
-                <ActivitySection
+                {/* <ActivitySection
                   activities={activities}
                   transactions={transactions}
                   level={14}
@@ -623,7 +623,7 @@ const MyInfoPage = () => {
                   badges={badges}
                   quests={quests}
                   points={points}
-                />
+                /> */}
               </div>
             </TabsContent>
             <TabsContent value="network">
@@ -641,11 +641,11 @@ const MyInfoPage = () => {
                   followedMalls={followedMalls}
                   onCreatePeermall={handleCreatePeermall}
                 />
-                <CommunicationSection
+                {/* <CommunicationSection
                   messages={messages}
                   notificationSettings={notificationSettings}
-                />
-                <QRCodeSection qrCodes={qrCodes} />
+                /> */}
+                {/* <QRCodeSection qrCodes={qrCodes} /> */}
               </div>
             </TabsContent>
           </div>

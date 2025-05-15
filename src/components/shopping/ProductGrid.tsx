@@ -3,11 +3,11 @@ import React from 'react';
 import ProductCard from './ProductCard';
 
 interface Product {
-  id: number;
+  id: number | string;
   title: string;
   description: string;
   price: number;
-  discountPrice: number | null;
+  discountPrice?: number | null; // 선택적 속성으로 변경
   imageUrl: string;
   rating: number;
   reviewCount: number;

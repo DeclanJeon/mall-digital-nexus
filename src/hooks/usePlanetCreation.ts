@@ -8,6 +8,7 @@ export interface UsePlanetCreationParams {
   zoomLevel: number;
   universeMapRef: RefObject<HTMLDivElement>; // 부모로부터 ref를 받음
   onCreatePlanetCallback: (newPlanet: Planet) => void;
+  peerSpaceAddress?: string; // 옵셔널: 행성이 속할 피어스페이스 주소
 }
 
 export const usePlanetCreation = ({
@@ -15,6 +16,7 @@ export const usePlanetCreation = ({
   zoomLevel,
   universeMapRef,
   onCreatePlanetCallback,
+  peerSpaceAddress, // peerSpaceAddress 파라미터 추가
 }: UsePlanetCreationParams) => {
   const { toast, dismiss } = useToast();
 
@@ -140,6 +142,7 @@ export const usePlanetCreation = ({
         activities: 0,
         health: 100,
         createdAt: new Date().toISOString(),
+        peerSpaceAddress: peerSpaceAddress, // peerSpaceAddress 추가
       };
 
       onCreatePlanetCallback(newPlanet);

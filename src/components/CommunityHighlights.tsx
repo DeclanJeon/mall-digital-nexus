@@ -1,165 +1,217 @@
-
-import React from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { MessageSquare, Star, Users, Calendar } from 'lucide-react';
+import { List, RadioTower, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Post, Planet, ChatRoom } from '@/components/community/types';
 
-const CommunityHighlights = () => {
-  const discussions = [
-    {
-      id: 1,
-      title: '친환경 포장재의 미래는?',
-      replies: 24,
-      author: '에코러버',
-      authorImg: 'https://i.pravatar.cc/150?img=1',
-      timeAgo: '3시간 전'
-    },
-    {
-      id: 2,
-      title: '소비자 주도형 브랜딩이란?',
-      replies: 18,
-      author: '마케팅구루',
-      authorImg: 'https://i.pravatar.cc/150?img=2', 
-      timeAgo: '5시간 전'
-    }
-  ];
-  
-  const reviews = [
-    {
-      id: 1,
-      product: '유기농 티셔츠',
-      rating: 4.9,
-      author: '패션맘',
-      content: '환경을 생각하는 브랜드의 진정성이 느껴지는 제품입니다.'
-    },
-    {
-      id: 2,
-      product: '디지털 아트북',
-      rating: 5.0,
-      author: '아트홀릭',
-      content: '인쇄 퀄리티가 놀랍고, 작가의 해설이 인상적입니다.'
-    }
-  ];
+interface HighlightChatRoom {
+  id: string;
+  name: string;
+  topic?: string;
+  participantCount: number;
+  link: string;
+  createdAt?: string | Date;
+  planetId?: string; 
+}
 
-  const events = [
-    {
-      id: 1,
-      title: '지속가능한 패션 워크숍',
-      date: '2025년 5월 1일',
-      location: '온라인',
-    },
-    {
-      id: 2,
-      title: '메타버스 크리에이터 컨퍼런스',
-      date: '2025년 5월 15일',
-      location: '서울 코엑스',
+const formatTimeAgo = (dateInput: string | Date | undefined): string => {
+  if (!dateInput) return '';
+  let dateObj: Date;
+
+  if (typeof dateInput === 'string' && /^\d+$/.test(dateInput)) {
+    const timestamp = parseInt(dateInput, 10);
+    if (timestamp > 100000000000) { 
+       dateObj = new Date(timestamp);
+    } else {
+       return '';
     }
-  ];
+  } else {
+    dateObj = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  }
+
+  if (isNaN(dateObj.getTime())) {
+    return ''; 
+  }
+
+  const seconds = Math.floor((new Date().getTime() - dateObj.getTime()) / 1000);
+  if (seconds < 0) return '방금 전'; 
+
+  let interval = seconds / 31536000;
+  if (interval > 1) return Math.floor(interval) + "년 전";
+  interval = seconds / 2592000;
+  if (interval > 1) return Math.floor(interval) + "달 전";
+  interval = seconds / 86400;
+  if (interval > 1) return Math.floor(interval) + "일 전";
+  interval = seconds / 3600;
+  if (interval > 1) return Math.floor(interval) + "시간 전";
+  interval = seconds / 60;
+  if (interval > 1) return Math.floor(interval) + "분 전";
+  return Math.max(0, Math.floor(seconds)) + "초 전";
+};
+
+const CHAT_ROOMS_STORAGE_KEY = 'chatRooms';
+
+const CommunityHighlightsComponent = () => { // 컴포넌트 이름 변경 (내부용)
+  const [latestPosts, setLatestPosts] = useState<Post[]>([]);
+  const [activeChatRooms, setActiveChatRooms] = useState<HighlightChatRoom[]>([]);
+  const [planets, setPlanets] = useState<Planet[]>([]);
+
+  useEffect(() => {
+    try {
+      const storedPlanets = localStorage.getItem('planets');
+      if (storedPlanets) {
+        setPlanets(JSON.parse(storedPlanets));
+      }
+    } catch (error) {
+      console.error('Error loading planets from localStorage:', error);
+      setPlanets([]);
+    }
+
+    try {
+      const storedPosts = localStorage.getItem('peerspace_posts');
+      if (storedPosts) {
+        const allPosts: Post[] = JSON.parse(storedPosts);
+        const sortedPosts = allPosts.sort((a, b) => {
+          const dateA = new Date(a.date).getTime();
+          const dateB = new Date(b.date).getTime();
+          if (isNaN(dateA)) return 1;
+          if (isNaN(dateB)) return -1;
+          return dateB - dateA;
+        });
+        setLatestPosts(sortedPosts.slice(0, 3));
+      }
+    } catch (error) {
+      console.error('Error loading posts from localStorage:', error);
+      setLatestPosts([]);
+    }
+
+    try {
+      const storedChatRooms = localStorage.getItem(CHAT_ROOMS_STORAGE_KEY);
+      if (storedChatRooms) {
+        const allChatRooms: ChatRoom[] = JSON.parse(storedChatRooms).map((room: ChatRoom) => ({ // 타입 ChatRoom으로 명시
+          ...room,
+          timestamp: room.timestamp ? new Date(room.timestamp) : undefined,
+        }));
+        
+        const sortedRooms = allChatRooms.sort((a, b) => (b.participantsCount || 0) - (a.participantsCount || 0));
+        
+        setActiveChatRooms(sortedRooms.slice(0, 3).map(room => ({
+            id: room.id,
+            name: room.name,
+            topic: room.description, 
+            participantCount: room.participantsCount || room.participants || 0,
+            link: `/community/planet/${room.planetId || 'global'}/chat/${room.id}`, 
+            planetId: room.planetId, 
+            createdAt: room.timestamp 
+        })));
+      } else {
+         setActiveChatRooms([
+           { id: 'chat1', name: '자유 토크방 💬', topic: '피어몰 관련 자유로운 대화', participantCount: 15, link: `/community/planet/global/chat/chat1`, planetId: 'global', createdAt: new Date(Date.now() - 3600000) },
+           { id: 'chat2', name: '신규 피어몰 홍보방 ✨', topic: '새로 만든 피어몰을 소개해주세요!', participantCount: 8, link: `/community/planet/global/chat/chat2`, planetId: 'global', createdAt: new Date(Date.now() - 7200000) },
+           { id: 'chat3', name: '개발자 Q&A 💻', topic: '피어몰 개발 관련 질문과 답변', participantCount: 22, link: `/community/planet/global/chat/chat3`, planetId: 'global', createdAt: new Date(Date.now() - 10800000) },
+         ].sort((a, b) => b.participantCount - a.participantCount).slice(0, 3));
+      }
+    } catch (error) {
+      console.error('Error loading chat rooms from localStorage:', error);
+      setActiveChatRooms([]);
+    }
+  }, []);
+
+  const getPlanetNameById = (planetId: string): string | undefined => {
+    const planet = planets.find(p => p.id === planetId);
+    return planet?.name;
+  };
 
   return (
     <section className="bg-white rounded-xl overflow-hidden shadow-md mb-8">
-      <div className="p-4 border-b border-gray-100">
-        <h2 className="text-2xl font-bold text-primary-300">커뮤니티 하이라이트</h2>
+      <div className="p-4 border-b border-gray-100 flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-primary-300">커뮤니티 소식</h2>
+        <Link to="/community">
+          <Button variant="link" className="text-accent-200 text-sm">
+            더보기
+          </Button>
+        </Link>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-6">
-        {/* Active Discussions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-6">
+        {/* Latest Posts Section */}
         <div className="p-4">
           <div className="flex items-center mb-4">
-            <MessageSquare className="h-5 w-5 mr-2 text-accent-200" />
-            <h3 className="font-bold text-primary-300">활발한 토론</h3>
+            <List className="h-5 w-5 mr-2 text-accent-200" />
+            <h3 className="font-bold text-primary-300">최신 게시글</h3>
           </div>
           
           <div className="space-y-3">
-            {discussions.map(discussion => (
-              <Card key={discussion.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-3">
-                  <h4 className="font-medium text-primary-300 mb-2">{discussion.title}</h4>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center">
-                      <Avatar className="h-6 w-6 mr-2">
-                        <AvatarImage src={discussion.authorImg} />
-                        <AvatarFallback>{discussion.author[0]}</AvatarFallback>
-                      </Avatar>
-                      <span className="text-xs text-gray-600">{discussion.author}</span>
-                    </div>
-                    <span className="text-xs text-gray-500">{discussion.timeAgo}</span>
-                  </div>
-                </CardContent>
-                <CardFooter className="p-3 pt-0 flex justify-between items-center">
-                  <span className="text-xs text-gray-600">{discussion.replies} 답변</span>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs">참여하기</Button>
-                </CardFooter>
-              </Card>
-            ))}
+            {latestPosts.length > 0 ? (
+              latestPosts.map(post => {
+
+                console.log(post)
+
+                const planetName = getPlanetNameById(post.planetId);
+                return (
+                  <Card key={post.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-3">
+                      <Link to={`/community/planet/${post.planetId}/post/${post.id}`} className="block mb-2 hover:text-accent-200">
+                        <h4 className="font-medium text-primary-300 truncate">{post.title}</h4>
+                      </Link>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center">
+                          <Avatar className="h-6 w-6 mr-2">
+                            <AvatarImage src={post.authorAvatar || `https://api.dicebear.com/7.x/personas/svg?seed=${post.author}`} />
+                            <AvatarFallback>{post.author[0]}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs text-gray-600">
+                            {post.author} {planetName && <span className="text-gray-400">in {planetName}</span>}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-500">{formatTimeAgo(post.date)}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            ) : (
+              <p className="text-sm text-gray-500 text-center py-4">최신 게시글이 없습니다.</p>
+            )}
           </div>
         </div>
         
-        {/* Popular Reviews */}
+        {/* Active Open Chat Rooms Section */}
         <div className="p-4 border-t md:border-t-0 md:border-l border-gray-100">
           <div className="flex items-center mb-4">
-            <Star className="h-5 w-5 mr-2 text-accent-200" />
-            <h3 className="font-bold text-primary-300">인기 리뷰</h3>
+            <RadioTower className="h-5 w-5 mr-2 text-accent-200" />
+            <h3 className="font-bold text-primary-300">오픈 채팅방</h3>
           </div>
           
           <div className="space-y-3">
-            {reviews.map(review => (
-              <Card key={review.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-3">
-                  <div className="flex justify-between items-center mb-2">
-                    <h4 className="font-medium text-primary-300">{review.product}</h4>
-                    <div className="flex items-center bg-green-100 px-2 py-0.5 rounded text-green-700">
-                      <Star className="h-3 w-3 mr-1 fill-current" />
-                      <span className="text-xs font-medium">{review.rating}</span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-600 mb-2">"{review.content}"</p>
-                  <div className="text-xs text-gray-500">by {review.author}</div>
-                </CardContent>
-              </Card>
-            ))}
+            {activeChatRooms.length > 0 ? (
+              activeChatRooms.map(room => (
+                <Card key={room.id} className="hover:shadow-md transition-shadow">
+                  <Link to={room.link} className="block">
+                    <CardContent className="p-3">
+                      <h4 className="font-medium text-primary-300 mb-1 truncate">{room.name}</h4>
+                      {room.topic && <p className="text-xs text-gray-600 mb-2 truncate">{room.topic}</p>}
+                      <div className="flex items-center text-xs text-gray-500">
+                        <Users className="h-3 w-3 mr-1" />
+                        <span>{room.participantCount}명 참여중</span>
+                      </div>
+                    </CardContent>
+                  </Link>
+                </Card>
+              ))
+            ) : (
+               <p className="text-sm text-gray-500 text-center py-4">활성화된 오픈 채팅방이 없습니다.</p>
+            )}
           </div>
         </div>
         
-        {/* Events & Challenges */}
-        <div className="p-4 border-t md:border-t-0 md:border-l border-gray-100">
-          <div className="flex items-center mb-4">
-            <Calendar className="h-5 w-5 mr-2 text-accent-200" />
-            <h3 className="font-bold text-primary-300">이벤트 & 챌린지</h3>
-          </div>
-          
-          <div className="space-y-3">
-            {events.map(event => (
-              <Card key={event.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-3">
-                  <h4 className="font-medium text-primary-300 mb-2">{event.title}</h4>
-                  <div className="flex items-center mb-1">
-                    <Calendar className="h-3 w-3 mr-2 text-gray-500" />
-                    <span className="text-xs text-gray-600">{event.date}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Users className="h-3 w-3 mr-2 text-gray-500" />
-                    <span className="text-xs text-gray-600">{event.location}</span>
-                  </div>
-                </CardContent>
-                <CardFooter className="p-3 pt-0">
-                  <Button variant="outline" size="sm" className="w-full h-7 text-xs">
-                    일정 등록
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-            
-            <Button variant="link" className="w-full text-accent-200 text-xs">
-              모든 이벤트 보기
-            </Button>
-          </div>
-        </div>
       </div>
     </section>
   );
 };
+
+const CommunityHighlights = React.memo(CommunityHighlightsComponent); // React.memo 적용
 
 export default CommunityHighlights;

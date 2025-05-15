@@ -22,10 +22,13 @@ const contentTypes: { value: ContentType; label: string }[] = [
 const formSchema = z.object({
   title: z.string().min(2, { message: "제목은 2글자 이상이어야 합니다" }).max(100),
   description: z.string().min(5, { message: "설명은 5글자 이상이어야 합니다" }).max(500),
-  type: z.enum(["portfolio", "service", "product", "event", "post", "review", "quest", 
+  type: z.enum(["portfolio", "service", "product", "event", "post", "review", "quest",
     "advertisement", "stream", "guestbook", "course", "workshop", "challenge", "tool"]),
   price: z.string().optional(),
-  imageUrl: z.string().default("https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800"),
+  imageUrl: z.string().url({ message: "유효한 URL을 입력해주세요." }).optional().default("https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800"),
+  externalUrl: z.string().url({ message: "유효한 URL을 입력해주세요." }).optional(),
+  tags: z.string().optional(), // 예: "태그1, 태그2, 태그3"
+  category: z.string().optional(),
 });
 
 export type ContentFormValues = z.infer<typeof formSchema>;
@@ -43,6 +46,9 @@ export default function AddContentForm({ onSubmit, onCancel }: AddContentFormPro
       description: "",
       type: "product",
       imageUrl: "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800",
+      externalUrl: "",
+      tags: "",
+      category: "",
     },
   });
 
@@ -138,4 +144,23 @@ export default function AddContentForm({ onSubmit, onCancel }: AddContentFormPro
       </form>
     </Form>
   );
+
+  // Add new form fields for externalUrl, tags, category
+  // These fields are optional based on the schema.
+  // You can add them similarly to how 'price' is handled if they need UI inputs.
+  // For now, schema is updated, UI part for these new fields is not added in this diff.
+  // Example for tags (if you want a text input for comma-separated tags):
+  // <FormField
+  //   control={form.control}
+  //   name="tags"
+  //   render={({ field }) => (
+  //     <FormItem>
+  //       <FormLabel>태그 (쉼표로 구분)</FormLabel>
+  //       <FormControl>
+  //         <Input placeholder="예: 프로그래밍, 디자인, AI" {...field} />
+  //       </FormControl>
+  //       <FormMessage />
+  //     </FormItem>
+  //   )}
+  // />
 }

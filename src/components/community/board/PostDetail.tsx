@@ -8,10 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, MessageSquare, Star, ThumbsUp, Users } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
+import { Post } from '../types'; // Post 타입 임포트
+
 interface PostDetailProps {
-  post: any;
+  post: Post | null; // Post 타입 또는 null 허용
   onBack: () => void;
-  onEdit?: (post: any) => void;
+  onEdit?: (post: Post) => void; // Post 타입 사용
   onDelete?: (id: string | number) => void;
   isAuthor?: boolean;
 }

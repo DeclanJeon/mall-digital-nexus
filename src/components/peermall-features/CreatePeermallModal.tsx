@@ -6,9 +6,10 @@ import {
   Store, 
   FileText, 
   Image as ImageIcon, 
-  User, 
+  User,
   Mail,
   Globe,
+  MapPin, // MapPin 아이콘 추가
   AlertCircle,
   ChevronRight,
   ChevronLeft
@@ -57,6 +58,7 @@ const formSchema = z.object({
   imageUrl: z.string().optional(),
   hashtags: z.string().optional(),
   referralCode: z.string().optional(),
+  mapAddress: z.string().optional(), // 피어맵에 표시될 주소 (선택)
 });
 
 // localStorage 키 정의
@@ -79,6 +81,7 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
       imageUrl: '',
       hashtags: '',
       referralCode: '',
+      mapAddress: '', // mapAddress 기본값 추가
     },
   });
 
@@ -140,11 +143,15 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
         // IndexedDB에 저장하는 추가 정보들 (localStorage에도 동일하게 저장하려면 추가)
         rating: 0,
         reviewCount: 0,
-        location: { // location 정보도 저장
-          address: values.address, // 사용자가 입력한 주소 (실제 지도 좌표는 추후 업데이트)
-          lat: 0, // 기본값 또는 추후 지오코딩
-          lng: 0, // 기본값 또는 추후 지오코딩
+        // location 정보 구성 시 mapAddress 우선 사용
+        location: {
+          // TODO: values.mapAddress 또는 values.address를 기반으로 실제 위도(lat), 경도(lng)를 지오코딩 API를 통해 가져와야 합니다.
+          // 현재는 입력된 주소 문자열만 저장하고, lat/lng는 기본값 0으로 설정합니다.
+          address: values.mapAddress || values.address, // mapAddress가 있으면 사용, 없으면 URL 주소 사용
+          lat: 0, // 지오코딩 API 연동 필요
+          lng: 0, // 지오코딩 API 연동 필요
         },
+        mapDisplayAddress: values.mapAddress || '', // 지도 표시용 주소 명시적 저장
         createdAt: new Date().toISOString(), // 생성 시간 추가
       };
       
@@ -193,8 +200,9 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
         onSuccess({
           id: peermallId,
           name: values.name,
-          type: values.membershipType, // 예시로 멤버십 유형 전달
-          ...peermallDataForStorage // 전체 데이터 전달도 가능
+          type: values.membershipType,
+          location: peermallDataForStorage.location, // location 정보 전달
+          ...peermallDataForStorage
         });
       } else {
         onClose(); // onSuccess가 없으면 그냥 모달 닫기
@@ -407,7 +415,6 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                     <FormItem>
                       <FormLabel className="flex items-center gap-1">
                         <Globe className="h-4 w-4 text-muted-foreground" /> 추천인 코드
-                        <span className="text-xs text-muted-foreground ml-1">(선택)</span>
                       </FormLabel>
                       <FormControl>
                         <Input placeholder="추천코드가 있다면 입력하세요" {...field} />
@@ -419,22 +426,19 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
 
                 <FormField
                   control={form.control}
-                  name="membershipType"
+                  name="mapAddress"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        <RequiredLabel>멤버십 유형</RequiredLabel>
+                      <FormLabel className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4 text-muted-foreground" /> 피어맵 표시 주소
+                        <span className="text-xs text-muted-foreground ml-1">(선택)</span>
                       </FormLabel>
                       <FormControl>
-                         <select
-                           {...field} // Zod 스키마와 react-hook-form이 자동으로 value와 onChange를 관리
-                           className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                         >
-                           <option value="personal">개인</option>
-                           <option value="family">가족</option>
-                           <option value="enterprise">기업</option>
-                         </select>
+                        <Input placeholder="예: 서울특별시 강남구 테헤란로 123" {...field} />
                       </FormControl>
+                      <div className="text-xs text-muted-foreground mt-1.5">
+                        피어맵에 표시될 실제 주소를 입력해주세요. 입력 시 해당 위치로 피어맵에 등록됩니다.
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}

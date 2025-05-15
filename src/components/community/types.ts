@@ -35,6 +35,7 @@ export interface Planet {
   health: number;
   createdAt: string; // ISO date string
   expiryDate?: string; // Optional expiry date for time-limited planets
+  peerSpaceAddress?: string; // 행성이 속한 피어스페이스(피어몰)의 주소
 }
 
 // Post types
@@ -51,6 +52,7 @@ export interface Post {
   comments: number;
   tags: string[];
   isLikedByCurrentUser?: boolean; // 현재 사용자가 좋아요를 눌렀는지 여부
+  views?: number; // 조회수 속성 추가
 }
 
 export interface ForumPostFormData {
@@ -230,7 +232,7 @@ export interface BoardHeaderProps {
 
 export interface PlanetBoardViewProps {
   activePlanet: Planet | null;
-  selectedLocation: Planet | null;
+  selectedLocation: Planet | null; // 이 prop은 PlanetBoardView에서 activePlanet으로 대체 가능해 보임
   posts: Post[];
   editingPost: Post | null;
   showNewPostForm: boolean;
@@ -248,10 +250,10 @@ export interface PlanetBoardViewProps {
   onReturnToUniverse: () => void;
   activeTab: string;
   onTabChange: (value: string) => void;
-  onViewPostDetail: (post: Post) => void;
-  selectedPost?: Post | null;
-  onBackFromDetail?: () => void;
-  onToggleLikePost?: (postId: string) => void; // 좋아요 토글 콜백 함수를 옵셔널로 변경
+  onViewPostDetail: (post: Post) => void; // 게시글 클릭 시 네비게이션 트리거
+  selectedPost?: Post | null; // URL 파라미터로 결정된, 현재 보여줄 게시글
+  onBackFromDetail?: () => void; // 게시글 상세에서 목록으로 돌아가는 함수
+  onToggleLikePost?: (postId: string) => void;
 }
 
 export interface PostDetailProps {

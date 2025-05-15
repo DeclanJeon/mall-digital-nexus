@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PeerMallConfig } from './types';
 import { toast } from '@/hooks/use-toast';
-import { Award, Heart, ThumbsUp, Shield, Star, Gift } from 'lucide-react';
+import { Award, Heart, ThumbsUp, Shield, Star, Gift, Users, Hash, CheckCircle } from 'lucide-react'; // Users, Hash, CheckCircle 아이콘 추가
 
 interface PeerSpaceHeroProps {
   config: PeerMallConfig;
@@ -12,15 +12,35 @@ interface PeerSpaceHeroProps {
   onAddBadge?: (badge: string) => void;
   onAddRecommendation?: () => void;
   onFollow?: () => void;
+  onUpdateConfig: (updatedConfig: PeerMallConfig) => void; // 커버 이미지 변경을 위해 추가
 }
 
-const PeerSpaceHero: React.FC<PeerSpaceHeroProps> = ({ 
-  config, 
+const PeerSpaceHero: React.FC<PeerSpaceHeroProps> = ({
+  config,
   isOwner,
   onAddBadge,
   onAddRecommendation,
-  onFollow
+  onFollow,
+  onUpdateConfig // 추가된 prop
 }) => {
+
+  const handleCoverImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const newCoverImage = reader.result as string;
+        const updatedConfig = { ...config, coverImage: newCoverImage };
+        onUpdateConfig(updatedConfig); // 상위 컴포넌트로 변경된 config 전달
+        toast({
+          title: "커버 이미지 변경됨",
+          description: "새로운 커버 이미지가 적용되었습니다. (임시 저장)",
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleFollowClick = () => {
     if (onFollow) {
       onFollow();
@@ -161,25 +181,29 @@ const PeerSpaceHero: React.FC<PeerSpaceHeroProps> = ({
   // Available badges to add
   const availableBadges = ['trusted', 'recommended', 'favorite', 'topRated', 'premium'];
   
+  const heroStyle: React.CSSProperties = {
+    backgroundImage: config.coverImage
+      ? `linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.8) 100%), url(${config.coverImage})`
+      : 'linear-gradient(to bottom, #1a202c 0%, #2d3748 100%)', // 기본 배경 (커버 이미지 없을 시)
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  };
+
   return (
-    <section 
-      className="relative rounded-xl overflow-hidden bg-gradient-to-r from-blue-700 to-purple-700 mb-8"
-      style={{
-        backgroundImage: config.coverImage 
-          ? `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url(${config.coverImage})` 
-          : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}
+    <section
+      className="relative rounded-b-3xl shadow-2xl overflow-hidden text-white min-h-[35vh] md:min-h-[45vh] flex flex-col justify-between mb-12" // 높이 수정: 70vh -> 35vh, 80vh -> 45vh (md에서 약간 더 여유)
+      style={heroStyle}
     >
-      <div className="container mx-auto px-4 py-16 md:py-20 text-white">
-        <div className="max-w-2xl">
+      {/* 상단 콘텐츠 영역 */}
+      <div className="container mx-auto px-6 md:px-10 pt-20 md:pt-28 pb-10 flex-grow flex flex-col justify-center items-start">
+        <div className="max-w-3xl animate-fadeInUp"> {/* 애니메이션 추가 */}
           {config.badges && config.badges.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-6">
               {config.badges.map((badge, index) => (
-                <Badge 
+                <Badge
                   key={index}
-                  className={`border-none hover:bg-white/30 flex items-center ${getBadgeColor(badge)}`}
+                  variant="outline"
+                  className={`border-2 backdrop-blur-sm bg-white/10 hover:bg-white/20 transition-all duration-200 text-sm px-3 py-1 ${getBadgeColor(badge)}`}
                 >
                   {getBadgeIcon(badge)}
                   {getBadgeLabel(badge)}
@@ -188,56 +212,70 @@ const PeerSpaceHero: React.FC<PeerSpaceHeroProps> = ({
             </div>
           )}
           
-          <h1 className="text-4xl md:text-5xl font-bold mb-3">{config.title}</h1>
+          <h1 className="text-5xl md:text-7xl font-extrabold mb-4 tracking-tight" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.7)' }}>
+            {config.title}
+          </h1>
           
-          <p className="text-lg md:text-xl text-white/80 mb-6">
+          <p className="text-xl md:text-2xl text-gray-200/90 mb-8 leading-relaxed" style={{ textShadow: '1px 1px 4px rgba(0,0,0,0.5)' }}>
             {config.description}
           </p>
           
-          <div className="flex flex-wrap gap-3 mb-4">
-            <Button className="bg-white text-blue-700 hover:bg-white/90">
-              둘러보기
+          <div className="flex flex-wrap gap-4 items-center">
+            <Button
+              size="lg"
+              className="bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-lg font-semibold px-10 py-4 rounded-lg shadow-xl transform transition-all duration-300 hover:scale-105 focus:ring-4 focus:ring-sky-300"
+            >
+              자세히 둘러보기
             </Button>
             
-            {isOwner ? (
-              <Button variant="outline" className="border-white text-white hover:bg-white/20">
-                커버 이미지 변경
+            {isOwner && (
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-white/50 text-white hover:bg-white/10 hover:border-white backdrop-blur-sm px-8 py-3 text-base rounded-lg shadow-md transition-colors"
+              >
+                <label htmlFor="coverImageInput" className="cursor-pointer flex items-center">
+                  <Gift className="mr-2 h-5 w-5" /> 커버 변경
+                </label>
+                <input
+                  type="file"
+                  id="coverImageInput"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleCoverImageChange}
+                />
               </Button>
-            ) : (
+            )}
+            {!isOwner && (
               <>
-                <Button 
-                  variant="outline" 
-                  className="border-white text-white hover:bg-white/20"
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="border-white/50 text-white hover:bg-white/10 hover:border-white backdrop-blur-sm px-8 py-3 text-base rounded-lg shadow-md transition-colors"
                   onClick={handleFollowClick}
                 >
-                  <Heart className="mr-2 h-4 w-4" />
-                  팔로우
+                  <Heart className="mr-2 h-5 w-5" />
+                  팔로우 ({config.followers.toLocaleString()})
                 </Button>
-                <Button 
-                  variant="outline" 
-                  className="border-white text-white hover:bg-white/20"
-                  onClick={handleRecommendClick}
-                >
-                  <ThumbsUp className="mr-2 h-4 w-4" />
-                  추천하기
-                </Button>
+                {/* 추천 버튼은 통계 영역으로 이동 또는 다른 형태로 변경 고려 */}
               </>
             )}
           </div>
           
-          {/* Badge Selection for Visitors */}
-          {!isOwner && (
-            <div className="mt-4">
-              <p className="text-sm text-white/70 mb-2">뱃지 주기:</p>
-              <div className="flex flex-wrap gap-2">
+          {/* 방문자 뱃지 주기 - 디자인 개선 필요 시 */}
+          {!isOwner && availableBadges.filter(b => !config.badges.includes(b)).length > 0 && (
+            <div className="mt-10">
+              <p className="text-md text-gray-300/80 mb-3">이 스페이스에 뱃지 선물하기:</p>
+              <div className="flex flex-wrap gap-3">
                 {availableBadges.filter(badge => !config.badges.includes(badge)).map((badge) => (
-                  <Badge 
+                  <Badge
                     key={badge}
-                    className={`cursor-pointer border-none hover:bg-white/30 flex items-center ${getBadgeColor(badge)}`}
+                    variant="default"
+                    className={`cursor-pointer backdrop-blur-sm bg-white/10 hover:bg-white/20 transition-all duration-200 text-sm px-4 py-2 shadow-md ${getBadgeColor(badge)}`}
                     onClick={() => handleAddBadgeClick(badge)}
                   >
                     {getBadgeIcon(badge)}
-                    + {getBadgeLabel(badge)}
+                    {getBadgeLabel(badge)} 추가
                   </Badge>
                 ))}
               </div>
@@ -246,33 +284,59 @@ const PeerSpaceHero: React.FC<PeerSpaceHeroProps> = ({
         </div>
       </div>
       
-      <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/50 to-transparent h-16"></div>
-      
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center relative z-10 -mb-4 pb-6">
-          <div className="flex items-center gap-6">
-            <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full flex items-center">
-              <span className="text-white/80 text-sm">소유자: </span>
-              <span className="text-white font-medium ml-1">{config.owner}</span>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hidden sm:flex items-center">
-              <span className="text-white/80 text-sm">피어 번호: </span>
-              <span className="text-white font-medium ml-1">{config.peerNumber}</span>
+      {/* 하단 통계 및 정보 영역 */}
+      <div className="container mx-auto px-6 md:px-10 pb-8 pt-6 bg-black/30 backdrop-blur-lg rounded-t-2xl">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8">
+          {/* 소유자 정보 */}
+          <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/5 transition-colors">
+            <Users className="h-7 w-7 text-sky-400 flex-shrink-0" />
+            <div>
+              <p className="text-xs text-sky-300/80 uppercase tracking-wider">소유자</p>
+              <p className="text-md font-semibold text-white truncate" title={config.owner}>
+                {config.owner}
+              </p>
             </div>
           </div>
-          
-          <div className="flex gap-2 items-center">
-            <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full flex items-center">
-              <span className="text-white/80 text-sm mr-1">팔로워 </span>
-              <span className="text-white font-medium">{config.followers.toLocaleString()}</span>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hidden md:flex items-center">
-              <span className="text-white/80 text-sm mr-1">추천 </span>
-              <span className="text-white font-medium">{config.recommendations.toLocaleString()}</span>
+
+          {/* 피어 번호 */}
+          <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/5 transition-colors">
+            <Hash className="h-7 w-7 text-sky-400 flex-shrink-0" />
+            <div>
+              <p className="text-xs text-sky-300/80 uppercase tracking-wider">피어 ID</p>
+              <p className="text-md font-semibold text-white">{config.peerNumber}</p>
             </div>
           </div>
+
+          {/* 팔로워 수 (버튼에서 여기로 이동) */}
+           {!isOwner && (
+            <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/5 transition-colors">
+              <Heart className="h-7 w-7 text-pink-400 flex-shrink-0" />
+              <div>
+                <p className="text-xs text-pink-300/80 uppercase tracking-wider">팔로워</p>
+                <p className="text-md font-semibold text-white">{config.followers.toLocaleString()}</p>
+              </div>
+            </div>
+           )}
+
+
+          {/* 추천 수 */}
+          <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/5 transition-colors">
+            <CheckCircle className="h-7 w-7 text-green-400 flex-shrink-0" />
+            <div>
+              <p className="text-xs text-green-300/80 uppercase tracking-wider">추천</p>
+              <p className="text-md font-semibold text-white">{config.recommendations.toLocaleString()}</p>
+            </div>
+          </div>
+           {!isOwner && (
+             <Button
+                variant="ghost"
+                className="text-green-400 hover:text-green-300 hover:bg-green-500/10 w-full justify-start p-3"
+                onClick={handleRecommendClick}
+              >
+                <ThumbsUp className="mr-2 h-5 w-5" />
+                추천하기
+              </Button>
+           )}
         </div>
       </div>
     </section>

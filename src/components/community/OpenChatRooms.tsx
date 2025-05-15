@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,54 +14,67 @@ import { MessageSquare, Mic, Video, FileText, ScreenShare, Globe, Lock, LockOpen
 import { ChatRoom } from './types';
 import { QRCodeModal } from '@/components/peer-space/modals/QRCodeModal';
 
-
+const CHAT_ROOMS_STORAGE_KEY = 'chatRooms';
 
 const OpenChatRooms = ({ planetId }: { planetId?: string }) => {
   const navigate = useNavigate();
-  const [chatRooms, setChatRooms] = useState<ChatRoom[]>([
-    {
-      id: '1',
-      name: '취미 공유방',
-      type: 'text',
-      description: '다양한 취미에 대해 이야기해요',
-      creator: '사용자123',
-      participants: 15,
-      participantsCount: 15,
-      isPrivate: false,
-      features: ['파일전송', '화면공유'],
-      timestamp: new Date('2025-04-16T14:30:00'),
-      planetId: planetId,
-      channelAddress: 'hobby-chat-1', // 추가
-    },
-    {
-      id: '2',
-      name: '음악 감상회',
-      type: 'voice',
-      description: '좋아하는 음악을 들으며 대화해요',
-      creator: '음악매니아',
-      participants: 8,
-      participantsCount: 8,
-      isPrivate: false,
-      features: ['텍스트채팅', '파일전송'],
-      timestamp: new Date('2025-04-16T18:45:00'),
-      planetId: planetId,
-      channelAddress: 'music-club-2', // 추가
-    },
-    {
-      id: '3',
-      name: '온라인 스터디 그룹',
-      type: 'video',
-      description: '함께 공부하고 질문해요',
-      creator: '스터디장',
-      participants: 5,
-      participantsCount: 5,
-      isPrivate: true,
-      features: ['텍스트채팅', '화면공유', '웹공유'],
-      timestamp: new Date('2025-04-17T09:00:00'),
-      planetId: planetId,
-      channelAddress: 'study-group-3', // 추가
-    },
-  ]);
+  const [chatRooms, setChatRooms] = useState<ChatRoom[]>(() => {
+    try {
+      const storedRooms = localStorage.getItem(CHAT_ROOMS_STORAGE_KEY);
+      if (storedRooms) {
+        return JSON.parse(storedRooms).map((room: ChatRoom) => ({ // 타입 명시
+          ...room,
+          timestamp: room.timestamp ? new Date(room.timestamp) : undefined,
+        }));
+      }
+    } catch (error) {
+      console.error("Error loading chat rooms from localStorage:", error);
+    }
+    return [
+      {
+        id: '1',
+        name: '취미 공유방',
+        type: 'text',
+        description: '다양한 취미에 대해 이야기해요',
+        creator: '사용자123',
+        participants: 15,
+        participantsCount: 15,
+        isPrivate: false,
+        features: ['파일전송', '화면공유'],
+        timestamp: new Date('2025-04-16T14:30:00'),
+        planetId: planetId,
+        channelAddress: 'hobby-chat-1',
+      },
+      {
+        id: '2',
+        name: '음악 감상회',
+        type: 'voice',
+        description: '좋아하는 음악을 들으며 대화해요',
+        creator: '음악매니아',
+        participants: 8,
+        participantsCount: 8,
+        isPrivate: false,
+        features: ['텍스트채팅', '파일전송'],
+        timestamp: new Date('2025-04-16T18:45:00'),
+        planetId: planetId,
+        channelAddress: 'music-club-2',
+      },
+      {
+        id: '3',
+        name: '온라인 스터디 그룹',
+        type: 'video',
+        description: '함께 공부하고 질문해요',
+        creator: '스터디장',
+        participants: 5,
+        participantsCount: 5,
+        isPrivate: true,
+        features: ['텍스트채팅', '화면공유', '웹공유'],
+        timestamp: new Date('2025-04-17T09:00:00'),
+        planetId: planetId,
+        channelAddress: 'study-group-3',
+      },
+    ];
+  });
   
   const [filterType, setFilterType] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -84,12 +96,20 @@ const OpenChatRooms = ({ planetId }: { planetId?: string }) => {
   const { toast } = useToast();
 
   const filteredRooms = chatRooms.filter(room => {
-    const matchesSearch = room.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         room.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = room.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           (room.description && room.description.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesType = filterType === "all" || room.type === filterType;
     const matchesPlanet = planetId ? room.planetId === planetId : true;
     return matchesSearch && matchesType && matchesPlanet;
   });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CHAT_ROOMS_STORAGE_KEY, JSON.stringify(chatRooms));
+    } catch (error) {
+      console.error("Error saving chat rooms to localStorage:", error);
+    }
+  }, [chatRooms]);
 
   const handleCreateRoom = () => {
     if (!newRoom.name.trim()) {
@@ -102,24 +122,41 @@ const OpenChatRooms = ({ planetId }: { planetId?: string }) => {
     }
 
     const roomId = Math.random().toString(36).substring(2, 9);
+    const currentPlanetId = planetId || 'global'; 
+
     const createdRoom: ChatRoom = {
       ...newRoom,
       id: roomId,
       participantsCount: 1,
       participants: 1,
       timestamp: new Date(),
-      channelAddress: `room-${roomId}`, // channelAddress 추가
-      // Add password if the room is private
+      channelAddress: `room-${roomId}`,
+      planetId: currentPlanetId, 
       ...(newRoom.isPrivate && { password: newRoom.password || '' }),
     };
 
-    setChatRooms([createdRoom, ...chatRooms]);
+    const updatedRooms = [createdRoom, ...chatRooms];
+    setChatRooms(updatedRooms);
+
     setCreateDialogOpen(false);
     toast({
       title: "채팅방 생성 완료",
-      description: `'${createdRoom.name}' 채팅방이 생성되었습니다.`,
+      description: `'${createdRoom.name}' 채팅방이 생성되었습니다. 바로 입장합니다.`,
     });
     
+    navigate(`/community/planet/${createdRoom.planetId}/chat/${createdRoom.id}`, {
+      state: {
+        room: {
+          ...createdRoom,
+          creator: createdRoom.creator || '시스템',
+          participantsCount: createdRoom.participantsCount || createdRoom.participants || 1,
+          participants: createdRoom.participants || createdRoom.participantsCount || 1,
+          members: createdRoom.members || ['기본참여자'],
+          features: createdRoom.features || [],
+        }
+      }
+    });
+
     setNewRoom({
       name: '',
       type: 'text',
@@ -133,7 +170,6 @@ const OpenChatRooms = ({ planetId }: { planetId?: string }) => {
   };
 
   const handleJoinRoom = (room: ChatRoom) => {
-    // Simulate password check for private rooms
     if (room.isPrivate && room.password) {
       const enteredPassword = prompt(`비공개 채팅방입니다. 비밀번호를 입력하세요:`);
       if (enteredPassword !== room.password) {
@@ -142,11 +178,12 @@ const OpenChatRooms = ({ planetId }: { planetId?: string }) => {
           description: "비밀번호가 올바르지 않습니다.",
           variant: "destructive",
         });
-        return; // Stop joining if password is wrong
+        return;
       }
     }
-
-    navigate(`/community/chat/${room.id}`, {
+    
+    const targetPlanetId = room.planetId || 'global';
+    navigate(`/community/planet/${targetPlanetId}/chat/${room.id}`, {
       state: {
         room: {
           ...room,
@@ -155,7 +192,8 @@ const OpenChatRooms = ({ planetId }: { planetId?: string }) => {
           participants: room.participants || room.participantsCount || 1,
           members: room.members || ['기본참여자'],
           features: room.features || [],
-          channelAddress: room.channelAddress || `room-${room.id}` // channelAddress 보장
+          channelAddress: room.channelAddress || `room-${room.id}`,
+          planetId: targetPlanetId 
         }
       }
     });
@@ -197,13 +235,20 @@ const OpenChatRooms = ({ planetId }: { planetId?: string }) => {
     }
   };
 
-  const formatTimeAgo = (date?: Date) => {
-    if (!date) return '방금 전';
+  const formatTimeAgo = (dateInput?: Date | string) => { 
+    if (!dateInput) return '방금 전';
+    
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+        return '시간 정보 없음'; 
+    }
     
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
     
-    if (diffInSeconds < 60) return '방금 전';
+    if (diffInSeconds < 0) return '방금 전'; 
+    if (diffInSeconds < 60) return `${diffInSeconds}초 전`;
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}분 전`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}시간 전`;
     return `${Math.floor(diffInSeconds / 86400)}일 전`;
@@ -380,7 +425,7 @@ const OpenChatRooms = ({ planetId }: { planetId?: string }) => {
                       id="textChat"
                       checked={newRoom.features.includes('텍스트채팅')}
                       onCheckedChange={() => toggleFeature('텍스트채팅')}
-                      className="data-[state=unchecked]:bg-gray-700" // Style for unchecked state in dark mode
+                      className="data-[state=unchecked]:bg-gray-700"
                     />
                     <Label htmlFor="textChat" className="flex items-center gap-1 text-gray-300">
                       <MessageSquare className="h-4 w-4" /> 텍스트채팅
@@ -500,7 +545,7 @@ const OpenChatRooms = ({ planetId }: { planetId?: string }) => {
         <QRCodeModal
           open={qrModalOpen}
           onOpenChange={setQrModalOpen}
-          url={`${window.location.origin}/community/chat/${selectedRoomForQR.id}`}
+          url={`${window.location.origin}/community/planet/${selectedRoomForQR.planetId || 'global'}/chat/${selectedRoomForQR.id}`}
           title={selectedRoomForQR.name}
         />
       )}

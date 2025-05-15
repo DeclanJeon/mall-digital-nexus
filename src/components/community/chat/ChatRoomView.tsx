@@ -4,31 +4,31 @@ import { ArrowLeft, Send, Paperclip, Smile, Mic, Image, Users, Settings, Search,
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Assuming Avatar is in ui
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'; // Import Dialog components
-import { Label } from '@/components/ui/label'; // Import Label
-import { ChatRoom, ChatMessage } from '../types'; // Assuming types are defined here
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { ChatRoom, ChatMessage } from '../types';
 
-// Placeholder for actual message type if different
 interface Message extends ChatMessage {
   isMe: boolean;
 }
 
+const CHAT_ROOMS_STORAGE_KEY = 'chatRooms'; // OpenChatRooms.tsx와 동일한 키
+
 const ChatRoomView = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { roomId } = useParams<{ roomId: string }>();
+  const { planetId, roomId } = useParams<{ planetId: string; roomId: string }>();
   const [room, setRoom] = useState<ChatRoom | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // State for settings modal
-  const [editableRoomData, setEditableRoomData] = useState<Partial<ChatRoom>>({}); // State for editing room data
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [editableRoomData, setEditableRoomData] = useState<Partial<ChatRoom>>({});
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // --- Mock Data (Replace with actual data fetching) ---
   const mockParticipants = Array.from({ length: 8 }, (_, i) => ({
     id: `user_${i + 1}`,
     name: `참여자 ${i + 1}`,
@@ -42,47 +42,52 @@ const ChatRoomView = () => {
     { id: 'm3', author: 'Me', authorAvatar: '', content: '안녕하세요 여러분!', timestamp: new Date(Date.now() - 3 * 60000).toISOString(), isMe: true, planetId: roomId },
     { id: 'm4', author: '참여자 2', authorAvatar: 'https://i.pravatar.cc/40?img=6', content: '여기서 어떤 이야기를 주로 나누나요?', timestamp: new Date(Date.now() - 2 * 60000).toISOString(), isMe: false, planetId: roomId },
   ];
-  // --- End Mock Data ---
 
   useEffect(() => {
     setIsLoading(true);
-    // Simulate fetching data
-    const timer = setTimeout(() => {
-      // Get room data from navigation state or mock if accessed directly
+    let foundRoom: ChatRoom | null = null;
+    const timer = setTimeout(() => { // Simulate async data fetching
       if (location.state?.room) {
-        setRoom(location.state.room);
-      } else {
-        console.warn("Room data not found in state, using mock data.");
-        setRoom({
-          id: roomId || 'unknown',
-          name: `채팅방 ${roomId}`,
-          description: '직접 접근된 채팅방입니다.',
-          type: 'text',
-          creator: '시스템',
-          participants: mockParticipants.length,
-          isPrivate: false,
-          features: ['텍스트채팅'],
-          timestamp: new Date(),
-          planetId: 'unknown_planet',
-          channelAddress: `mock-room-${roomId || 'unknown'}` // 목업 데이터에 channelAddress 추가
-        });
+        const roomFromState = location.state.room as ChatRoom;
+        if (roomFromState.id === roomId && roomFromState.planetId === planetId) {
+          foundRoom = roomFromState;
+        } else {
+          console.warn("Room data in state does not match URL params. Fetching from storage.");
+        }
       }
-      // Set mock messages after fetching room data
-      setMessages(mockMessages);
-      setIsLoading(false); // Set loading to false after data is "loaded"
-    }, 1000); // Simulate 1 second loading time
+      
+      if (!foundRoom && roomId && planetId) {
+        try {
+          const storedRooms = localStorage.getItem(CHAT_ROOMS_STORAGE_KEY);
+          if (storedRooms) {
+            const allRooms: ChatRoom[] = JSON.parse(storedRooms);
+            foundRoom = allRooms.find(r => r.id === roomId && r.planetId === planetId) || null;
+          }
+        } catch (error) {
+          console.error("Error loading chat room from localStorage:", error);
+        }
+      }
 
-    return () => clearTimeout(timer); // Cleanup timer on unmount
-  }, [location.state, roomId]);
+      if (foundRoom) {
+        setRoom(foundRoom);
+        const initialMessages = mockMessages.map(m => ({...m, planetId: foundRoom!.id }));
+        setMessages(initialMessages);
+      } else {
+        console.warn(`Room data not found for planetId: ${planetId}, roomId: ${roomId}.`);
+        setRoom(null); 
+      }
+      setIsLoading(false);
+    }, 500); 
 
-  // Update editableRoomData when room data loads or changes
+    return () => clearTimeout(timer);
+  }, [planetId, roomId, location.state, navigate]); // 의존성 배열에 planetId 추가
+
   useEffect(() => {
     if (room) {
       setEditableRoomData({ name: room.name, description: room.description });
     }
   }, [room]);
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     if (scrollAreaRef.current) {
       const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
@@ -92,16 +97,15 @@ const ChatRoomView = () => {
     }
   }, [messages]);
 
-  // Simulate receiving new messages periodically
   useEffect(() => {
-    if (isLoading || !room) return; // Don't simulate if loading or no room
+    if (isLoading || !room) return; 
 
     const intervalId = setInterval(() => {
       const randomParticipant = mockParticipants[Math.floor(Math.random() * mockParticipants.length)];
       const newMessageContent = `새로운 메시지입니다! (${new Date().toLocaleTimeString()})`;
 
       const incomingMsg: Message = {
-        id: `m${Date.now()}`, // Use timestamp for unique ID in simulation
+        id: `m${Date.now()}`, 
         author: randomParticipant.name,
         authorAvatar: randomParticipant.avatar,
         content: newMessageContent,
@@ -109,15 +113,12 @@ const ChatRoomView = () => {
         isMe: false,
         planetId: roomId,
       };
-
       setMessages(prev => [...prev, incomingMsg]);
+    }, 5000); 
 
-    }, 5000); // Simulate a new message every 5 seconds
+    return () => clearInterval(intervalId);
+  }, [isLoading, room, roomId]); 
 
-    return () => clearInterval(intervalId); // Cleanup interval on unmount or when room changes
-  }, [isLoading, room, roomId]); // Add dependencies
-
-  // Auto-resize textarea
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -131,7 +132,7 @@ const ChatRoomView = () => {
       const msg: Message = {
         id: `m${messages.length + 1}`,
         author: 'Me',
-        authorAvatar: '', // Add current user avatar if available
+        authorAvatar: '', 
         content: newMessage.trim(),
         timestamp: new Date().toISOString(),
         isMe: true,
@@ -140,7 +141,6 @@ const ChatRoomView = () => {
       setMessages(prev => [...prev, msg]);
       setNewMessage('');
 
-      // Reset textarea height
       const textarea = textareaRef.current;
       if (textarea) {
         setTimeout(() => { textarea.style.height = 'auto'; }, 0);
@@ -156,45 +156,41 @@ const ChatRoomView = () => {
   };
 
   const handleGoBack = () => {
-    navigate(-1);
+    // 이전 페이지가 행성 상세 페이지일 경우 해당 URL로, 아니면 커뮤니티 메인으로
+    if (planetId) {
+      navigate(`/community/planet/${planetId}`);
+    } else {
+      navigate('/community');
+    }
   };
 
-  // Function to handle opening the voice/video call link
   const handleJoinCall = (callType: 'voice' | 'video') => {
     if (room?.channelAddress) {
       const callUrl = `https://peerterra.com/many/channel/${room.channelAddress}`;
       window.open(callUrl, '_blank', 'noopener,noreferrer');
-
-      // Step 3: Announce call attempt in chat (Simulation)
       const announceMsg: Message = {
         id: `sys-${Date.now()}`,
-        author: 'System', // Or use a specific system user name
-        authorAvatar: '', // System messages might not need an avatar
+        author: 'System', 
+        authorAvatar: '', 
         content: `Me님이 ${callType === 'voice' ? '음성' : '화상'} 통화 참여를 시도했습니다.`,
         timestamp: new Date().toISOString(),
-        isMe: false, // Display as a system message from others
+        isMe: false, 
         planetId: roomId,
-        // Add a flag to indicate it's a system message for special styling if needed
-        // isSystemMessage: true,
       };
       setMessages(prev => [...prev, announceMsg]);
-
-      // TODO: Implement step 4 - Indicate call status
       console.log(`${callType} call attempt for room: ${room.channelAddress}`);
     } else {
       console.error("Channel address is missing for this room.");
-      // Optionally show a toast message to the user
     }
   };
 
   const handleMoreOptions = () => {
-    // In a real app, this would open a dropdown or popover with options
     alert("더보기 옵션:\n- 채팅방 나가기\n- 사용자 신고하기\n- 알림 설정");
   };
 
   const handleOpenSettings = () => {
     if (room) {
-      setEditableRoomData({ name: room.name, description: room.description }); // Reset editable data on open
+      setEditableRoomData({ name: room.name, description: room.description }); 
       setIsSettingsOpen(true);
     }
   };
@@ -205,21 +201,29 @@ const ChatRoomView = () => {
   };
 
   const handleSaveSettings = () => {
-    // TODO: Add API call to save settings to the server
     if (room) {
       setRoom(prevRoom => ({
         ...prevRoom!,
         name: editableRoomData.name || prevRoom!.name,
         description: editableRoomData.description || prevRoom!.description,
       }));
-      // Optionally update the chatRooms state in the parent component if needed
+      // TODO: 로컬 스토리지에도 변경 사항 저장
+      try {
+        const storedRooms = localStorage.getItem(CHAT_ROOMS_STORAGE_KEY);
+        if (storedRooms) {
+          let allRooms: ChatRoom[] = JSON.parse(storedRooms);
+          allRooms = allRooms.map(r => 
+            r.id === room.id ? { ...r, name: editableRoomData.name || r.name, description: editableRoomData.description || r.description } : r
+          );
+          localStorage.setItem(CHAT_ROOMS_STORAGE_KEY, JSON.stringify(allRooms));
+        }
+      } catch (error) {
+        console.error("Error saving updated room to localStorage:", error);
+      }
     }
     setIsSettingsOpen(false);
-    // Add toast notification for success
   };
 
-
-  // Show loading indicator while fetching data
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
@@ -234,13 +238,12 @@ const ChatRoomView = () => {
     );
   }
 
-  // Handle case where room data failed to load (even after simulation)
   if (!room) {
     return (
        <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-8 text-center">
          <X className="h-12 w-12 text-red-500 mb-4" />
          <h2 className="text-xl font-semibold mb-2">채팅방 정보를 불러올 수 없습니다.</h2>
-         <p className="text-gray-400 mb-6">네트워크 연결을 확인하거나 잠시 후 다시 시도해주세요.</p>
+         <p className="text-gray-400 mb-6">URL을 확인하거나, 채팅방이 존재하는지 확인해주세요.</p>
          <Button variant="outline" onClick={handleGoBack} className="border-gray-600 text-gray-300 hover:bg-gray-700">
            뒤로가기
          </Button>
@@ -462,7 +465,7 @@ const ChatRoomView = () => {
               </Label>
               <Input
                 id="settings-name"
-                name="name" // Add name attribute for handleSettingsChange
+                name="name" 
                 value={editableRoomData.name || ''}
                 onChange={handleSettingsChange}
                 className="col-span-3 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
@@ -472,10 +475,9 @@ const ChatRoomView = () => {
               <Label htmlFor="settings-description" className="text-right text-gray-300">
                 설명
               </Label>
-              {/* Use textarea for description if needed, or keep Input */}
               <Input
                 id="settings-description"
-                name="description" // Add name attribute
+                name="description" 
                 value={editableRoomData.description || ''}
                 onChange={handleSettingsChange}
                 className="col-span-3 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"

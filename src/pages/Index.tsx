@@ -11,6 +11,7 @@ import CommunityHighlights from '@/components/CommunityHighlights';
 import CreatePeermall from '@/components/peermall-features/CreatePeermall';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
+import { QRCodeModal } from '@/components/peer-space/modals/QRCodeModal'; // QRCodeModal 임포트
 // import { getDB, STORES } from '@/utils/indexedDB'; // IndexedDB 관련 import 주석 처리
 
 export interface Peermall {
@@ -46,6 +47,9 @@ const Index = () => {
   const [peermalls, setPeermalls] = useState<Peermall[]>([]);
   const [isMySpacesOpen, setIsMySpacesOpen] = useState(false);
   const [mySpaces, setMySpaces] = useState<Peermall[]>([]);
+  const [qrModalOpen, setQrModalOpen] = useState(false); // QR 모달 상태
+  const [qrCodeUrl, setQrCodeUrl] = useState(''); // QR 코드 URL 상태
+  const [qrModalTitle, setQrModalTitle] = useState(''); // QR 모달 제목 상태
 
   // Load data from localStorage on initial mount
   useEffect(() => {
@@ -231,6 +235,12 @@ const Index = () => {
     setScrollY(window.scrollY);
   }, []);
 
+  const handleShowPeermallQrCode = useCallback((peermallId: string, peermallTitle: string) => {
+    setQrCodeUrl(`${window.location.origin}/space/${peermallId}`);
+    setQrModalTitle(`${peermallTitle} QR 코드`);
+    setQrModalOpen(true);
+  }, []);
+
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -255,11 +265,13 @@ const Index = () => {
           
           <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             <div className="md:col-span-2">
-              <PeermallGrid 
-                title="피어몰 탐색" 
+              <PeermallGrid
+                title="피어몰 탐색"
                 malls={filteredMalls}
                 onOpenMap={handleOpenMap}
                 viewMore={false}
+                viewMode="grid" // viewMode prop 추가
+                onShowQrCode={handleShowPeermallQrCode} // QR 코드 콜백 전달
               />
             </div>
             
@@ -296,15 +308,15 @@ const Index = () => {
           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
             {mySpaces.length > 0 ? (
               mySpaces.map((space) => (
-                <div 
+                <div
                   key={space.id}
                   className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                   onClick={() => handleSelectSpace(space.id!)}
                 >
                   <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden mr-4">
-                    <img 
-                      src={space.imageUrl} 
-                      alt={space.title} 
+                    <img
+                      src={space.imageUrl}
+                      alt={space.title}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -324,6 +336,13 @@ const Index = () => {
         </DialogContent>
       </Dialog>
 
+      {/* QR Code Modal */}
+      <QRCodeModal
+        open={qrModalOpen}
+        onOpenChange={setQrModalOpen}
+        url={qrCodeUrl}
+        title={qrModalTitle}
+      />
     </div>
   );
 };

@@ -1,11 +1,15 @@
 import React from 'react';
-import { Event } from '../types';
+import { Event, PeerMallConfig } from '../types'; // PeerMallConfig 추가
 
 interface PeerSpaceEventsProps {
   events: Event[];
+  // quests: any[]; // quests prop이 사용되지 않는다면 제거, 필요하다면 타입을 명확히 정의
+  isOwner?: boolean; // 소유자 여부 (옵셔널)
+  config?: PeerMallConfig; // config prop 추가 (옵셔널, 필요에 따라 사용)
 }
 
-const PeerSpaceEventsSection: React.FC<PeerSpaceEventsProps> = ({ events }) => {
+const PeerSpaceEventsSection: React.FC<PeerSpaceEventsProps> = ({ events, isOwner, config }) => {
+  // config나 isOwner를 사용하여 조건부 렌더링 또는 다른 로직 추가 가능
   return (
     <section className="mb-10">
       <div className="flex justify-between items-center mb-6">
