@@ -24,7 +24,7 @@ interface ContentEditFormProps {
 }
 
 // Define valid content types matching the enum
-const validContentTypes = Object.values(ContentType) as const;
+const validContentTypes = Object.values(ContentType);
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -64,7 +64,7 @@ const typeOptions = [
   { value: ContentType.Article, label: '아티클' },
   { value: ContentType.Resource, label: '리소스' },
   { value: ContentType.Other, label: '기타' },
-] as const;
+];
 
 const ContentEditForm: React.FC<ContentEditFormProps> = ({ initialContent, onSubmit }) => {
   const form = useForm<z.infer<typeof formSchema>>({
