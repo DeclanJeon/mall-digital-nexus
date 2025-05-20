@@ -20,14 +20,8 @@ import ProductRegistrationForm from './products/ProductRegistrationForm';
 import EmptyState from './ui/EmptyState';
 import PeerSpaceFooter from './layout/PeerSpaceFooter';
 import BadgeSelector from './ui/BadgeSelector';
-import PeerSpaceLiveCollaboration from './others/PeerSpaceLiveCollaboration';
 import PeerSpaceActivityFeed from './others/PeerSpaceActivityFeed';
-import PeerSpaceTrustSection from './sections/PeerSpaceTrustSection';
 import PeerSpaceMapSection from './sections/PeerSpaceMapSection';
-import PeerSpaceReviewSection from './sections/PeerSpaceReviewSection';
-import PeerSpaceEventsSection from './sections/PeerSpaceEventsSection';
-// PeerSpaceCommunitySection은 더 이상 직접 사용하지 않음
-import PeerSpaceContentSection from './sections/PeerSpaceContentSection';
 import PeerSpaceHeader from './layout/PeerSpaceHeader';
 
 interface PeerSpaceHomeProps {
