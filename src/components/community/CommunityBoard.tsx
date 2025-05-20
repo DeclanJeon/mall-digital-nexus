@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
@@ -36,6 +35,7 @@ import {
   Users,
   Layout,
   TrendingUp,
+  LayoutGrid,
 } from "lucide-react";
 import {
   Tooltip,
