@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import ProfileSection from '@/components/my-info/ProfileSection';
 import SecuritySection from '@/components/my-info/SecuritySection';
@@ -15,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { openDB } from 'idb';
 import CreatePeermallModal from '@/components/peermall-features/CreatePeermallModal';
 import { TransactionItem } from '@/components/my-info/ActivitySection';
+import { NetworkSectionProps } from '@/components/my-info/NetworkSection';
 
 // Make sure to match the interface from PeermallManagementSection
 interface PeerMall {
@@ -71,13 +71,13 @@ const MyInfoPage = () => {
   };
 
   // Define network data
-  const networkData = {
+  const networkData: NetworkSectionProps = {
     friends: [
-      { id: '1', name: '박지민', image: 'https://api.dicebear.com/7.x/personas/svg?seed=park', status: 'online' as const },
-      { id: '2', name: '이현우', image: 'https://api.dicebear.com/7.x/personas/svg?seed=lee', status: 'offline' as const, lastActive: '2시간 전' },
-      { id: '3', name: '정다온', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jung', status: 'away' as const },
-      { id: '4', name: '김유진', image: 'https://api.dicebear.com/7.x/personas/svg?seed=kim', status: 'online' as const },
-      { id: '5', name: '최서윤', image: 'https://api.dicebear.com/7.x/personas/svg?seed=choi', status: 'offline' as const, lastActive: '1일 전' }
+      { id: '1', name: '박지민', image: 'https://api.dicebear.com/7.x/personas/svg?seed=park', status: 'online' },
+      { id: '2', name: '이현우', image: 'https://api.dicebear.com/7.x/personas/svg?seed=lee', status: 'offline', lastActive: '2시간 전' },
+      { id: '3', name: '정다온', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jung', status: 'away' },
+      { id: '4', name: '김유진', image: 'https://api.dicebear.com/7.x/personas/svg?seed=kim', status: 'online' },
+      { id: '5', name: '최서윤', image: 'https://api.dicebear.com/7.x/personas/svg?seed=choi', status: 'offline', lastActive: '1일 전' }
     ],
     followers: [
       { id: '1', name: '박지민', image: 'https://api.dicebear.com/7.x/personas/svg?seed=park' },

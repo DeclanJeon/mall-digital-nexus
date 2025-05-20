@@ -1,227 +1,291 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserPlus, GitPullRequest, X } from 'lucide-react';
 
-interface NetworkUser {
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+
+// Define the friend type
+interface Friend {
   id: string;
   name: string;
-  image?: string;
-  role?: string;    // 예: '가디언', '퍼실리테이터', '일반'
-  level?: string;   // 예: '인증회원', '비인증회원'
+  image: string;
+  status?: 'online' | 'offline' | 'away';
+  lastActive?: string;
 }
 
-const STORAGE_KEYS = {
-  recommenders: 'peer_recommenders',
-  family: 'peer_family'
-};
-
-function loadFromStorage(key: string): NetworkUser[] {
-  try {
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
+// Define the props interface for NetworkSection
+export interface NetworkSectionProps {
+  friends: Friend[];
+  followers: {
+    id: string;
+    name: string;
+    image: string;
+  }[];
+  following: {
+    id: string;
+    name: string;
+    image: string;
+  }[];
+  recommenders: {
+    id: string;
+    name: string;
+    image: string;
+  }[];
+  recommendees: {
+    id: string;
+    name: string;
+    image: string;
+  }[];
+  family: {
+    id: string;
+    name: string;
+    image: string;
+  }[];
 }
-function saveToStorage(key: string, users: NetworkUser[]) {
-  localStorage.setItem(key, JSON.stringify(users));
-}
 
-const NetworkSection: React.FC = () => {
-  // 추천인 및 패밀리 멤버 스테이트
-  const [recommenders, setRecommenders] = useState<NetworkUser[]>([]);
-  const [family, setFamily] = useState<NetworkUser[]>([]);
+const NetworkSection: React.FC<NetworkSectionProps> = ({
+  friends,
+  followers,
+  following,
+  recommenders,
+  recommendees,
+  family
+}) => {
+  const [activeTab, setActiveTab] = useState('friends');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // 입력값
-  const [recommenderName, setRecommenderName] = useState('');
-  const [familyName, setFamilyName] = useState('');
-  const [familyRole, setFamilyRole] = useState('일반');
-
-  // 로컬 스토리지에서 불러오기
-  useEffect(() => {
-    setRecommenders(loadFromStorage(STORAGE_KEYS.recommenders));
-    setFamily(loadFromStorage(STORAGE_KEYS.family));
-  }, []);
-
-  // 저장 함수
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.recommenders, recommenders);
-  }, [recommenders]);
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.family, family);
-  }, [family]);
-
-  // 추천인 추가
-  const handleAddRecommender = () => {
-    if (recommenders.length >= 7) {
-      alert('추천인은 최대 7명까지 등록할 수 있습니다.');
-      return;
+  // Get status indicator class based on status
+  const getStatusIndicatorClass = (status?: string) => {
+    switch (status) {
+      case 'online': return 'bg-green-500';
+      case 'away': return 'bg-yellow-500';
+      case 'offline': return 'bg-gray-300';
+      default: return 'bg-gray-300';
     }
-    if (recommenderName.trim() === '') return;
-    const newUser: NetworkUser = {
-      id: String(Date.now()),
-      name: recommenderName.trim(),
-      level: '인증회원'
-    };
-    setRecommenders([...recommenders, newUser]);
-    setRecommenderName('');
-  };
-  // 추천인 삭제
-  const handleRemoveRecommender = (id: string) => {
-    setRecommenders(recommenders.filter(u => u.id !== id));
   };
 
-  // 패밀리 멤버 추가
-  const handleAddFamily = () => {
-    if (familyName.trim() === '') return;
-    const newFamily: NetworkUser = {
-      id: String(Date.now()),
-      name: familyName.trim(),
-      role: familyRole
-    };
-    setFamily([...family, newFamily]);
-    setFamilyName('');
-    setFamilyRole('일반');
-  };
-  // 패밀리 멤버 삭제
-  const handleRemoveFamily = (id: string) => {
-    setFamily(family.filter(u => u.id !== id));
+  // Filter function for search
+  const filterBySearch = (items: any[]) => {
+    if (!searchQuery) return items;
+    return items.filter(item => 
+      item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <Users className="h-5 w-5 mr-2 text-primary" />
-          내 네트워크
-        </CardTitle>
+    <Card className="overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="flex flex-wrap items-center justify-between">
+          <CardTitle className="text-lg font-medium">내 네트워크</CardTitle>
+          <div className="relative mt-2 sm:mt-0">
+            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input 
+              placeholder="이름으로 검색" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 h-8 w-full sm:w-[180px]"
+            />
+          </div>
+        </div>
+        <TabsList className="mt-2">
+          <TabsTrigger 
+            value="friends" 
+            onClick={() => setActiveTab('friends')}
+            className={activeTab === 'friends' ? 'bg-white' : ''}
+          >
+            친구 ({friends.length})
+          </TabsTrigger>
+          <TabsTrigger 
+            value="followers" 
+            onClick={() => setActiveTab('followers')}
+            className={activeTab === 'followers' ? 'bg-white' : ''}
+          >
+            팔로워 ({followers.length})
+          </TabsTrigger>
+          <TabsTrigger 
+            value="following" 
+            onClick={() => setActiveTab('following')}
+            className={activeTab === 'following' ? 'bg-white' : ''}
+          >
+            팔로잉 ({following.length})
+          </TabsTrigger>
+          <TabsTrigger 
+            value="more" 
+            onClick={() => setActiveTab('more')}
+            className={['recommenders', 'recommendees', 'family'].includes(activeTab) ? 'bg-white' : ''}
+          >
+            더보기
+          </TabsTrigger>
+        </TabsList>
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="trust">
-          <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-4">
-            <TabsTrigger value="trust">신뢰 그룹</TabsTrigger>
-            <TabsTrigger value="family">패밀리</TabsTrigger>
-            {/* 확장: 친구, 팔로우 등 */}
-          </TabsList>
-
-          {/* 신뢰 그룹(추천인) */}
-          <TabsContent value="trust" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="font-medium">
-                  신뢰 그룹 (추천인) <span className="text-xs text-muted-foreground">(최대 7명)</span>
-                </h3>
-                <div className="text-xs text-muted-foreground">
-                  7인의 추천인을 등록해야 전체 기능이 활성화됩니다.
-                </div>
-              </div>
-              <Button variant="outline" size="sm">
-                <GitPullRequest className="h-4 w-4 mr-2" />
-                신뢰 그룹 시각화
-              </Button>
-            </div>
-            <div>
-              <form
-                className="flex gap-2 mb-2"
-                onSubmit={e => {
-                  e.preventDefault();
-                  handleAddRecommender();
-                }}
-              >
-                <input
-                  type="text"
-                  placeholder="추천인 이름 입력"
-                  value={recommenderName}
-                  maxLength={12}
-                  onChange={e => setRecommenderName(e.target.value)}
-                  className="border rounded px-2 py-1 text-sm"
-                />
-                <Button type="submit" size="sm" disabled={recommenders.length >= 7}>추가</Button>
-              </form>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {recommenders.map(user => (
-                  <div key={user.id} className="flex items-center p-2 bg-muted rounded-md">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+      <CardContent className="p-4">
+        <Tabs value={activeTab} className="w-full">
+          <TabsContent value="friends" className="mt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filterBySearch(friends).map((friend) => (
+                <div key={friend.id} className="flex items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className="relative">
+                    <Avatar className="h-10 w-10 border border-gray-200">
+                      <AvatarImage src={friend.image} alt={friend.name} />
+                      <AvatarFallback>{friend.name.substring(0, 2)}</AvatarFallback>
                     </Avatar>
-                    <span className="ml-2 text-sm">{user.name}</span>
-                    <span className="ml-2 text-xs text-green-600">{user.level}</span>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleRemoveRecommender(user.id)}
-                      className="ml-auto"
-                      title="삭제"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    <span 
+                      className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full ring-1 ring-white ${getStatusIndicatorClass(friend.status)}`} 
+                    />
                   </div>
-                ))}
-              </div>
-              {recommenders.length < 7 && (
-                <div className="text-xs text-muted-foreground mt-2">
-                  {7 - recommenders.length}명 더 등록 필요
-                </div>
-              )}
-              {recommenders.length === 7 && (
-                <div className="text-xs text-green-600 mt-2">
-                  7인 추천인 등록 완료! 모든 기능이 활성화됩니다.
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          {/* 패밀리 멤버 */}
-          <TabsContent value="family" className="space-y-4">
-            <h3 className="font-medium">패밀리 멤버</h3>
-            <form
-              className="flex gap-2 items-center mb-2"
-              onSubmit={e => {
-                e.preventDefault();
-                handleAddFamily();
-              }}
-            >
-              <input
-                type="text"
-                placeholder="패밀리 멤버 이름"
-                value={familyName}
-                maxLength={12}
-                onChange={e => setFamilyName(e.target.value)}
-                className="border rounded px-2 py-1 text-sm"
-              />
-              <select
-                value={familyRole}
-                onChange={e => setFamilyRole(e.target.value)}
-                className="border rounded px-1 py-1 text-sm"
-              >
-                <option value="일반">일반</option>
-                <option value="가디언">가디언</option>
-                <option value="퍼실리테이터">퍼실리테이터</option>
-              </select>
-              <Button type="submit" size="sm">추가</Button>
-            </form>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {family.map(member => (
-                <div key={member.id} className="flex items-center p-2 bg-muted rounded-md">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <span className="ml-2 text-sm">{member.name}</span>
-                  <span className="ml-2 text-xs text-blue-500">{member.role}</span>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => handleRemoveFamily(member.id)}
-                    className="ml-auto"
-                    title="삭제"
-                  >
-                    <X className="h-4 w-4" />
+                  <div className="ml-3 flex-1">
+                    <p className="text-sm font-medium leading-none">{friend.name}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {friend.status === 'online' ? '온라인' : 
+                       friend.status === 'away' ? '자리비움' : 
+                       `마지막 접속: ${friend.lastActive || '알 수 없음'}`}
+                    </p>
+                  </div>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <span className="sr-only">메시지 보내기</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                      <path d="M3.505 2.365A41.369 41.369 0 019 2c1.863 0 3.697.124 5.495.365 1.247.167 2.18 1.108 2.435 2.268a4.45 4.45 0 00-.577-.069 43.141 43.141 0 00-4.706 0C9.229 4.696 7.5 6.727 7.5 8.998v2.24c0 1.413.67 2.735 1.76 3.562l-2.98 2.98A.75.75 0 015 17.25v-3.443c-.501-.048-1-.106-1.495-.172C2.033 13.438 1 12.162 1 10.72V5.28c0-1.441 1.033-2.717 2.505-2.914z" />
+                    </svg>
                   </Button>
                 </div>
               ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="followers" className="mt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filterBySearch(followers).map((follower) => (
+                <div key={follower.id} className="flex items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Avatar className="h-10 w-10 border border-gray-200">
+                    <AvatarImage src={follower.image} alt={follower.name} />
+                    <AvatarFallback>{follower.name.substring(0, 2)}</AvatarFallback>
+                  </Avatar>
+                  <div className="ml-3 flex-1">
+                    <p className="text-sm font-medium">{follower.name}</p>
+                    <Badge variant="outline" className="text-xs mt-1 px-1.5 py-0 h-5">팔로워</Badge>
+                  </div>
+                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                    팔로우
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="following" className="mt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filterBySearch(following).map((user) => (
+                <div key={user.id} className="flex items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Avatar className="h-10 w-10 border border-gray-200">
+                    <AvatarImage src={user.image} alt={user.name} />
+                    <AvatarFallback>{user.name.substring(0, 2)}</AvatarFallback>
+                  </Avatar>
+                  <div className="ml-3 flex-1">
+                    <p className="text-sm font-medium">{user.name}</p>
+                    <Badge className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 mt-1 px-1.5 py-0 h-5">
+                      팔로잉
+                    </Badge>
+                  </div>
+                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                    언팔로우
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="recommenders" className="mt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filterBySearch(recommenders).map((user) => (
+                <div key={user.id} className="flex items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Avatar className="h-10 w-10 border border-gray-200">
+                    <AvatarImage src={user.image} alt={user.name} />
+                    <AvatarFallback>{user.name.substring(0, 2)}</AvatarFallback>
+                  </Avatar>
+                  <div className="ml-3 flex-1">
+                    <p className="text-sm font-medium">{user.name}</p>
+                    <Badge variant="secondary" className="text-xs mt-1 px-1.5 py-0 h-5">나를 추천한 사용자</Badge>
+                  </div>
+                  <Button variant="ghost" size="sm" className="h-8 text-xs">
+                    프로필
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="recommendees" className="mt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filterBySearch(recommendees).map((user) => (
+                <div key={user.id} className="flex items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Avatar className="h-10 w-10 border border-gray-200">
+                    <AvatarImage src={user.image} alt={user.name} />
+                    <AvatarFallback>{user.name.substring(0, 2)}</AvatarFallback>
+                  </Avatar>
+                  <div className="ml-3 flex-1">
+                    <p className="text-sm font-medium">{user.name}</p>
+                    <Badge variant="secondary" className="text-xs mt-1 px-1.5 py-0 h-5">내가 추천한 사용자</Badge>
+                  </div>
+                  <Button variant="ghost" size="sm" className="h-8 text-xs">
+                    프로필
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="family" className="mt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filterBySearch(family).map((member) => (
+                <div key={member.id} className="flex items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Avatar className="h-10 w-10 border border-gray-200">
+                    <AvatarImage src={member.image} alt={member.name} />
+                    <AvatarFallback>{member.name.substring(0, 2)}</AvatarFallback>
+                  </Avatar>
+                  <div className="ml-3 flex-1">
+                    <p className="text-sm font-medium">{member.name}</p>
+                    <Badge variant="outline" className="text-xs text-rose-500 border-rose-200 bg-rose-50 mt-1 px-1.5 py-0 h-5">
+                      가족
+                    </Badge>
+                  </div>
+                  <Button variant="ghost" size="sm" className="h-8 text-xs">
+                    메시지
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="more" className="mt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Button 
+                variant="outline" 
+                className="h-auto py-3 flex flex-col items-center justify-center"
+                onClick={() => setActiveTab('recommenders')}
+              >
+                <span className="font-medium">추천인</span>
+                <span className="text-xs text-gray-500 mt-1">나를 추천한 사용자</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-auto py-3 flex flex-col items-center justify-center"
+                onClick={() => setActiveTab('recommendees')}
+              >
+                <span className="font-medium">피추천인</span>
+                <span className="text-xs text-gray-500 mt-1">내가 추천한 사용자</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-auto py-3 flex flex-col items-center justify-center"
+                onClick={() => setActiveTab('family')}
+              >
+                <span className="font-medium">가족</span>
+                <span className="text-xs text-gray-500 mt-1">가족 구성원</span>
+              </Button>
             </div>
           </TabsContent>
         </Tabs>

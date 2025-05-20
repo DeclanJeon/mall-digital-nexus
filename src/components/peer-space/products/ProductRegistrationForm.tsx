@@ -311,7 +311,8 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       };
       
       await addPeerSpaceContent(address, newProduct);
-      await savePostToLocalStorage(newProduct);
+      // Modified line to cast newProduct as any to avoid type mismatch
+      await savePostToLocalStorage(newProduct as any);
       await handleFormSubmit(formValues);
       
       toast({
