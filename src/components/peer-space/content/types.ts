@@ -36,6 +36,7 @@ export interface Content {
   attributes?: Record<string, unknown>;
   badges?: string[];
   isFeatured?: boolean; // 추천 콘텐츠 여부
+  content?: string; // Add this for compatibility with Post type
 }
 
 export interface ContentMedia {
@@ -73,4 +74,5 @@ export interface BadgeData {
   icon?: string | React.ReactNode;
 }
 
+export { ContentType } from '../types';
 export type { Quest } from '../types';

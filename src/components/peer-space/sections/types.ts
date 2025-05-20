@@ -1,16 +1,31 @@
 
 import { ReactNode } from 'react';
-import { PeerMallConfig, Content, BadgeData, Quest, Event, Review } from '../types';
+import { PeerMallConfig, Content, Quest, Event, Review } from '../types';
 
 // Re-export types that sections need
 export type { 
   PeerMallConfig, 
   Content, 
-  BadgeData,
   Quest, 
   Event, 
   Review
 };
+
+// Export BadgeData from here to avoid circular dependencies
+export interface BadgeData {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+  category: string;
+  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+  requirements?: string[];
+  earnedAt?: string;
+  issuer?: string;
+  issuerId?: string;
+  color?: string;
+  icon?: string | React.ReactNode;
+}
 
 // Add missing types from the error messages
 export interface CommunityPost {

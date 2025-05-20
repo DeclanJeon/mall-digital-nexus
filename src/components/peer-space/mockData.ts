@@ -1,4 +1,4 @@
-import { Content, Review, CommunityPost, PeerSpaceData, Quest } from './types';
+import { Content, Review, CommunityPost, PeerSpaceData, Quest, ContentType } from './types';
 
 export const learningHubData: PeerSpaceData = {
   id: 'myspace123',
@@ -60,7 +60,7 @@ export const featuredContent: Content[] = [
     description: '게임 메커니즘을 활용한 지속적 학습 동기 부여 기법',
     imageUrl:
       'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?auto=format&fit=crop&q=80',
-    type: 'post',
+    type: ContentType.Post,
     date: '2일 전',
     likes: 124,
     comments: 0,
@@ -78,7 +78,7 @@ export const featuredContent: Content[] = [
     description: '실시간 피드백을 통한 체험형 교육 방식 학습하기',
     imageUrl:
       'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80',
-    type: 'event',
+    type: ContentType.Event,
     price: '150,000원~',
     date: '2025년 5월 15일',
     likes: 85,
@@ -98,7 +98,7 @@ export const featuredContent: Content[] = [
     description: '21일 동안 진행되는 학습 습관 형성 프로그램',
     imageUrl:
       'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80',
-    type: 'quest',
+    type: ContentType.Quest,
     date: '진행중 (12일 남음)',
     price: '무료',
     likes: 212,
@@ -117,7 +117,7 @@ export const featuredContent: Content[] = [
     description: '게임 요소를 활용한 맞춤형 교육 콘텐츠 제작 솔루션',
     imageUrl:
       'https://images.unsplash.com/photo-1559336197-ded8aaa244bc?auto=format&fit=crop&q=80',
-    type: 'product',
+    type: ContentType.Product,
     price: '300,000원',
     date: '',
     likes: 78,
@@ -140,17 +140,18 @@ export const activeQuests: Quest[] = [
     progress: 60,
     deadline: '4일 남음',
     goal: 100,
-    type: 'community',
+    type: 'community', // Changed to valid type
     imageUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80',
     participants: ['user1', 'user2', 'user3'],
     maxParticipants: 5,
     startDate: '2025-04-01',
     endDate: '2025-04-30',
-    status: 'active',
+    status: 'available', // Changed to valid status
     completion: 60,
     creator: '김피어',
     creatorId: 'user123',
-    difficulty: 'beginner'
+    difficulty: 'beginner',
+    steps: []
   },
   {
     id: 'quest2',
@@ -170,7 +171,8 @@ export const activeQuests: Quest[] = [
     completion: 33,
     creator: '김피어',
     creatorId: 'user123',
-    difficulty: 'intermediate'
+    difficulty: 'intermediate',
+    steps: []
   },
   {
     id: 'quest3',
@@ -190,7 +192,8 @@ export const activeQuests: Quest[] = [
     completion: 90,
     creator: '김피어',
     creatorId: 'user123',
-    difficulty: 'beginner'
+    difficulty: 'beginner',
+    steps: []
   },
 ];
 
