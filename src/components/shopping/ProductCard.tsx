@@ -16,6 +16,7 @@ interface ProductCardProps {
   rating: number;
   reviewCount: number;
   peermallName: string;
+  peermallId?: string; // 추가: peermallId를 옵셔널 속성으로 정의
   category: string;
   tags: string[];
   isBestSeller?: boolean;
@@ -33,6 +34,7 @@ const ProductCard = ({
   rating,
   reviewCount,
   peermallName,
+  peermallId, // 추가: props에서 받기
   category,
   tags,
   isBestSeller,
@@ -86,7 +88,7 @@ const ProductCard = ({
       
       <div className={`flex flex-col ${viewMode === 'list' ? 'flex-1 p-4' : ''}`}>
         <CardContent className={`${viewMode === 'list' ? 'p-0' : 'p-4'}`}>
-          <Link to={`/peermall/${peermallId}`} className="hover:text-accent-100">
+          <Link to={`/peermall/${peermallId || '#'}`} className="hover:text-accent-100">
             <div className="text-xs text-text-200 mb-1 hover:underline">{peermallName}</div>
           </Link>
           <Link to={`/product/${id}`} className="hover:text-primary-300">
