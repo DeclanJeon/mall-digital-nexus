@@ -1,171 +1,136 @@
-// src/components/community/hooks/usePlanetCreation.ts
-import { useState, useCallback, RefObject } from 'react'; // RefObject 추가
-import { useToast } from '@/hooks/use-toast';
-import { Planet } from '@/components/community/types'; // PlanetType은 Planet에 포함되어 있음
 
-export interface UsePlanetCreationParams {
-  username: string;
-  zoomLevel: number;
-  universeMapRef: RefObject<HTMLDivElement>; // 부모로부터 ref를 받음
-  onCreatePlanetCallback: (newPlanet: Planet) => void;
-  peerSpaceAddress?: string; // 옵셔널: 행성이 속할 피어스페이스 주소
+import { useState, useCallback } from 'react';
+import { useSpaceData } from './useSpaceData';
+import { Planet, PlanetStage } from '@/components/community/types';
+
+interface PlanetFormData {
+  name: string;
+  description: string;
+  topics: string[];
+  isPrivate?: boolean;
+  expiryDate?: string;
+  imageUrl?: string;
 }
 
-export const usePlanetCreation = ({
-  username,
-  zoomLevel,
-  universeMapRef,
-  onCreatePlanetCallback,
-  peerSpaceAddress, // peerSpaceAddress 파라미터 추가
-}: UsePlanetCreationParams) => {
-  const { toast, dismiss } = useToast();
+interface PlanetCreationHook {
+  createPlanet: (data: PlanetFormData, userId: string) => Promise<Planet>;
+  updatePlanet: (planetId: string, data: Partial<PlanetFormData>) => Promise<Planet>;
+  loading: boolean;
+  error: string | null;
+}
 
-  const [isSelectingPlanetPosition, setIsSelectingPlanetPosition] =
-    useState(false);
-  const [newPlanetPositionForWizard, setNewPlanetPositionForWizard] = useState<
-    [number, number, number] | null
-  >(null);
-  const [isPlanetWizardOpen, setIsPlanetWizardOpen] = useState(false);
-  const [cursorPositionHint, setCursorPositionHint] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
+export const usePlanetCreation = (): PlanetCreationHook => {
+  const { planets, setPlanets } = useSpaceData();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleMapClickForPosition = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      if (!isSelectingPlanetPosition || !universeMapRef.current) return;
+  const createPlanet = useCallback(
+    async (data: PlanetFormData, userId: string): Promise<Planet> => {
+      setLoading(true);
+      setError(null);
 
-      const rect = universeMapRef.current.getBoundingClientRect();
-      const clickX = event.clientX - rect.left;
-      const clickY = event.clientY - rect.top;
+      try {
+        // Validate inputs
+        if (!data.name || data.name.trim() === '') {
+          throw new Error('Planet name is required');
+        }
 
-      const mapPercentX = clickX / zoomLevel / (rect.width / zoomLevel);
-      const mapPercentY = clickY / zoomLevel / (rect.height / zoomLevel);
+        if (!data.description || data.description.trim() === '') {
+          throw new Error('Description is required');
+        }
 
-      const posX = mapPercentX * 20 - 10;
-      const posY = mapPercentY * 20 - 10;
-      const posZ = Math.random() * 2 - 1;
-
-      setNewPlanetPositionForWizard([posX, posY, posZ]);
-      setIsSelectingPlanetPosition(false);
-      setCursorPositionHint(null);
-      setIsPlanetWizardOpen(true);
-      if (dismiss) dismiss();
-    },
-    [isSelectingPlanetPosition, universeMapRef, zoomLevel, dismiss]
-  );
-
-  const handleMouseMoveOnMap = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      if (!isSelectingPlanetPosition || !universeMapRef.current) {
-        setCursorPositionHint(null);
-        return;
-      }
-      const rect = universeMapRef.current.getBoundingClientRect();
-      setCursorPositionHint({
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top,
-      });
-    },
-    [isSelectingPlanetPosition, universeMapRef]
-  );
-
-  const handleMouseLeaveMap = useCallback(() => {
-    if (isSelectingPlanetPosition) {
-      setCursorPositionHint(null);
-    }
-  }, [isSelectingPlanetPosition]);
-
-  const startPlanetCreationProcess = useCallback(() => {
-    setIsSelectingPlanetPosition(true);
-    toast({
-      title: '행성 위치 선택',
-      description: '지도에서 새 행성의 위치를 클릭하세요.',
-    });
-  }, [toast]);
-
-  const cancelPlanetCreationProcess = useCallback(() => {
-    setIsSelectingPlanetPosition(false);
-    setCursorPositionHint(null);
-    if (dismiss) dismiss();
-  }, [dismiss]);
-
-  const handleWizardCreatePlanet = useCallback(
-    (
-      wizardData: Omit<
-        Planet,
-        | 'id'
-        | 'position'
-        | 'activeUsers'
-        | 'recentPosts'
-        | 'stage'
-        | 'owner'
-        | 'membersCount'
-        | 'members'
-        | 'activities'
-        | 'health'
-        | 'createdAt'
-      > & { size: number }
-    ) => {
-      if (!newPlanetPositionForWizard) {
-        toast({
-          title: '오류',
-          description: '행성 위치가 선택되지 않았습니다.',
-          variant: 'destructive',
-        });
-        setIsPlanetWizardOpen(false);
-        return;
-      }
-      const newPlanet: Planet = {
-        id: `planet-${Date.now()}-${Math.random()
+        // Generate a unique ID
+        const planetId = `planet_${Date.now()}_${Math.random()
           .toString(36)
-          .substring(2, 7)}`,
-        name: wizardData.name,
-        description: wizardData.description,
-        type: wizardData.type,
-        topics: wizardData.topics,
-        color: wizardData.color,
-        isPrivate: wizardData.isPrivate,
-        expiryDate: wizardData.expiryDate,
-        lastActivity: new Date().toISOString(),
-        size: wizardData.size,
-        position: newPlanetPositionForWizard,
-        activeUsers: 1,
-        recentPosts: 0,
-        stage: 'asteroid',
-        owner: {
-          name: username,
-          avatar: `https://api.dicebear.com/7.x/personas/svg?seed=${username}`,
-        },
-        membersCount: 1,
-        members: 1,
-        activities: 0,
-        health: 100,
-        createdAt: new Date().toISOString(),
-        peerSpaceAddress: peerSpaceAddress, // peerSpaceAddress 추가
-      };
+          .substring(2, 9)}`;
 
-      onCreatePlanetCallback(newPlanet);
-      setNewPlanetPositionForWizard(null);
-      setIsPlanetWizardOpen(false);
-      toast({
-        title: '행성 생성 완료!',
-        description: `"${newPlanet.name}" 행성이 우주에 추가되었습니다.`,
-      });
+        // Random position within bounds
+        const position = {
+          x: Math.random() * 100 - 50, // -50 to 50
+          y: Math.random() * 100 - 50, // -50 to 50
+          z: Math.random() * 10 - 5 // -5 to 5
+        };
+
+        // Create the planet object
+        const newPlanet: Planet = {
+          id: planetId,
+          name: data.name.trim(),
+          description: data.description.trim(),
+          position,
+          owner: userId,
+          createdAt: new Date().toISOString(),
+          members: [userId],
+          activities: [],
+          recentPosts: [],
+          stage: PlanetStage.New,
+          membersCount: 1,
+          health: 100,
+          topics: data.topics || [],
+          isPrivate: data.isPrivate || false,
+          expiryDate: data.expiryDate,
+          imageUrl: data.imageUrl || `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(data.name)}`
+        };
+
+        // Save to state
+        setPlanets((prevPlanets) => [...prevPlanets, newPlanet]);
+        setLoading(false);
+        return newPlanet;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to create planet';
+        setError(errorMessage);
+        setLoading(false);
+        throw err;
+      }
     },
-    [newPlanetPositionForWizard, username, toast, onCreatePlanetCallback]
+    [setPlanets]
+  );
+
+  const updatePlanet = useCallback(
+    async (planetId: string, data: Partial<PlanetFormData>): Promise<Planet> => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Find the planet
+        const planetIndex = planets.findIndex((p) => p.id === planetId);
+        if (planetIndex === -1) {
+          throw new Error('Planet not found');
+        }
+
+        // Update the planet
+        const updatedPlanet: Planet = {
+          ...planets[planetIndex],
+          ...(data.name && { name: data.name.trim() }),
+          ...(data.description && { description: data.description.trim() }),
+          ...(data.topics && { topics: data.topics }),
+          ...(data.isPrivate !== undefined && { isPrivate: data.isPrivate }),
+          ...(data.expiryDate !== undefined && { expiryDate: data.expiryDate }),
+          ...(data.imageUrl && { imageUrl: data.imageUrl })
+        };
+
+        // Save to state
+        setPlanets((prevPlanets) => {
+          const newPlanets = [...prevPlanets];
+          newPlanets[planetIndex] = updatedPlanet;
+          return newPlanets;
+        });
+
+        setLoading(false);
+        return updatedPlanet;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to update planet';
+        setError(errorMessage);
+        setLoading(false);
+        throw err;
+      }
+    },
+    [planets, setPlanets]
   );
 
   return {
-    isSelectingPlanetPosition,
-    isPlanetWizardOpen,
-    setIsPlanetWizardOpen,
-    cursorPositionHint,
-    handleMapClickForPosition,
-    handleMouseMoveOnMap,
-    handleMouseLeaveMap,
-    startPlanetCreationProcess,
-    cancelPlanetCreationProcess,
-    handleWizardCreatePlanet,
+    createPlanet,
+    updatePlanet,
+    loading,
+    error
   };
 };

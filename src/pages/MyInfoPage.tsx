@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import ProfileSection from '@/components/my-info/ProfileSection';
 import SecuritySection from '@/components/my-info/SecuritySection';
@@ -15,16 +16,20 @@ import { openDB } from 'idb';
 import CreatePeermallModal from '@/components/peermall-features/CreatePeermallModal';
 import { TransactionItem } from '@/components/my-info/ActivitySection';
 
+// Make sure to match the interface from PeermallManagementSection
 interface PeerMall {
   id: number;
   name: string;
   type: string;
+  image?: string;
   createdAt: string;
   status: 'active' | 'inactive' | 'pending';
-  stats: {
+  visibility: 'public' | 'partial' | 'private';
+  isCertified?: boolean;
+  stats?: {
     visitors: number;
     followers: number;
-    reviews: number;
+    reviews?: number;
   };
 }
 
@@ -65,42 +70,40 @@ const MyInfoPage = () => {
     searchable: true
   };
 
-  const friends = [
-    { id: '1', name: '박지민', image: 'https://api.dicebear.com/7.x/personas/svg?seed=park', status: 'online' as const },
-    { id: '2', name: '이현우', image: 'https://api.dicebear.com/7.x/personas/svg?seed=lee', status: 'offline' as const, lastActive: '2시간 전' },
-    { id: '3', name: '정다온', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jung', status: 'away' as const },
-    { id: '4', name: '김유진', image: 'https://api.dicebear.com/7.x/personas/svg?seed=kim', status: 'online' as const },
-    { id: '5', name: '최서윤', image: 'https://api.dicebear.com/7.x/personas/svg?seed=choi', status: 'offline' as const, lastActive: '1일 전' }
-  ];
-
-  const followers = [
-    { id: '1', name: '박지민', image: 'https://api.dicebear.com/7.x/personas/svg?seed=park' },
-    { id: '3', name: '정다온', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jung' },
-    { id: '6', name: '한지우', image: 'https://api.dicebear.com/7.x/personas/svg?seed=han' },
-    { id: '7', name: '임수현', image: 'https://api.dicebear.com/7.x/personas/svg?seed=lim' }
-  ];
-
-  const following = [
-    { id: '2', name: '이현우', image: 'https://api.dicebear.com/7.x/personas/svg?seed=lee' },
-    { id: '4', name: '김유진', image: 'https://api.dicebear.com/7.x/personas/svg?seed=kim' },
-    { id: '5', name: '최서윤', image: 'https://api.dicebear.com/7.x/personas/svg?seed=choi' }
-  ];
-
-  const recommenders = [
-    { id: '8', name: '신현준', image: 'https://api.dicebear.com/7.x/personas/svg?seed=shin' },
-    { id: '9', name: '권지영', image: 'https://api.dicebear.com/7.x/personas/svg?seed=kwon' }
-  ];
-
-  const recommendees = [
-    { id: '10', name: '이지훈', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jihoon' },
-    { id: '11', name: '서하은', image: 'https://api.dicebear.com/7.x/personas/svg?seed=seo' },
-    { id: '12', name: '김민준', image: 'https://api.dicebear.com/7.x/personas/svg?seed=minjun' }
-  ];
-
-  const family = [
-    { id: '13', name: '김지영', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jiyoung' },
-    { id: '14', name: '김지훈', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jihun' }
-  ];
+  // Define network data
+  const networkData = {
+    friends: [
+      { id: '1', name: '박지민', image: 'https://api.dicebear.com/7.x/personas/svg?seed=park', status: 'online' as const },
+      { id: '2', name: '이현우', image: 'https://api.dicebear.com/7.x/personas/svg?seed=lee', status: 'offline' as const, lastActive: '2시간 전' },
+      { id: '3', name: '정다온', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jung', status: 'away' as const },
+      { id: '4', name: '김유진', image: 'https://api.dicebear.com/7.x/personas/svg?seed=kim', status: 'online' as const },
+      { id: '5', name: '최서윤', image: 'https://api.dicebear.com/7.x/personas/svg?seed=choi', status: 'offline' as const, lastActive: '1일 전' }
+    ],
+    followers: [
+      { id: '1', name: '박지민', image: 'https://api.dicebear.com/7.x/personas/svg?seed=park' },
+      { id: '3', name: '정다온', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jung' },
+      { id: '6', name: '한지우', image: 'https://api.dicebear.com/7.x/personas/svg?seed=han' },
+      { id: '7', name: '임수현', image: 'https://api.dicebear.com/7.x/personas/svg?seed=lim' }
+    ],
+    following: [
+      { id: '2', name: '이현우', image: 'https://api.dicebear.com/7.x/personas/svg?seed=lee' },
+      { id: '4', name: '김유진', image: 'https://api.dicebear.com/7.x/personas/svg?seed=kim' },
+      { id: '5', name: '최서윤', image: 'https://api.dicebear.com/7.x/personas/svg?seed=choi' }
+    ],
+    recommenders: [
+      { id: '8', name: '신현준', image: 'https://api.dicebear.com/7.x/personas/svg?seed=shin' },
+      { id: '9', name: '권지영', image: 'https://api.dicebear.com/7.x/personas/svg?seed=kwon' }
+    ],
+    recommendees: [
+      { id: '10', name: '이지훈', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jihoon' },
+      { id: '11', name: '서하은', image: 'https://api.dicebear.com/7.x/personas/svg?seed=seo' },
+      { id: '12', name: '김민준', image: 'https://api.dicebear.com/7.x/personas/svg?seed=minjun' }
+    ],
+    family: [
+      { id: '13', name: '김지영', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jiyoung' },
+      { id: '14', name: '김지훈', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jihun' }
+    ]
+  };
 
   const activities = [
     { 
@@ -236,14 +239,15 @@ const MyInfoPage = () => {
     ]
   };
   
-  const followedMalls = [
+  const followedMalls: PeerMall[] = [
     { 
       id: 101, 
       name: '이지우의 디자인 랩',
       type: '디자인 커뮤니티',
       image: 'https://api.dicebear.com/7.x/shapes/svg?seed=design',
       createdAt: '2023-05-15',
-      status: 'active' as const
+      status: 'active',
+      visibility: 'public'
     },
     { 
       id: 102, 
@@ -251,7 +255,8 @@ const MyInfoPage = () => {
       type: '식품 쇼핑몰',
       image: 'https://api.dicebear.com/7.x/shapes/svg?seed=food',
       createdAt: '2023-07-22',
-      status: 'active' as const
+      status: 'active',
+      visibility: 'public'
     },
     { 
       id: 103, 
@@ -259,7 +264,8 @@ const MyInfoPage = () => {
       type: '기술 커뮤니티',
       image: 'https://api.dicebear.com/7.x/shapes/svg?seed=tech',
       createdAt: '2023-09-10',
-      status: 'active' as const
+      status: 'active',
+      visibility: 'public'
     }
   ];
 
@@ -525,15 +531,18 @@ const MyInfoPage = () => {
       const db = await initDB();
       const peermalls = await db.getAll('peermalls');
       if (peermalls.length > 0) {
-        setCreatedMalls(peermalls.map(mall => ({
+        // Add visibility property to PeerMall objects
+        const updatedPeermalls = peermalls.map(mall => ({
           ...mall,
-          status: 'active',
+          status: 'active' as const,
+          visibility: 'public' as const,
           stats: {
             visitors: Math.floor(Math.random() * 1000),
             followers: Math.floor(Math.random() * 100),
             reviews: Math.floor(Math.random() * 50)
           }
-        })));
+        }));
+        setCreatedMalls(updatedPeermalls);
       } else {
         setCreatedMalls([{ 
           id: 1, 
@@ -541,6 +550,7 @@ const MyInfoPage = () => {
           type: '디자인 커뮤니티', 
           createdAt: '2024-01-15',
           status: 'active',
+          visibility: 'public',
           stats: {
             visitors: 324,
             followers: 52,
@@ -628,18 +638,14 @@ const MyInfoPage = () => {
             </TabsContent>
             <TabsContent value="network">
               <div className="space-y-6">
-                <NetworkSection
-                  friends={friends}
-                  followers={followers}
-                  following={following}
-                  recommenders={recommenders}
-                  recommendees={recommendees}
-                  family={family}
-                />
+                <NetworkSection {...networkData} />
                 <PeermallManagementSection
                   createdMalls={createdMalls}
                   followedMalls={followedMalls}
                   onCreatePeermall={handleCreatePeermall}
+                  onManageMall={(id) => console.log('Managing mall:', id)}
+                  onDeleteMall={(id) => console.log('Deleting mall:', id)}
+                  onTransferMall={(id) => console.log('Transferring mall:', id)}
                 />
                 {/* <CommunicationSection
                   messages={messages}
@@ -662,6 +668,7 @@ const MyInfoPage = () => {
               name: peermallData.name,
               type: peermallData.type || '기타',
               createdAt: new Date().toISOString().slice(0, 10),
+              visibility: 'public',
               status: 'active',
               stats: {
                 visitors: 0,

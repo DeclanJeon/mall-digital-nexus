@@ -1,4 +1,5 @@
-// src/components/community/hooks/useSpaceData.ts
+
+// src/hooks/useSpaceData.ts
 import { useState, useEffect, useCallback } from 'react';
 import { Planet, Post, ChatMessage } from '@/components/community/types';
 import { initialPlanetsData, initialPosts } from '@/components/community/data';
@@ -123,7 +124,7 @@ export const useSpaceData = () => {
 
   return {
     planets,
-    setPlanets, // 직접적인 상태 변경이 필요할 경우 대비 (예: 전체 데이터 교체)
+    setPlanets,
     addPlanet,
     posts,
     setPosts,

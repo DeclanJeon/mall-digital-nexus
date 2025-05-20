@@ -1,3 +1,4 @@
+
 // Utility functions for handling media in post content
 
 /**
@@ -59,23 +60,24 @@ export const processContentWithMediaEmbeds = (content: string): string => {
     const urls = content.match(urlRegex) || [];
 
     // Process each URL found
-    urls.forEach((url) => {
+    for (const url of urls) {
       // Check if it's a YouTube URL and not already in an iframe
-      if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      if ((url.includes('youtube.com') || url.includes('youtu.be'))) {
         // Check if this URL is not already in an iframe
         const isInIframe = new RegExp(`<iframe[^>]*${url}[^>]*>`).test(content);
         if (!isInIframe) {
           const youtubeEmbed = convertYoutubeUrlToEmbed(url);
           if (youtubeEmbed) {
             // Replace the URL with the iframe, but only if it's a standalone link
-            // (not part of an a tag or iframe already)
+            const escapedUrl = url.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
             const isStandalone = new RegExp(
-              `>[\\s]*${url.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}[\\s]*<`
+              `>[\\s]*${escapedUrl}[\\s]*<`
             ).test(content);
+            
             if (isStandalone) {
               processedContent = processedContent.replace(
                 new RegExp(
-                  `>\\s*${url.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*<`,
+                  `>\\s*${escapedUrl}\\s*<`,
                   'g'
                 ),
                 `>${youtubeEmbed}<`
@@ -84,7 +86,7 @@ export const processContentWithMediaEmbeds = (content: string): string => {
           }
         }
       }
-    });
+    }
 
     return processedContent;
   }

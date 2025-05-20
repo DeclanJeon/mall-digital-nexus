@@ -1,159 +1,123 @@
-// src/components/community/hooks/useForumManagement.ts
+
 import { useState, useCallback } from 'react';
-import { useForm } from 'react-hook-form';
-import { useToast } from '@/hooks/use-toast';
-import { Post, ForumPostFormData, Planet } from '@/components/community/types';
+import { useSpaceData } from './useSpaceData';
+import { Post } from '@/components/community/types';
+import { ForumPostFormData } from '@/components/community/types';
 
-interface UseForumManagementParams {
-  username: string;
-  activePlanet: Planet | null;
-  addPostCallback: (newPost: Post) => void;
-  updatePostCallback: (updatedPost: Post) => void;
-  deletePostByIdCallback: (postId: string) => void;
-}
+export const useForumManagement = (planetId: string) => {
+  const { posts, addPost, updatePost, deletePostById } = useSpaceData();
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-export const useForumManagement = ({
-  username,
-  activePlanet,
-  addPostCallback,
-  updatePostCallback,
-  deletePostByIdCallback,
-}: UseForumManagementParams) => {
-  const [showNewPostForm, setShowNewPostForm] = useState(false);
-  const [editingPost, setEditingPost] = useState<Post | null>(null);
-  const { toast } = useToast();
+  const planetPosts = posts.filter((post) => post.communityId === planetId);
 
-  const forumForm = useForm<ForumPostFormData>({
-    defaultValues: { title: '', content: '', tags: '' },
-  });
+  const submitPost = useCallback(
+    async (formData: ForumPostFormData, userId: string, userName: string) => {
+      setLoading(true);
+      setError(null);
 
-  const handleShowNewPostForm = useCallback(() => {
-    setEditingPost(null);
-    forumForm.reset({ title: '', content: '', tags: '' });
-    setShowNewPostForm(true);
-  }, [forumForm]);
-
-  const handleHideNewPostForm = useCallback(() => {
-    setShowNewPostForm(false);
-    setEditingPost(null);
-  }, []);
-
-  const onForumSubmit = useCallback(
-    (data: ForumPostFormData) => {
-      if (!activePlanet) {
-        toast({
-          title: '오류',
-          description: '게시글을 작성할 행성이 선택되지 않았습니다.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      const postData: Omit<
-        Post,
-        'id' | 'authorAvatar' | 'date' | 'likes' | 'comments' | 'country'
-      > = {
-        // country 추가
-        planetId: activePlanet.id,
-        author: username,
-        title: data.title,
-        content: data.content,
-        htmlContent: data.content.replace(/\n/g, '<br/>'),
-        tags: data.tags
-          .split(',')
-          .map((tag) => tag.trim())
-          .filter((tag) => tag !== ''),
-      };
-
-      if (editingPost) {
-        const updatedPost: Post = {
-          ...editingPost,
-          ...postData,
+      try {
+        // Create post with required fields
+        const newPost: Omit<Post, 'id' | 'date' | 'authorAvatar' | 'likes' | 'comments' | 'country'> = {
+          title: formData.title,
+          content: formData.content,
+          author: userName,
+          authorId: userId,
+          tags: formData.tags || [],
+          channelId: formData.channelId || 'general',
+          communityId: planetId,
+          isNotice: formData.isNotice || false,
+          createdAt: new Date().toISOString(),
+          htmlContent: formData.htmlContent || '',
         };
-        updatePostCallback(updatedPost);
-        toast({
-          title: '게시글 수정 완료',
-          description: `"${updatedPost.title}" 게시글이 수정되었습니다.`,
-        });
-      } else {
-        const newPost: Post = {
-          id: `post-${Date.now()}-${Math.random()
-            .toString(36)
-            .substring(2, 5)}`,
-          ...postData,
-          authorAvatar: `https://api.dicebear.com/7.x/personas/svg?seed=${username}`,
-          date: new Date().toLocaleDateString('ko-KR', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          }),
+
+        // Generate unique ID
+        const postId = `post_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        
+        // Create full post object
+        const completePost: Post = {
+          ...newPost as any,
+          id: postId,
+          date: new Date().toISOString(),
           likes: 0,
           comments: 0,
-          // country: 'KR', // 예시: 사용자 국가 정보가 있다면 추가
+          country: 'kr',
+          authorAvatar: `https://api.dicebear.com/7.x/personas/svg?seed=${userId}`
         };
-        addPostCallback(newPost);
-        toast({
-          title: '게시글 작성 완료',
-          description: `"${newPost.title}" 게시글이 등록되었습니다.`,
-        });
+
+        // Add to posts
+        addPost(completePost);
+        setLoading(false);
+        return completePost;
+      } catch (err) {
+        setError('Failed to submit post. Please try again.');
+        setLoading(false);
+        throw err;
       }
-      handleHideNewPostForm();
     },
-    [
-      username,
-      activePlanet,
-      editingPost,
-      toast,
-      addPostCallback,
-      updatePostCallback,
-      handleHideNewPostForm,
-    ]
+    [addPost, planetId]
   );
 
-  const handleEditPost = useCallback(
-    (post: Post) => {
-      setEditingPost(post);
-      forumForm.reset({
-        title: post.title,
-        content: post.content,
-        tags: post.tags.join(', '),
-      });
-      setShowNewPostForm(true);
+  const editPost = useCallback(
+    async (postId: string, formData: Partial<ForumPostFormData>) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const postToUpdate = posts.find((post) => post.id === postId);
+        
+        if (!postToUpdate) {
+          throw new Error('Post not found');
+        }
+
+        const updatedPost: Post = {
+          ...postToUpdate,
+          title: formData.title || postToUpdate.title,
+          content: formData.content || postToUpdate.content,
+          tags: formData.tags || postToUpdate.tags,
+          isNotice: formData.isNotice !== undefined ? formData.isNotice : postToUpdate.isNotice,
+          htmlContent: formData.htmlContent || postToUpdate.htmlContent || '',
+          isEdited: true,
+          lastEditedAt: new Date().toISOString()
+        };
+
+        updatePost(updatedPost);
+        setLoading(false);
+        return updatedPost;
+      } catch (err) {
+        setError('Failed to update post. Please try again.');
+        setLoading(false);
+        throw err;
+      }
     },
-    [forumForm]
+    [posts, updatePost]
   );
 
-  const handleDeletePost = useCallback(
-    (postId: string) => {
-      deletePostByIdCallback(postId);
-      toast({
-        title: '게시글 삭제됨',
-        description: '게시글이 삭제되었습니다.',
-        variant: 'destructive',
-      });
-    },
-    [deletePostByIdCallback, toast]
-  );
+  const deletePost = useCallback(
+    async (postId: string) => {
+      setLoading(true);
+      setError(null);
 
-  const handleViewPostDetail = useCallback(
-    (post: Post) => {
-      toast({
-        title: '상세보기 요청',
-        description: `"${post.title}" (구현 예정)`,
-      });
+      try {
+        deletePostById(postId);
+        setLoading(false);
+        return true;
+      } catch (err) {
+        setError('Failed to delete post. Please try again.');
+        setLoading(false);
+        throw err;
+      }
     },
-    [toast]
+    [deletePostById]
   );
 
   return {
-    showNewPostForm,
-    editingPost,
-    forumForm,
-    handleShowNewPostForm,
-    handleHideNewPostForm,
-    onForumSubmit,
-    handleEditPost,
-    handleDeletePost,
-    handleViewPostDetail,
+    posts: planetPosts,
+    allPosts: posts,
+    submitPost,
+    editPost,
+    deletePost,
+    loading,
+    error
   };
 };

@@ -32,11 +32,11 @@ const NewPeermallCard: React.FC<PeermallCardProps> = ({
   className,
 }) => {
   return (
-    <Link to={`/space/${id}`} className="block">
+    <Link to={`/space/${id}`} className="block h-full">
       <div 
         className={cn(
           "group rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow duration-200 h-full",
-          isPopular && "ring-2 ring-accent-100 ring-offset-2",
+          isPopular && "ring-2 ring-accent-dark ring-offset-2",
           className
         )}
       >
@@ -48,7 +48,7 @@ const NewPeermallCard: React.FC<PeermallCardProps> = ({
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
           {isPopular && (
-            <div className="absolute top-2 left-2 bg-accent-100 text-white text-xs font-medium px-2 py-1 rounded">
+            <div className="absolute top-2 left-2 bg-accent-dark text-white text-xs font-medium px-2 py-1 rounded">
               인기 피어몰
             </div>
           )}
@@ -66,14 +66,14 @@ const NewPeermallCard: React.FC<PeermallCardProps> = ({
         {/* Card content */}
         <div className="p-3">
           <div className="flex justify-between items-start mb-2">
-            <h3 className="font-medium text-primary-100 line-clamp-1">{title}</h3>
+            <h3 className="font-medium text-peermall-text line-clamp-1">{title}</h3>
           </div>
           
-          <p className="text-xs text-text-200 mb-2 line-clamp-2">{description}</p>
+          <p className="text-xs text-gray-500 mb-2 line-clamp-2">{description}</p>
           
           <div className="flex items-center mb-2">
             <User className="h-3 w-3 mr-1 text-gray-400" />
-            <span className="text-xs text-text-200">{owner}</span>
+            <span className="text-xs text-gray-500">{owner}</span>
           </div>
           
           <div className="flex items-center justify-between">
@@ -90,7 +90,7 @@ const NewPeermallCard: React.FC<PeermallCardProps> = ({
             
             <div className="flex flex-wrap justify-end gap-1">
               {tags.slice(0, 2).map((tag) => (
-                <span key={tag} className="px-1.5 py-0.5 bg-bg-200 text-text-200 rounded text-[10px]">
+                <span key={tag} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px]">
                   #{tag}
                 </span>
               ))}

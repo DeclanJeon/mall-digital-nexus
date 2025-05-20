@@ -1,4 +1,5 @@
-// src/components/community/hooks/useUserData.ts
+
+// src/hooks/useUserData.ts
 import { useState, useEffect } from 'react';
 import { getRandomAnimalName } from '@/components/community/utils';
 

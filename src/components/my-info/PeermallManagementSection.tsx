@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -76,7 +77,9 @@ const PeermallManagementSection: React.FC<PeermallManagementSectionProps> = ({
                           <h3 className="font-medium flex items-center">
                             {mall.name}
                             {mall.isCertified && (
-                              <ShieldCheck className="h-4 w-4 text-green-600 ml-2" title="인증 피어몰" />
+                              <div className="flex items-center">
+                                <ShieldCheck className="h-4 w-4 text-green-600 ml-2" aria-label="인증 피어몰" />
+                              </div>
                             )}
                           </h3>
                           <div className="flex items-center text-xs text-muted-foreground mt-0.5">
@@ -199,7 +202,9 @@ const PeermallManagementSection: React.FC<PeermallManagementSectionProps> = ({
                           <h3 className="font-medium text-sm flex items-center">
                             {mall.name}
                             {mall.isCertified && (
-                              <ShieldCheck className="h-4 w-4 text-green-600 ml-1" title="인증 피어몰" />
+                              <div className="flex items-center">
+                                <ShieldCheck className="h-4 w-4 text-green-600 ml-1" aria-label="인증 피어몰" />
+                              </div>
                             )}
                           </h3>
                           <div className="flex items-center text-xs text-muted-foreground">
