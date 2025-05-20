@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import PeermallCard from './PeermallCard';
+import NewPeermallCard from './NewPeermallCard';
 import { ChevronRight } from 'lucide-react';
 
 interface Peermall {
@@ -13,6 +13,8 @@ interface Peermall {
   tags?: string[];
   rating: number;
   reviewCount: number;
+  likes?: number;
+  followers?: number;
   featured?: boolean;
   type?: string;
   feedDate?: string;
@@ -31,9 +33,18 @@ interface PeermallGridProps {
   onOpenMap: (location: { lat: number; lng: number; address: string; title: string }) => void;
   viewMode: 'grid' | 'list'; // viewMode prop 추가
   onShowQrCode?: (peermallId: string, peermallTitle: string) => void; // QR 코드 콜백 추가
+  isPopularSection?: boolean;
 }
 
-const PeermallGrid = ({ title, malls, viewMore = true, onOpenMap, viewMode, onShowQrCode }: PeermallGridProps) => {
+const PeermallGrid = ({ 
+  title, 
+  malls, 
+  viewMore = true, 
+  onOpenMap, 
+  viewMode, 
+  onShowQrCode,
+  isPopularSection = false 
+}: PeermallGridProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -44,14 +55,14 @@ const PeermallGrid = ({ title, malls, viewMore = true, onOpenMap, viewMode, onSh
   const listLayoutClasses = "flex flex-col gap-4";
 
   return (
-    <section className="my-8">
+    <section className="my-4">
       <div className="flex items-center justify-between mb-4">
-        {title && <h2 className="text-2xl font-bold text-primary-300">{title}</h2>}
+        {title && <h2 className="text-2xl font-bold text-primary-100">{title}</h2>}
       </div>
       
       {isLoading ? (
         <div className={viewMode === 'grid' ? gridLayoutClasses : listLayoutClasses}>
-          {[...Array(viewMode === 'grid' ? 4 : 2)].map((_, index) => ( // 스켈레톤 개수 viewMode에 따라 조절
+          {[...Array(viewMode === 'grid' ? 4 : 2)].map((_, index) => (
             <div key={index} className={`bg-white rounded-lg shadow-md p-4 animate-pulse ${viewMode === 'list' ? 'flex flex-row h-32' : 'h-64'}`}>
               <div className={`bg-gray-200 rounded-md ${viewMode === 'list' ? 'w-32 h-full mr-4' : 'h-32 mb-4'}`}></div>
               <div className="flex-1">
@@ -65,13 +76,18 @@ const PeermallGrid = ({ title, malls, viewMore = true, onOpenMap, viewMode, onSh
       ) : malls.length > 0 ? (
         <div className={viewMode === 'grid' ? gridLayoutClasses : listLayoutClasses}>
           {malls.map((mall, index) => (
-            <PeermallCard
+            <NewPeermallCard
               key={mall.id || index}
-              {...mall}
-              id={mall.id}
-              onOpenMap={onOpenMap}
-              viewMode={viewMode} // viewMode 전달
-              onShowQrCode={onShowQrCode} // onShowQrCode 전달
+              id={mall.id || `mall-${index}`}
+              title={mall.title}
+              description={mall.description}
+              owner={mall.owner}
+              imageUrl={mall.imageUrl}
+              likes={mall.likes || 0}
+              rating={mall.rating}
+              followers={mall.followers || 0}
+              tags={mall.tags || []}
+              isPopular={isPopularSection || mall.featured}
             />
           ))}
         </div>
@@ -82,9 +98,9 @@ const PeermallGrid = ({ title, malls, viewMore = true, onOpenMap, viewMode, onSh
         </div>
       )}
 
-      {viewMore && (
+      {viewMore && malls.length > 0 && (
         <div className="flex items-center justify-end mt-4">
-          <a href="#" className="flex items-center text-accent-200 hover:text-accent-100 transition-colors">
+          <a href="#" className="flex items-center text-accent-100 hover:text-primary-100 transition-colors">
             더보기 <ChevronRight className="h-4 w-4 ml-1" />
           </a>
         </div>

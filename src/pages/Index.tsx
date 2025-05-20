@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import PeermallGrid from '@/components/peermall-features/PeermallGrid';
 import HashtagFilter, { HashtagFilterOption, PeermallType } from '@/components/navigation/HashtagFilter';
@@ -247,6 +248,7 @@ const Index = () => {
                   viewMore={false}
                   viewMode="grid"
                   onShowQrCode={handleShowPeermallQrCode}
+                  isPopularSection={true}
                 />
               </section>
 
