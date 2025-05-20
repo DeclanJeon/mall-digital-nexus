@@ -1,4 +1,3 @@
-
 import { ReactNode } from 'react';
 
 export enum ContentType {
@@ -60,6 +59,7 @@ export interface PeerMallConfig {
     allowComments: boolean;
     showBadges: boolean;
   };
+  themeColor?: string; // Add missing property
   
   theme?: {
     primaryColor: string;
@@ -112,6 +112,8 @@ export interface PeerMallConfig {
   
   // Add properties used in PeerSpace.tsx
   category?: string;
+  status?: string;
+  skin?: string;
 }
 
 export interface Content {
@@ -195,6 +197,12 @@ export interface Review {
   source?: string;
   sourceSite?: string;
   userName?: string; // Add for contentHelper.ts
+  text?: string; // Add for contentHelper.ts and ContentDetailView.tsx
+  peerMall?: {
+    id: string;
+    name: string;
+    address: string;
+  };
 }
 
 export interface Quest {

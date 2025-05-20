@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Form,
@@ -25,11 +24,7 @@ interface ContentEditFormProps {
 }
 
 // Define valid content types matching the enum
-const validContentTypes = [
-  'post', 'product', 'service', 'event', 'review', 'quest', 'portfolio', 
-  'course', 'stream', 'livestream', 'advertisement', 'guestbook', 
-  'workshop', 'challenge', 'tool', 'external', 'article', 'resource', 'other'
-] as const;
+const validContentTypes = Object.values(ContentType) as const;
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -41,7 +36,7 @@ const formSchema = z.object({
   imageUrl: z.string().url({
     message: "유효한 URL을 입력해주세요.",
   }),
-  type: z.enum(validContentTypes),
+  type: z.enum(validContentTypes as unknown as [string, ...string[]]),
   price: z.string().optional(),
   isExternal: z.boolean().default(false),
   externalUrl: z.string().url({
@@ -50,25 +45,25 @@ const formSchema = z.object({
 })
 
 const typeOptions = [
-  { value: 'post', label: '게시글' },
-  { value: 'product', label: '상품' },
-  { value: 'service', label: '서비스' },
-  { value: 'event', label: '이벤트' },
-  { value: 'review', label: '리뷰' },
-  { value: 'quest', label: '퀘스트' },
-  { value: 'portfolio', label: '포트폴리오' },
-  { value: 'course', label: '코스' },
-  { value: 'stream', label: '스트림' },
-  { value: 'livestream', label: '라이브 스트림' },
-  { value: 'advertisement', label: '광고' },
-  { value: 'guestbook', label: '방명록' },
-  { value: 'workshop', label: '워크샵' },
-  { value: 'challenge', label: '챌린지' },
-  { value: 'tool', label: '도구' },
-  { value: 'external', label: '외부 링크' },
-  { value: 'article', label: '아티클' },
-  { value: 'resource', label: '리소스' },
-  { value: 'other', label: '기타' },
+  { value: ContentType.Post, label: '게시글' },
+  { value: ContentType.Product, label: '상품' },
+  { value: ContentType.Service, label: '서비스' },
+  { value: ContentType.Event, label: '이벤트' },
+  { value: ContentType.Review, label: '리뷰' },
+  { value: ContentType.Quest, label: '퀘스트' },
+  { value: ContentType.Portfolio, label: '포트폴리오' },
+  { value: ContentType.Course, label: '코스' },
+  { value: ContentType.Stream, label: '스트림' },
+  { value: ContentType.Livestream, label: '라이브 스트림' },
+  { value: ContentType.Advertisement, label: '광고' },
+  { value: ContentType.Guestbook, label: '방명록' },
+  { value: ContentType.Workshop, label: '워크샵' },
+  { value: ContentType.Challenge, label: '챌린지' },
+  { value: ContentType.Tool, label: '도구' },
+  { value: ContentType.External, label: '외부 링크' },
+  { value: ContentType.Article, label: '아티클' },
+  { value: ContentType.Resource, label: '리소스' },
+  { value: ContentType.Other, label: '기타' },
 ] as const;
 
 const ContentEditForm: React.FC<ContentEditFormProps> = ({ initialContent, onSubmit }) => {

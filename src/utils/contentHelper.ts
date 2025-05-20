@@ -1,3 +1,4 @@
+
 import { Review } from '@/components/peer-space/types';
 
 interface ReviewHelperOptions {
@@ -23,8 +24,9 @@ export const generateDummyReview = (overrides?: Partial<Review>): Review => {
     verified: overrides?.verified !== undefined ? overrides.verified : true,
     helpful: overrides?.helpful || Math.floor(Math.random() * 30),
     images: overrides?.images || [],
-    // Add the userName property to match what's used in the components
+    // Add the userName and text properties to match what's used in the components
     userName: overrides?.userName || overrides?.author || "Jane Doe",
+    text: overrides?.text || overrides?.content || "I really enjoyed using this product. It exceeded my expectations in many ways...",
     ...overrides
   };
 };
@@ -63,20 +65,26 @@ export const generateRandomReviews = (contentId: string, count: number = 5): Rev
     const date = new Date();
     date.setDate(date.getDate() - randomDaysAgo);
     
+    const reviewContent = reviewContents[randomContentIndex];
+    const reviewAuthor = names[randomNameIndex];
+    
     reviews.push({
       id: `review-${contentId}-${i}`,
+      title: `Review by ${reviewAuthor}`,
       contentId: contentId,
       userId: `user-${i}`,
-      userName: names[randomNameIndex],
-      author: names[randomNameIndex],
-      authorImage: `https://api.dicebear.com/7.x/personas/svg?seed=${names[randomNameIndex]}`,
-      text: reviewContents[randomContentIndex],
-      content: reviewContents[randomContentIndex],
+      userName: reviewAuthor,
+      author: reviewAuthor,
+      authorImage: `https://api.dicebear.com/7.x/personas/svg?seed=${reviewAuthor}`,
+      text: reviewContent,
+      content: reviewContent,
       rating: randomRating,
       date: date.toISOString(),
       source: 'internal',
       likes: Math.floor(Math.random() * 10),
+      replies: Math.floor(Math.random() * 5),
       verified: true,
+      helpful: Math.floor(Math.random() * 8),
       peerMall: {
         id: 'demo-mall',
         name: '데모 피어몰',

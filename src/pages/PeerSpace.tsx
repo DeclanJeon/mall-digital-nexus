@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import PeerSpaceHome from '@/components/peer-space/PeerSpaceHome';
@@ -101,8 +100,8 @@ const PeerSpace = () => {
               title: peermallDetails.title || '내 피어스페이스',
               description: peermallDetails.description || '나만의 공간을 구성해보세요',
               owner: peermallDetails.owner || '나',
-              category: peermallDetails.category || '기타', // Now included in PeerMallConfig
-              themeColor: '#71c4ef',
+              category: peermallDetails.category || '기타',
+              themeColor: '#71c4ef', // Now properly defined in PeerMallConfig
               status: 'active',
               createdAt: new Date().toISOString(),
               type: 'personal',
@@ -111,15 +110,11 @@ const PeerSpace = () => {
               badges: [],
               followers: 0,
               recommendations: 0,
-              // level: 1,
-              // experience: 0,
-              // nextLevelExperience: 100,
               isVerified: false,
               skin: 'default',
               sections: ['hero', 'content', 'community', 'events', 'reviews', 'infoHub', 'map', 'trust', 'relatedMalls', 'activityFeed', 'liveCollaboration'],
               customizations: {
                 primaryColor: '#71c4ef',
-                // secondaryColor: '#3B82F6',
                 showChat: true,
                 allowComments: true,
                 showBadges: true,

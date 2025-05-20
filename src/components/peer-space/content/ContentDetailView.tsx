@@ -164,18 +164,21 @@ const ContentDetailView: React.FC<ContentDetailViewProps> = ({ address, config, 
     
     const newReviewObj: Review = {
       id: `review-${Date.now()}`,
+      title: `Review for ${content?.title}`,  // Adding a title since it's required
       contentId: contentId || '',
       userId: `user-${Date.now()}`,
       userName: "현재 사용자",
       author: "현재 사용자",
       authorImage: "https://api.dicebear.com/7.x/personas/svg?seed=current-user",
       content: newReview,
-      text: newReview,
+      text: newReview,  // Make sure to set text to match content
       rating: newRating,
       date: new Date().toISOString(),
       source: 'internal',
       likes: 0,
+      replies: 0,  // Required by Review interface
       verified: true,
+      helpful: 0,  // Required by Review interface
       peerMall: {
         id: address,
         name: config.title || '',
@@ -262,63 +265,67 @@ const ContentDetailView: React.FC<ContentDetailViewProps> = ({ address, config, 
     );
   }
 
+  // Update the getContentTypeDisplayName function to handle all ContentType values
   const getContentTypeDisplayName = (type: ContentType): string => {
     const typeMapping: Record<ContentType, string> = {
-      'portfolio': '포트폴리오',
-      'service': '서비스',
-      'product': '상품',
-      'event': '이벤트',
-      'post': '게시글',
-      'review': '리뷰',
-      'quest': '퀘스트',
-      'advertisement': '광고',
-      'stream': '라이브 스트림',
-      'guestbook': '방명록',
-      'course': '코스',
-      'workshop': '워크샵',
-      'challenge': '챌린지',
-      'tool': '도구',
-      'external': '외부',
-      'livestream': '라이브 스트림'
+      [ContentType.Portfolio]: '포트폴리오',
+      [ContentType.Service]: '서비스',
+      [ContentType.Product]: '상품',
+      [ContentType.Event]: '이벤트',
+      [ContentType.Post]: '게시글',
+      [ContentType.Review]: '리뷰',
+      [ContentType.Quest]: '퀘스트',
+      [ContentType.Advertisement]: '광고',
+      [ContentType.Stream]: '라이브 스트림',
+      [ContentType.Guestbook]: '방명록',
+      [ContentType.Course]: '코스',
+      [ContentType.Workshop]: '워크샵',
+      [ContentType.Challenge]: '챌린지',
+      [ContentType.Tool]: '도구',
+      [ContentType.External]: '외부',
+      [ContentType.Livestream]: '라이브 스트림',
+      [ContentType.Article]: '아티클',
+      [ContentType.Resource]: '리소스',
+      [ContentType.Other]: '기타'
     };
     
-    return typeMapping[type] || type;
+    return typeMapping[type] || String(type);
   };
 
   const getContentActionButton = () => {
-    switch (content.type) {
-      case 'product':
+    switch (content.type as ContentType) {
+      case ContentType.Product:
         return (
           <Button className="flex items-center gap-2">
-            <ShoppingBag className="h-4 w-4" />
+            <ShoppingBag className="h-4 w-4 mr-2" />
             구매하기
           </Button>
         );
-      case 'service':
+      case ContentType.Service:
         return (
           <Button className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
+            <MessageSquare className="h-4 w-4 mr-2" />
             문의하기
           </Button>
         );
-      case 'event':
+      case ContentType.Event:
         return (
           <Button className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
+            <Calendar className="h-4 w-4 mr-2" />
             참여하기
           </Button>
         );
-      case 'quest':
+      case ContentType.Quest:
         return (
           <Button className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4 mr-2" />
             도전하기
           </Button>
         );
       default:
         return (
           <Button className="flex items-center gap-2">
-            <Info className="h-4 w-4" />
+            <Info className="h-4 w-4 mr-2" />
             자세히 보기
           </Button>
         );
