@@ -3,10 +3,14 @@ import Header from '@/components/navigation/CategoryNav';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductGrid from '@/components/shopping/ProductGrid';
 import PeermallGrid from '@/components/peermall-features/PeermallGrid';
-import { Filter, Grid, LayoutGrid, QrCode as QrCodeIcon } from 'lucide-react'; // QrCode 아이콘 이름 변경
+import { Filter, Grid, LayoutGrid, QrCode as QrCodeIcon, ShoppingBag } from 'lucide-react'; 
 import { Button } from '@/components/ui/button';
 import { Peermall } from './Index';
 import { QRCodeModal } from '@/components/peer-space/modals/QRCodeModal';
+import ShoppingFilter from '@/components/shopping/ShoppingFilter';
+import CategoryNav from '@/components/CategoryNav';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 
 interface Product {
   id: number | string;
@@ -25,7 +29,7 @@ interface Product {
   isNew?: boolean;
 }
 
-const ITEMS_PER_PAGE = 8; // 페이지 당 아이템 수
+const ITEMS_PER_PAGE = 8;
 
 const Shopping = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -44,6 +48,24 @@ const Shopping = () => {
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [qrModalTitle, setQrModalTitle] = useState('');
+
+  const categories = [
+    { id: 'all', name: '전체', url: '/shopping' },
+    { id: 'tech', name: '테크', url: '/shopping?category=tech' },
+    { id: 'fashion', name: '패션', url: '/shopping?category=fashion' },
+    { id: 'living', name: '리빙', url: '/shopping?category=living' },
+    { id: 'food', name: '푸드', url: '/shopping?category=food' },
+    { id: 'design', name: '디자인', url: '/shopping?category=design' },
+    { id: 'hobby', name: '취미', url: '/shopping?category=hobby' },
+  ];
+
+  const popularTags = [
+    { value: '베스트셀러', label: '베스트셀러' },
+    { value: '신규', label: '신규 상품' },
+    { value: '할인', label: '할인중' },
+    { value: '친환경', label: '친환경' },
+    { value: '수제품', label: '수제품' },
+  ];
 
   useEffect(() => {
     try {
@@ -108,93 +130,134 @@ const Shopping = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-grow bg-bg-100">
-        <div className="container mx-auto px-4 py-6">
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <h1 className="text-2xl font-bold text-primary-300 mb-2">쇼핑</h1>
-            <p className="text-text-200">피어몰에서 큐레이션된 다양한 제품을 만나보세요.</p>
-          </div>
-          
-          {/*
-          <div className="relative rounded-lg overflow-hidden mb-6 h-64 bg-gradient-to-r from-primary-300 to-accent-200">
-            <div className="absolute inset-0 bg-black/20"></div>
-            <div className="absolute inset-0 flex flex-col justify-center px-8">
-              <h2 className="text-3xl font-bold text-white mb-4">신규 피어몰 혜택</h2>
-              <p className="text-white text-lg mb-6">첫 구매 시 20% 할인 혜택을 놓치지 마세요!</p>
-              <Button className="w-fit">자세히 보기</Button>
+    <div className="min-h-screen flex flex-col bg-bg-100">
+      <main className="flex-grow">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-primary-200 to-accent-100 text-white">
+          <div className="container mx-auto px-4 py-10">
+            <div className="max-w-2xl">
+              <h1 className="text-4xl font-bold mb-4">피어몰 쇼핑</h1>
+              <p className="text-lg mb-6 opacity-90">
+                지역 피어몰에서 엄선된 제품들을 만나보세요. 수공예품부터 친환경 제품까지, 
+                모든 제품은 우리 커뮤니티의 창작자들이 정성껏 만든 것입니다.
+              </p>
+              <div className="flex gap-2">
+                <Badge variant="secondary" className="bg-white/20 hover:bg-white/30">
+                  🔥 BEST
+                </Badge>
+                <Badge variant="secondary" className="bg-white/20 hover:bg-white/30">
+                  🆕 NEW
+                </Badge>
+                <Badge variant="secondary" className="bg-white/20 hover:bg-white/30">
+                  💸 SALE
+                </Badge>
+              </div>
             </div>
           </div>
-          */}
-          
+        </div>
+
+        <div className="container mx-auto px-4 py-6">
+          {/* Category Navigation */}
           <div className="mb-6">
-            <Tabs defaultValue="products" className="w-full">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                <TabsList className="mb-4 sm:mb-0">
-                  <TabsTrigger value="products">제품</TabsTrigger>
-                  <TabsTrigger value="peermalls">피어몰</TabsTrigger>
-                </TabsList>
-                
-                <div className="flex items-center space-x-2">
-                  {/* 필터 버튼 기능은 현재 비활성화
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    // onClick={toggleFilters}
-                    className="flex items-center gap-1"
-                  >
-                    <Filter className="h-4 w-4" />
-                    필터
-                  </Button>
-                  */}
+            <CategoryNav 
+              categories={categories} 
+              activeId={categories[0].id} 
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Sidebar Filter - Hidden on Mobile */}
+            <div className="hidden lg:block">
+              <ShoppingFilter />
+            </div>
+            
+            {/* Main Content */}
+            <div className="lg:col-span-3">
+              <Tabs defaultValue="products" className="w-full">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                  <TabsList className="mb-4 sm:mb-0 bg-bg-200 p-1">
+                    <TabsTrigger value="products" className="data-[state=active]:bg-white data-[state=active]:text-primary-100">
+                      <ShoppingBag className="h-4 w-4 mr-2" />
+                      제품
+                    </TabsTrigger>
+                    <TabsTrigger value="peermalls" className="data-[state=active]:bg-white data-[state=active]:text-primary-100">
+                      <ShoppingBag className="h-4 w-4 mr-2" />
+                      피어몰
+                    </TabsTrigger>
+                  </TabsList>
                   
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setViewMode('grid')}
-                    className={viewMode === 'grid' ? 'bg-bg-200 text-primary-300' : 'text-gray-500'}
-                  >
-                    <Grid className="h-4 w-4" />
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setViewMode('list')}
-                    className={viewMode === 'list' ? 'bg-bg-200 text-primary-300' : 'text-gray-500'}
-                  >
-                    <LayoutGrid className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setViewMode('grid')}
+                      className={viewMode === 'grid' ? 'bg-bg-200 text-primary-300 border-accent-100' : 'text-text-200'}
+                    >
+                      <Grid className="h-4 w-4" />
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setViewMode('list')}
+                      className={viewMode === 'list' ? 'bg-bg-200 text-primary-300 border-accent-100' : 'text-text-200'}
+                    >
+                      <LayoutGrid className="h-4 w-4" />
+                    </Button>
+                    
+                    {/* Mobile Filter Button */}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex items-center gap-1 lg:hidden"
+                    >
+                      <Filter className="h-4 w-4" />
+                      필터
+                    </Button>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="w-full"> 
-                <TabsContent value="products" className="mt-0">
-                  <ProductGrid products={displayedProducts} viewMode={viewMode} />
-                  {hasMoreProducts && (
-                    <div className="mt-8 text-center">
-                      <Button onClick={loadMoreProducts}>더보기</Button>
-                    </div>
-                  )}
-                </TabsContent>
                 
-                <TabsContent value="peermalls" className="mt-0">
-                  <PeermallGrid 
-                    title="" 
-                    malls={displayedPeermalls} 
-                    viewMore={false} // 더보기 버튼은 PeermallGrid 내부 대신 여기서 관리
-                    onOpenMap={handleOpenMap}
-                    viewMode={viewMode}
-                    onShowQrCode={handleShowPeermallQrCode}
-                  />
-                  {hasMorePeermalls && (
-                    <div className="mt-8 text-center">
-                      <Button onClick={loadMorePeermalls}>더보기</Button>
-                    </div>
-                  )}
-                </TabsContent>
-              </div>
-            </Tabs>
+                <Separator className="mb-4" />
+                
+                {/* Popular Tags - Mobile Only */}
+                <div className="lg:hidden mb-4">
+                  <div className="flex overflow-x-auto gap-2 py-2 scrollbar-hide">
+                    {popularTags.map(tag => (
+                      <Badge key={tag.value} variant="outline" className="whitespace-nowrap">
+                        {tag.label}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="w-full"> 
+                  <TabsContent value="products" className="mt-0">
+                    <ProductGrid products={displayedProducts} viewMode={viewMode} />
+                    {hasMoreProducts && (
+                      <div className="mt-8 text-center">
+                        <Button onClick={loadMoreProducts}>더보기</Button>
+                      </div>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="peermalls" className="mt-0">
+                    <PeermallGrid 
+                      title="" 
+                      malls={displayedPeermalls} 
+                      viewMore={false}
+                      onOpenMap={handleOpenMap}
+                      viewMode={viewMode}
+                      onShowQrCode={handleShowPeermallQrCode}
+                    />
+                    {hasMorePeermalls && (
+                      <div className="mt-8 text-center">
+                        <Button onClick={loadMorePeermalls}>더보기</Button>
+                      </div>
+                    )}
+                  </TabsContent>
+                </div>
+              </Tabs>
+            </div>
           </div>
         </div>
       </main>

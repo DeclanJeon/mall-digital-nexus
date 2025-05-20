@@ -3,15 +3,15 @@ import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Star, ShoppingCart } from 'lucide-react';
+import { Star, ShoppingCart, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface ProductCardProps {
-  id: number | string; // 타입을 number | string으로 변경
+  id: number | string;
   title: string;
   description: string;
   price: number;
-  discountPrice?: number | null; // 선택적 속성으로 변경
+  discountPrice?: number | null;
   imageUrl: string;
   rating: number;
   reviewCount: number;
@@ -51,7 +51,7 @@ const ProductCard = ({
   const discountPercentage = discountPrice ? Math.round(((price - discountPrice) / price) * 100) : 0;
 
   return (
-    <Card className={`overflow-hidden hover:shadow-lg transition-shadow ${
+    <Card className={`overflow-hidden hover:shadow-lg transition-shadow border border-slate-100 ${
       viewMode === 'list' ? 'flex flex-row h-48' : 'h-full'
     }`}>
       <div className={`relative ${
@@ -64,6 +64,11 @@ const ProductCard = ({
             className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
           />
         </Link>
+        
+        {/* Like Button */}
+        <Button variant="ghost" size="icon" className="absolute top-2 right-2 bg-white/70 backdrop-blur-sm rounded-full w-8 h-8 hover:bg-white">
+          <Heart className="h-4 w-4 text-accent-100" />
+        </Button>
         
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -81,7 +86,9 @@ const ProductCard = ({
       
       <div className={`flex flex-col ${viewMode === 'list' ? 'flex-1 p-4' : ''}`}>
         <CardContent className={`${viewMode === 'list' ? 'p-0' : 'p-4'}`}>
-          <div className="text-xs text-text-200 mb-1">{category} · {peermallName}</div>
+          <Link to={`/peermall/${peermallId}`} className="hover:text-accent-100">
+            <div className="text-xs text-text-200 mb-1 hover:underline">{peermallName}</div>
+          </Link>
           <Link to={`/product/${id}`} className="hover:text-primary-300">
             <h3 className="font-bold text-primary-300 mb-1 line-clamp-1">{title}</h3>
           </Link>
@@ -119,7 +126,7 @@ const ProductCard = ({
         </CardContent>
         
         <CardFooter className={`${viewMode === 'list' ? 'px-0 mt-auto' : 'px-4 pb-4 pt-0'}`}>
-          <Button className="w-full flex items-center gap-2">
+          <Button className="w-full flex items-center gap-2 bg-accent-100 hover:bg-accent-200">
             <ShoppingCart className="h-4 w-4" />
             장바구니
           </Button>
