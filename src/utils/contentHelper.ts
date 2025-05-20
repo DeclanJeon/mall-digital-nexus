@@ -1,4 +1,3 @@
-
 import { Review } from '@/components/peer-space/types';
 
 interface ReviewHelperOptions {
@@ -75,6 +74,7 @@ export const generateRandomReviews = (contentId: string, count: number = 5): Rev
       userId: `user-${i}`,
       userName: reviewAuthor,
       author: reviewAuthor,
+      authorId: `user-${i}`,
       authorImage: `https://api.dicebear.com/7.x/personas/svg?seed=${reviewAuthor}`,
       text: reviewContent,
       content: reviewContent,

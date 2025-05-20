@@ -169,6 +169,7 @@ const ContentDetailView: React.FC<ContentDetailViewProps> = ({ address, config, 
       userId: `user-${Date.now()}`,
       userName: "현재 사용자",
       author: "현재 사용자",
+      authorId: `user-${Date.now()}`, // Add authorId property
       authorImage: "https://api.dicebear.com/7.x/personas/svg?seed=current-user",
       content: newReview,
       text: newReview,  // Make sure to set text to match content
@@ -266,8 +267,8 @@ const ContentDetailView: React.FC<ContentDetailViewProps> = ({ address, config, 
   }
 
   // Update the getContentTypeDisplayName function to handle all ContentType values
-  const getContentTypeDisplayName = (type: ContentType): string => {
-    const typeMapping: Record<ContentType, string> = {
+  const getContentTypeDisplayName = (type: ContentType | string): string => {
+    const typeMapping: Record<string, string> = {
       [ContentType.Portfolio]: '포트폴리오',
       [ContentType.Service]: '서비스',
       [ContentType.Product]: '상품',
@@ -293,7 +294,9 @@ const ContentDetailView: React.FC<ContentDetailViewProps> = ({ address, config, 
   };
 
   const getContentActionButton = () => {
-    switch (content.type as ContentType) {
+    const contentType = typeof content.type === 'string' ? content.type as unknown as ContentType : content.type;
+    
+    switch (contentType) {
       case ContentType.Product:
         return (
           <Button className="flex items-center gap-2">
