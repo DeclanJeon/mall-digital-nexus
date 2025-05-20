@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
@@ -32,6 +33,9 @@ import {
   Trash2,
   QrCode,
   Link,
+  Users,
+  Layout,
+  TrendingUp,
 } from "lucide-react";
 import {
   Tooltip,
@@ -96,6 +100,7 @@ const CommunityBoard: React.FC<CommunityBoardProps> = ({
   const [newChannelIcon, setNewChannelIcon] = useState("💡");
   const [newChannelDesc, setNewChannelDesc] = useState("");
   const [newChannelColor, setNewChannelColor] = useState("#6366f1");
+  const [viewMode, setViewMode] = useState<"list" | "grid" | "compact">("list");
   const editorRef = useRef<Editor>(null);
   const { toast } = useToast();
 
@@ -302,137 +307,267 @@ const CommunityBoard: React.FC<CommunityBoardProps> = ({
   ];
 
   return (
-    <div className="bg-gradient-to-br from-[#f7fafc] via-[#e3e9f7] to-[#f6f3ff] min-h-screen p-6">
-      <div className="rounded-2xl shadow-2xl bg-white/90 backdrop-blur-lg max-w-7xl mx-auto p-8 flex flex-col h-full">
-
+    <div className="h-full">
+      {/* Main Board Container */}
+      <div className="flex flex-col h-full rounded-xl overflow-hidden bg-white shadow-xl">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
-            <h2 className="text-2xl md:text-3xl font-black text-indigo-700 drop-shadow-lg">{zoneName} <span className="text-gray-400">게시판</span></h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="ml-4 border border-gray-300 bg-gradient-to-r from-indigo-50 via-blue-50 to-purple-50"
-              onClick={() => { resetChannelDialog(); setIsChannelDialogOpen(true); }}
-            >
-              <SlidersHorizontal className="mr-2 h-4 w-4 text-indigo-700" />
-              채널 관리
-            </Button>
-          </div>
-          <div className="flex items-center gap-2">
-            <Input
-              type="text"
-              placeholder="게시글 검색..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-48 md:w-64 rounded-lg bg-white/90 border-2 border-indigo-100 focus:border-indigo-400 shadow shadow-indigo-50"
-            />
-            <Button variant="secondary" size="icon" className="bg-white border border-indigo-200">
-              <Search className="h-4 w-4 text-indigo-500" />
-            </Button>
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-black text-white">{zoneName}</h2>
+              <Badge variant="secondary" className="bg-white/20 hover:bg-white/30 text-white">
+                커뮤니티
+              </Badge>
+            </div>
+            
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="relative flex-grow md:w-72">
+                <Input
+                  type="text"
+                  placeholder="게시글 검색..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/70 pr-8"
+                />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/70" />
+              </div>
+              <Button 
+                onClick={() => { resetChannelDialog(); setIsChannelDialogOpen(true); }}
+                variant="ghost" 
+                size="icon" 
+                className="bg-white/10 border border-white/20 text-white hover:bg-white/20"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="bg-white/10 border border-white/20 text-white hover:bg-white/20">
+                    <Bell className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  <h3 className="px-2 py-1.5 text-sm font-semibold">알림</h3>
+                  <div className="py-2 text-sm text-center text-muted-foreground">
+                    새로운 알림이 없습니다.
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
 
-        {/* Tabs */}
-        <Tabs defaultValue="all" className="flex flex-col flex-1" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="flex gap-2 overflow-x-auto rounded-xl bg-gradient-to-r from-indigo-50 to-purple-100 shadow-inner px-2 py-1 mb-6">
-            <TabsTrigger value="all" className="text-xs md:text-sm font-bold text-indigo-700">전체글</TabsTrigger>
-            {channels.map(channel => (
-              <TabsTrigger
-                key={channel.id}
-                value={channel.id}
-                style={{ borderBottom: `3px solid ${channel.color}` }}
-                className={`text-xs md:text-sm font-semibold px-3 py-2 rounded-lg transition-all`}
-              >
-                <span className="mr-1">{channel.icon}</span>
-                {channel.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          {/* Post List */}
-          <div className="overflow-y-auto flex-1 mt-2 rounded-lg shadow bg-gradient-to-b from-white/90 to-indigo-50/70 p-2">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-indigo-100 bg-indigo-50">
-                  <th className="py-3 px-4 text-left text-sm font-extrabold text-indigo-400 w-16">번호</th>
-                  <th className="py-3 px-4 text-left text-sm font-extrabold text-indigo-400">제목</th>
-                  <th className="py-3 px-4 text-left text-sm font-bold text-indigo-400 w-24 hidden md:table-cell">작성자</th>
-                  <th className="py-3 px-4 text-left text-sm font-bold text-indigo-400 w-24 hidden md:table-cell">작성일</th>
-                  <th className="py-3 px-4 text-left text-sm font-bold text-indigo-400 w-24 hidden md:table-cell">출처</th>
-                  <th className="py-3 px-4 text-left text-sm font-bold text-indigo-400 w-20 hidden sm:table-cell">조회</th>
-                  <th className="py-3 px-4 text-left text-sm font-bold text-indigo-400 w-20 hidden sm:table-cell">추천</th>
-                  <th className="py-3 px-4 text-left text-sm font-bold text-indigo-400 w-16">QR</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPosts.length > 0 ? (
-                  filteredPosts.map((post, index) => (
-                    <tr
-                      key={post.id}
-                      className={`border-b border-indigo-100 hover:shadow-lg hover:bg-gradient-to-r hover:from-indigo-50 hover:to-white/80 ${post.isNotice ? 'bg-yellow-50' : ''} cursor-pointer transition-all`}
-                      onClick={() => handlePostClick(post)}
-                    >
-                      <td className="py-3 px-4 text-sm text-gray-500 text-center">
-                        {post.isNotice ? (
-                          <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+        {/* View Toggle and Channels */}
+        <div className="border-b flex flex-col md:flex-row justify-between items-center px-6 py-2 bg-gray-50">
+          <Tabs 
+            value={activeTab} 
+            onValueChange={setActiveTab} 
+            className="space-y-1 md:space-y-0"
+          >
+            <TabsList className="h-9 bg-gray-100">
+              <TabsTrigger value="all" className="text-sm h-7">전체글</TabsTrigger>
+              <TabsTrigger value="notice" className="text-sm h-7">공지사항</TabsTrigger>
+              {channels.map((channel) => (
+                <TabsTrigger 
+                  key={channel.id} 
+                  value={channel.id} 
+                  className="text-sm h-7"
+                  style={{ borderBottom: activeTab === channel.id ? `2px solid ${channel.color}` : undefined }}
+                >
+                  <span className="mr-1">{channel.icon}</span>
+                  {channel.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+          
+          <div className="flex items-center gap-2 mt-2 md:mt-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`px-2 ${viewMode === 'list' ? 'bg-gray-200' : 'bg-transparent'}`}
+              onClick={() => setViewMode("list")}
+            >
+              <Layout className="h-4 w-4 mr-1" />
+              목록
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`px-2 ${viewMode === 'grid' ? 'bg-gray-200' : 'bg-transparent'}`}
+              onClick={() => setViewMode("grid")}
+            >
+              <LayoutGrid className="h-4 w-4 mr-1" />
+              그리드
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`px-2 ${viewMode === 'compact' ? 'bg-gray-200' : 'bg-transparent'}`}
+              onClick={() => setViewMode("compact")}
+            >
+              <Layout className="h-4 w-4 mr-1" />
+              간단히
+            </Button>
+          </div>
+        </div>
+                
+        {/* Post List */}
+        <div className="flex-grow overflow-auto p-6">
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredPosts.length > 0 ? filteredPosts.map((post) => (
+                <Card 
+                  key={post.id}
+                  className={`overflow-hidden cursor-pointer hover:shadow-md transition-all ${post.isNotice ? 'border-l-4 border-l-yellow-400' : ''}`}
+                  onClick={() => handlePostClick(post)}
+                >
+                  <div className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="text-sm font-medium text-gray-500">
+                        {post.author}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Badge variant="outline" className="bg-gray-50 text-xs">
+                          {post.date}
+                        </Badge>
+                        {post.isNotice && (
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200 text-xs">
                             공지
                           </Badge>
-                        ) : (
-                          filteredPosts.length - index
                         )}
-                      </td>
-                      <td className="py-3 px-4">
+                      </div>
+                    </div>
+                    
+                    <h3 className="font-bold text-gray-800 mb-2">{post.title}</h3>
+                    
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{post.content}</p>
+                    
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {post.tags.map((tag, index) => (
+                        <Badge key={index} variant="secondary" className="bg-indigo-50 text-indigo-600 text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                    
+                    <div className="flex justify-between items-center text-xs text-gray-500">
+                      <div className="flex items-center gap-4">
                         <div className="flex items-center">
-                          <span className="text-sm font-bold text-indigo-800 hover:text-indigo-600 transition-colors">
-                            {post.title}
-                          </span>
-                          {post.comments > 0 && (
-                            <span className="ml-2 text-xs text-indigo-600 font-bold">
-                              [{post.comments}]
-                            </span>
-                          )}
-                          {post.tags && post.tags.length > 0 && (
-                            <div className="ml-2 hidden md:flex gap-1">
-                              {post.tags.map((tag, i) => (
-                                <Badge key={i} variant="secondary" className="text-xs py-0 h-5 bg-gradient-to-r from-indigo-100 via-purple-100 to-white border-none">
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
+                          <ThumbsUp className="h-3 w-3 mr-1" /> 
+                          {post.likes}
                         </div>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-gray-500 hidden md:table-cell">{post.author}</td>
-                      <td className="py-3 px-4 text-sm text-gray-500 hidden md:table-cell">{post.date}</td>
-                      <td className="py-3 px-4 text-sm text-gray-500 hidden md:table-cell">
-                        {post.communityId && post.communityId !== 'global' ? (
-                          <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-300">
-                            {getCommunityName(post.communityId)}
+                        <div className="flex items-center">
+                          <MessageSquare className="h-3 w-3 mr-1" /> 
+                          {post.comments}
+                        </div>
+                        <div className="flex items-center">
+                          <Eye className="h-3 w-3 mr-1" /> 
+                          {post.viewCount || 0}
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={(e) => handleShowQRCode(e, post)}
+                      >
+                        <QrCode className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              )) : (
+                <div className="py-20 text-center text-gray-400">
+                  <Search className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                  <p className="text-lg font-medium">검색 결과가 없습니다.</p>
+                </div>
+              )}
+            </div>
+          ) : viewMode === 'compact' ? (
+            <div className="space-y-1">
+              {filteredPosts.length > 0 ? filteredPosts.map((post) => (
+                <div 
+                  key={post.id}
+                  className={`flex items-center justify-between py-2 px-3 border-b hover:bg-gray-50 cursor-pointer ${post.isNotice ? 'bg-yellow-50' : ''}`}
+                  onClick={() => handlePostClick(post)}
+                >
+                  <div className="flex items-center gap-3 flex-grow overflow-hidden">
+                    {post.isNotice && <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200 text-xs">공지</Badge>}
+                    <span className="font-medium text-gray-800 truncate">{post.title}</span>
+                    {post.comments > 0 && <span className="text-xs text-indigo-500 font-semibold">[{post.comments}]</span>}
+                  </div>
+                  <div className="flex items-center gap-4 text-xs text-gray-500 flex-shrink-0">
+                    <span>{post.author}</span>
+                    <span>{post.date}</span>
+                    <div className="flex items-center">
+                      <ThumbsUp className="h-3 w-3 mr-1" /> 
+                      {post.likes}
+                    </div>
+                  </div>
+                </div>
+              )) : (
+                <div className="py-20 text-center text-gray-400">
+                  <Search className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                  <p className="text-lg font-medium">검색 결과가 없습니다.</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredPosts.length > 0 ? filteredPosts.map((post) => (
+                <Card 
+                  key={post.id}
+                  className={`cursor-pointer hover:shadow-md transition-all ${post.isNotice ? 'border-l-4 border-l-yellow-400' : ''}`}
+                  onClick={() => handlePostClick(post)}
+                >
+                  <div className="p-5">
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-3 gap-2">
+                      <h3 className="font-bold text-lg text-gray-800">{post.title}</h3>
+                      <div className="flex items-center gap-2 text-sm text-gray-500 flex-shrink-0">
+                        {post.isNotice && (
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">
+                            공지
                           </Badge>
-                        ) : (
-                          '글로벌'
                         )}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-gray-500 text-center hidden sm:table-cell">
-                        <div className="flex items-center justify-center gap-1">
-                          <Eye className="w-3 h-3" />
-                          <span>{post.viewCount || 0}</span>
+                        <Badge variant="outline" className="bg-gray-50">
+                          {post.date}
+                        </Badge>
+                        <span className="font-medium">{post.author}</span>
+                      </div>
+                    </div>
+                    
+                    <p className="text-gray-600 mb-4 line-clamp-2">{post.content}</p>
+                    
+                    <div className="flex flex-wrap gap-1 mb-4">
+                      {post.tags.map((tag, index) => (
+                        <Badge key={index} variant="secondary" className="bg-indigo-50 text-indigo-600">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-4 text-gray-500">
+                        <div className="flex items-center">
+                          <ThumbsUp className="h-4 w-4 mr-1" /> 
+                          <span className="text-sm">{post.likes}</span>
                         </div>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-gray-500 text-center hidden sm:table-cell">
-                        <div className="flex items-center justify-center gap-1">
-                          <ThumbsUp className="w-3 h-3" />
-                          <span>{post.likes}</span>
+                        <div className="flex items-center">
+                          <MessageSquare className="h-4 w-4 mr-1" /> 
+                          <span className="text-sm">{post.comments}</span>
                         </div>
-                      </td>
-                      <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center">
+                          <Eye className="h-4 w-4 mr-1" /> 
+                          <span className="text-sm">{post.viewCount || 0}</span>
+                        </div>
+                      </div>
+                      <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7"
+                              className="h-8 w-8"
                               onClick={(e) => handleShowQRCode(e, post)}
                             >
                               <QrCode className="h-4 w-4" />
@@ -442,255 +577,284 @@ const CommunityBoard: React.FC<CommunityBoardProps> = ({
                             <p>QR 코드 보기</p>
                           </TooltipContent>
                         </Tooltip>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={8} className="py-12 text-center text-indigo-300">
-                      <span className="text-2xl">🔍</span>
-                      <div className="mt-2 text-base font-semibold">검색 결과가 없습니다.</div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Bottom Toolbar */}
-          <div className="mt-4 flex justify-between items-center">
+                      </TooltipProvider>
+                    </div>
+                  </div>
+                </Card>
+              )) : (
+                <div className="py-20 text-center text-gray-400">
+                  <Search className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                  <p className="text-lg font-medium">검색 결과가 없습니다.</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
+        {/* Footer */}
+        <div className="border-t p-4 bg-gray-50">
+          <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon">
-                <Filter className="h-4 w-4" />
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                필터
               </Button>
-              <Button variant="outline" size="icon">
-                <SlidersHorizontal className="h-4 w-4" />
+              <Button variant="outline" size="sm" className="hidden md:flex">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                인기순
+              </Button>
+              <Button variant="outline" size="sm" className="hidden md:flex">
+                <Clock className="h-4 w-4 mr-2" />
+                최신순
               </Button>
             </div>
-            <Button
-              className="rounded-lg bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold shadow-lg hover:scale-105 transition-transform"
-              onClick={() => setIsWriteDialogOpen(true)}
-            >
+            <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white" onClick={() => setIsWriteDialogOpen(true)}>
               <PlusCircle className="mr-2 h-4 w-4" />
-              새 게시글 작성
+              새 글 작성
             </Button>
           </div>
-        </Tabs>
+        </div>
+      </div>
 
-        {/* Write Post Dialog */}
-        <Dialog open={isWriteDialogOpen} onOpenChange={setIsWriteDialogOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl">
-            <DialogHeader>
-              <DialogTitle>새 게시글 작성</DialogTitle>
-              <DialogDescription>
-                작성한 글은 해당 게시판의 모든 사용자에게 공개됩니다.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              {/* Channel Selection */}
-              <div className="grid grid-cols-3 gap-2">
-                {channels.map(channel => (
-                  <Button
-                    key={channel.id}
-                    type="button"
-                    variant={selectedChannel === channel.id ? "default" : "outline"}
-                    className={`justify-start font-semibold`}
-                    style={selectedChannel === channel.id ? { background: channel.color, color: 'white' } : undefined}
-                    onClick={() => setSelectedChannel(channel.id)}
-                  >
-                    <span className="mr-2">{channel.icon}</span>
-                    {channel.name}
-                  </Button>
+      {/* Write Post Dialog */}
+      <Dialog open={isWriteDialogOpen} onOpenChange={setIsWriteDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>새 게시글 작성</DialogTitle>
+            <DialogDescription>
+              작성한 글은 해당 게시판의 모든 사용자에게 공개됩니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* Channel Selection */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {channels.map(channel => (
+                <Button
+                  key={channel.id}
+                  type="button"
+                  variant={selectedChannel === channel.id ? "default" : "outline"}
+                  className={`justify-start font-semibold transition-all`}
+                  style={selectedChannel === channel.id ? 
+                    { background: channel.color, color: 'white' } : 
+                    { borderColor: channel.color, color: channel.color }
+                  }
+                  onClick={() => setSelectedChannel(channel.id)}
+                >
+                  <span className="mr-2">{channel.icon}</span>
+                  {channel.name}
+                </Button>
+              ))}
+            </div>
+            <Input
+              placeholder="제목을 입력하세요"
+              value={newPostTitle}
+              onChange={(e) => setNewPostTitle(e.target.value)}
+              className="w-full"
+            />
+            {/* Editor */}
+            <div className="border rounded-md">
+              <RichTextEditor
+                ref={editorRef as React.RefObject<Editor>}
+                initialValue=" "
+                height="400px"
+                initialEditType="wysiwyg"
+                previewStyle="vertical"
+              />
+            </div>
+            {/* Tags */}
+            <div>
+              <label className="block text-sm font-medium mb-1">태그 (Enter 키로 추가)</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {selectedTags.map(tag => (
+                  <Badge key={tag} variant="secondary" className="py-1 px-2 bg-indigo-50 text-indigo-700 flex items-center gap-1">
+                    {tag}
+                    <button
+                      className="text-indigo-500 hover:text-indigo-800"
+                      onClick={() => handleRemoveTag(tag)}
+                      type="button"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
                 ))}
               </div>
-              <Input
-                placeholder="제목을 입력하세요"
-                value={newPostTitle}
-                onChange={(e) => setNewPostTitle(e.target.value)}
-                className="w-full rounded-lg border-2 border-indigo-100 focus:border-indigo-400"
-              />
-              {/* Editor */}
-              <div className="border rounded-md">
-                <RichTextEditor
-                  ref={editorRef as React.RefObject<Editor>}
-                  initialValue=" "
-                  height="400px"
-                  initialEditType="wysiwyg"
-                  previewStyle="vertical"
+              <div className="flex gap-2">
+                <Input
+                  placeholder="태그 추가"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddTag();
+                    }
+                  }}
+                  className="flex-1"
                 />
-              </div>
-              {/* Tags */}
-              <div>
-                <label className="block text-sm font-medium text-indigo-700 mb-1">태그 (Enter 키로 추가)</label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {selectedTags.map(tag => (
-                    <Badge key={tag} variant="secondary" className="py-1 px-2 bg-gradient-to-r from-indigo-100 via-purple-100 to-white border-none">
-                      {tag}
-                      <button
-                        className="ml-1 text-gray-500 hover:text-gray-700"
-                        onClick={() => handleRemoveTag(tag)}
-                        type="button"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="태그 추가"
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAddTag();
-                      }
-                    }}
-                    className="flex-1 rounded-lg border-2 border-indigo-100 focus:border-indigo-400"
-                  />
-                  <Button type="button" variant="outline" onClick={handleAddTag}>
-                    추가
-                  </Button>
-                </div>
-              </div>
-              {/* Options */}
-              <div className="flex items-center gap-4">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isNotice}
-                    onChange={(e) => setIsNotice(e.target.checked)}
-                    className="rounded border-gray-300 text-community-primary focus:ring-community-primary"
-                  />
-                  <span className="text-sm font-medium text-indigo-700">공지사항으로 등록</span>
-                </label>
+                <Button type="button" variant="outline" onClick={handleAddTag}>
+                  추가
+                </Button>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsWriteDialogOpen(false)}>
-                취소
-              </Button>
-              <Button onClick={handleSubmitPost}>
-                게시글 등록
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            {/* Options */}
+            <div className="flex items-center gap-4">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isNotice}
+                  onChange={(e) => setIsNotice(e.target.checked)}
+                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span className="text-sm font-medium">공지사항으로 등록</span>
+              </label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsWriteDialogOpen(false)}>
+              취소
+            </Button>
+            <Button 
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white" 
+              onClick={handleSubmitPost}
+            >
+              게시글 등록
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        {/* QR Code Dialog */}
-        <Dialog open={isQRDialogOpen} onOpenChange={setIsQRDialogOpen}>
-          <DialogContent className="rounded-2xl shadow-2xl">
-            <DialogHeader>
-              <DialogTitle>게시글 QR 코드</DialogTitle>
-            </DialogHeader>
-            {currentQRPost && (
-              <>
-                <div className="py-2">
-                  <h3 className="font-bold text-lg">{currentQRPost.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1">아래 QR 코드로 게시글에 바로 접근할 수 있습니다.</p>
-                </div>
-                <div className="flex flex-col items-center justify-center py-6">
-                  <QRCodeSVG value={getPostUrl(currentQRPost)} size={200} />
-                  <p className="mt-4 text-sm text-gray-600 break-all text-center">
-                    {getPostUrl(currentQRPost)}
-                  </p>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => {
-                    navigator.clipboard.writeText(getPostUrl(currentQRPost));
-                    toast({
-                      title: "링크가 복사되었습니다",
-                      description: "게시글 링크가 클립보드에 복사되었습니다.",
-                    });
-                  }}>
-                    <Link className="mr-2 h-4 w-4" /> 링크 복사
-                  </Button>
-                  <Button onClick={() => setIsQRDialogOpen(false)}>
-                    닫기
-                  </Button>
-                </DialogFooter>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
+      {/* QR Code Dialog */}
+      <Dialog open={isQRDialogOpen} onOpenChange={setIsQRDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>게시글 QR 코드</DialogTitle>
+          </DialogHeader>
+          {currentQRPost && (
+            <>
+              <div className="py-2">
+                <h3 className="font-bold text-lg">{currentQRPost.title}</h3>
+                <p className="text-sm text-gray-500 mt-1">아래 QR 코드로 게시글에 바로 접근할 수 있습니다.</p>
+              </div>
+              <div className="flex flex-col items-center justify-center py-6">
+                <QRCodeSVG value={getPostUrl(currentQRPost)} size={200} />
+                <p className="mt-4 text-sm text-gray-600 break-all text-center">
+                  {getPostUrl(currentQRPost)}
+                </p>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => {
+                  navigator.clipboard.writeText(getPostUrl(currentQRPost));
+                  toast({
+                    title: "링크가 복사되었습니다",
+                    description: "게시글 링크가 클립보드에 복사되었습니다.",
+                  });
+                }}>
+                  <Link className="mr-2 h-4 w-4" /> 링크 복사
+                </Button>
+                <Button onClick={() => setIsQRDialogOpen(false)}>
+                  닫기
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
-        {/* Channel Management Dialog */}
-        <Dialog open={isChannelDialogOpen} onOpenChange={v => { setIsChannelDialogOpen(v); if (!v) resetChannelDialog(); }}>
-          <DialogContent className="max-w-2xl rounded-2xl shadow-2xl">
-            <DialogHeader>
-              <DialogTitle>채널 관리</DialogTitle>
-              <DialogDescription>
-                다양한 주제의 채널을 생성하고, 편집하거나 삭제할 수 있습니다.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                {channels.map(channel => (
-                  <div
-                    key={channel.id}
-                    className="flex items-center gap-2 p-2 rounded-xl hover:bg-gradient-to-r hover:from-indigo-50 hover:to-white transition"
-                  >
-                    <span className="text-xl" style={{ color: channel.color }}>{channel.icon}</span>
-                    <span className="font-semibold">{channel.name}</span>
-                    <span className="text-xs text-gray-400">{channel.description}</span>
+      {/* Channel Management Dialog */}
+      <Dialog open={isChannelDialogOpen} onOpenChange={v => { setIsChannelDialogOpen(v); if (!v) resetChannelDialog(); }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>채널 관리</DialogTitle>
+            <DialogDescription>
+              다양한 주제의 채널을 생성하고, 편집하거나 삭제할 수 있습니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-2">
+              {channels.map(channel => (
+                <div
+                  key={channel.id}
+                  className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors border"
+                >
+                  <span className="text-xl flex-shrink-0" style={{ color: channel.color }}>{channel.icon}</span>
+                  <span className="font-semibold flex-grow">{channel.name}</span>
+                  <span className="text-xs text-gray-400 hidden md:block">{channel.description}</span>
+                  <div className="flex items-center gap-1">
                     <Button
                       size="icon"
                       variant="ghost"
+                      className="h-8 w-8"
                       onClick={() => handleEditChannel(channel.id)}
                     ><Edit className="w-4 h-4" /></Button>
                     <Button
                       size="icon"
                       variant="destructive"
+                      className="h-8 w-8"
                       onClick={() => handleDeleteChannel(channel.id)}
                     ><Trash2 className="w-4 h-4" /></Button>
                   </div>
-                ))}
-              </div>
-              <form onSubmit={editChannelId ? handleUpdateChannel : handleCreateChannel} className="flex flex-col md:flex-row gap-2 mt-4">
-                <Input
-                  value={newChannelName}
-                  onChange={e => setNewChannelName(e.target.value)}
-                  placeholder="채널 이름"
-                  className="flex-1"
-                />
-                <Input
-                  value={newChannelIcon}
-                  onChange={e => setNewChannelIcon(e.target.value)}
-                  placeholder="이모지/아이콘"
-                  className="w-20"
-                  maxLength={2}
-                />
-                <Input
-                  value={newChannelDesc}
-                  onChange={e => setNewChannelDesc(e.target.value)}
-                  placeholder="설명"
-                  className="flex-1"
-                />
-                <div className="flex items-center gap-1">
-                  {colorPalette.map((color) => (
-                    <button key={color} type="button"
-                      className={`w-7 h-7 rounded-full border-2 ${newChannelColor === color ? 'border-indigo-700' : 'border-indigo-200'} transition-all`}
-                      style={{ backgroundColor: color }}
-                      aria-label="채널 컬러 선택"
-                      onClick={() => setNewChannelColor(color)}
-                    />
-                  ))}
                 </div>
-                <Button type="submit" variant="default">
-                  {editChannelId ? "수정" : "추가"}
-                </Button>
+              ))}
+            </div>
+            <form onSubmit={editChannelId ? handleUpdateChannel : handleCreateChannel} className="border rounded-lg p-4 space-y-4">
+              <h3 className="font-semibold">{editChannelId ? "채널 수정" : "새 채널 추가"}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">채널 이름</label>
+                  <Input
+                    value={newChannelName}
+                    onChange={e => setNewChannelName(e.target.value)}
+                    placeholder="채널 이름"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">이모지/아이콘</label>
+                  <Input
+                    value={newChannelIcon}
+                    onChange={e => setNewChannelIcon(e.target.value)}
+                    placeholder="이모지/아이콘"
+                    className="mt-1"
+                    maxLength={2}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium">설명</label>
+                  <Input
+                    value={newChannelDesc}
+                    onChange={e => setNewChannelDesc(e.target.value)}
+                    placeholder="설명"
+                    className="mt-1"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium mb-2">색상</label>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {colorPalette.map((color) => (
+                      <button key={color} type="button"
+                        className={`w-8 h-8 rounded-full border-2 ${newChannelColor === color ? 'border-indigo-700 ring-2 ring-indigo-200' : 'border-gray-200'} transition-all`}
+                        style={{ backgroundColor: color }}
+                        aria-label="채널 컬러 선택"
+                        onClick={() => setNewChannelColor(color)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
                 {editChannelId && (
                   <Button type="button" variant="outline" onClick={resetChannelDialog}>취소</Button>
                 )}
-              </form>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+                <Button type="submit" className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+                  {editChannelId ? "수정" : "추가"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
 export default CommunityBoard;
-
