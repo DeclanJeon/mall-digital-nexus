@@ -17,12 +17,12 @@ const BasicInfoSection: React.FC = () => {
       </div>
 
       <Tabs defaultValue="site-info" className="space-y-4" onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-5 md:w-[600px]">
+        <TabsList className="grid grid-cols-2 md:w-[600px]">
           <TabsTrigger value="site-info">사이트 정보</TabsTrigger>
           <TabsTrigger value="contact">연락처</TabsTrigger>
-          <TabsTrigger value="authentication">인증 및 상태</TabsTrigger>
-          <TabsTrigger value="legal">법적 고지</TabsTrigger>
-          <TabsTrigger value="relationships">관계 설정</TabsTrigger>
+          {/* <TabsTrigger value="authentication">인증 및 상태</TabsTrigger> */}
+          {/* <TabsTrigger value="legal">법적 고지</TabsTrigger> */}
+          {/* <TabsTrigger value="relationships">관계 설정</TabsTrigger> */}
         </TabsList>
 
         {/* 사이트 정보 탭 */}

@@ -72,7 +72,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Content, ContentType } from '../types';
 import { addPeerSpaceContent } from "@/utils/peerSpaceStorage";
-import { add } from "@/utils/indexedDBService";
+import { savePostToLocalStorage } from "@/utils/storageUtils";
 import { QRCodeSVG } from 'qrcode.react';
 import ProductRegistrationPreview from "./ProductRegistrationPreview";
 
@@ -311,6 +311,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       };
       
       await addPeerSpaceContent(address, newProduct);
+      await savePostToLocalStorage(newProduct);
       await handleFormSubmit(formValues);
       
       toast({
@@ -881,15 +882,15 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                             <FormControl>
                               <div className="relative">
                                 <Globe className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-                                <Input 
-                                  placeholder="브랜드 또는 제조사 웹사이트" 
-                                  {...field} 
+                                <Input
+                                  placeholder="브랜드 또는 제조사 웹사이트"
+                                  {...field}
                                   className="pl-10"
                                 />
                               </div>
                             </FormControl>
                             <FormDescription>
-                              브랜드 또는 제조사의 공식 웹사이트 URL을 입력하세요.
+                              브랜드 또는 제조사의 공식 웹사이트 URL을 입력하세요. (선택 사항)
                             </FormDescription>
                             <FormMessage />
                           </FormItem>

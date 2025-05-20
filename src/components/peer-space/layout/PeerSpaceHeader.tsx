@@ -49,37 +49,6 @@ const PeerSpaceHeader: React.FC<PeerSpaceHeaderProps> = ({
           </Link>
           {isOwner ? (
             <>
-              {onAddProduct && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={onAddProduct}
-                  className="hidden md:flex items-center"
-                >
-                  <Package className="mr-2 h-4 w-4" />
-                  제품 등록
-                </Button>
-              )}
-              <Button
-                size="sm"
-                onClick={() => {
-                  // This is a simplified approach, you should open a proper modal here
-                  // For now, we'll just create a default content for demonstration
-                  const defaultContent: ContentFormValues = {
-                    title: "새 콘텐츠",
-                    description: "내용을 입력하세요",
-                    imageUrl: "https://via.placeholder.com/800x600.png?text=New+Content",
-                    type: 'post',
-                    price: ""
-                  };
-                  
-                  onAddContent(defaultContent);
-                }}
-                className="hidden md:flex items-center"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                콘텐츠 추가
-              </Button>
               <Link to={`/space/${config.id}/settings`}>
                 <Button
                   size="sm"

@@ -25,6 +25,7 @@ export interface Channel {
   description?: string;
   icon?: string;
   communityId: string;
+  color?: string;
 }
 
 export interface Comment {

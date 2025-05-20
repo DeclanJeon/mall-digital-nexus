@@ -243,7 +243,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
 
   const renderProductFormModal = () => (
     <Dialog open={showProductForm} onOpenChange={setShowProductForm}>
-      <DialogContent className="max-w-5xl h-[90vh] overflow-y-auto z-50">
+      <DialogContent className="max-w-5xl h-[90vh] overflow-y-auto z-[9999]">
         <DialogHeader><DialogTitle className="text-xl font-bold">제품 등록</DialogTitle></DialogHeader>
         <ProductRegistrationForm 
           onSubmit={async (productData) => {

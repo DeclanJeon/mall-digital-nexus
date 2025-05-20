@@ -334,7 +334,10 @@ export const loadChannelsFromLocalStorage = (
   }
 };
 
-export const saveChannelToLocalStorage = (channel: Channel): void => {
+export const saveChannelToLocalStorage = (
+  channel: Channel,
+  communityId: string
+): void => {
   try {
     const existingChannels = loadChannelsFromLocalStorage();
     const channelExists = existingChannels.some((c) => c.id === channel.id);
@@ -423,7 +426,7 @@ export const loadEventsFromLocalStorage = (
   }
 };
 
-export const saveEventToLocalStorage = (event: CommunityEvent): void => {
+export const saveEventToLocalStorage = (event: CommunityMapEvent): void => {
   try {
     const existingEvents = loadEventsFromLocalStorage();
     const eventExists = existingEvents.some((e) => e.id === event.id);
@@ -437,9 +440,23 @@ export const saveEventToLocalStorage = (event: CommunityEvent): void => {
       updatedEvents = [...existingEvents, event];
     }
 
-    localStorage.setItem('communityEvents', JSON.stringify(updatedEvents));
+    localStorage.setItem('communityMapEvents', JSON.stringify(updatedEvents));
+
+    // Update the community to indicate it has events
+    const communities = loadCommunitiesFromLocalStorage();
+    const updatedCommunities = communities.map((community) => {
+      if (community.id === event.communityId) {
+        return {
+          ...community,
+          hasEvent: true,
+        };
+      }
+      return community;
+    });
+
+    saveCommunitiesToLocalStorage(updatedCommunities);
   } catch (error) {
-    console.error('Error saving event to localStorage:', error);
+    console.error('Error saving community event:', error);
   }
 };
 
@@ -504,4 +521,17 @@ const calculateActiveUsers = (communities: CommunityZone[]): number => {
   // For demo purposes, calculate a rough estimate of active users
   // In a real app, this would come from actual user activity data
   return communities.reduce((sum, community) => sum + community.memberCount, 0);
+};
+
+export const removeChannelFromLocalStorage = (
+  channelId: string,
+  communityId?: string
+): void => {
+  try {
+    let channels = loadChannelsFromLocalStorage(communityId);
+    channels = channels.filter((channel) => channel.id !== channelId);
+    saveChannelsToLocalStorage(channels);
+  } catch (error) {
+    console.error('Error removing channel from localStorage:', error);
+  }
 };

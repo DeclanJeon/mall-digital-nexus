@@ -7,7 +7,7 @@ import ContentSection from '@/components/peer-space/settings/ContentSection';
 
 const PeerSpaceSettings = () => {
   const { address } = useParams();
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeSection, setActiveSection] = useState('basic-info');
   const [saved, setSaved] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
