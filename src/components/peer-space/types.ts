@@ -23,8 +23,8 @@ export enum ContentType {
   Challenge = 'challenge'
 }
 
-// This is for backward compatibility with existing code
-export const CONTENT_TYPES = ContentType;
+// Create an array of content types for checking includes
+export const CONTENT_TYPES = Object.values(ContentType);
 
 export interface PeerMallConfig {
   id: string;
@@ -100,6 +100,18 @@ export interface PeerMallConfig {
     rating?: number;
   };
   settings?: Record<string, any>;
+  
+  // Add missing properties used in PeerSpaceTrustSection
+  isVerified?: boolean;
+  familyGuilds?: Array<{ id: string; name: string; imageUrl: string }>;
+  level?: number;
+  experience?: number;
+  nextLevelExperience?: number;
+  completedChallenges?: number;
+  activeQuests?: number;
+  
+  // Add properties used in PeerSpace.tsx
+  category?: string;
 }
 
 export interface Content {
@@ -182,6 +194,7 @@ export interface Review {
   authorImage?: string;
   source?: string;
   sourceSite?: string;
+  userName?: string; // Add for contentHelper.ts
 }
 
 export interface Quest {
@@ -189,7 +202,7 @@ export interface Quest {
   title: string;
   description: string;
   reward: string;
-  type: 'daily' | 'weekly' | 'achievement' | 'challenge' | 'tutorial' | 'community';
+  type: 'daily' | 'weekly' | 'achievement' | 'challenge' | 'tutorial' | 'community' | 'individual';
   steps: {
     id: string;
     description: string;
@@ -258,6 +271,7 @@ export interface PeerSpaceData {
   contactEmail?: string;
   level?: number;
   experience?: number;
+  nextLevelExperience?: number;
   achievements?: number;
   completedChallenges?: number;
   activeQuests?: number;
@@ -302,4 +316,3 @@ export type SectionType =
   | 'relatedMalls'
   | 'liveCollaboration'
   | 'livestream';
-

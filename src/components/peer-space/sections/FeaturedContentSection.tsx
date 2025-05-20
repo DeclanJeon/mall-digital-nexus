@@ -1,14 +1,23 @@
+import React from 'react';
+import { Content } from '../types';
+import ContentCard from '../content/ContentCard';
+import { FeaturedContentSectionProps } from './types';
+import { Button } from '@/components/ui/button';
+import { Plus, ArrowRight } from 'lucide-react';
 
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { Plus, ArrowRight } from "lucide-react";
-import ContentCard from "../content/ContentCard";
-import { FeaturedContentSectionProps } from "../types";
-
-const FeaturedContentSection = ({ content, isOwner, onAddContent, onContentClick }: FeaturedContentSectionProps) => (
+const FeaturedContentSection: React.FC<FeaturedContentSectionProps> = ({
+  title = "추천 콘텐츠",
+  content,
+  viewAll,
+  maxItems = 4,
+  layout = 'grid',
+  isOwner = false,
+  onAddContent,
+  onContentClick,
+}) => (
   <section>
     <div className="flex justify-between items-center mb-6">
-      <h2 className="text-2xl font-bold text-primary-300">추천 콘텐츠</h2>
+      <h2 className="text-2xl font-bold text-primary-300">{title}</h2>
       {isOwner && (
         <Button variant="outline" size="sm" className="flex items-center" onClick={onAddContent}>
           <Plus className="mr-1 h-4 w-4" /> 콘텐츠 추가
@@ -22,7 +31,7 @@ const FeaturedContentSection = ({ content, isOwner, onAddContent, onContentClick
         </div>
       ))}
     </div>
-    {content.length > 4 && (
+    {content.length > maxItems && (
       <div className="flex justify-center mt-8">
         <Button variant="outline" className="flex items-center">
           더보기 <ArrowRight className="ml-1 h-4 w-4" />

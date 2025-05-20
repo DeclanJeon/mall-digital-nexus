@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowRight, Edit, Trash, Bookmark } from "lucide-react"; // Added Bookmark
-import { Content, ContentType, CONTENT_TYPES } from "./types"; // Make sure ContentType includes all tab values if filtering by type
+import { Content, ContentType, CONTENT_TYPES } from "./types"; // Using CONTENT_TYPES array
 // import ContentCard from "@/components/peer-space/ContentCard";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";

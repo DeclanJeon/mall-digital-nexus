@@ -28,11 +28,7 @@ export default function ContentBadge({ type }: ContentBadgeProps) {
     [ContentType.Article]: { text: '아티클', className: 'bg-green-200' },
     [ContentType.Resource]: { text: '리소스', className: 'bg-yellow-200' },
     [ContentType.Other]: { text: '기타', className: 'bg-gray-200' },
-    'portfolio': { text: '포트폴리오', className: 'bg-accent-200' },
-    'product': { text: '상품', className: 'bg-primary-200' },
-    'service': { text: '서비스', className: 'bg-secondary' },
-    'event': { text: '이벤트', className: 'bg-accent-100' },
-    'post': { text: '게시글', className: 'bg-slate-200' }
+    // Map string values for backward compatibility, but avoid duplicates with enum values
   };
 
   // Use the mapping or default to a generic badge if type is not found

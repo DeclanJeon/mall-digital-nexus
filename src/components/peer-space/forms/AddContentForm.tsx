@@ -11,19 +11,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/components/ui/use-toast";
 import { ContentType } from "@/components/peer-space/types";
 
-const contentTypes: { value: ContentType; label: string }[] = [
-  { value: "product", label: "상품" },
-  { value: "portfolio", label: "포트폴리오" },
-  { value: "service", label: "서비스" },
-  { value: "post", label: "게시글" },
-  { value: "event", label: "이벤트" },
+// Define content type options aligned with the ContentType enum
+const contentTypes = [
+  { value: ContentType.Product, label: "상품" },
+  { value: ContentType.Portfolio, label: "포트폴리오" },
+  { value: ContentType.Service, label: "서비스" },
+  { value: ContentType.Post, label: "게시글" },
+  { value: ContentType.Event, label: "이벤트" },
+];
+
+// Create an array of allowed content types for the schema
+const allowedContentTypes = [
+  ContentType.Portfolio, ContentType.Service, ContentType.Product, 
+  ContentType.Event, ContentType.Post, ContentType.Review, ContentType.Quest,
+  ContentType.Advertisement, ContentType.Stream, ContentType.Guestbook, 
+  ContentType.Course, ContentType.Workshop, ContentType.Challenge, ContentType.Tool
 ];
 
 const formSchema = z.object({
   title: z.string().min(2, { message: "제목은 2글자 이상이어야 합니다" }).max(100),
   description: z.string().min(5, { message: "설명은 5글자 이상이어야 합니다" }).max(500),
-  type: z.enum(["portfolio", "service", "product", "event", "post", "review", "quest",
-    "advertisement", "stream", "guestbook", "course", "workshop", "challenge", "tool"]),
+  type: z.enum(allowedContentTypes),
   price: z.string().optional(),
   imageUrl: z.string().url({ message: "유효한 URL을 입력해주세요." }).optional().default("https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800"),
   externalUrl: z.string().url({ message: "유효한 URL을 입력해주세요." }).optional(),
@@ -44,7 +52,7 @@ export default function AddContentForm({ onSubmit, onCancel }: AddContentFormPro
     defaultValues: {
       title: "",
       description: "",
-      type: "product",
+      type: ContentType.Product,
       imageUrl: "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800",
       externalUrl: "",
       tags: "",

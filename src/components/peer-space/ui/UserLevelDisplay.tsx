@@ -1,47 +1,37 @@
-
 import React from 'react';
-import { PeerSpaceData } from "../types";
+import { Progress } from '@/components/ui/progress';
+import { PeerSpaceData } from '../types';
 
 interface UserLevelDisplayProps {
-  userData: PeerSpaceData;
+  userData: Partial<PeerSpaceData>;
   size?: 'sm' | 'md' | 'lg';
-  showExperience?: boolean;
 }
 
-const UserLevelDisplay: React.FC<UserLevelDisplayProps> = ({ 
-  userData, 
-  size = 'md', 
-  showExperience = true 
-}) => {
-  const { level = 1, experience = 0, nextLevelExperience = 100 } = userData;
+const UserLevelDisplay: React.FC<UserLevelDisplayProps> = ({ userData, size = 'md' }) => {
+  const level = userData.level || 1;
+  const experience = userData.experience || 0;
+  const nextLevelExperience = userData.nextLevelExperience || 100;
   
-  // Calculate progress percentage
-  const progress = Math.min(100, Math.floor((experience / nextLevelExperience) * 100));
+  const progressPercentage = Math.min(100, (experience / nextLevelExperience) * 100);
+
+  let fontSize = 'text-sm';
+  let progressHeight = 'h-2';
   
+  if (size === 'md') {
+    fontSize = 'text-base';
+    progressHeight = 'h-3';
+  } else if (size === 'lg') {
+    fontSize = 'text-lg';
+    progressHeight = 'h-4';
+  }
+
   return (
-    <div className="flex items-center gap-2">
-      <div className={`
-        rounded-full bg-primary-300 text-white font-bold
-        ${size === 'sm' ? 'w-6 h-6 text-xs' : 
-          size === 'lg' ? 'w-10 h-10 text-lg' : 'w-8 h-8 text-sm'}
-        flex items-center justify-center
-      `}>
-        {level}
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <span className={`font-semibold ${fontSize}`}>레벨 {level}</span>
+        <span className="text-muted-foreground text-xs">{experience} / {nextLevelExperience} XP</span>
       </div>
-      
-      {showExperience && (
-        <div className="flex-1">
-          <div className="bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-primary-300 rounded-full h-2" 
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <div className="text-xs text-gray-500 mt-1">
-            {experience} / {nextLevelExperience} XP
-          </div>
-        </div>
-      )}
+      <Progress value={progressPercentage} className={progressHeight} />
     </div>
   );
 };

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Form,
@@ -23,6 +24,13 @@ interface ContentEditFormProps {
   onSubmit: (values: Content) => void;
 }
 
+// Define valid content types matching the enum
+const validContentTypes = [
+  'post', 'product', 'service', 'event', 'review', 'quest', 'portfolio', 
+  'course', 'stream', 'livestream', 'advertisement', 'guestbook', 
+  'workshop', 'challenge', 'tool', 'external', 'article', 'resource', 'other'
+] as const;
+
 const formSchema = z.object({
   title: z.string().min(2, {
     message: "제목은 최소 2글자 이상이어야 합니다.",
@@ -33,7 +41,7 @@ const formSchema = z.object({
   imageUrl: z.string().url({
     message: "유효한 URL을 입력해주세요.",
   }),
-  type: z.enum(['post', 'product', 'service', 'event', 'review', 'quest', 'portfolio', 'course', 'stream', 'livestream', 'advertisement', 'guestbook', 'workshop', 'challenge', 'tool', 'external']),
+  type: z.enum(validContentTypes),
   price: z.string().optional(),
   isExternal: z.boolean().default(false),
   externalUrl: z.string().url({
@@ -58,6 +66,9 @@ const typeOptions = [
   { value: 'challenge', label: '챌린지' },
   { value: 'tool', label: '도구' },
   { value: 'external', label: '외부 링크' },
+  { value: 'article', label: '아티클' },
+  { value: 'resource', label: '리소스' },
+  { value: 'other', label: '기타' },
 ] as const;
 
 const ContentEditForm: React.FC<ContentEditFormProps> = ({ initialContent, onSubmit }) => {
