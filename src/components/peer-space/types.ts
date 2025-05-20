@@ -332,3 +332,20 @@ export const TAB_DEFINITIONS = [
 ] as const;
 
 export type TabValue = (typeof TAB_DEFINITIONS)[number]['value'];
+
+export interface ProductRegistrationFormProps {
+  onProductAdded: (
+    productData: Omit<
+      Content,
+      'id' | 'createdAt' | 'updatedAt' | 'peerSpaceAddress'
+    >
+  ) => Promise<void>;
+  onSubmit: (
+    productData: Omit<
+      Content,
+      'id' | 'createdAt' | 'updatedAt' | 'peerSpaceAddress'
+    >
+  ) => Promise<void>;
+  address: string;
+  onClose: () => void;
+}

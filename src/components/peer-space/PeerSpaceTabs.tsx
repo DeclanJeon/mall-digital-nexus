@@ -24,7 +24,7 @@ interface PeerSpaceTabsProps {
 }
 
 export const PeerSpaceTabs = ({
-  activeTab,
+  activeTab = 'product', // Default to product tab
   onTabChange,
   contents, // Changed
   isOwner,
@@ -49,7 +49,7 @@ export const PeerSpaceTabs = ({
 
   // Filter content based on the current active tab
   const getFilteredContent = (tabValue: string): Content[] => {
-    if (tabValue === 'featured') {
+    if (tabValue === 'product') {
       // For "추천 콘텐츠", you might have a specific flag or logic.
       // For now, let's assume it shows all, or you might filter by a `isFeatured` flag on Content.
       // This example shows all, adjust if 'featured' has specific criteria.
@@ -122,41 +122,29 @@ export const PeerSpaceTabs = ({
 
   const getTabDisplayName = (tabKey: string) => {
     const names: Record<string, string> = {
-      featured: "추천 콘텐츠",
       product: "제품",
       content: "콘텐츠", // General content
-      service: "서비스",
-      event: "이벤트",
-      quest: "퀘스트",
     };
     return names[tabKey] || "콘텐츠";
   }
 
   const getAddButtonText = (tabKey: string) => {
     const names: Record<string, string> = {
-        featured: "추천 콘텐츠 추가", // Or maybe "콘텐츠 추가" if featured is a flag
         product: "제품 추가",
         content: "콘텐츠 추가",
-        service: "서비스 추가",
-        event: "이벤트 추가",
-        quest: "퀘스트 추가",
       };
       return names[tabKey] || "항목 추가";
   }
 
   // Define tab triggers based on your new structure
   const tabTriggers = [
-    { value: "featured", label: "추천 콘텐츠" },
     { value: "product", label: "제품" },
     { value: "content", label: "콘텐츠" }, // General content type
-    { value: "service", label: "서비스" },
-    { value: "event", label: "이벤트" },
-    { value: "quest", label: "퀘스트" }, // Assuming 'quest' will be a type or handled by filtering
   ];
 
   return (
     <>
-      <Tabs defaultValue="featured" className="mb-8" value={activeTab} onValueChange={onTabChange}>
+      <Tabs defaultValue="product" className="mb-8" value={activeTab} onValueChange={onTabChange}>
         <TabsList className="w-full justify-start pb-1 border-b">
           {tabTriggers.map(tab => (
             <TabsTrigger key={tab.value} value={tab.value} className="text-sm sm:text-base">

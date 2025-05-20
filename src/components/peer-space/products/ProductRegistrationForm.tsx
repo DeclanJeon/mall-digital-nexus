@@ -70,7 +70,7 @@ import {
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Content, ContentType } from './types';
+import { Content, ContentType } from '../types';
 import { addPeerSpaceContent } from "@/utils/peerSpaceStorage";
 import { add } from "@/utils/indexedDBService";
 import { QRCodeSVG } from 'qrcode.react';
@@ -113,15 +113,20 @@ const productSchema = z.object({
 export type ProductFormValues = z.infer<typeof productSchema>;
 
 interface ProductRegistrationFormProps {
-  onProductAdded: (content: Content) => void;
+  onSubmit: (
+    productData: Omit<
+      Content,
+      'id' | 'createdAt' | 'updatedAt' | 'peerSpaceAddress'
+    >
+  ) => Promise<void>;
   address: string;
   onClose?: () => void;
 }
 
-const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({ 
-  onProductAdded, 
+const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
+  onSubmit,
   address,
-  onClose 
+  onClose
 }) => {
   const [previewImage, setPreviewImage] = useState<string>("");
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
@@ -247,44 +252,66 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
   };
 
   // Handle form submission
-  const onSubmit = async (values: ProductFormValues) => {
+  // Helper function to convert form values to Content type
+  const convertToContent = (formValues: ProductFormValues): Omit<Content, 'id' | 'createdAt' | 'updatedAt' | 'peerSpaceAddress'> => {
+    const now = new Date().toISOString();
+    return {
+      title: formValues.name || 'Untitled Product',
+      description: formValues.description || '',
+      type: 'product',
+      date: now,
+      likes: 0,
+      comments: 0,
+      views: 0,
+      saves: 0,
+      imageUrl: formValues.imageUrl || '',
+      price: Number(formValues.price) || 0,
+      isExternal: !!formValues.saleUrl,
+      externalUrl: formValues.saleUrl || '',
+      source: formValues.manufacturer || 'Unknown',
+      tags: formValues.tags || [],
+      category: formValues.categoryId ?
+        PRODUCT_CATEGORIES.find(c => c.id.toString() === formValues.categoryId)?.name || '' : '',
+      attributes: {},
+      badges: [],
+      ecosystem: {},
+      status: 'active',
+      author: '',
+      authorId: '',
+      rating: 0,
+      media: [],
+      completion: 0,
+      maxParticipants: 0,
+      participants: [],
+      htmlContent: '',
+      relatedBadges: [],
+      location: '',
+      isFeatured: false
+    };
+  };
 
-    console.log("submit check : ", values)
+  const handleFormSubmit = async (formValues: ProductFormValues) => {
+    const productData = convertToContent(formValues);
+    await onSubmit(productData);
+  };
 
+  const handleSubmit = async (formValues: ProductFormValues) => {
     setIsSubmitting(true);
     
     try {
-      // Create the content object
+      const productData = convertToContent(formValues);
+      const now = new Date().toISOString();
+      
       const newProduct: Content = {
+        ...productData,
         id: `product-${Date.now()}`,
         peerSpaceAddress: address,
-        title: values.name,
-        description: values.description || '',
-        imageUrl: values.imageUrl,
-        type: 'product' as ContentType,
-        date: new Date().toISOString(),
-        price: Number(values.price),
-        likes: 0,
-        comments: 0,
-        views: 0,
-        saves: 0,
-        isExternal: !!values.saleUrl,
-        externalUrl: values.saleUrl,
-        source: values.manufacturer || 'Direct',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        createdAt: now,
+        updatedAt: now
       };
       
-      // Add the product to storage and notify parent component
-      const content: Content = {
-        ...newProduct,
-        peerSpaceAddress: address,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      await addPeerSpaceContent(address, content);
-      onProductAdded(content);
+      await addPeerSpaceContent(address, newProduct);
+      await handleFormSubmit(formValues);
       
       toast({
         title: "상품이 성공적으로 등록되었습니다",
@@ -539,7 +566,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
           <div className="grid md:grid-cols-2 gap-8">
             <div>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-1">
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-1">
                   <Tabs value={activeTab} onValueChange={setActiveTab}>
                     <TabsList className="mb-4 grid grid-cols-3">
                       <TabsTrigger value="basic">기본 정보</TabsTrigger>

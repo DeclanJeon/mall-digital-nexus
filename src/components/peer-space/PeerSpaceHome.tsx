@@ -73,7 +73,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   const [hiddenSections, setHiddenSections] = useState<SectionType[]>(
     JSON.parse(localStorage.getItem(`peer_space_${address}_hidden_sections`) || '[]')
   );
-  const { activeTab, handleTabChange } = usePeerSpaceTabs('featured'); // filterContentByTab 제거 (contents 직접 필터링 안 함)
+  const { activeTab, handleTabChange } = usePeerSpaceTabs('product'); // filterContentByTab 제거 (contents 직접 필터링 안 함)
 
   useEffect(() => {
     const loadContents = async () => {
@@ -150,25 +150,6 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
     }
   };
 
-  const handleProductAdded = async (productData: Omit<Content, 'id' | 'createdAt' | 'updatedAt' | 'peerSpaceAddress'>) => {
-    const now = new Date().toISOString();
-    const newProduct: Content = {
-      ...productData,
-      id: `prod-${Date.now()}`, // 임시 ID 생성 방식
-      peerSpaceAddress: address,
-      createdAt: now,
-      updatedAt: now,
-      likes: productData.likes || 0,
-      comments: productData.comments || 0,
-      views: productData.views || 0,
-      saves: productData.saves || 0,
-    };
-    await add('products', newProduct); // IndexedDB에 저장 (Content 타입과 일치해야 함)
-    const updatedContents = [...contents, newProduct];
-    setContents(updatedContents);
-    setShowProductForm(false);
-    toast({ title: "제품 등록 완료", description: `${newProduct.title} 제품이 등록되었습니다.` });
-  };
 
   const handleToggleSectionVisibility = (section: SectionType) => {
     if (hiddenSections.includes(section)) {
@@ -262,11 +243,42 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
 
   const renderProductFormModal = () => (
     <Dialog open={showProductForm} onOpenChange={setShowProductForm}>
-      <DialogContent className="max-w-5xl h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl h-[90vh] overflow-y-auto z-50">
         <DialogHeader><DialogTitle className="text-xl font-bold">제품 등록</DialogTitle></DialogHeader>
         <ProductRegistrationForm 
-          onProductAdded={handleProductAdded} 
-          onSubmit={handleProductAdded}
+          onSubmit={async (productData) => {
+            const now = new Date().toISOString();
+            const newProduct: Content = {
+              ...productData,
+              id: `prod-${Date.now()}`,
+              peerSpaceAddress: address,
+              title: productData.title || '',
+              description: productData.description || '',
+              type: 'product',
+              date: now,
+              createdAt: now,
+              updatedAt: now,
+              likes: productData.likes || 0,
+              comments: productData.comments || 0,
+              views: productData.views || 0,
+              saves: productData.saves || 0,
+              imageUrl: productData.imageUrl || '',
+              price: productData.price || 0,
+              isExternal: false,
+              externalUrl: '',
+              source: '',
+              tags: [],
+              category: '',
+              badges: [],
+              ecosystem: {},
+              attributes: {}
+            };
+            await add('products', newProduct);
+            const updatedContents = [...contents, newProduct];
+            setContents(updatedContents);
+            setShowProductForm(false);
+            toast({ title: "제품 등록 완료", description: `${newProduct.title} 제품이 등록되었습니다.` });
+          }}
           address={address}
           onClose={() => setShowProductForm(false)}
         />
