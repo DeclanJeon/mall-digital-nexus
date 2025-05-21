@@ -1,10 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import PeerSpaceHome from '@/components/peer-space/PeerSpaceHome';
 import { toast } from '@/hooks/use-toast';
 import { PeerMallConfig } from '@/components/peer-space/types';
-// import { getDB, STORES } from '@/utils/indexedDB'; // IndexedDB 관련 import 주석 처리
 import type { Peermall } from '@/pages/Index';
+import PeerSpaceHome from '@/components/peer-space/PeerSpaceHome';
 
 // Function to get PeerSpace configuration from localStorage
 const getPeerSpaceConfig = (address: string): PeerMallConfig | null => {
@@ -21,28 +21,6 @@ const getPeerSpaceConfig = (address: string): PeerMallConfig | null => {
   }
 };
 
-// // Function to get peermall details from IndexedDB (주석 처리)
-// const getPeermallDetails = async (address: string) => {
-//   try {
-//     const db = await getDB();
-//     const transaction = db.transaction(STORES.PEER_SPACES, 'readonly');
-//     const store = transaction.objectStore(STORES.PEER_SPACES);
-//     const request = store.get(address);
-//     const peermall = await new Promise<Peermall | null>((resolve, reject) => {
-//       request.onsuccess = (event) => {
-//         resolve((event.target as IDBRequest).result);
-//       };
-//       request.onerror = (event) => {
-//         reject((event.target as IDBRequest).error);
-//       };
-//     });
-//     return peermall;
-//   } catch (error) {
-//     console.error("Error loading peermall details from IndexedDB:", error);
-//     return null;
-//   }
-// };
-
 // Function to get peermall details from localStorage
 const getPeermallDetailsFromLocalStorage = (address: string): Peermall | null => {
   try {
@@ -58,7 +36,6 @@ const getPeermallDetailsFromLocalStorage = (address: string): Peermall | null =>
     return null;
   }
 };
-
 
 // Function to save PeerSpace configuration to localStorage
 const savePeerSpaceConfig = (address: string, config: PeerMallConfig): void => {
@@ -82,15 +59,14 @@ const PeerSpace = () => {
     const timer = setTimeout(async () => {
       if (address) {
         const storedConfig = getPeerSpaceConfig(address);
-
         
         if (storedConfig) {
           setConfig(storedConfig);
         } else {
           // If config doesn't exist in localStorage, try to load peermall details from localStorage
-          const peermallDetails = getPeermallDetailsFromLocalStorage(address); // localStorage에서 로드
+          const peermallDetails = getPeermallDetailsFromLocalStorage(address); 
 
-          console.log("Loaded Peermall Details from localStorage:", peermallDetails); // 로그 추가
+          console.log("Loaded Peermall Details from localStorage:", peermallDetails);
           if (peermallDetails) {
             // Create a default config from peermall details
             const defaultConfig: PeerMallConfig = {
@@ -101,7 +77,7 @@ const PeerSpace = () => {
               description: peermallDetails.description || '나만의 공간을 구성해보세요',
               owner: peermallDetails.owner || '나',
               category: peermallDetails.category || '기타',
-              themeColor: '#71c4ef', // Now properly defined in PeerMallConfig
+              themeColor: '#71c4ef',
               status: 'active',
               createdAt: new Date().toISOString(),
               type: 'personal',
@@ -154,20 +130,36 @@ const PeerSpace = () => {
   };
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-blue-300"></div>
+          <div className="h-4 w-32 bg-blue-300 rounded"></div>
+          <p className="text-gray-500">로딩 중...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!address || !config) {
-    return <div className="min-h-screen flex items-center justify-center">피어스페이스를 찾을 수 없습니다.</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <div className="text-4xl mb-4">🏪</div>
+        <h1 className="text-2xl font-bold mb-2">피어스페이스를 찾을 수 없습니다</h1>
+        <p className="text-gray-600">요청하신 주소에 해당하는 피어스페이스가 존재하지 않습니다.</p>
+      </div>
+    );
   }
 
   return (
-    <PeerSpaceHome 
-      isOwner={isOwner} 
-      address={address} 
-      config={config}
-      onUpdateConfig={handleUpdateConfig}
-    />
+    <div className="bg-gray-50 min-h-screen">
+      <PeerSpaceHome 
+        isOwner={isOwner} 
+        address={address} 
+        config={config}
+        onUpdateConfig={handleUpdateConfig}
+      />
+    </div>
   );
 };
 

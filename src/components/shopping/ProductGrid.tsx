@@ -2,6 +2,7 @@
 import React from 'react';
 import ProductCard from './ProductCard';
 import { motion } from 'framer-motion';
+import { Search, Filter } from 'lucide-react';
 
 interface Product {
   id: number | string;
@@ -31,9 +32,17 @@ interface ProductGridProps {
     rating?: number;
     status?: string[];
   };
+  onSearchChange?: (query: string) => void;
+  searchQuery?: string;
 }
 
-const ProductGrid = ({ products, viewMode, filters }: ProductGridProps) => {
+const ProductGrid = ({ 
+  products, 
+  viewMode, 
+  filters, 
+  onSearchChange,
+  searchQuery = ''
+}: ProductGridProps) => {
   // Filter products based on selected filters
   const filteredProducts = products.filter(product => {
     // Return true if no filters or if product matches all active filters
@@ -98,24 +107,46 @@ const ProductGrid = ({ products, viewMode, filters }: ProductGridProps) => {
   }
 
   return (
-    <motion.div 
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className={viewMode === 'grid' 
-        ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6" 
-        : "flex flex-col gap-4"
-      }
-    >
-      {filteredProducts.map((product) => (
-        <motion.div key={product.id} variants={item}>
-          <ProductCard
-            {...product}
-            viewMode={viewMode}
-          />
-        </motion.div>
-      ))}
-    </motion.div>
+    <div className="space-y-6">
+      {/* 검색 영역 (선택적) */}
+      {onSearchChange && (
+        <div className="relative mb-4">
+          <div className="relative flex items-center">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none w-5 h-5" />
+            <input 
+              type="text" 
+              placeholder="제품 검색..." 
+              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
+            <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+              <Filter className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* 제품 그리드 */}
+      <motion.div 
+        variants={container}
+        initial="hidden"
+        animate="show"
+        className={viewMode === 'grid' 
+          ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6" 
+          : "flex flex-col gap-4"
+        }
+      >
+        {filteredProducts.map((product) => (
+          <motion.div key={product.id} variants={item} className="h-full">
+            <ProductCard
+              {...product}
+              viewMode={viewMode}
+            />
+          </motion.div>
+        ))}
+      </motion.div>
+    </div>
   );
 };
 
