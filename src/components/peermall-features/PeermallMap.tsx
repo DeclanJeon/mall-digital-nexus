@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Dialog } from '@/components/ui/dialog';
+import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { X, Map as MapIcon } from 'lucide-react';
 import EcosystemMap from '@/components/EcosystemMap';
@@ -29,22 +28,27 @@ const PeermallMap: React.FC<PeermallMapProps> = ({
   if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="text-xl font-semibold flex items-center">
             <MapIcon className="h-5 w-5 mr-2 text-accent-200" />
             피어몰 지도
-          </DialogTitle>
-        </DialogHeader>
+          </h2>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+        
         <div className="flex-grow p-4 overflow-hidden">
           <EcosystemMap />
         </div>
-        <div className="flex justify-end">
+        
+        <div className="p-4 border-t flex justify-end">
           <Button variant="outline" onClick={onClose}>닫기</Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 };
 
