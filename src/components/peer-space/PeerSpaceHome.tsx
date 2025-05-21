@@ -606,8 +606,8 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   );
   
   const renderMapModal = () => (
-    <Dialog open={showMapModal} onOpenChange={setShowMapModal} className="max-w-5xl">
-      <DialogContent className="max-w-5xl max-h-[90vh]">
+    <Dialog open={showMapModal} onOpenChange={setShowMapModal}>
+      <DialogContent className="max-w-5xl max-h-[90vh] w-full">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center">
             <MapPin className="w-5 h-5 mr-2 text-blue-500" />

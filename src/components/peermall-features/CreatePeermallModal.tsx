@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
-import { useForm } from 'react-hook-form';
+import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Store,
@@ -8,13 +8,13 @@ import {
   Image as ImageIcon,
   User,
   Mail,
-  Globe,
   MapPin,
   AlertCircle,
   ShieldCheck,
   Eye,
   EyeOff,
-  Gift
+  Gift,
+  Eye as EyeIcon
 } from 'lucide-react';
 import {
   Dialog,
@@ -39,8 +39,19 @@ import { Separator } from '@/components/ui/separator';
 import { add } from '@/utils/indexedDBService';
 import { STORES } from '@/utils/indexedDB';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
+// NetworkSection.tsx와 동일한 키
+const STORAGE_KEY_NETWORK = 'peerMall_networkData';
+const LOCAL_STORAGE_PEERMALL_KEY_PREFIX = 'peermall_';
+
+// 폼 유효성 스키마
 const formSchema = z.object({
   address: z.string()
     .min(1, { message: '피어몰 주소를 입력해주세요' })
@@ -50,12 +61,12 @@ const formSchema = z.object({
   representativeName: z.string().min(1, { message: '대표자 이름을 입력해주세요' }),
   email: z.string().email({ message: '유효한 이메일을 입력해주세요' }),
   membershipType: z.enum(['personal', 'family', 'enterprise'], {
-    message: '멤버십 유형을 선택해주세요'
+    message: '패밀리 멤버를 선택해주세요'
   }),
+  familyMember: z.string().optional(),
   imageUrl: z.string().optional(),
   hashtags: z.string().optional(),
   mapAddress: z.string().optional(),
-  familyMember: z.string().optional(),
   visibility: z.enum(['public', 'partial', 'private'], {
     message: '공개 범위를 선택해주세요',
   }),
@@ -63,29 +74,80 @@ const formSchema = z.object({
   referralCode: z.string().optional(),
 });
 
-const LOCAL_STORAGE_PEERMALL_KEY_PREFIX = 'peermall_';
+interface PeermallFormData {
+  address: string;
+  name: string;
+  description: string;
+  representativeName: string;
+  email: string;
+  membershipType: 'personal' | 'family' | 'enterprise';
+  familyMember: string;
+  imageUrl: string;
+  hashtags: string;
+  mapAddress: string;
+  visibility: 'public' | 'private';
+  requestCertification: boolean;
+  referralCode: string;
+  title: string;
+  owner: string;
+  type: string;
+}
 
-const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
+interface CreatePeermallSuccessData extends PeermallFormData {
+  id: string;
+  rating: number;
+  reviewCount: number;
+  location: {
+    address: string;
+    lat: number;
+    lng: number;
+  };
+  createdAt: string;
+  membershipType: 'personal' | 'family' | 'enterprise';
+}
+
+interface CreatePeermallModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: (data: CreatePeermallSuccessData) => void;
+}
+
+// 로컬스토리지에 저장된 NetworkSection 데이터에서 추출
+interface FamilyMember {
+  id: string;
+  name: string;
+  image?: string;
+  level?: '기본' | '가디언' | '퍼실리테이터';
+  certified?: boolean;
+  description?: string;
+}
+
+const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+}) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [familyMembers, setFamilyMembers] = useState([]);
   const [showImagePreview, setShowImagePreview] = useState(true);
   const [isDuplicateAddress, setIsDuplicateAddress] = useState(false);
 
+  // 1) NetworkSection에서 쓰는 로컬스토리지를 읽어서 패밀리 멤버 목록 세팅
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   useEffect(() => {
-    const fetchFamilyMembers = async () => {
+    const raw = localStorage.getItem(STORAGE_KEY_NETWORK);
+    if (raw) {
       try {
-        const response = await fetch('/src/data/family-members.json');
-        const data = await response.json();
-        setFamilyMembers(data);
+        const parsed = JSON.parse(raw);
+        setFamilyMembers(parsed.family || []);
       } catch {
         setFamilyMembers([]);
       }
-    };
-    fetchFamilyMembers();
+    }
   }, []);
 
-  const form = useForm({
+  // 2) React Hook Form 세팅
+  const form = useForm<PeermallFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       address: '',
@@ -94,169 +156,195 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
       representativeName: '',
       email: '',
       membershipType: 'personal',
+      familyMember: '',
       imageUrl: '',
       hashtags: '',
       mapAddress: '',
-      familyMember: '',
       visibility: 'public',
       requestCertification: false,
-      referralCode: ''
+      referralCode: '',
+      title: '',
+      owner: '',
+      type: ''
     },
     mode: 'onBlur',
   });
 
-  // 피어몰 주소 중복(유일성) 체크
-  const checkDuplicateAddress = (address) => {
-    const allPeermallAddresses = JSON.parse(localStorage.getItem('all_peermall_addresses') || '[]');
-    return allPeermallAddresses.includes(address);
+  // 피어몰 주소 중복 체크
+  const checkDuplicateAddress = (address: string) => {
+    const all = JSON.parse(
+      localStorage.getItem('all_peermall_addresses') || '[]'
+    );
+    return all.includes(address);
   };
 
-  // 주소 입력 변경시 중복 체크
+  // 주소 변경 시 중복 검사
   useEffect(() => {
-    const subscription = form.watch((values, { name }) => {
+    const sub = form.watch((values, { name }) => {
       if (name === 'address' && values.address) {
         setIsDuplicateAddress(checkDuplicateAddress(values.address));
       }
     });
-    return () => subscription.unsubscribe();
+    return () => sub.unsubscribe();
   }, [form]);
 
-  // 이미지 업로드
-  const handleImageUpload = (e) => {
+  // 이미지 업로드 프리뷰
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        form.setValue('imageUrl', reader.result as string, { shouldValidate: true });
-        setShowImagePreview(true);
-      };
-      reader.onerror = () => {
-        toast({
-          title: "이미지 업로드 실패",
-          description: "이미지를 읽는 중 오류가 발생했습니다.",
-          variant: "destructive",
-        });
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      form.setValue('imageUrl', reader.result as string, {
+        shouldValidate: true,
+      });
+      setShowImagePreview(true);
+    };
+    reader.onerror = () => {
+      toast({
+        title: '이미지 업로드 실패',
+        description: '이미지를 읽는 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      });
+    };
+    reader.readAsDataURL(file);
   };
 
-  const handleHashtagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  // 해시태그 입력 엔터 방지 & 출력 배열
+  const handleHashtagKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') e.preventDefault();
   };
+  const rawHashtags = form.watch('hashtags') || '';
+  const displayHashtags = rawHashtags
+    .split(',')
+    .map(t => t.trim())
+    .filter(t => t)
+    .map(t => (t.startsWith('#') ? t : `#${t}`));
 
-  const hashtagsValue = form.watch('hashtags');
-  const displayHashtags = hashtagsValue
-    ?.split(',')
-    .map(tag => tag.trim())
-    .filter(tag => tag)
-    .map(tag => (tag.startsWith('#') ? tag : `#${tag}`)) || [];
-
-  // 멤버십 유형 선택에 따른 familyMember 필드 활성화
+  // 현재 선택된 멤버십
   const selectedMembership = form.watch('membershipType');
-  const selectedVisibility = form.watch('visibility');
-  const canRequestCertification = ['family', 'enterprise'].includes(selectedMembership);
+  const canPickFamily =
+    selectedMembership === 'family' ||
+    selectedMembership === 'enterprise';
 
-  const onSubmit = async (values) => {
+  // 폼 제출 처리
+  const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = async (values) => {
     setIsLoading(true);
-    try {
-      // 주소 중복 재확인
-      if (checkDuplicateAddress(values.address)) {
-        setIsDuplicateAddress(true);
-        toast({
-          title: "중복된 주소",
-          description: "이미 사용 중인 피어몰 주소(URL)입니다. 다른 주소를 입력해주세요.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-      const processedHashtags = values.hashtags
-        ?.split(',')
-        .map(tag => {
-          const trimmedTag = tag.trim();
-          return trimmedTag && (trimmedTag.startsWith('#') ? trimmedTag : `#${trimmedTag}`);
-        })
-        .filter(tag => tag) || [];
 
-      const peermallId = values.address.toLowerCase().replace(/\s+/g, '-');
-
-      const peermallDataForStorage = {
-        address: peermallId,
-        title: values.name,
-        description: values.description,
-        owner: values.representativeName,
-        email: values.email,
-        imageUrl: values.imageUrl || '',
-        category: values.membershipType,
-        tags: processedHashtags,
-        membershipType: values.membershipType,
-        mapAddress: values.mapAddress || '',
-        familyMember: values.membershipType === 'family' ? values.familyMember : '',
-        visibility: values.visibility,
-        requestCertification: !!values.requestCertification,
-        rating: 0,
-        reviewCount: 0,
-        location: {
-          address: values.mapAddress || values.address,
-          lat: 0,
-          lng: 0,
-        },
-        createdAt: new Date().toISOString(),
-      };
-      
-      await new Promise(resolve => setTimeout(resolve, 800)); // 네트워크 대기 시뮬레이션
-
-      await add(STORES.PEER_SPACES, peermallDataForStorage);
-
-      // localStorage 저장
-      try {
-        localStorage.setItem(`${LOCAL_STORAGE_PEERMALL_KEY_PREFIX}${peermallId}`, JSON.stringify(peermallDataForStorage));
-        const allPeermallAddresses = JSON.parse(localStorage.getItem('all_peermall_addresses') || '[]');
-        if (!allPeermallAddresses.includes(peermallId)) {
-          allPeermallAddresses.push(peermallId);
-          localStorage.setItem('all_peermall_addresses', JSON.stringify(allPeermallAddresses));
-        }
-      } catch (storageError) {
-        toast({
-          title: "데이터 저장 경고",
-          description: "피어몰 정보는 등록되었으나, 일부 로컬 데이터 저장에 실패했습니다.",
-          variant: "default",
-        });
-      }
-
+    // 주소 중복 최종 확인
+    if (checkDuplicateAddress(values.address)) {
+      setIsDuplicateAddress(true);
       toast({
-        title: "피어몰 등록 완료",
-        description: `${values.name} 피어몰이 성공적으로 등록되었습니다.`,
-        variant: "default",
+        title: '중복된 주소',
+        description: '이미 사용 중인 주소입니다.',
+        variant: 'destructive',
       });
-
-      form.reset();
-      setShowImagePreview(true);
-      if (onSuccess) {
-        onSuccess({ id: peermallId, name: values.name, type: values.membershipType, ...peermallDataForStorage });
-      } else {
-        onClose();
-      }
-    } catch (error) {
-      toast({
-        title: "피어몰 등록 실패",
-        description: "피어몰 등록 중 오류가 발생했습니다. 입력 내용을 확인해주세요.",
-        variant: "destructive",
-      });
-    } finally {
       setIsLoading(false);
+      return;
     }
+
+    // 해시태그 배열 가공
+    const tags = (values.hashtags || '')
+      .split(',')
+      .map((t: string) => t.trim())
+      .filter((t: string) => t)
+      .map((t: string) => (t.startsWith('#') ? t : `#${t}`));
+
+    const id = values.address.toLowerCase().replace(/\s+/g, '-');
+    const dataForStorage = {
+      address: id,
+      title: values.name,
+      description: values.description,
+      owner: values.representativeName,
+      email: values.email,
+      imageUrl: values.imageUrl || '',
+      membershipType: values.membershipType,
+      familyMember:
+        values.membershipType === 'personal' ? '' : values.familyMember,
+      visibility: values.visibility,
+      requestCertification: !!values.requestCertification,
+      hashtags: values.hashtags || '',
+      tags,
+      mapAddress: values.mapAddress || '',
+      referralCode: values.referralCode || '',
+      type: 'peermall',
+      rating: 0,
+      reviewCount: 0,
+      location: {
+        address: values.mapAddress || values.address,
+        lat: 0,
+        lng: 0,
+      },
+      createdAt: new Date().toISOString(),
+    };
+
+    // 인덱스DB 저장 시뮬레이션
+    await new Promise(r => setTimeout(r, 600));
+    await add(STORES.PEER_SPACES, dataForStorage);
+
+    // 로컬스토리지에도 기록
+    try {
+      localStorage.setItem(
+        `${LOCAL_STORAGE_PEERMALL_KEY_PREFIX}${id}`,
+        JSON.stringify(dataForStorage)
+      );
+      const all = JSON.parse(
+        localStorage.getItem('all_peermall_addresses') || '[]'
+      );
+      if (!all.includes(id)) {
+        all.push(id);
+        localStorage.setItem('all_peermall_addresses', JSON.stringify(all));
+      }
+    } catch {
+      toast({
+        title: '저장 경고',
+        description: '일부 로컬 저장에 실패했습니다.',
+        variant: 'default',
+      });
+    }
+
+    toast({
+      title: '등록 완료',
+      description: `${values.name} 피어몰이 생성되었습니다.`,
+      variant: 'default',
+    });
+
+    form.reset();
+    setShowImagePreview(true);
+    setIsDuplicateAddress(false);
+    setIsLoading(false);
+
+    if (onSuccess) onSuccess({
+      ...dataForStorage,
+      id,
+      name: dataForStorage.title,
+      representativeName: dataForStorage.owner,
+      membershipType: dataForStorage.membershipType,
+      visibility: dataForStorage.visibility === 'partial' ? 'public' : dataForStorage.visibility,
+      familyMember: dataForStorage.familyMember,
+      imageUrl: dataForStorage.imageUrl,
+      hashtags: dataForStorage.hashtags,
+      mapAddress: dataForStorage.mapAddress,
+      requestCertification: dataForStorage.requestCertification,
+      referralCode: dataForStorage.referralCode,
+      title: dataForStorage.title,
+      owner: dataForStorage.owner,
+      type: dataForStorage.type
+    } satisfies CreatePeermallSuccessData);
+    else onClose();
   };
 
-  const RequiredLabel = ({ children }) => (
+  interface RequiredLabelProps {
+    children: React.ReactNode;
+  }
+
+  const RequiredLabel: React.FC<RequiredLabelProps> = ({ children }) => (
     <span className="flex items-center gap-1 font-semibold">
       {children}
       <span className="text-red-500">*</span>
     </span>
   );
 
-  const handleCloseAndReset = () => {
+  const handleCancel = () => {
     form.reset();
     setShowImagePreview(true);
     setIsDuplicateAddress(false);
@@ -264,29 +352,41 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={open => { if (!open) handleCloseAndReset(); }}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={open => {
+        if (!open) handleCancel();
+      }}
+    >
       <DialogContent className="sm:max-w-[620px] max-h-[95vh] overflow-y-auto p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
-            <Store className="h-5 w-5 text-blue-500" />
-            피어몰 만들기
+            <Store className="h-5 w-5 text-blue-500" /> 피어몰 만들기
           </DialogTitle>
-          <div className="text-xs text-muted-foreground mt-2">
-            <ul className="list-disc list-inside">
-              <li>피어몰은 <strong>사용자 자율 운영</strong> 온라인 공간입니다. <span className="text-blue-600">정책사항</span>을 꼭 참고하세요.</li>
-              <li>공개범위, 해시태그, 설명은 검색·노출·추천에 활용됩니다.</li>
+          <div className="mt-2 text-xs text-muted-foreground">
+            <ul className="list-disc list-inside space-y-1">
+              <li>
+                피어몰은 <strong>사용자 자율 운영</strong> 온라인 공간입니다. 정책사항을
+                꼭 확인하세요.
+              </li>
+              <li>
+                공개범위·해시태그·설명은 검색·추천·신뢰도 평가에 활용됩니다.
+              </li>
             </ul>
           </div>
-          <div className="mt-1 text-xs flex items-center gap-1 text-red-600">
+          <div className="mt-1 flex items-center gap-1 text-xs text-red-600">
             <AlertCircle className="h-3.5 w-3.5" />
-            <span>\* 표시는 필수 입력 항목입니다.</span>
+            <span>* 표시는 필수 입력 항목입니다.</span>
           </div>
         </DialogHeader>
-        
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-6"
+          >
             <div className="grid md:grid-cols-2 gap-6">
-              {/* 왼쪽 섹션 */}
+              {/* 왼쪽 */}
               <div className="space-y-5">
                 {/* 주소 */}
                 <FormField
@@ -294,27 +394,31 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                   name="address"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel><RequiredLabel>피어몰 주소(URL)</RequiredLabel></FormLabel>
+                      <FormLabel>
+                        <RequiredLabel>피어몰 주소(URL)</RequiredLabel>
+                      </FormLabel>
                       <FormControl>
                         <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                          <span className="text-sm text-muted-foreground pl-3 pr-1 py-2 bg-gray-50 border-r">peermall.com/space/</span>
+                          <span className="bg-gray-50 px-3 py-2 text-sm text-muted-foreground border-r">
+                            peermall.com/space/
+                          </span>
                           <Input
-                            placeholder="my-store"
                             {...field}
-                            className="border-0 rounded-l-none focus:ring-0 flex-1"
+                            placeholder="my-store"
+                            className="flex-1 border-0 focus:ring-0"
                             maxLength={30}
                           />
                         </div>
                       </FormControl>
                       <FormMessage />
                       {isDuplicateAddress && (
-                        <div className="text-xs text-red-500 mt-1">
-                          <AlertCircle className="h-3 w-3 inline mr-1" />
-                          이 주소는 이미 사용 중입니다.
+                        <div className="mt-1 flex items-center text-xs text-red-500">
+                          <AlertCircle className="mr-1 h-3 w-3" />
+                          이미 사용 중인 주소입니다.
                         </div>
                       )}
-                      <div className="text-xs text-muted-foreground mt-1">
-                        영문 소문자, 숫자, 하이픈(-)만 사용. <span className="text-blue-600">주소는 생성 후 변경 불가</span>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        소문자·숫자·하이픈만 가능. 변경 불가
                       </div>
                     </FormItem>
                   )}
@@ -326,66 +430,66 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel><RequiredLabel>피어몰 이름</RequiredLabel></FormLabel>
+                      <FormLabel>
+                        <RequiredLabel>피어몰 이름</RequiredLabel>
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="예: 내멋진가게" {...field} maxLength={20} />
+                        <Input
+                          {...field}
+                          placeholder="예: 내멋진가게"
+                          maxLength={20}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* 멤버십 유형 */}
                 <FormField
                   control={form.control}
                   name="membershipType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel><RequiredLabel>패밀리 멤버 선택</RequiredLabel></FormLabel>
+                      <FormLabel className="flex items-center gap-1 font-semibold">
+                        <Gift className="h-4 w-4 text-muted-foreground" />
+                        패밀리 멤버
+                        <span className="text-xs text-muted-foreground ml-1">
+                          (필수)
+                        </span>
+                      </FormLabel>
                       <FormControl>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="패밀리 멤버 선택" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">메리밀스</SelectItem>
-                            <SelectItem value="2">퓨어펌</SelectItem>
-                            <SelectItem value="3">브이핸드</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Input
+                          {...field}
+                          placeholder="패밀리 멤버의 피어ID를 입력하세요."
+                          maxLength={20}
+                        />
                       </FormControl>
                       <FormMessage />
-                      <div className="text-xs text-muted-foreground mt-1">
-                        family/enterprise는 <span className="text-blue-600">패밀리 멤버</span> 지정 및 <span className="text-blue-600">인증</span> 요청 가능
-                      </div>
                     </FormItem>
                   )}
                 />
 
-                  {/* 추천인 코드 */}
+                {/* 추천인 코드 */}
                 <FormField
                   control={form.control}
                   name="referralCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        <span className="flex items-center gap-1 font-semibold">
-                          <Gift className="h-4 w-4 text-muted-foreground" />
-                          추천인 코드
-                          <span className="text-xs text-muted-foreground ml-1">(선택)</span>
+                      <FormLabel className="flex items-center gap-1 font-semibold">
+                        <Gift className="h-4 w-4 text-muted-foreground" />
+                        추천인 코드
+                        <span className="text-xs text-muted-foreground ml-1">
+                          (선택)
                         </span>
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="추천인 코드를 입력하세요"
                           {...field}
+                          placeholder="추천인 코드를 입력하세요"
                           maxLength={20}
                         />
                       </FormControl>
                       <FormMessage />
-                      <div className="text-xs text-muted-foreground mt-1">
-                        추천인 코드 입력 시 추가 혜택이 제공됩니다.
-                      </div>
                     </FormItem>
                   )}
                 />
@@ -396,27 +500,30 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                   name="visibility"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        <span className="flex items-center gap-1 font-semibold">
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                          공개 범위
-                        </span>
+                      <FormLabel className="flex items-center gap-1 font-semibold">
+                        <EyeIcon className="h-4 w-4 text-muted-foreground" />
+                        공개 범위
                       </FormLabel>
                       <FormControl>
-                        <Select value={field.value} onValueChange={field.onChange}>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
                           <SelectTrigger>
-                            <SelectValue placeholder="공개여부 선택" />
+                            <SelectValue placeholder="선택" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="public">공개</SelectItem>
-                            <SelectItem value="private">비공개 (초대/키 필요)</SelectItem>
+                            <SelectItem value="partial">
+                              부분공개
+                            </SelectItem>
+                            <SelectItem value="private">
+                              비공개
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>
                       <FormMessage />
-                      <div className="text-xs text-muted-foreground mt-1">
-                        공개/부분공개는 <span className="text-blue-600">피어맵</span> 및 검색 결과에 노출됨
-                      </div>
                     </FormItem>
                   )}
                 />
@@ -427,37 +534,41 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                   name="mapAddress"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        <span className="flex items-center gap-1 font-semibold">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          피어맵 표시 주소
-                          <span className="text-xs text-muted-foreground ml-1">(선택)</span>
+                      <FormLabel className="flex items-center gap-1 font-semibold">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        피어맵 표시 주소
+                        <span className="text-xs text-muted-foreground ml-1">
+                          (선택)
                         </span>
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="예: 서울 강남구 테헤란로 123" {...field} />
+                        <Input
+                          {...field}
+                          placeholder="예: 서울 강남구 테헤란로 123"
+                        />
                       </FormControl>
                       <FormMessage />
-                      <div className="text-xs text-muted-foreground mt-1">
-                        입력 시 지도에 위치가 표시됩니다.
-                      </div>
                     </FormItem>
                   )}
                 />
               </div>
-              {/* 오른쪽 섹션 */}
+
+              {/* 오른쪽 */}
               <div className="space-y-5">
-                {/* 대표자 이름 */}
+                {/* 대표자 */}
                 <FormField
                   control={form.control}
                   name="representativeName"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <RequiredLabel><User className="h-4 w-4 inline-block mr-1 text-muted-foreground" />대표자 이름</RequiredLabel>
+                        <RequiredLabel>
+                          <User className="inline-block h-4 w-4 mr-1 text-muted-foreground" />
+                          대표자 이름
+                        </RequiredLabel>
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="홍길동" {...field} />
+                        <Input {...field} placeholder="홍길동" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -472,15 +583,17 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                     <FormItem>
                       <FormLabel>
                         <RequiredLabel>
-                          <Mail className="h-4 w-4 inline-block mr-1 text-muted-foreground" />이메일 주소
+                          <Mail className="inline-block h-4 w-4 mr-1 text-muted-foreground" />
+                          이메일
                         </RequiredLabel>
                       </FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="contact@example.com" {...field} />
+                        <Input
+                          {...field}
+                          type="email"
+                          placeholder="contact@example.com"
+                        />
                       </FormControl>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        알림 및 약관, 정책 변경 시 통지에 사용됩니다.
-                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -492,18 +605,17 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel><RequiredLabel>피어몰 설명</RequiredLabel></FormLabel>
+                      <FormLabel>
+                        <RequiredLabel>피어몰 설명</RequiredLabel>
+                      </FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="피어몰을 잘 나타내는 설명을 작성해주세요 (최소 10자)."
-                          className="min-h-[90px]"
                           {...field}
+                          placeholder="피어몰 설명을 작성해주세요 (최소 10자)."
+                          className="min-h-[90px]"
                         />
                       </FormControl>
                       <FormMessage />
-                      <div className="text-xs text-muted-foreground mt-1">
-                        설명은 검색·추천·신뢰도 평가에 반영됩니다.
-                      </div>
                     </FormItem>
                   )}
                 />
@@ -515,21 +627,26 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-1 font-semibold">
-                        <FileText className="h-4 w-4 text-muted-foreground" /> 해시태그
-                        <span className="text-xs text-muted-foreground ml-1">(선택, 쉼표로 구분)</span>
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        해시태그
+                        <span className="text-xs text-muted-foreground ml-1">
+                          (선택, 쉼표 구분)
+                        </span>
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="#패션, #핸드메이드, #맛집"
                           {...field}
+                          placeholder="#패션, #핸드메이드"
                           onKeyDown={handleHashtagKeyDown}
                         />
                       </FormControl>
                       <FormMessage />
                       {displayHashtags.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                          {displayHashtags.map((tag, index) => (
-                            <Badge key={index} variant="outline">{tag}</Badge>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {displayHashtags.map((tag, i) => (
+                            <Badge key={i} variant="outline">
+                              {tag}
+                            </Badge>
                           ))}
                         </div>
                       )}
@@ -541,58 +658,58 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                 <FormField
                   control={form.control}
                   name="imageUrl"
-                  render={({ field: { onChange, value, ...restField } }) => (
+                  render={({ field: { value, ...field } }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-1 font-semibold">
-                        <ImageIcon className="h-4 w-4 text-muted-foreground" /> 대표 이미지
-                        <span className="text-xs text-muted-foreground ml-1">(선택)</span>
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                        대표 이미지
+                        <span className="text-xs text-muted-foreground ml-1">
+                          (선택)
+                        </span>
                       </FormLabel>
                       <FormControl>
                         <div className="flex items-center gap-3">
                           <Input
-                            id="imageUpload"
+                            id="img-upl"
                             type="file"
                             accept="image/*"
                             onChange={handleImageUpload}
                             className="hidden"
-                            {...restField}
+                            {...field}
                           />
                           <Button
-                            type="button"
                             variant="outline"
-                            onClick={() => document.getElementById('imageUpload')?.click()}
                             size="sm"
+                            onClick={() =>
+                              document.getElementById('img-upl')?.click()
+                            }
                           >
                             이미지 선택
                           </Button>
-                          {value && typeof value === 'string' && showImagePreview && (
-                            <div className="relative h-12 w-12 rounded-md overflow-hidden border bg-gray-100">
+                          {value && showImagePreview && (
+                            <div className="relative h-12 w-12 overflow-hidden rounded-md border bg-gray-100">
                               <img
                                 src={value}
-                                alt="이미지 미리보기"
-                                className="w-full h-full object-cover"
+                                alt="미리보기"
+                                className="h-full w-full object-cover"
                               />
                               <Button
-                                type="button"
                                 variant="ghost"
                                 size="icon"
                                 className="absolute top-0 right-0"
                                 onClick={() => setShowImagePreview(false)}
-                                title="미리보기 숨기기"
                               >
                                 <EyeOff className="h-4 w-4" />
                               </Button>
                             </div>
                           )}
-                          {!showImagePreview && value && (
+                          {value && !showImagePreview && (
                             <Button
-                              type="button"
                               variant="ghost"
                               size="icon"
                               onClick={() => setShowImagePreview(true)}
-                              title="미리보기 보기"
                             >
-                              <Eye className="h-4 w-4" />
+                              <EyeIcon className="h-4 w-4" />
                             </Button>
                           )}
                         </div>
@@ -602,8 +719,8 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                   )}
                 />
 
-                {/* 인증 요청 (family, enterprise만) */}
-                {canRequestCertification && (
+                {/* 인증 요청 */}
+                {canPickFamily && (
                   <FormField
                     control={form.control}
                     name="requestCertification"
@@ -611,20 +728,22 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                       <FormItem>
                         <FormLabel className="flex items-center gap-1 font-semibold">
                           <ShieldCheck className="h-4 w-4 text-green-600" />
-                          피어몰 인증 요청
+                          인증 요청
                         </FormLabel>
                         <FormControl>
                           <input
+                            id="cert-req"
                             type="checkbox"
                             checked={field.value}
-                            onChange={e => field.onChange(e.target.checked)}
-                            className="scale-125 mr-2"
-                            id="certification-request"
+                            onChange={e =>
+                              field.onChange(e.target.checked)
+                            }
+                            className="mr-2 scale-125"
                           />
+                          <label htmlFor="cert-req" className="text-xs">
+                            인증된 피어몰은 검색·신뢰도 평가 우대
+                          </label>
                         </FormControl>
-                        <label htmlFor="certification-request" className="text-xs text-muted-foreground">
-                          인증된 피어몰은 신뢰도와 검색 노출에서 우대됩니다.
-                        </label>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -635,16 +754,20 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
 
             <Separator className="my-5" />
 
-            <DialogFooter className="flex flex-col sm:flex-row sm:justify-between w-full gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={handleCloseAndReset} className="w-full sm:w-auto">
+            <DialogFooter className="flex flex-col sm:flex-row gap-2 w-full">
+              <Button
+                variant="outline"
+                onClick={handleCancel}
+                className="w-full sm:w-auto"
+              >
                 취소
               </Button>
               <Button
                 type="submit"
-                className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto font-semibold"
+                className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white"
                 disabled={isLoading || isDuplicateAddress}
               >
-                {isLoading ? "등록 중..." : "피어몰 생성 완료"}
+                {isLoading ? '등록 중...' : '피어몰 생성 완료'}
               </Button>
             </DialogFooter>
           </form>

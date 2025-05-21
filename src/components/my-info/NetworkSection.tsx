@@ -1,14 +1,27 @@
-
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import React, { useState, useEffect } from 'react';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from '@/components/ui/card';
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from '@/components/ui/tabs';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
-// Define the friend type
+// Friend 타입 정의
 interface Friend {
   id: string;
   name: string;
@@ -17,279 +30,339 @@ interface Friend {
   lastActive?: string;
 }
 
-// Define the props interface for NetworkSection
-export interface NetworkSectionProps {
-  friends: Friend[];
-  followers: {
-    id: string;
-    name: string;
-    image: string;
-  }[];
-  following: {
-    id: string;
-    name: string;
-    image: string;
-  }[];
-  recommenders: {
-    id: string;
-    name: string;
-    image: string;
-  }[];
-  recommendees: {
-    id: string;
-    name: string;
-    image: string;
-  }[];
-  family: {
-    id: string;
-    name: string;
-    image: string;
-  }[];
+// Family Member 등급 및 역할 추가
+interface FamilyMember {
+  id: string;
+  name: string;
+  image: string;
+  level?: '기본' | '가디언' | '퍼실리테이터';
+  certified?: boolean;
+  description?: string;
 }
 
-const NetworkSection: React.FC<NetworkSectionProps> = ({
-  friends,
-  followers,
-  following,
-  recommenders,
-  recommendees,
-  family
-}) => {
-  const [activeTab, setActiveTab] = useState('friends');
-  const [searchQuery, setSearchQuery] = useState('');
+// 추천인 등 신뢰/인증 상태 표현
+interface Recommender {
+  id: string;
+  name: string;
+  image: string;
+  trustLevel?: number;
+  certified?: boolean;
+  lastAction?: string;
+}
 
-  // Get status indicator class based on status
+export interface NetworkSectionProps {
+  friends: Friend[];
+  followers: { id: string; name: string; image: string }[];
+  following: { id: string; name: string; image: string }[];
+  recommenders: Recommender[];
+  recommendees: Recommender[];
+  family: FamilyMember[];
+}
+
+type NetworkItem = {
+  id: string;
+  name: string;
+  image: string;
+  certified?: boolean;
+  trustLevel?: number;
+  lastAction?: string;
+  level?: '기본' | '가디언' | '퍼실리테이터';
+  description?: string;
+};
+
+const NetworkSection: React.FC<NetworkSectionProps> = (props) => {
+  // 1) 로컬 스토리지 키 선언
+  const STORAGE_KEY_DATA = 'peerMall_networkData';
+  const STORAGE_KEY_TAB = 'peerMall_activeTab';
+
+  // 2) 네트워크 전체 데이터를 하나의 state로 관리
+  const [networkData, setNetworkData] = useState<NetworkSectionProps>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STORAGE_KEY_DATA);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          // 파싱 실패 시 fallthrough
+        }
+      }
+    }
+    // 저장된 값 없으면 props 초기값 사용
+    return { ...props };
+  });
+
+  // 3) 활성 탭 상태 관리 (로컬 스토리지 동기화)
+  const [activeTab, setActiveTab] = useState<
+    'recommenders' | 'recommendees' | 'family'
+  >(() => {
+    if (typeof window !== 'undefined') {
+      const t = localStorage.getItem(STORAGE_KEY_TAB);
+      if (t === 'recommenders' || t === 'recommendees' || t === 'family') {
+        return t;
+      }
+    }
+    return 'recommenders';
+  });
+
+  // 4) 상태별 인디케이터 컬러
   const getStatusIndicatorClass = (status?: string) => {
     switch (status) {
-      case 'online': return 'bg-green-500';
-      case 'away': return 'bg-yellow-500';
-      case 'offline': return 'bg-gray-300';
-      default: return 'bg-gray-300';
+      case 'online':
+        return 'bg-green-500';
+      case 'away':
+        return 'bg-yellow-500';
+      case 'offline':
+        return 'bg-gray-300';
+      default:
+        return 'bg-gray-300';
     }
   };
 
-  // Filter function for search
-  const filterBySearch = (items: any[]) => {
+  // 5) 검색 필터 함수
+  const [searchQuery, setSearchQuery] = useState('');
+  const filterBySearch = (items: NetworkItem[]) => {
     if (!searchQuery) return items;
-    return items.filter(item => 
+    return items.filter((item) =>
       item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   };
 
+  // 6) 로컬 스토리지에 데이터 동기화
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_DATA, JSON.stringify(networkData));
+  }, [networkData]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_TAB, activeTab);
+  }, [activeTab]);
+
+  // 7) 인터랙션 핸들러들
+  const removeRecommender = (id: string) => {
+    setNetworkData((prev) => ({
+      ...prev,
+      recommenders: prev.recommenders.filter((u) => u.id !== id),
+    }));
+  };
+
+  const removeRecommendee = (id: string) => {
+    setNetworkData((prev) => ({
+      ...prev,
+      recommendees: prev.recommendees.filter((u) => u.id !== id),
+    }));
+  };
+
+  const requestCertification = (id: string) => {
+    setNetworkData((prev) => ({
+      ...prev,
+      family: prev.family.map((m) =>
+        m.id === id ? { ...m, certified: true } : m
+      ),
+    }));
+  };
+
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
-        <div className="flex flex-wrap items-center justify-between">
-          <CardTitle className="text-lg font-medium">내 네트워크</CardTitle>
-          <div className="relative mt-2 sm:mt-0">
-            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input 
-              placeholder="이름으로 검색" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 h-8 w-full sm:w-[180px]"
-            />
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) =>
+          setActiveTab(v as 'recommenders' | 'recommendees' | 'family')
+        }
+      >
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div className="flex flex-wrap items-center justify-between">
+            <CardTitle className="text-lg font-medium">내 네트워크</CardTitle>
+            <div className="relative mt-2 sm:mt-0">
+              <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="이름으로 검색"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 h-8 w-full sm:w-[180px]"
+              />
+            </div>
           </div>
-        </div>
-        <TabsList className="mt-2">
-          <TabsTrigger 
-            value="friends" 
-            onClick={() => setActiveTab('friends')}
-            className={activeTab === 'friends' ? 'bg-white' : ''}
-          >
-            친구 ({friends.length})
-          </TabsTrigger>
-          <TabsTrigger 
-            value="followers" 
-            onClick={() => setActiveTab('followers')}
-            className={activeTab === 'followers' ? 'bg-white' : ''}
-          >
-            팔로워 ({followers.length})
-          </TabsTrigger>
-          <TabsTrigger 
-            value="following" 
-            onClick={() => setActiveTab('following')}
-            className={activeTab === 'following' ? 'bg-white' : ''}
-          >
-            팔로잉 ({following.length})
-          </TabsTrigger>
-          <TabsTrigger 
-            value="more" 
-            onClick={() => setActiveTab('more')}
-            className={['recommenders', 'recommendees', 'family'].includes(activeTab) ? 'bg-white' : ''}
-          >
-            더보기
-          </TabsTrigger>
-        </TabsList>
-      </CardHeader>
-      <CardContent className="p-4">
-        <Tabs value={activeTab} className="w-full">
-          <TabsContent value="friends" className="mt-0">
+          <TabsList className="mt-2 flex-wrap h-auto">
+            <TabsTrigger value="recommenders">
+              추천인 ({networkData.recommenders.length})
+            </TabsTrigger>
+            <TabsTrigger value="recommendees">
+              피추천인 ({networkData.recommendees.length})
+            </TabsTrigger>
+            <TabsTrigger value="family">
+              패밀리 멤버 ({networkData.family.length})
+            </TabsTrigger>
+          </TabsList>
+        </CardHeader>
+
+        <CardContent className="p-4">
+          {/* 추천인 탭 */}
+          <TabsContent value="recommenders">
+            <div className="mb-4 text-xs text-gray-500">
+              7명의 인증된 추천인이 필요해요! 인증회원은{' '}
+              <Badge
+                className="mx-1 bg-emerald-100 text-emerald-800 border-emerald-200"
+                variant="outline"
+              >
+                인증
+              </Badge>
+              뱃지를 갖습니다.
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filterBySearch(friends).map((friend) => (
-                <div key={friend.id} className="flex items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="relative">
-                    <Avatar className="h-10 w-10 border border-gray-200">
-                      <AvatarImage src={friend.image} alt={friend.name} />
-                      <AvatarFallback>{friend.name.substring(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    <span 
-                      className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full ring-1 ring-white ${getStatusIndicatorClass(friend.status)}`} 
-                    />
-                  </div>
+              {filterBySearch(networkData.recommenders).map((u) => (
+                <div
+                  key={u.id}
+                  className="flex items-center p-3 border border-green-100 rounded-lg hover:bg-green-50 transition-colors"
+                >
+                  <Avatar className="h-10 w-10 border border-green-200">
+                    <AvatarImage src={u.image} alt={u.name} />
+                    <AvatarFallback>{u.name.slice(0, 2)}</AvatarFallback>
+                  </Avatar>
                   <div className="ml-3 flex-1">
-                    <p className="text-sm font-medium leading-none">{friend.name}</p>
+                    <div className="flex items-center gap-1">
+                      <p className="text-sm font-medium">{u.name}</p>
+                      {u.certified && (
+                        <Badge
+                          variant="outline"
+                          className="bg-emerald-100 text-emerald-800 border-emerald-200 text-xs"
+                        >
+                          인증
+                        </Badge>
+                      )}
+                      {u.trustLevel && (
+                        <Badge
+                          variant="outline"
+                          className="bg-indigo-50 text-indigo-600 border-indigo-200 text-xs"
+                        >
+                          LV.{u.trustLevel}
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-500 mt-1">
-                      {friend.status === 'online' ? '온라인' : 
-                       friend.status === 'away' ? '자리비움' : 
-                       `마지막 접속: ${friend.lastActive || '알 수 없음'}`}
+                      {u.lastAction || '최근 활동 정보 없음'}
                     </p>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <span className="sr-only">메시지 보내기</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                      <path d="M3.505 2.365A41.369 41.369 0 019 2c1.863 0 3.697.124 5.495.365 1.247.167 2.18 1.108 2.435 2.268a4.45 4.45 0 00-.577-.069 43.141 43.141 0 00-4.706 0C9.229 4.696 7.5 6.727 7.5 8.998v2.24c0 1.413.67 2.735 1.76 3.562l-2.98 2.98A.75.75 0 015 17.25v-3.443c-.501-.048-1-.106-1.495-.172C2.033 13.438 1 12.162 1 10.72V5.28c0-1.441 1.033-2.717 2.505-2.914z" />
-                    </svg>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeRecommender(u.id)}
+                  >
+                    제거
                   </Button>
                 </div>
               ))}
             </div>
           </TabsContent>
 
-          <TabsContent value="followers" className="mt-0">
+          {/* 피추천인 탭 */}
+          <TabsContent value="recommendees">
+            <div className="mb-4 text-xs text-gray-500">
+              내가 신뢰를 부여한 피추천인 목록입니다.
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filterBySearch(followers).map((follower) => (
-                <div key={follower.id} className="flex items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Avatar className="h-10 w-10 border border-gray-200">
-                    <AvatarImage src={follower.image} alt={follower.name} />
-                    <AvatarFallback>{follower.name.substring(0, 2)}</AvatarFallback>
+              {filterBySearch(networkData.recommendees).map((u) => (
+                <div
+                  key={u.id}
+                  className="flex items-center p-3 border border-blue-100 rounded-lg hover:bg-blue-50 transition-colors"
+                >
+                  <Avatar className="h-10 w-10 border border-blue-200">
+                    <AvatarImage src={u.image} alt={u.name} />
+                    <AvatarFallback>{u.name.slice(0, 2)}</AvatarFallback>
                   </Avatar>
                   <div className="ml-3 flex-1">
-                    <p className="text-sm font-medium">{follower.name}</p>
-                    <Badge variant="outline" className="text-xs mt-1 px-1.5 py-0 h-5">팔로워</Badge>
+                    <div className="flex items-center gap-1">
+                      <p className="text-sm font-medium">{u.name}</p>
+                      {u.certified && (
+                        <Badge
+                          variant="outline"
+                          className="bg-emerald-100 text-emerald-800 border-emerald-200 text-xs"
+                        >
+                          인증
+                        </Badge>
+                      )}
+                      {u.trustLevel && (
+                        <Badge
+                          variant="outline"
+                          className="bg-indigo-50 text-indigo-600 border-indigo-200 text-xs"
+                        >
+                          LV.{u.trustLevel}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {u.lastAction || '최근 활동 정보 없음'}
+                    </p>
                   </div>
-                  <Button variant="outline" size="sm" className="h-8 text-xs">
-                    팔로우
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeRecommendee(u.id)}
+                  >
+                    취소
                   </Button>
                 </div>
               ))}
             </div>
           </TabsContent>
 
-          <TabsContent value="following" className="mt-0">
+          {/* 패밀리 멤버 탭 */}
+          <TabsContent value="family">
+            <div className="mb-4 text-xs text-gray-500">
+              패밀리 멤버는 운영·인증을 지원합니다.
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filterBySearch(following).map((user) => (
-                <div key={user.id} className="flex items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Avatar className="h-10 w-10 border border-gray-200">
-                    <AvatarImage src={user.image} alt={user.name} />
-                    <AvatarFallback>{user.name.substring(0, 2)}</AvatarFallback>
+              {filterBySearch(networkData.family).map((m) => (
+                <div
+                  key={m.id}
+                  className="flex items-center p-3 border border-rose-100 rounded-lg hover:bg-rose-50 transition-colors"
+                >
+                  <Avatar className="h-10 w-10 border border-rose-200">
+                    <AvatarImage src={m.image} alt={m.name} />
+                    <AvatarFallback>{m.name.slice(0, 2)}</AvatarFallback>
                   </Avatar>
                   <div className="ml-3 flex-1">
-                    <p className="text-sm font-medium">{user.name}</p>
-                    <Badge className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 mt-1 px-1.5 py-0 h-5">
-                      팔로잉
-                    </Badge>
+                    <div className="flex items-center gap-1">
+                      <p className="text-sm font-medium">{m.name}</p>
+                      {m.level && (
+                        <Badge
+                          variant="outline"
+                          className={
+                            m.level === '가디언'
+                              ? 'bg-yellow-50 text-yellow-700 border-yellow-200 text-xs'
+                              : m.level === '퍼실리테이터'
+                              ? 'bg-blue-50 text-blue-700 border-blue-200 text-xs'
+                              : 'bg-pink-50 text-pink-600 border-pink-200 text-xs'
+                          }
+                        >
+                          {m.level}
+                        </Badge>
+                      )}
+                      {m.certified && (
+                        <Badge
+                          variant="outline"
+                          className="bg-emerald-100 text-emerald-800 border-emerald-200 text-xs"
+                        >
+                          인증됨
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {m.description || '운영 지원 멤버'}
+                    </p>
                   </div>
-                  <Button variant="outline" size="sm" className="h-8 text-xs">
-                    언팔로우
+                  <Button
+                    variant={m.certified ? 'outline' : 'default'}
+                    size="sm"
+                    disabled={m.certified}
+                    onClick={() => requestCertification(m.id)}
+                  >
+                    {m.certified ? '완료' : '인증 요청'}
                   </Button>
                 </div>
               ))}
             </div>
           </TabsContent>
-
-          <TabsContent value="recommenders" className="mt-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filterBySearch(recommenders).map((user) => (
-                <div key={user.id} className="flex items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Avatar className="h-10 w-10 border border-gray-200">
-                    <AvatarImage src={user.image} alt={user.name} />
-                    <AvatarFallback>{user.name.substring(0, 2)}</AvatarFallback>
-                  </Avatar>
-                  <div className="ml-3 flex-1">
-                    <p className="text-sm font-medium">{user.name}</p>
-                    <Badge variant="secondary" className="text-xs mt-1 px-1.5 py-0 h-5">나를 추천한 사용자</Badge>
-                  </div>
-                  <Button variant="ghost" size="sm" className="h-8 text-xs">
-                    프로필
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="recommendees" className="mt-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filterBySearch(recommendees).map((user) => (
-                <div key={user.id} className="flex items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Avatar className="h-10 w-10 border border-gray-200">
-                    <AvatarImage src={user.image} alt={user.name} />
-                    <AvatarFallback>{user.name.substring(0, 2)}</AvatarFallback>
-                  </Avatar>
-                  <div className="ml-3 flex-1">
-                    <p className="text-sm font-medium">{user.name}</p>
-                    <Badge variant="secondary" className="text-xs mt-1 px-1.5 py-0 h-5">내가 추천한 사용자</Badge>
-                  </div>
-                  <Button variant="ghost" size="sm" className="h-8 text-xs">
-                    프로필
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="family" className="mt-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filterBySearch(family).map((member) => (
-                <div key={member.id} className="flex items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Avatar className="h-10 w-10 border border-gray-200">
-                    <AvatarImage src={member.image} alt={member.name} />
-                    <AvatarFallback>{member.name.substring(0, 2)}</AvatarFallback>
-                  </Avatar>
-                  <div className="ml-3 flex-1">
-                    <p className="text-sm font-medium">{member.name}</p>
-                    <Badge variant="outline" className="text-xs text-rose-500 border-rose-200 bg-rose-50 mt-1 px-1.5 py-0 h-5">
-                      가족
-                    </Badge>
-                  </div>
-                  <Button variant="ghost" size="sm" className="h-8 text-xs">
-                    메시지
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="more" className="mt-0">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Button 
-                variant="outline" 
-                className="h-auto py-3 flex flex-col items-center justify-center"
-                onClick={() => setActiveTab('recommenders')}
-              >
-                <span className="font-medium">추천인</span>
-                <span className="text-xs text-gray-500 mt-1">나를 추천한 사용자</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-auto py-3 flex flex-col items-center justify-center"
-                onClick={() => setActiveTab('recommendees')}
-              >
-                <span className="font-medium">피추천인</span>
-                <span className="text-xs text-gray-500 mt-1">내가 추천한 사용자</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-auto py-3 flex flex-col items-center justify-center"
-                onClick={() => setActiveTab('family')}
-              >
-                <span className="font-medium">가족</span>
-                <span className="text-xs text-gray-500 mt-1">가족 구성원</span>
-              </Button>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
+        </CardContent>
+      </Tabs>
     </Card>
   );
 };

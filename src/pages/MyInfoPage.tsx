@@ -91,17 +91,38 @@ const MyInfoPage = () => {
       { id: '5', name: '최서윤', image: 'https://api.dicebear.com/7.x/personas/svg?seed=choi' }
     ],
     recommenders: [
-      { id: '8', name: '신현준', image: 'https://api.dicebear.com/7.x/personas/svg?seed=shin' },
-      { id: '9', name: '권지영', image: 'https://api.dicebear.com/7.x/personas/svg?seed=kwon' }
+      {
+        id: '8', name: '신현준', image: 'https://api.dicebear.com/7.x/personas/svg?seed=shin',
+        certified: true, trustLevel: 3, lastAction: '3일 전'
+      },
+      {
+        id: '9', name: '권지영', image: 'https://api.dicebear.com/7.x/personas/svg?seed=kwon',
+        certified: false, trustLevel: 2, lastAction: '1일 전'
+      }
     ],
     recommendees: [
-      { id: '10', name: '이지훈', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jihoon' },
-      { id: '11', name: '서하은', image: 'https://api.dicebear.com/7.x/personas/svg?seed=seo' },
-      { id: '12', name: '김민준', image: 'https://api.dicebear.com/7.x/personas/svg?seed=minjun' }
+      {
+        id: '10', name: '이지훈', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jihoon',
+        certified: true, trustLevel: 1, lastAction: '2시간 전'
+      },
+      {
+        id: '11', name: '서하은', image: 'https://api.dicebear.com/7.x/personas/svg?seed=seo',
+        certified: false, trustLevel: 1, lastAction: '1일 전'
+      },
+      {
+        id: '12', name: '김민준', image: 'https://api.dicebear.com/7.x/personas/svg?seed=minjun',
+        certified: true, trustLevel: 2, lastAction: '5일 전'
+      }
     ],
     family: [
-      { id: '13', name: '김지영', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jiyoung' },
-      { id: '14', name: '김지훈', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jihun' }
+      {
+        id: '13', name: '김지영', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jiyoung',
+        level: '가디언', certified: true, description: '피어몰 인증/사업권 담당'
+      },
+      {
+        id: '14', name: '김지훈', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jihun',
+        level: '퍼실리테이터', certified: false, description: '운영 지원 및 컨설팅'
+      }
     ]
   };
 
