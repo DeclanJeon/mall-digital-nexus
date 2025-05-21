@@ -5,10 +5,12 @@ import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger 
-} from "@/components/ui/popover";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Modal,
   ModalContent,
@@ -54,6 +56,29 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
   const [isLiked, setIsLiked] = useState(false);
   const [messageModalOpen, setMessageModalOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
+
+  // Generate all badges
+  const allBadges = [
+    isPopular && { 
+      type: "인기", 
+      color: "bg-yellow-500 text-white",
+      icon: <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+    },
+    isRecommended && { 
+      type: "추천", 
+      color: "bg-blue-600/90 text-white",
+      icon: <ThumbsUp className="h-3.5 w-3.5" />
+    },
+    isFamilyCertified && { 
+      type: "인증", 
+      color: "bg-green-500/90 text-white",
+      icon: <BadgeCheck className="h-3.5 w-3.5" />
+    },
+  ].filter(Boolean);
+
+  // Display badges - limit to 2 for main display
+  const visibleBadges = allBadges.slice(0, 2);
+  const hiddenBadges = allBadges.slice(2);
 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault(); // 링크 이동 방지
@@ -123,32 +148,44 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
           
-          {/* === 뱃지 영역 === */}
+          {/* === 뱃지 영역 (최대 2개만 표시) === */}
           <div className="absolute top-2 left-2 flex gap-1 z-10">
-            {isPopular && (
-              <span className="bg-yellow-500 text-white text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow">
-                <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                인기
+            {visibleBadges.map((badge, index) => (
+              <span 
+                key={index} 
+                className={`${badge.color} text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow`}
+              >
+                {badge.icon}
+                {badge.type}
               </span>
-            )}
-            {isRecommended && (
-              <span className="bg-blue-600/90 text-white text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow">
-                <ThumbsUp className="h-3.5 w-3.5" />
-                추천
-              </span>
-            )}
-            {isFamilyCertified && (
-              <span className="bg-green-500/90 text-white text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow">
-                <BadgeCheck className="h-3.5 w-3.5" />
-                인증
-              </span>
+            ))}
+            
+            {/* 추가 뱃지가 있는 경우 +N 표시 */}
+            {hiddenBadges.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <span className="bg-gray-500/80 text-white text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow cursor-pointer hover:bg-gray-600 transition-colors">
+                    +{hiddenBadges.length}
+                  </span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {hiddenBadges.map((badge, index) => (
+                    <DropdownMenuItem key={index}>
+                      <span className={`inline-flex items-center gap-1 text-xs ${badge.color} px-2 py-1 rounded-full`}>
+                        {badge.icon}
+                        {badge.type}
+                      </span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
           {/* === 뱃지 영역 끝 === */}
 
-          {/* Action buttons - Now in a popover menu */}
-          <Popover>
-            <PopoverTrigger asChild>
+          {/* Action button with dropdown menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost"
                 size="icon"
@@ -157,50 +194,39 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
               >
                 <MoreHorizontal className="h-4 w-4 text-gray-600" />
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 p-2" side="bottom" align="end">
-              <div className="flex flex-col gap-1">
-                <Button 
-                  variant="ghost"
-                  size="sm"
-                  className="flex justify-start"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleLike(e);
-                  }}
-                >
-                  <Heart className={`h-4 w-4 mr-2 ${isLiked ? 'text-red-500 fill-red-500' : 'text-gray-600'}`} />
-                  {isLiked ? '찜하기 취소' : '찜하기'}
-                </Button>
-                
-                <Button 
-                  variant="ghost"
-                  size="sm"
-                  className="flex justify-start"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setMessageModalOpen(true);
-                  }}
-                >
-                  <MessageSquare className="h-4 w-4 mr-2 text-gray-600" />
-                  메시지 보내기
-                </Button>
-                
-                <Button 
-                  variant="ghost"
-                  size="sm"
-                  className="flex justify-start"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleShare(e);
-                  }}
-                >
-                  <Share className="h-4 w-4 mr-2 text-gray-600" />
-                  공유하기
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-48" side="bottom" align="end">
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleLike(e);
+                }}
+              >
+                <Heart className={`h-4 w-4 mr-2 ${isLiked ? 'text-red-500 fill-red-500' : 'text-gray-600'}`} />
+                {isLiked ? '찜하기 취소' : '찜하기'}
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault();
+                  setMessageModalOpen(true);
+                }}
+              >
+                <MessageSquare className="h-4 w-4 mr-2 text-gray-600" />
+                메시지 보내기
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleShare(e);
+                }}
+              >
+                <Share className="h-4 w-4 mr-2 text-gray-600" />
+                공유하기
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Card content */}

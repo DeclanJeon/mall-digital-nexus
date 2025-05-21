@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductGrid from '@/components/shopping/ProductGrid';
@@ -210,33 +209,39 @@ const Shopping = () => {
   return (
     <div className="min-h-screen flex flex-col bg-bg-100">
       <main className="flex-grow">
-        {/* Hero Carousel Section */}
-        <Carousel className="bg-gradient-to-r from-primary-200 to-accent-100" opts={{ loop: true }}>
+        {/* Hero Carousel Section - Improved Layout */}
+        <Carousel className="relative" opts={{ loop: true }}>
           <CarouselContent>
             {heroSlides.map((slide) => (
               <CarouselItem key={slide.id}>
-                <div className="relative h-64 md:h-80 lg:h-96 w-full overflow-hidden">
-                  {/* Background Image with Overlay */}
+                <div className="relative h-[350px] md:h-[400px] lg:h-[450px] w-full overflow-hidden">
+                  {/* Background Image */}
                   <div 
-                    className="absolute inset-0 z-0" 
-                    style={{
-                      backgroundImage: `url(${slide.imageUrl})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center'
-                    }}
+                    className="absolute inset-0 w-full h-full bg-cover bg-center"
+                    style={{ backgroundImage: `url(${slide.imageUrl})` }}
                   >
-                    <div className={`absolute inset-0 bg-gradient-to-r ${slide.color} opacity-70`}></div>
+                    {/* Gradient Overlay */}
+                    <div className={`absolute inset-0 bg-gradient-to-r ${slide.color} opacity-60`}></div>
                   </div>
                   
                   {/* Content */}
-                  <div className="container mx-auto px-4 h-full relative z-10 flex items-center">
-                    <div className="max-w-2xl text-white">
-                      <h1 className="text-3xl md:text-4xl font-bold mb-2 md:mb-4">{slide.title}</h1>
-                      <p className="text-sm md:text-lg mb-4 md:mb-6 opacity-90">{slide.description}</p>
-                      <Button variant="outline" className="bg-white/20 text-white border-white hover:bg-white hover:text-primary-300 transition-colors">
-                        {slide.buttonText}
-                        <ArrowRight className="ml-1 h-4 w-4" />
-                      </Button>
+                  <div className="container mx-auto h-full relative z-10">
+                    <div className="flex items-center h-full px-4">
+                      <div className="max-w-xl text-white">
+                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4 drop-shadow-md">
+                          {slide.title}
+                        </h1>
+                        <p className="text-base md:text-lg mb-6 md:mb-8 opacity-90 max-w-md drop-shadow">
+                          {slide.description}
+                        </p>
+                        <Button 
+                          size="lg"
+                          className="bg-white text-primary-300 hover:bg-white/90 hover:text-primary-400 border-none shadow-md transition-all"
+                        >
+                          {slide.buttonText}
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -245,8 +250,18 @@ const Shopping = () => {
           </CarouselContent>
           
           <div className="container mx-auto px-4 relative">
-            <CarouselPrevious className="absolute left-4 bg-white/50 hover:bg-white" />
-            <CarouselNext className="absolute right-4 bg-white/50 hover:bg-white" />
+            <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-md z-10" />
+            <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-md z-10" />
+          </div>
+          
+          {/* Carousel Indicators */}
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+            {heroSlides.map((_, index) => (
+              <div 
+                key={index}
+                className="w-2 h-2 rounded-full bg-white/50 backdrop-blur-sm"
+              ></div>
+            ))}
           </div>
         </Carousel>
 

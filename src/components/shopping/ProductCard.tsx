@@ -19,6 +19,13 @@ import {
 } from "@/components/ui/modal";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ProductCardProps {
   id: number | string;
@@ -64,6 +71,19 @@ const ProductCard = ({
   const [messageModalOpen, setMessageModalOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
 
+  // Generate all badges but only show limited number in main view
+  const allBadges = [
+    isBestSeller && { type: "베스트셀러", color: "bg-yellow-500 text-white" },
+    isNew && { type: "신규", color: "bg-green-500 text-white" },
+    isRecommended && { type: "추천", color: "bg-blue-600 text-white flex items-center gap-1" },
+    isCertified && { type: "인증", color: "bg-purple-600 text-white" },
+    discountPrice && { type: `${Math.round(((price - discountPrice) / price) * 100)}% 할인`, color: "bg-red-500 text-white" },
+  ].filter(Boolean);
+
+  // Display badges - limit to 2 for main display
+  const visibleBadges = allBadges.slice(0, 2);
+  const hiddenBadges = allBadges.slice(2);
+
   // Format price with Korean currency
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ko-KR', {
@@ -72,8 +92,6 @@ const ProductCard = ({
       maximumFractionDigits: 0
     }).format(price);
   };
-
-  const discountPercentage = discountPrice ? Math.round(((price - discountPrice) / price) * 100) : 0;
 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -162,25 +180,34 @@ const ProductCard = ({
           <Heart className={`h-4 w-4 ${isWishlisted ? 'text-red-500 fill-red-500' : 'text-accent-100'}`} />
         </Button>
         
-        {/* Badges */}
+        {/* Limited badges - max 2 */}
         <div className="absolute top-2 left-2 flex flex-wrap gap-1 max-w-[80%]">
-          {isBestSeller && (
-            <Badge className="bg-yellow-500 text-white">베스트셀러</Badge>
-          )}
-          {isNew && (
-            <Badge className="bg-green-500 text-white">신규</Badge>
-          )}
-          {isRecommended && (
-            <Badge className="bg-blue-600 text-white flex items-center gap-1">
-              <Star className="h-3 w-3 fill-current" />
-              추천
+          {visibleBadges.map((badge, index) => (
+            <Badge key={index} className={badge.color}>
+              {badge.type === "추천" && <Star className="h-3 w-3 fill-current" />}
+              {badge.type}
             </Badge>
-          )}
-          {isCertified && (
-            <Badge className="bg-purple-600 text-white">인증</Badge>
-          )}
-          {discountPrice && (
-            <Badge className="bg-red-500 text-white">{discountPercentage}% 할인</Badge>
+          ))}
+          
+          {/* Show more badge indicator if more than 2 badges */}
+          {hiddenBadges.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Badge className="bg-gray-500/80 text-white cursor-pointer hover:bg-gray-600 transition-colors">
+                  +{hiddenBadges.length}
+                </Badge>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                {hiddenBadges.map((badge, index) => (
+                  <DropdownMenuItem key={index}>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${badge.color}`}>
+                      {badge.type === "추천" && <Star className="h-3 w-3 fill-current mr-1" />}
+                      {badge.type}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>
@@ -241,53 +268,36 @@ const ProductCard = ({
               구매하기
             </Button>
             
-            <Popover>
-              <PopoverTrigger asChild>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon" onClick={(e) => e.preventDefault()}>
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48 p-2" side="top">
-                <div className="flex flex-col gap-1">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="flex justify-start"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setMessageModalOpen(true);
-                    }}
-                  >
-                    <MessageSquare className="h-4 w-4 mr-2 text-gray-600" />
-                    문의하기
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="flex justify-start"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleShare(e);
-                    }}
-                  >
-                    <Share className="h-4 w-4 mr-2 text-gray-600" />
-                    공유하기
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="flex justify-start"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleWishlist(e);
-                    }}
-                  >
-                    <Heart className={`h-4 w-4 mr-2 ${isWishlisted ? 'text-red-500 fill-red-500' : 'text-gray-600'}`} />
-                    {isWishlisted ? '찜하기 취소' : '찜하기'}
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={(e) => {
+                  e.preventDefault();
+                  setMessageModalOpen(true);
+                }}>
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  문의하기
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => {
+                  e.preventDefault();
+                  handleShare(e);
+                }}>
+                  <Share className="h-4 w-4 mr-2" />
+                  공유하기
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => {
+                  e.preventDefault();
+                  handleWishlist(e);
+                }}>
+                  <Heart className={`h-4 w-4 mr-2 ${isWishlisted ? 'text-red-500 fill-red-500' : ''}`} />
+                  {isWishlisted ? '찜하기 취소' : '찜하기'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </CardFooter>
       </div>
