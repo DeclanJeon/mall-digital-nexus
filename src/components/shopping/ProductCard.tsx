@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -99,11 +98,11 @@ const ProductCard = ({
       navigator.share({
         title: title,
         text: `${title} - ${formatPrice(discountPrice || price)}`,
-        url: window.location.origin + `/product/${id}`
+        url: window.location.origin + `/space/${peermallId}/product/${id}`
       }).catch(err => console.log('Error sharing', err));
     } else {
       // Fallback - copy to clipboard
-      navigator.clipboard.writeText(window.location.origin + `/product/${id}`)
+      navigator.clipboard.writeText(window.location.origin + `/space/${peermallId}/product/${id}`)
         .then(() => toast({
           title: "링크가 복사되었습니다",
           description: "클립보드에 복사되었습니다."
@@ -159,7 +158,7 @@ const ProductCard = ({
       <div className={`relative ${
         viewMode === 'list' ? 'w-48 h-full' : 'h-48'
       }`}>
-        <Link to={`/product/${id}`}>
+        <Link to={`/space/${peermallId}/product/${id}`}>
           <img 
             src={imageUrl} 
             alt={title} 
@@ -214,10 +213,10 @@ const ProductCard = ({
       
       <div className={`flex flex-col ${viewMode === 'list' ? 'flex-1 p-4' : ''}`}>
         <CardContent className={`${viewMode === 'list' ? 'p-0' : 'p-4'} pt-4`}>
-          <Link to={`/peermall/${peermallId || '#'}`} className="hover:text-accent-100">
+          <Link to={`/space/${peermallId}`} className="hover:text-accent-100">
             <div className="text-xs text-text-200 mb-1 hover:underline">{peermallName}</div>
           </Link>
-          <Link to={`/product/${id}`} className="hover:text-primary-300">
+          <Link to={`/space/${peermallId}/product/${id}`} className="hover:text-primary-300">
             <h3 className="font-bold text-primary-300 mb-1 line-clamp-1">{title}</h3>
           </Link>
           <p className="text-text-200 text-sm mb-3 line-clamp-2">{description}</p>

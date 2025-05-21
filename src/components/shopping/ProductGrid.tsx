@@ -62,7 +62,7 @@ const ProductGrid = ({ products, viewMode, filters }: ProductGridProps) => {
     
     // Status filters (bestseller, new, discount)
     if (filters.status && filters.status.length > 0) {
-      // Fix: Check if there are any status filters before assuming false
+      // Fix: Check each status condition and OR them together
       matchesStatus = filters.status.length === 0 || 
                       (filters.status.includes('베스트셀러') && product.isBestSeller) ||
                       (filters.status.includes('신규') && product.isNew) ||
