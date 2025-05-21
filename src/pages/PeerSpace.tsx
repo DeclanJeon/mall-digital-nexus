@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
@@ -183,16 +184,14 @@ const PeerSpace = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {config && (
-        <PeerSpaceHome 
-          isOwner={isOwner} 
-          address={address} 
-          config={config}
-          onUpdateConfig={handleUpdateConfig}
-          activeSection={activeSection}
-          onNavigateToSection={handleNavigateToSection}
-        />
-      )}
+      <PeerSpaceHome 
+        isOwner={isOwner} 
+        address={address} 
+        config={config}
+        onUpdateConfig={handleUpdateConfig}
+        activeSection={activeSection}
+        onNavigateToSection={handleNavigateToSection}
+      />
     </div>
   );
 };
