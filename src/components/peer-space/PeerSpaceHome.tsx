@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { Content, ContentType, PeerMallConfig, SectionType } from './types';
-import { Heart, 
+import { 
+  Heart, 
   MessageSquare, 
   Share2, 
   QrCode, 
@@ -620,16 +621,16 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                         id={product.id}
                         title={product.title}
                         description={product.description}
-                        price={product.price || 0} {/* Ensure price is a number */}
+                        price={Number(product.price || 0)}
                         discountPrice={null}
                         imageUrl={product.imageUrl}
-                        rating={4.5} // 임시값
-                        reviewCount={10} // 임시값
+                        rating={4.5}
+                        reviewCount={10}
                         peermallName={config.title}
                         peermallId={address}
                         category={product.category || '기타'}
                         tags={product.tags || []}
-                        viewMode={currentView === 'blog' ? 'grid' : 'list'} {/* Convert 'blog' to 'grid' for compatibility */}
+                        viewMode={currentView === 'blog' ? 'grid' : 'list'}
                       />
                     </div>
                   ))}
