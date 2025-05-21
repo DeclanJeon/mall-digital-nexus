@@ -13,7 +13,8 @@ import {
   AlertCircle,
   ShieldCheck,
   Eye,
-  EyeOff
+  EyeOff,
+  Gift
 } from 'lucide-react';
 import {
   Dialog,
@@ -59,6 +60,7 @@ const formSchema = z.object({
     message: '공개 범위를 선택해주세요',
   }),
   requestCertification: z.boolean().optional(),
+  referralCode: z.string().optional(),
 });
 
 const LOCAL_STORAGE_PEERMALL_KEY_PREFIX = 'peermall_';
@@ -97,7 +99,8 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
       mapAddress: '',
       familyMember: '',
       visibility: 'public',
-      requestCertification: false
+      requestCertification: false,
+      referralCode: ''
     },
     mode: 'onBlur',
   });
@@ -271,7 +274,6 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
           <div className="text-xs text-muted-foreground mt-2">
             <ul className="list-disc list-inside">
               <li>피어몰은 <strong>사용자 자율 운영</strong> 온라인 공간입니다. <span className="text-blue-600">정책사항</span>을 꼭 참고하세요.</li>
-              <li>family/enterprise 멤버십은 <strong>패밀리 멤버</strong> 지정 및 <strong>인증</strong> 요청이 가능합니다.</li>
               <li>공개범위, 해시태그, 설명은 검색·노출·추천에 활용됩니다.</li>
             </ul>
           </div>
@@ -339,16 +341,16 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                   name="membershipType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel><RequiredLabel>멤버십 유형</RequiredLabel></FormLabel>
+                      <FormLabel><RequiredLabel>패밀리 멤버 선택</RequiredLabel></FormLabel>
                       <FormControl>
                         <Select value={field.value} onValueChange={field.onChange}>
                           <SelectTrigger>
-                            <SelectValue placeholder="멤버십 선택" />
+                            <SelectValue placeholder="패밀리 멤버 선택" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="personal">Personal (개인몰)</SelectItem>
-                            <SelectItem value="family">Family (클솔패밀리)</SelectItem>
-                            <SelectItem value="enterprise">Enterprise (기업/단체)</SelectItem>
+                            <SelectItem value="1">메리밀스</SelectItem>
+                            <SelectItem value="2">퓨어펌</SelectItem>
+                            <SelectItem value="3">브이핸드</SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -360,44 +362,33 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                   )}
                 />
 
-                {/* 패밀리 멤버 (family/enterprise만) */}
-                {['family', 'enterprise'].includes(selectedMembership) && (
-                  <FormField
-                    control={form.control}
-                    name="familyMember"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          <span className="flex items-center gap-1 font-semibold">
-                            <User className="h-4 w-4 text-muted-foreground" />
-                            클솔 패밀리 멤버 지정
-                          </span>
-                        </FormLabel>
-                        <FormControl>
-                          <Select value={field.value} onValueChange={field.onChange}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="패밀리 멤버 선택" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {familyMembers.length === 0 && (
-                                <SelectItem value="">패밀리 멤버 정보 없음</SelectItem>
-                              )}
-                              {familyMembers.map(member => (
-                                <SelectItem value={member.id} key={member.id}>
-                                  {member.name} {member.role ? `(${member.role})` : ''}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                        <div className="text-xs text-muted-foreground mt-1">
-                          피어몰 정책상 <span className="text-blue-600">패밀리 멤버 필수 선택</span>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                )}
+                  {/* 추천인 코드 */}
+                <FormField
+                  control={form.control}
+                  name="referralCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <span className="flex items-center gap-1 font-semibold">
+                          <Gift className="h-4 w-4 text-muted-foreground" />
+                          추천인 코드
+                          <span className="text-xs text-muted-foreground ml-1">(선택)</span>
+                        </span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="추천인 코드를 입력하세요"
+                          {...field}
+                          maxLength={20}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                      <div className="text-xs text-muted-foreground mt-1">
+                        추천인 코드 입력 시 추가 혜택이 제공됩니다.
+                      </div>
+                    </FormItem>
+                  )}
+                />
 
                 {/* 공개범위 */}
                 <FormField

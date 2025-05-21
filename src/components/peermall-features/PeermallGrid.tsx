@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
-import NewPeermallCard from './NewPeermallCard';
 import { ChevronRight } from 'lucide-react';
+import PeerMallCard from './PeermallCard';
 
 interface Peermall {
   id?: string;
@@ -76,7 +76,7 @@ const PeermallGrid = ({
       ) : malls.length > 0 ? (
         <div className={viewMode === 'grid' ? gridLayoutClasses : listLayoutClasses}>
           {malls.map((mall, index) => (
-            <NewPeermallCard
+            <PeerMallCard
               key={mall.id || index}
               id={mall.id || `mall-${index}`}
               title={mall.title}

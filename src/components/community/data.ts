@@ -1,5 +1,10 @@
-
-import { Planet, Post, ChatRoom, ActivityType, PlanetStage } from './types';
+import {
+  Planet,
+  Post,
+  ChatRoom,
+  ActivityType,
+  PlanetStage,
+} from '@/types/community';
 
 // Initial data for planets
 export const initialPlanetsData: Planet[] = [
@@ -18,15 +23,15 @@ export const initialPlanetsData: Planet[] = [
         userId: 'user1',
         userName: '김디자인',
         timestamp: new Date().toISOString(),
-        details: { message: '커뮤니티에 참여했습니다.' }
-      }
+        details: { message: '커뮤니티에 참여했습니다.' },
+      },
     ],
     recentPosts: [],
     stage: PlanetStage.Growing,
     membersCount: 3,
     health: 85,
     topics: ['디자인', 'UX', 'UI', '그래픽디자인'],
-    imageUrl: 'https://api.dicebear.com/7.x/shapes/svg?seed=design'
+    imageUrl: 'https://api.dicebear.com/7.x/shapes/svg?seed=design',
   },
   {
     id: 'planet-2',
@@ -43,15 +48,15 @@ export const initialPlanetsData: Planet[] = [
         userId: 'user3',
         userName: '이개발',
         timestamp: new Date().toISOString(),
-        details: { postId: 'post-1', title: '자바스크립트 팁 공유' }
-      }
+        details: { postId: 'post-1', title: '자바스크립트 팁 공유' },
+      },
     ],
     recentPosts: [],
     stage: PlanetStage.Established,
     membersCount: 3,
     health: 95,
     topics: ['웹개발', '앱개발', '프로그래밍', '코딩'],
-    imageUrl: 'https://api.dicebear.com/7.x/shapes/svg?seed=dev'
+    imageUrl: 'https://api.dicebear.com/7.x/shapes/svg?seed=dev',
   },
   {
     id: 'planet-3',
@@ -67,8 +72,8 @@ export const initialPlanetsData: Planet[] = [
     membersCount: 2,
     health: 70,
     topics: ['요리', '레시피', '음식', '맛집'],
-    imageUrl: 'https://api.dicebear.com/7.x/shapes/svg?seed=food'
-  }
+    imageUrl: 'https://api.dicebear.com/7.x/shapes/svg?seed=food',
+  },
 ];
 
 // Initial posts
@@ -76,7 +81,8 @@ export const initialPosts: Post[] = [
   {
     id: 'post-1',
     title: '자바스크립트 팁 공유',
-    content: '오늘은 자바스크립트에서 유용하게 사용할 수 있는 팁들을 공유합니다.',
+    content:
+      '오늘은 자바스크립트에서 유용하게 사용할 수 있는 팁들을 공유합니다.',
     author: '이개발',
     authorId: 'user3',
     date: new Date().toISOString(),
@@ -88,7 +94,7 @@ export const initialPosts: Post[] = [
     communityId: 'planet-2',
     isNotice: false,
     authorAvatar: 'https://api.dicebear.com/7.x/personas/svg?seed=dev',
-    country: 'kr'
+    country: 'kr',
   },
   {
     id: 'post-2',
@@ -105,8 +111,8 @@ export const initialPosts: Post[] = [
     communityId: 'planet-1',
     isNotice: true,
     authorAvatar: 'https://api.dicebear.com/7.x/personas/svg?seed=design',
-    country: 'kr'
-  }
+    country: 'kr',
+  },
 ];
 
 // Initial chat rooms
@@ -117,7 +123,7 @@ export const initialChatRooms: ChatRoom[] = [
     planetId: 'planet-1',
     participants: ['admin', 'user1', 'user2'],
     createdAt: new Date().toISOString(),
-    isPublic: true
+    isPublic: true,
   },
   {
     id: 'room-2',
@@ -125,6 +131,6 @@ export const initialChatRooms: ChatRoom[] = [
     planetId: 'planet-2',
     participants: ['admin', 'user3', 'user4'],
     createdAt: new Date().toISOString(),
-    isPublic: true
-  }
+    isPublic: true,
+  },
 ];
