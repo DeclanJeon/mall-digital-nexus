@@ -100,10 +100,18 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
 
   useEffect(() => {
     // Load contents from localStorage
-    const storedContents = getPeerSpaceContents(address);
-    if (storedContents) {
-      setContents(storedContents);
-    }
+    const loadContents = async () => {
+      try {
+        const storedContents = await getPeerSpaceContents(address);
+        if (storedContents) {
+          setContents(storedContents);
+        }
+      } catch (error) {
+        console.error("Error loading peer space contents:", error);
+      }
+    };
+    
+    loadContents();
   }, [address]);
 
   useEffect(() => {
@@ -147,29 +155,40 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
 
   const handleAddContent = async (content: ContentFormValues) => {
     try {
+      // Make sure all required fields are provided
+      if (!content.title) {
+        throw new Error("Title is required");
+      }
+
       const newContent: Content = {
         ...content,
         id: Date.now().toString(),
         peerSpaceAddress: address,
+        title: content.title, // Ensure title is explicitly set
+        description: content.description || "", // Ensure description is set
         likes: 0,
         comments: 0,
         views: 0,
         saves: 0,
-        date: new Date().toISOString(), // Added required date field
+        date: new Date().toISOString(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        type: content.type || ContentType.Article, // Ensure type is set
+        type: content.type || ContentType.Article,
       };
 
       // Save to indexedDB
       await add('contents', newContent);
 
       // Optimistically update state
-      setContents(prevContents => [...prevContents, newContent]);
+      setContents((prevContents) => [...prevContents, newContent]);
 
       // Optionally, save to localStorage as well
-      const storedContents = getPeerSpaceContents(address) || [];
-      localStorage.setItem(`peer_space_${address}_contents`, JSON.stringify([...storedContents, newContent]));
+      try {
+        const storedContents = await getPeerSpaceContents(address) || [];
+        localStorage.setItem(`peer_space_${address}_contents`, JSON.stringify([...storedContents, newContent]));
+      } catch (error) {
+        console.error("Error saving to localStorage:", error);
+      }
 
       toast({
         title: "콘텐츠가 추가되었습니다",
