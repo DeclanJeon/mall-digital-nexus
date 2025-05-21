@@ -82,12 +82,14 @@ const PeermallGrid = ({
               title={mall.title}
               description={mall.description}
               owner={mall.owner}
-              imageUrl={mall.imageUrl}
-              likes={mall.likes || 0}
-              rating={mall.rating}
-              followers={mall.followers || 0}
-              tags={mall.tags || []}
+              imageUrl={mall.imageUrl || "https://picsum.photos/400/300"}
+              likes={mall.likes || 12}
+              rating={mall.rating || 5}
+              followers={mall.followers || 30}
+              tags={mall.tags || ['패밀리', '인증']}
               isPopular={isPopularSection || mall.featured}
+              isFamilyCertified
+              isRecommended
             />
           ))}
         </div>

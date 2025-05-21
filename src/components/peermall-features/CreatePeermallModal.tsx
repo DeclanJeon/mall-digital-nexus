@@ -408,9 +408,8 @@ const CreatePeermallModal = ({ isOpen, onClose, onSuccess }) => {
                             <SelectValue placeholder="공개여부 선택" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="public">공개 (지도/검색 노출)</SelectItem>
-                            <SelectItem value="partial">부분공개 (지도에 흐릿하게 표시, 제한적 노출)</SelectItem>
-                            <SelectItem value="private">비공개 (초대/키 필요, 지도 미표시)</SelectItem>
+                            <SelectItem value="public">공개</SelectItem>
+                            <SelectItem value="private">비공개 (초대/키 필요)</SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>

@@ -1,6 +1,5 @@
-
 import React from "react";
-import { Heart, Star, User } from "lucide-react";
+import { Heart, Star, User, BadgeCheck, ThumbsUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 
@@ -14,7 +13,9 @@ interface PeermallCardProps {
   rating: number;
   followers: number;
   tags: string[];
-  isPopular?: boolean;
+  isPopular?: boolean;          // 인기 피어몰
+  isFamilyCertified?: boolean;  // 패밀리 멤버 인증
+  isRecommended?: boolean;      // 추천 피어몰
   className?: string;
 }
 
@@ -29,6 +30,8 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
   followers = 0,
   tags = [],
   isPopular = false,
+  isFamilyCertified = false,
+  isRecommended = false,
   className,
 }) => {
   return (
@@ -47,11 +50,30 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
             alt={title}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
-          {isPopular && (
-            <div className="absolute top-2 left-2 bg-accent-dark text-white text-xs font-medium px-2 py-1 rounded">
-              인기 피어몰
-            </div>
-          )}
+          
+          {/* === 뱃지 영역 === */}
+          <div className="absolute top-2 left-2 flex gap-1 z-10">
+            {isPopular && (
+              <span className="bg-accent-dark text-white text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow">
+                <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                인기
+              </span>
+            )}
+            {isRecommended && (
+              <span className="bg-blue-600/90 text-white text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow">
+                <ThumbsUp className="h-3.5 w-3.5" />
+                추천
+              </span>
+            )}
+            {isFamilyCertified && (
+              <span className="bg-green-500/90 text-white text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow">
+                <BadgeCheck className="h-3.5 w-3.5" />
+                인증
+              </span>
+            )}
+          </div>
+          {/* === 뱃지 영역 끝 === */}
+
           <button 
             className="absolute top-2 right-2 bg-white/80 p-1 rounded-full hover:bg-white transition-colors"
             onClick={(e) => {
