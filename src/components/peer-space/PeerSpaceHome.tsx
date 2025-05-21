@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -621,7 +620,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                         id={product.id}
                         title={product.title}
                         description={product.description}
-                        price={product.price || 0}
+                        price={product.price || 0} {/* Ensure price is a number */}
                         discountPrice={null}
                         imageUrl={product.imageUrl}
                         rating={4.5} // 임시값
@@ -630,7 +629,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                         peermallId={address}
                         category={product.category || '기타'}
                         tags={product.tags || []}
-                        viewMode={currentView}
+                        viewMode={currentView === 'blog' ? 'grid' : 'list'} {/* Convert 'blog' to 'grid' for compatibility */}
                       />
                     </div>
                   ))}

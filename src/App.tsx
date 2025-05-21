@@ -22,10 +22,12 @@ import CommunityPage from "./pages/Community";
 import CommunityDetailPage from "./pages/ContentDetailPage";
 import PostDetailPage from "./pages/PostDetailPage";
 import Community from "./components/community/Community";
-import Peers from "./pages/space/Peers";
-import Achievements from "./pages/space/Achievements";
-import Messages from "./pages/space/Messages";
-import Space from "./pages/space/Space";
+
+// Remove imports for non-existent pages
+// import Peers from "./pages/space/Peers";
+// import Achievements from "./pages/space/Achievements";
+// import Messages from "./pages/space/Messages";
+// import Space from "./pages/space/Space";
 
 const queryClient = new QueryClient();
 
