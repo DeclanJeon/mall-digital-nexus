@@ -13,18 +13,64 @@ interface Product {
   rating: number;
   reviewCount: number;
   peermallName: string;
+  peermallId?: string;
   category: string;
   tags: string[];
   isBestSeller?: boolean;
   isNew?: boolean;
+  isRecommended?: boolean;
+  isCertified?: boolean;
 }
 
 interface ProductGridProps {
   products: Product[];
   viewMode: 'grid' | 'list';
+  filters?: {
+    categories?: string[];
+    priceRange?: number[];
+    rating?: number;
+    status?: string[];
+  };
 }
 
-const ProductGrid = ({ products, viewMode }: ProductGridProps) => {
+const ProductGrid = ({ products, viewMode, filters }: ProductGridProps) => {
+  // Filter products based on selected filters
+  const filteredProducts = products.filter(product => {
+    // Return true if no filters or if product matches all active filters
+    if (!filters) return true;
+    
+    let matchesCategory = true;
+    let matchesPriceRange = true;
+    let matchesRating = true;
+    let matchesStatus = true;
+
+    // Category filter
+    if (filters.categories && filters.categories.length > 0 && !filters.categories.includes('전체')) {
+      matchesCategory = filters.categories.includes(product.category);
+    }
+    
+    // Price range filter
+    if (filters.priceRange) {
+      const productPrice = product.discountPrice || product.price;
+      matchesPriceRange = productPrice >= filters.priceRange[0] && productPrice <= filters.priceRange[1];
+    }
+    
+    // Rating filter
+    if (filters.rating) {
+      matchesRating = product.rating >= filters.rating;
+    }
+    
+    // Status filters (bestseller, new, discount)
+    if (filters.status && filters.status.length > 0) {
+      matchesStatus = (filters.status.includes('베스트셀러') && product.isBestSeller) ||
+                      (filters.status.includes('신규') && product.isNew) ||
+                      (filters.status.includes('할인중') && product.discountPrice) ||
+                      !filters.status.length;
+    }
+    
+    return matchesCategory && matchesPriceRange && matchesRating && matchesStatus;
+  });
+
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -40,7 +86,7 @@ const ProductGrid = ({ products, viewMode }: ProductGridProps) => {
     show: { opacity: 1, y: 0 }
   };
 
-  if (products.length === 0) {
+  if (filteredProducts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <div className="text-4xl mb-4">🛒</div>
@@ -60,7 +106,7 @@ const ProductGrid = ({ products, viewMode }: ProductGridProps) => {
         : "flex flex-col gap-4"
       }
     >
-      {products.map((product) => (
+      {filteredProducts.map((product) => (
         <motion.div key={product.id} variants={item}>
           <ProductCard
             {...product}

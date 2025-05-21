@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { 
@@ -13,8 +13,26 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 
-const ShoppingFilter = () => {
-  const [priceRange, setPriceRange] = useState<number[]>([0, 100000]);
+interface ShoppingFilterProps {
+  onFilterChange: (filters: {
+    categories: string[];
+    priceRange: number[];
+    rating: number | null;
+    status: string[];
+  }) => void;
+  initialFilters?: {
+    categories: string[];
+    priceRange: number[];
+    rating: number | null;
+    status: string[];
+  };
+}
+
+const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps) => {
+  const [priceRange, setPriceRange] = useState<number[]>(initialFilters?.priceRange || [0, 100000]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialFilters?.categories || []);
+  const [selectedRating, setSelectedRating] = useState<number | null>(initialFilters?.rating || null);
+  const [selectedStatus, setSelectedStatus] = useState<string[]>(initialFilters?.status || []);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   
   const categories = [
@@ -26,30 +44,97 @@ const ShoppingFilter = () => {
     { id: 'living', label: '리빙' },
     { id: 'hobby', label: '취미' },
     { id: 'travel', label: '여행' },
+    { id: 'all', label: '전체' },
   ];
   
   const ratings = [
-    { id: '4stars', label: '⭐⭐⭐⭐ 이상' },
-    { id: '3stars', label: '⭐⭐⭐ 이상' },
-    { id: '2stars', label: '⭐⭐ 이상' },
-    { id: '1stars', label: '⭐ 이상' },
+    { id: '4stars', label: '⭐⭐⭐⭐ 이상', value: 4 },
+    { id: '3stars', label: '⭐⭐⭐ 이상', value: 3 },
+    { id: '2stars', label: '⭐⭐ 이상', value: 2 },
+    { id: '1stars', label: '⭐ 이상', value: 1 },
   ];
   
+  const statusOptions = [
+    { id: 'bestseller', label: '베스트셀러' },
+    { id: 'new', label: '신규' },
+    { id: 'discount', label: '할인중' },
+  ];
+  
+  // Update activeFilters whenever any filter changes
+  useEffect(() => {
+    const newActiveFilters: string[] = [];
+    
+    selectedCategories.forEach(cat => {
+      if (cat !== '전체') newActiveFilters.push(cat);
+    });
+    
+    if (selectedRating) {
+      const ratingLabel = ratings.find(r => r.value === selectedRating)?.label;
+      if (ratingLabel) newActiveFilters.push(ratingLabel);
+    }
+    
+    selectedStatus.forEach(status => newActiveFilters.push(status));
+    
+    if (priceRange[0] > 0 || priceRange[1] < 100000) {
+      newActiveFilters.push(`${formatPrice(priceRange[0])} ~ ${formatPrice(priceRange[1])}`);
+    }
+    
+    setActiveFilters(newActiveFilters);
+    
+  }, [selectedCategories, selectedRating, selectedStatus, priceRange]);
+  
+  // Call parent's onFilterChange whenever filters change
+  useEffect(() => {
+    onFilterChange({
+      categories: selectedCategories,
+      priceRange,
+      rating: selectedRating,
+      status: selectedStatus
+    });
+  }, [selectedCategories, priceRange, selectedRating, selectedStatus, onFilterChange]);
+  
   const handleCategoryChange = (category: string) => {
-    if (activeFilters.includes(category)) {
-      setActiveFilters(activeFilters.filter(filter => filter !== category));
+    if (category === '전체') {
+      setSelectedCategories(['전체']);
     } else {
-      setActiveFilters([...activeFilters, category]);
+      const newCategories = selectedCategories.includes(category)
+        ? selectedCategories.filter(c => c !== category)
+        : [...selectedCategories.filter(c => c !== '전체'), category];
+      
+      setSelectedCategories(newCategories.length === 0 ? ['전체'] : newCategories);
     }
   };
   
+  const handleRatingChange = (rating: number) => {
+    setSelectedRating(selectedRating === rating ? null : rating);
+  };
+  
+  const handleStatusChange = (status: string) => {
+    setSelectedStatus(
+      selectedStatus.includes(status)
+        ? selectedStatus.filter(s => s !== status)
+        : [...selectedStatus, status]
+    );
+  };
+  
   const removeFilter = (filter: string) => {
-    setActiveFilters(activeFilters.filter(f => f !== filter));
+    // Find which type of filter it is and remove it
+    if (categories.some(c => c.label === filter)) {
+      setSelectedCategories(selectedCategories.filter(c => c !== filter));
+    } else if (ratings.some(r => r.label === filter)) {
+      setSelectedRating(null);
+    } else if (statusOptions.some(s => s.label === filter)) {
+      setSelectedStatus(selectedStatus.filter(s => s !== filter));
+    } else if (filter.includes('~')) {
+      setPriceRange([0, 100000]);
+    }
   };
   
   const clearFilters = () => {
-    setActiveFilters([]);
+    setSelectedCategories(['전체']);
     setPriceRange([0, 100000]);
+    setSelectedRating(null);
+    setSelectedStatus([]);
   };
   
   const formatPrice = (price: number) => {
@@ -58,6 +143,15 @@ const ShoppingFilter = () => {
       currency: 'KRW',
       maximumFractionDigits: 0
     }).format(price);
+  };
+
+  const applyFilters = () => {
+    onFilterChange({
+      categories: selectedCategories,
+      priceRange,
+      rating: selectedRating,
+      status: selectedStatus
+    });
   };
 
   return (
@@ -80,7 +174,7 @@ const ShoppingFilter = () => {
         </div>
       )}
       
-      <Accordion type="multiple" defaultValue={["category", "price", "rating"]}>
+      <Accordion type="multiple" defaultValue={["category", "price", "rating", "status"]}>
         <AccordionItem value="category">
           <AccordionTrigger>카테고리</AccordionTrigger>
           <AccordionContent>
@@ -89,7 +183,7 @@ const ShoppingFilter = () => {
                 <div key={category.id} className="flex items-center space-x-2">
                   <Checkbox 
                     id={category.id} 
-                    checked={activeFilters.includes(category.label)}
+                    checked={selectedCategories.includes(category.label)}
                     onCheckedChange={() => handleCategoryChange(category.label)}
                   />
                   <Label 
@@ -109,10 +203,9 @@ const ShoppingFilter = () => {
           <AccordionContent>
             <div className="space-y-4">
               <Slider
-                defaultValue={[0, 100000]}
+                value={priceRange}
                 max={100000}
                 step={1000}
-                value={priceRange}
                 onValueChange={setPriceRange}
                 className="my-6"
               />
@@ -132,8 +225,8 @@ const ShoppingFilter = () => {
                 <div key={rating.id} className="flex items-center space-x-2">
                   <Checkbox 
                     id={rating.id}
-                    checked={activeFilters.includes(rating.label)}
-                    onCheckedChange={() => handleCategoryChange(rating.label)}
+                    checked={selectedRating === rating.value}
+                    onCheckedChange={() => handleRatingChange(rating.value)}
                   />
                   <Label htmlFor={rating.id} className="cursor-pointer">{rating.label}</Label>
                 </div>
@@ -146,36 +239,22 @@ const ShoppingFilter = () => {
           <AccordionTrigger>상태</AccordionTrigger>
           <AccordionContent>
             <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="bestseller"
-                  checked={activeFilters.includes('베스트셀러')}
-                  onCheckedChange={() => handleCategoryChange('베스트셀러')}
-                />
-                <Label htmlFor="bestseller" className="cursor-pointer">베스트셀러</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="new"
-                  checked={activeFilters.includes('신규')}
-                  onCheckedChange={() => handleCategoryChange('신규')}
-                />
-                <Label htmlFor="new" className="cursor-pointer">신규</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="discount"
-                  checked={activeFilters.includes('할인중')}
-                  onCheckedChange={() => handleCategoryChange('할인중')}
-                />
-                <Label htmlFor="discount" className="cursor-pointer">할인중</Label>
-              </div>
+              {statusOptions.map((option) => (
+                <div key={option.id} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={option.id}
+                    checked={selectedStatus.includes(option.label)}
+                    onCheckedChange={() => handleStatusChange(option.label)}
+                  />
+                  <Label htmlFor={option.id} className="cursor-pointer">{option.label}</Label>
+                </div>
+              ))}
             </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
       
-      <Button className="w-full mt-4">적용</Button>
+      <Button className="w-full mt-4" onClick={applyFilters}>적용</Button>
     </div>
   );
 };

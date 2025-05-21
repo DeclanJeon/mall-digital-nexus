@@ -1,7 +1,9 @@
+
 import React from "react";
-import { Heart, Star, User, BadgeCheck, ThumbsUp } from "lucide-react";
+import { Heart, Star, User, BadgeCheck, ThumbsUp, MessageSquare, Share } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 interface PeermallCardProps {
   id: string;
@@ -34,6 +36,35 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
   isRecommended = false,
   className,
 }) => {
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault(); // 링크 이동 방지
+    
+    if (navigator.share) {
+      navigator.share({
+        title: title,
+        text: `${title} - ${owner}의 피어몰`,
+        url: `${window.location.origin}/space/${id}`
+      }).catch(err => console.log('Error sharing', err));
+    } else {
+      // 클립보드에 복사
+      navigator.clipboard.writeText(`${window.location.origin}/space/${id}`)
+        .then(() => alert('링크가 클립보드에 복사되었습니다!'))
+        .catch(() => alert('링크 복사에 실패했습니다.'));
+    }
+  };
+  
+  const handleLike = (e: React.MouseEvent) => {
+    e.preventDefault(); // 링크 이동 방지
+    // 좋아요 기능 구현
+    console.log("좋아요:", id);
+  };
+
+  const handleMessage = (e: React.MouseEvent) => {
+    e.preventDefault(); // 링크 이동 방지
+    // 메시지 보내기 기능 구현
+    console.log("메시지 보내기:", id);
+  };
+
   return (
     <Link to={`/space/${id}`} className="block h-full">
       <div 
@@ -54,7 +85,7 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
           {/* === 뱃지 영역 === */}
           <div className="absolute top-2 left-2 flex gap-1 z-10">
             {isPopular && (
-              <span className="bg-accent-dark text-white text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow">
+              <span className="bg-yellow-500 text-white text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow">
                 <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
                 인기
               </span>
@@ -74,15 +105,26 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
           </div>
           {/* === 뱃지 영역 끝 === */}
 
-          <button 
-            className="absolute top-2 right-2 bg-white/80 p-1 rounded-full hover:bg-white transition-colors"
-            onClick={(e) => {
-              e.preventDefault(); // 링크 이동 방지
-              // 좋아요 기능 구현을 위한 자리
-            }}
-          >
-            <Heart className="h-4 w-4 text-gray-600" />
-          </button>
+          {/* Action buttons */}
+          <div className="absolute top-2 right-2 flex flex-col gap-2">
+            <Button 
+              variant="ghost"
+              size="icon"
+              className="bg-white/80 p-1 rounded-full hover:bg-white transition-colors"
+              onClick={handleLike}
+            >
+              <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
+            </Button>
+            
+            <Button 
+              variant="ghost"
+              size="icon"
+              className="bg-white/80 p-1 rounded-full hover:bg-white transition-colors"
+              onClick={handleShare}
+            >
+              <Share className="h-4 w-4 text-gray-600 hover:text-blue-500" />
+            </Button>
+          </div>
         </div>
 
         {/* Card content */}
@@ -107,6 +149,10 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
               <div className="flex items-center">
                 <Heart className="h-3 w-3 mr-0.5 text-gray-400" />
                 <span className="text-xs text-gray-500">{likes}</span>
+              </div>
+              <div className="flex items-center cursor-pointer" onClick={handleMessage}>
+                <MessageSquare className="h-3 w-3 mr-0.5 text-gray-400" />
+                <span className="text-xs text-gray-500">메시지</span>
               </div>
             </div>
             

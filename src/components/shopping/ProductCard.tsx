@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Star, ShoppingCart, Heart } from 'lucide-react';
+import { Star, Heart, MessageSquare, DollarSign, Share } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface ProductCardProps {
@@ -16,11 +16,13 @@ interface ProductCardProps {
   rating: number;
   reviewCount: number;
   peermallName: string;
-  peermallId?: string; // 추가: peermallId를 옵셔널 속성으로 정의
+  peermallId?: string;
   category: string;
   tags: string[];
   isBestSeller?: boolean;
   isNew?: boolean;
+  isRecommended?: boolean;
+  isCertified?: boolean;
   viewMode: 'grid' | 'list';
 }
 
@@ -34,11 +36,13 @@ const ProductCard = ({
   rating,
   reviewCount,
   peermallName,
-  peermallId, // 추가: props에서 받기
+  peermallId,
   category,
   tags,
   isBestSeller,
   isNew,
+  isRecommended,
+  isCertified,
   viewMode
 }: ProductCardProps) => {
   // Format price with Korean currency
@@ -51,6 +55,22 @@ const ProductCard = ({
   };
 
   const discountPercentage = discountPrice ? Math.round(((price - discountPrice) / price) * 100) : 0;
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (navigator.share) {
+      navigator.share({
+        title: title,
+        text: `${title} - ${formatPrice(discountPrice || price)}`,
+        url: window.location.origin + `/product/${id}`
+      }).catch(err => console.log('Error sharing', err));
+    } else {
+      // Fallback - copy to clipboard
+      navigator.clipboard.writeText(window.location.origin + `/product/${id}`)
+        .then(() => alert('링크가 클립보드에 복사되었습니다!'))
+        .catch(() => alert('링크 복사에 실패했습니다.'));
+    }
+  };
 
   return (
     <Card className={`overflow-hidden hover:shadow-lg transition-shadow border border-slate-100 ${
@@ -80,6 +100,15 @@ const ProductCard = ({
           {isNew && (
             <Badge className="bg-green-500 text-white">신규</Badge>
           )}
+          {isRecommended && (
+            <Badge className="bg-blue-600 text-white flex items-center gap-1">
+              <Star className="h-3 w-3 fill-current" />
+              추천
+            </Badge>
+          )}
+          {isCertified && (
+            <Badge className="bg-purple-600 text-white">인증</Badge>
+          )}
           {discountPrice && (
             <Badge className="bg-red-500 text-white">{discountPercentage}% 할인</Badge>
           )}
@@ -104,7 +133,8 @@ const ProductCard = ({
             <span className="text-text-200 text-xs">({reviewCount} 리뷰)</span>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-2">
+            <DollarSign className="h-4 w-4 text-accent-100" />
             {discountPrice ? (
               <>
                 <span className="font-bold">{formatPrice(discountPrice)}</span>
@@ -113,6 +143,11 @@ const ProductCard = ({
             ) : (
               <span className="font-bold">{formatPrice(price)}</span>
             )}
+          </div>
+          
+          <div className="flex items-center gap-2 mb-2">
+            <MessageSquare className="h-4 w-4 text-accent-100" />
+            <span className="text-sm">문의하기</span>
           </div>
           
           {/* Tags */}
@@ -128,10 +163,14 @@ const ProductCard = ({
         </CardContent>
         
         <CardFooter className={`${viewMode === 'list' ? 'px-0 mt-auto' : 'px-4 pb-4 pt-0'}`}>
-          <Button className="w-full flex items-center gap-2 bg-accent-100 hover:bg-accent-200">
-            <ShoppingCart className="h-4 w-4" />
-            장바구니
-          </Button>
+          <div className="flex w-full gap-2">
+            <Button className="flex-1 bg-accent-100 hover:bg-accent-200">
+              구매하기
+            </Button>
+            <Button variant="outline" size="icon" onClick={handleShare}>
+              <Share className="h-4 w-4" />
+            </Button>
+          </div>
         </CardFooter>
       </div>
     </Card>
