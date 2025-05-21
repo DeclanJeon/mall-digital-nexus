@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -27,7 +28,15 @@ import {
   List,
   Star,
   CalendarDays,
-  Image
+  Image,
+  Phone,
+  UserPlus,
+  ChevronLeft,
+  ChevronUp,
+  ChevronDown,
+  X,
+  ArrowUp,
+  Map
 } from 'lucide-react';
 import { createContent } from '@/services/contentService';
 import { getPeerSpaceContents } from '@/utils/peerSpaceStorage';
@@ -38,12 +47,216 @@ import ProductRegistrationForm from './products/ProductRegistrationForm';
 import EmptyState from './ui/EmptyState';
 import ProductCard from '../shopping/ProductCard';
 import BadgeSelector from './ui/BadgeSelector';
+import EcosystemMap from '../EcosystemMap';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+
+// Mock data generator utilities
+const generateRandomDate = () => {
+  const start = new Date(2025, 0, 1);
+  const end = new Date();
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime())).toISOString();
+};
+
+const generateRandomNumber = (min: number, max: number) => {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
+// Mock data for products
+const generateMockProducts = (count: number): Content[] => {
+  const categories = ['전자제품', '패션', '생활용품', '도서', '음식', '취미'];
+  const titles = [
+    '최신 스마트폰', '무선 이어폰', '슬림핏 청바지', '편안한 운동화', '다용도 선반',
+    '베스트셀러 소설', '프리미엄 노트북', '고급 손목시계', '친환경 수건 세트',
+    '유기농 차 세트', '프리미엄 커피머신', '휴대용 블루투스 스피커', '실내 공기청정기'
+  ];
+  
+  return Array(count).fill(null).map((_, idx) => {
+    const now = generateRandomDate();
+    return {
+      id: `prod-${Date.now()}-${idx}`,
+      peerSpaceAddress: 'mock-address',
+      title: titles[idx % titles.length],
+      description: `고품질 제품으로 여러분의 일상을 더욱 편리하게 만들어드립니다. 다양한 기능과 세련된 디자인으로 많은 사랑을 받고 있는 제품입니다.`,
+      imageUrl: `https://source.unsplash.com/random/300x300/?product&sig=${idx}`,
+      type: 'product',
+      date: now,
+      createdAt: now,
+      updatedAt: now,
+      price: generateRandomNumber(10000, 300000),
+      likes: generateRandomNumber(0, 200),
+      comments: generateRandomNumber(0, 50),
+      views: generateRandomNumber(100, 5000),
+      saves: generateRandomNumber(0, 100),
+      category: categories[idx % categories.length],
+      tags: ['신상품', '할인', '베스트'],
+      badges: [],
+      ecosystem: {},
+      attributes: {},
+      source: '',
+      externalUrl: '',
+      isExternal: false
+    };
+  });
+};
+
+// Mock data for posts
+const generateMockPosts = (count: number): Content[] => {
+  const categories = ['뉴스', '리뷰', '튜토리얼', '인터뷰', '에세이'];
+  const titles = [
+    '최신 트렌드 분석', '신제품 리뷰: 정말 기대 이상입니다', '초보자를 위한 가이드',
+    '전문가와의 대화', '사용자 경험 이야기', '업데이트된 기능 소개',
+    '비교 테스트: A제품 vs B제품', '알아두면 유용한 팁 10가지',
+    '업계 전문가의 인사이트', '디자인 철학에 대한 고찰'
+  ];
+  
+  return Array(count).fill(null).map((_, idx) => {
+    const now = generateRandomDate();
+    const isArticle = idx % 3 === 0;
+    return {
+      id: `post-${Date.now()}-${idx}`,
+      peerSpaceAddress: 'mock-address',
+      title: titles[idx % titles.length],
+      description: `이 글에서는 중요한 정보와 인사이트를 공유합니다. 전문가의 의견과 사용자 리뷰를 바탕으로 작성되었으며, 다양한 관점에서 분석한 내용을 담았습니다.`,
+      imageUrl: `https://source.unsplash.com/random/600x400/?blog&sig=${idx}`,
+      type: isArticle ? 'article' : 'post',
+      date: now,
+      createdAt: now,
+      updatedAt: now,
+      price: 0,
+      likes: generateRandomNumber(5, 300),
+      comments: generateRandomNumber(0, 100),
+      views: generateRandomNumber(100, 10000),
+      saves: generateRandomNumber(5, 200),
+      category: categories[idx % categories.length],
+      tags: ['인기글', '추천', '신규'],
+      badges: [],
+      ecosystem: {},
+      attributes: {},
+      source: '',
+      externalUrl: '',
+      isExternal: false
+    };
+  });
+};
+
+// 방명록 데이터
+const guestbookData = [
+  { id: 1, author: '방문자1', message: '멋진 피어몰입니다! 제품 품질이 정말 좋네요. 다음에 새로 나오는 제품도 구경하러 올게요.', date: '2025-05-21', profileImg: 'https://api.dicebear.com/7.x/personas/svg?seed=visitor1' },
+  { id: 2, author: '방문자2', message: '제품 품질이 좋아요. 배송도 빠르게 받았습니다. 다른 친구들에게도 추천했어요.', date: '2025-05-20', profileImg: 'https://api.dicebear.com/7.x/personas/svg?seed=visitor2' },
+  { id: 3, author: '방문자3', message: '다음에 또 방문할게요. 이곳은 항상 유익한 정보가 많아서 좋아요!', date: '2025-05-19', profileImg: 'https://api.dicebear.com/7.x/personas/svg?seed=visitor3' },
+  { id: 4, author: '방문자4', message: '운영자님 항상 좋은 컨텐츠 감사합니다. 매일 방문하고 있어요.', date: '2025-05-18', profileImg: 'https://api.dicebear.com/7.x/personas/svg?seed=visitor4' },
+  { id: 5, author: '방문자5', message: '최근에 구매한 제품이 너무 맘에 들어요! 다음 신상품도 기대할게요.', date: '2025-05-17', profileImg: 'https://api.dicebear.com/7.x/personas/svg?seed=visitor5' }
+];
+
+// 공지사항 데이터
+const notificationsData = [
+  { id: 1, title: '신규 기능 추가 안내', content: '피어몰에 새로운 기능이 추가되었습니다. 이제 더욱 편리하게 이용하실 수 있습니다.', date: '2025-05-20', important: true },
+  { id: 2, title: '여름 할인 이벤트 오픈', content: '여름 맞이 특별 할인 이벤트를 진행합니다. 최대 50%까지 할인된 가격으로 제품을 만나보세요.', date: '2025-05-18', important: true },
+  { id: 3, title: '커뮤니티 가이드라인 업데이트', content: '더 나은 소통 환경을 위해 커뮤니티 가이드라인이 업데이트되었습니다. 확인해주세요.', date: '2025-05-15', important: false },
+  { id: 4, title: '신규 파트너십 체결 소식', content: '새로운 파트너십을 통해 더 다양한 서비스를 제공할 예정입니다.', date: '2025-05-10', important: false }
+];
+
+// 알림 데이터
+const alertsData = [
+  { id: 1, title: '새로운 팔로워', message: '사용자 홍길동님이 팔로우했습니다', time: '1시간 전', type: 'follow', read: false },
+  { id: 2, title: '제품 리뷰', message: '제품 "무선 이어폰"에 새 리뷰가 달렸습니다', time: '3시간 전', type: 'review', read: false },
+  { id: 3, title: '업데이트 완료', message: '시스템 업데이트가 완료되었습니다', time: '어제', type: 'system', read: true },
+  { id: 4, title: '새 메시지', message: '김철수님으로부터 새 메시지가 도착했습니다', time: '2일 전', type: 'message', read: true },
+  { id: 5, title: '이벤트 알림', message: '참여하신 이벤트가 곧 종료됩니다', time: '3일 전', type: 'event', read: true }
+];
+
+// 광고 데이터
+const sponsorsData = [
+  { 
+    id: 1, 
+    title: '여름 특별 프로모션', 
+    description: '시원한 여름 맞이 특별 할인 행사', 
+    imageUrl: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=400', 
+    link: '#' 
+  },
+  { 
+    id: 2, 
+    title: '신제품 출시 기념 이벤트', 
+    description: '혁신적인 신제품을 만나보세요', 
+    imageUrl: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?q=80&w=400', 
+    link: '#' 
+  }
+];
+
+// 히어로 섹션 슬라이더 데이터
+const heroSlides = [
+  {
+    id: 1,
+    title: '새로운 시즌 컬렉션',
+    subtitle: '2025 여름 신상품 출시',
+    description: '트렌디한 디자인과 혁신적인 기술을 담은 신제품들을 지금 만나보세요.',
+    imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=1200',
+    buttonText: '지금 쇼핑하기',
+    buttonLink: '#'
+  },
+  {
+    id: 2,
+    title: '특별 프로모션',
+    subtitle: '이달의 특가 상품',
+    description: '한정된 시간 동안 최대 40% 할인된 가격으로 제공됩니다.',
+    imageUrl: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=1200',
+    buttonText: '할인 보러가기',
+    buttonLink: '#'
+  },
+  {
+    id: 3,
+    title: '회원 전용 혜택',
+    subtitle: '가입하고 특별한 혜택을 누리세요',
+    description: '멤버십 가입 시 첫 구매 15% 할인 및 무료 배송 혜택을 드립니다.',
+    imageUrl: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1200',
+    buttonText: '가입하기',
+    buttonLink: '#'
+  }
+];
+
+// 팔로잉 피어몰 데이터
+const followingPeermalls = [
+  { 
+    id: 'peermall-1', 
+    title: '디자인 스튜디오', 
+    owner: '김디자이너', 
+    profileImage: 'https://api.dicebear.com/7.x/personas/svg?seed=design', 
+    followers: 1240, 
+    description: '창의적인 디자인과 브랜딩 서비스를 제공합니다.'
+  },
+  { 
+    id: 'peermall-2', 
+    title: '테크 솔루션', 
+    owner: '이개발자', 
+    profileImage: 'https://api.dicebear.com/7.x/personas/svg?seed=tech', 
+    followers: 980, 
+    description: 'IT 솔루션과 개발 서비스를 전문으로 합니다.'
+  },
+  { 
+    id: 'peermall-3', 
+    title: '유기농 식품점', 
+    owner: '박농부', 
+    profileImage: 'https://api.dicebear.com/7.x/personas/svg?seed=organic', 
+    followers: 560, 
+    description: '건강한 유기농 식품을 직접 농장에서 배송합니다.'
+  },
+  { 
+    id: 'peermall-4', 
+    title: '공예품 공방', 
+    owner: '정공예가', 
+    profileImage: 'https://api.dicebear.com/7.x/personas/svg?seed=craft', 
+    followers: 340, 
+    description: '전통과 현대가 어우러진 수제 공예품을 제작합니다.'
+  }
+];
 
 interface PeerSpaceHomeProps {
   isOwner: boolean;
   address: string;
   config: PeerMallConfig;
   onUpdateConfig: (updatedConfig: PeerMallConfig) => void;
+  activeSection: 'home' | 'content' | 'community' | 'following' | 'guestbook';
+  onNavigateToSection: (section: 'home' | 'content' | 'community' | 'following' | 'guestbook') => void;
 }
 
 // Save section order to localStorage
@@ -70,9 +283,10 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   isOwner, 
   address,
   config,
-  onUpdateConfig 
+  onUpdateConfig,
+  activeSection,
+  onNavigateToSection
 }) => {
-  const navigate = useNavigate();
   const location = useLocation();
   const [showQRModal, setShowQRModal] = useState(false);
   const [contents, setContents] = useState<Content[]>([]);
@@ -89,33 +303,29 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   );
   const { activeTab, handleTabChange } = usePeerSpaceTabs('product');
   const [searchQuery, setSearchQuery] = useState('');
-
-  // 가상의 공지사항 데이터
-  const notifications = [
-    { id: 1, title: '신규 기능 추가 안내', date: '2025-05-20' },
-    { id: 2, title: '여름 할인 이벤트 오픈', date: '2025-05-18' },
-    { id: 3, title: '커뮤니티 가이드라인 업데이트', date: '2025-05-15' }
-  ];
-  
-  // 가상의 방명록 데이터
-  const guestbookEntries = [
-    { id: 1, author: '방문자1', message: '멋진 피어몰입니다!', date: '2025-05-21' },
-    { id: 2, author: '방문자2', message: '제품 품질이 좋아요', date: '2025-05-20' },
-    { id: 3, author: '방문자3', message: '다음에 또 방문할게요', date: '2025-05-19' }
-  ];
-  
-  // 가상의 알림 데이터
-  const alerts = [
-    { id: 1, title: '새로운 팔로워', message: '사용자 홍길동님이 팔로우했습니다', time: '1시간 전' },
-    { id: 2, title: '제품 리뷰', message: '제품 "무선 이어폰"에 새 리뷰가 달렸습니다', time: '3시간 전' },
-    { id: 3, title: '업데이트 완료', message: '시스템 업데이트가 완료되었습니다', time: '어제' }
-  ];
+  const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
+  const [showWidgets, setShowWidgets] = useState(true);
+  const [showMapModal, setShowMapModal] = useState(false);
 
   useEffect(() => {
     const loadContents = async () => {
       if (address) {
         try {
-          const loadedContents = await getPeerSpaceContents(address);
+          // 실제 데이터 로딩
+          let loadedContents = await getPeerSpaceContents(address);
+          
+          // 데이터가 없으면 더미 데이터로 대체
+          if (!loadedContents || loadedContents.length === 0) {
+            const mockProducts = generateMockProducts(8);
+            const mockPosts = generateMockPosts(12);
+            loadedContents = [...mockProducts, ...mockPosts];
+            
+            // 더미 데이터 저장 (실제 앱에서는 필요 없을 수 있음)
+            for (const content of loadedContents) {
+              await add('contents', content);
+            }
+          }
+          
           setContents(loadedContents);
           
           // 제품과 게시물 분류
@@ -134,10 +344,26 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
           }
         } catch (error) {
           console.error("Error loading contents:", error);
+          
+          // 오류 시 더미 데이터 사용
+          const mockProducts = generateMockProducts(8);
+          const mockPosts = generateMockPosts(12);
+          const dummyContents = [...mockProducts, ...mockPosts];
+          
+          setContents(dummyContents);
+          setProducts(mockProducts);
+          setPosts(mockPosts);
         }
       }
     };
     loadContents();
+    
+    // 히어로 슬라이드 자동 전환
+    const slideInterval = setInterval(() => {
+      setCurrentHeroSlide(prev => (prev + 1) % heroSlides.length);
+    }, 5000);
+    
+    return () => clearInterval(slideInterval);
   }, [address, config.sections]);
 
   useEffect(() => {
@@ -271,6 +497,22 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
     toast({ title: "메시지 보내기", description: "메시지 창이 열렸습니다." });
   };
 
+  const handleAddToFavorites = () => {
+    toast({ title: "찜하기 완료", description: "관심 목록에 추가되었습니다." });
+  };
+
+  const handleCall = () => {
+    toast({ title: "통화 연결", description: "통화 연결을 시도합니다." });
+  };
+
+  const handleAddFriend = () => {
+    toast({ title: "친구 추가", description: "친구 요청을 보냈습니다." });
+  };
+  
+  const handleOpenMap = () => {
+    setShowMapModal(true);
+  };
+
   const handleQRGenerate = () => setShowQRModal(true);
   const handleShowProductForm = () => setShowProductForm(true);
   const handleShowSettings = () => setShowSettingsModal(true);
@@ -362,6 +604,22 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       </DialogContent>
     </Dialog>
   );
+  
+  const renderMapModal = () => (
+    <Dialog open={showMapModal} onOpenChange={setShowMapModal} className="max-w-5xl">
+      <DialogContent className="max-w-5xl max-h-[90vh]">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold flex items-center">
+            <MapPin className="w-5 h-5 mr-2 text-blue-500" />
+            피어맵
+          </DialogTitle>
+        </DialogHeader>
+        <div className="h-[70vh] w-full overflow-hidden rounded-lg">
+          <EcosystemMap />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 
   // 새 UI를 위한 필터된 콘텐츠
   const filteredProducts = products.filter(product => 
@@ -374,9 +632,556 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
     post.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // 위젯 토글 함수
+  const toggleWidgets = () => setShowWidgets(!showWidgets);
+
   if (!address) {
     return <div className="container mx-auto p-6"><EmptyState title="404 - 피어스페이스를 찾을 수 없습니다" description="올바른 피어스페이스 주소인지 확인해주세요." /></div>;
   }
+
+  const renderHomeSection = () => (
+    <>
+      {/* 히어로 섹션 */}
+      <section className="relative mb-8 rounded-xl overflow-hidden h-[400px] shadow-lg">
+        {heroSlides.map((slide, index) => (
+          <div 
+            key={slide.id}
+            className={`absolute inset-0 transition-opacity duration-700 ${
+              currentHeroSlide === index ? 'opacity-100 z-10' : 'opacity-0 z-0'
+            }`}
+            style={{
+              backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.4)), url(${slide.imageUrl})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
+          >
+            <div className="container mx-auto h-full flex flex-col justify-center px-8">
+              <div className="max-w-lg">
+                <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-xs uppercase">{slide.subtitle}</span>
+                <h1 className="text-4xl font-bold text-white mt-4 mb-3">{slide.title}</h1>
+                <p className="text-white/80 mb-6 text-lg">{slide.description}</p>
+                <Button className="bg-white text-blue-700 hover:bg-blue-50">{slide.buttonText}</Button>
+              </div>
+            </div>
+          </div>
+        ))}
+        
+        {/* Slider controls */}
+        <div className="absolute bottom-5 right-5 z-20 flex space-x-2">
+          {heroSlides.map((_, index) => (
+            <button
+              key={`dot-${index}`}
+              className={`w-3 h-3 rounded-full ${
+                currentHeroSlide === index ? 'bg-white' : 'bg-white/40'
+              }`}
+              onClick={() => setCurrentHeroSlide(index)}
+            />
+          ))}
+        </div>
+        
+        {/* Badges */}
+        <div className="absolute top-4 right-4 z-20 flex flex-wrap gap-2 max-w-[200px]">
+          {config.badges.map((badge, i) => (
+            <Badge key={i} className="bg-white/90 text-blue-800 shadow-sm">{badge}</Badge>
+          ))}
+        </div>
+      </section>
+
+      {/* 제품/콘텐츠 섹션 */}
+      <section className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="p-6 border-b">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">제품/콘텐츠</h2>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={currentView === 'blog' ? 'bg-gray-100' : ''}
+                onClick={() => setCurrentView('blog')}
+              >
+                <Grid2X2 className="w-4 h-4 mr-1" />
+                블로그형
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={currentView === 'list' ? 'bg-gray-100' : ''}
+                onClick={() => setCurrentView('list')}
+              >
+                <List className="w-4 h-4 mr-1" />
+                리스트형
+              </Button>
+              {isOwner && (
+                <Button variant="outline" size="sm" onClick={handleShowProductForm}>
+                  제품 추가
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <div className="p-6">
+          {filteredProducts.length > 0 ? (
+            <div className={currentView === 'blog' 
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
+              : "space-y-4"
+            }>
+              {filteredProducts.slice(0, 8).map((product) => (
+                <div key={product.id}>
+                  <ProductCard
+                    id={product.id}
+                    title={product.title}
+                    description={product.description}
+                    price={Number(product.price || 0)}
+                    discountPrice={null}
+                    imageUrl={product.imageUrl}
+                    rating={4.5}
+                    reviewCount={10}
+                    peermallName={config.title}
+                    peermallId={address}
+                    category={product.category || '기타'}
+                    tags={product.tags || []}
+                    viewMode={currentView === 'blog' ? 'grid' : 'list'}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">등록된 제품이 없습니다.</p>
+              {isOwner && (
+                <Button onClick={handleShowProductForm} className="mt-2">
+                  첫 제품 등록하기
+                </Button>
+              )}
+            </div>
+          )}
+          
+          {filteredProducts.length > 8 && (
+            <div className="mt-6 text-center">
+              <Button variant="outline" onClick={() => onNavigateToSection('content')}>
+                더 보기 <ChevronRight className="ml-1 w-4 h-4" />
+              </Button>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* 게시글 섹션 - 첨부 이미지 스타일 참고하여 개선 */}
+      <section className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="p-6 border-b flex justify-between items-center">
+          <h2 className="text-xl font-bold">최신 게시글</h2>
+          <Button variant="outline" size="sm" onClick={() => onNavigateToSection('community')}>
+            모든 게시글 보기
+          </Button>
+        </div>
+        
+        <div className="p-6">
+          {filteredPosts.length > 0 ? (
+            <>
+              {/* 블로그형 주요 게시물 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {filteredPosts.slice(0, 4).map((post) => (
+                  <Card key={post.id} className="overflow-hidden hover:shadow-md transition-shadow group">
+                    <div className="h-40 relative overflow-hidden bg-gray-200">
+                      {post.imageUrl ? (
+                        <>
+                          <img 
+                            src={post.imageUrl} 
+                            alt={post.title} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                          />
+                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                          <FileText className="w-12 h-12" />
+                        </div>
+                      )}
+                      
+                      <div className="absolute top-2 left-2">
+                        {post.tags && post.tags.length > 0 && (
+                          <Badge variant="secondary" className="bg-white/90 text-gray-800 shadow-sm">{post.tags[0]}</Badge>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <CardContent className="p-4">
+                      <h3 className="font-bold text-base line-clamp-2 mb-1">{post.title}</h3>
+                      <p className="text-xs text-gray-500 line-clamp-2 mb-3">{post.description}</p>
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <span className="flex items-center"><Heart className="w-3 h-3 mr-1" />{post.likes}</span>
+                          <span className="flex items-center"><MessageSquare className="w-3 h-3 mr-1" />{post.comments}</span>
+                        </div>
+                        <span>{new Date(post.date).toLocaleDateString()}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              
+              {/* 리스트형 게시물 */}
+              <div>
+                <h3 className="font-bold text-lg mb-3 pl-2 border-l-4 border-blue-500">인기 게시글</h3>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  {filteredPosts.slice(4, 9).map((post) => (
+                    <div key={post.id} className="flex items-center justify-between p-3 hover:bg-white rounded-lg transition-colors cursor-pointer mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
+                          {post.imageUrl ? (
+                            <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <FileText className="w-6 h-6 text-gray-400" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-sm truncate">{post.title}</h3>
+                          <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                            <span>{new Date(post.date).toLocaleDateString()}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="flex items-center"><Heart className="w-3 h-3 mr-1" />{post.likes}</span>
+                              <span className="flex items-center"><MessageSquare className="w-3 h-3 mr-1" />{post.comments}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {filteredPosts.length > 9 && (
+                <div className="mt-6 text-center">
+                  <Button variant="outline" onClick={() => onNavigateToSection('community')}>
+                    더 보기 <ChevronRight className="ml-1 w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">등록된 게시물이 없습니다.</p>
+              {isOwner && (
+                <Button className="mt-2">
+                  첫 게시물 작성하기
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+            
+      {/* 방명록 섹션 */}
+      <section className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="p-6 border-b flex justify-between items-center">
+          <h2 className="text-xl font-bold">방명록</h2>
+          <Button variant="outline" size="sm" onClick={() => onNavigateToSection('guestbook')}>
+            전체 방명록 보기
+          </Button>
+        </div>
+        
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {guestbookData.slice(0, 4).map(entry => (
+              <Card key={entry.id} className="bg-gray-50 border-0">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 font-medium overflow-hidden">
+                      <img src={entry.profileImg} alt={entry.author} className="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">{entry.author}</h4>
+                      <span className="text-xs text-gray-500">{entry.date}</span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-700">{entry.message}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          <div className="bg-gray-50 rounded-xl p-4">
+            <textarea 
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              placeholder="방명록을 남겨보세요..."
+              rows={3}
+            ></textarea>
+            <div className="mt-2 flex justify-end">
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Mail className="w-4 h-4 mr-2" />
+                방명록 남기기
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+  
+  const renderContentSection = () => (
+    <div className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="p-6 border-b">
+        <h2 className="text-xl font-bold">제품 & 콘텐츠</h2>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 cursor-pointer">전체</Badge>
+          <Badge variant="outline" className="hover:bg-blue-50 cursor-pointer">전자제품</Badge>
+          <Badge variant="outline" className="hover:bg-blue-50 cursor-pointer">패션</Badge>
+          <Badge variant="outline" className="hover:bg-blue-50 cursor-pointer">생활용품</Badge>
+          <Badge variant="outline" className="hover:bg-blue-50 cursor-pointer">도서</Badge>
+          <Badge variant="outline" className="hover:bg-blue-50 cursor-pointer">음식</Badge>
+          <Badge variant="outline" className="hover:bg-blue-50 cursor-pointer">취미</Badge>
+        </div>
+      </div>
+      
+      <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className={currentView === 'blog' ? 'bg-gray-100' : ''}
+            onClick={() => setCurrentView('blog')}
+          >
+            <Grid2X2 className="w-4 h-4 mr-1" />
+            블로그형
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className={currentView === 'list' ? 'bg-gray-100' : ''}
+            onClick={() => setCurrentView('list')}
+          >
+            <List className="w-4 h-4 mr-1" />
+            리스트형
+          </Button>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <select className="p-2 border rounded text-sm">
+            <option>최신순</option>
+            <option>인기순</option>
+            <option>가격 낮은순</option>
+            <option>가격 높은순</option>
+          </select>
+          
+          {isOwner && (
+            <Button variant="outline" size="sm" onClick={handleShowProductForm}>
+              제품 추가
+            </Button>
+          )}
+        </div>
+      </div>
+      
+      <div className="p-6">
+        {filteredProducts.length > 0 ? (
+          <div className={currentView === 'blog' 
+            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
+            : "space-y-4"
+          }>
+            {filteredProducts.map((product) => (
+              <div key={product.id}>
+                <ProductCard
+                  id={product.id}
+                  title={product.title}
+                  description={product.description}
+                  price={Number(product.price || 0)}
+                  discountPrice={null}
+                  imageUrl={product.imageUrl}
+                  rating={4.5}
+                  reviewCount={10}
+                  peermallName={config.title}
+                  peermallId={address}
+                  category={product.category || '기타'}
+                  tags={product.tags || []}
+                  viewMode={currentView === 'blog' ? 'grid' : 'list'}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-500">등록된 제품이 없습니다.</p>
+            {isOwner && (
+              <Button onClick={handleShowProductForm} className="mt-2">
+                첫 제품 등록하기
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+  
+  const renderCommunitySection = () => (
+    <div className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="p-6 border-b flex justify-between items-center">
+        <h2 className="text-xl font-bold">커뮤니티</h2>
+        <Button variant="outline" size="sm">글쓰기</Button>
+      </div>
+      
+      <div className="p-6">
+        {filteredPosts.length > 0 ? (
+          <div className="space-y-4">
+            {filteredPosts.map((post) => (
+              <Card key={post.id} className="overflow-hidden hover:bg-gray-50 transition-colors cursor-pointer">
+                <div className="flex md:items-center p-4 flex-col md:flex-row gap-4">
+                  <div className="md:w-1/3 w-full h-48 md:h-32 rounded-md overflow-hidden bg-gray-100">
+                    {post.imageUrl ? (
+                      <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                        <FileText className="w-10 h-10 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="md:w-2/3 w-full">
+                    <div className="flex items-center gap-2 mb-2">
+                      {post.tags && post.tags.map((tag, i) => (
+                        <Badge key={i} variant="secondary" className="bg-gray-100">{tag}</Badge>
+                      ))}
+                      <span className="text-xs text-gray-500">{post.category}</span>
+                    </div>
+                    
+                    <h3 className="font-bold text-lg mb-2 line-clamp-1">{post.title}</h3>
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-3">{post.description}</p>
+                    
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <div className="flex items-center gap-4">
+                        <span className="flex items-center"><Heart className="w-4 h-4 mr-1" />{post.likes}</span>
+                        <span className="flex items-center"><MessageSquare className="w-4 h-4 mr-1" />{post.comments}</span>
+                        <span className="flex items-center"><User className="w-4 h-4 mr-1" />{config.owner}</span>
+                      </div>
+                      <span>{new Date(post.date).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-500">등록된 게시물이 없습니다.</p>
+            {isOwner && (
+              <Button className="mt-2">
+                첫 게시물 작성하기
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+  
+  const renderFollowingSection = () => (
+    <div className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="p-6 border-b">
+        <h2 className="text-xl font-bold">팔로잉 피어몰</h2>
+      </div>
+      
+      <div className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {followingPeermalls.length > 0 ? (
+            followingPeermalls.map(mall => (
+              <Card key={mall.id} className="overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
+                      <img src={mall.profileImage} alt={mall.title} className="w-full h-full object-cover" />
+                    </div>
+                    
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg mb-1">{mall.title}</h3>
+                      <p className="text-sm text-gray-500 mb-2">
+                        <span className="font-medium">{mall.owner}</span> · 팔로워 {mall.followers.toLocaleString()}명
+                      </p>
+                      <p className="text-sm text-gray-600 line-clamp-2">{mall.description}</p>
+                      
+                      <div className="mt-3 flex gap-2">
+                        <Button variant="outline" size="sm">
+                          <User className="w-4 h-4 mr-1" />
+                          방문하기
+                        </Button>
+                        <Button variant="secondary" size="sm">
+                          <MessageSquare className="w-4 h-4 mr-1" />
+                          메시지
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <div className="col-span-2 text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium mb-2">아직 팔로우 중인 피어몰이 없습니다</h3>
+              <p className="text-gray-500 mb-4">관심 있는 피어몰을 찾아 팔로우 해보세요.</p>
+              <Button>
+                <Search className="w-4 h-4 mr-2" />
+                피어몰 찾기
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+  
+  const renderGuestbookSection = () => (
+    <div className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="p-6 border-b">
+        <h2 className="text-xl font-bold">방명록</h2>
+      </div>
+      
+      <div className="p-6">
+        <div className="mb-6">
+          <h3 className="text-lg font-medium mb-4">방명록 남기기</h3>
+          <div className="bg-gray-50 rounded-xl p-6">
+            <textarea 
+              className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              placeholder="방명록을 남겨보세요..."
+              rows={4}
+            ></textarea>
+            <div className="mt-3 flex justify-between items-center">
+              <div className="text-sm text-gray-500">
+                로그인하지 않은 경우 이름이 '익명'으로 표시됩니다.
+              </div>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Mail className="w-4 h-4 mr-2" />
+                방명록 남기기
+              </Button>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-8">
+          <h3 className="text-lg font-medium mb-4">모든 방명록</h3>
+          <div className="space-y-4">
+            {guestbookData.map(entry => (
+              <Card key={entry.id} className="bg-white">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 rounded-full overflow-hidden">
+                      <img src={entry.profileImg} alt={entry.author} className="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-lg">{entry.author}</h4>
+                      <span className="text-sm text-gray-500">{entry.date}</span>
+                    </div>
+                  </div>
+                  <p className="text-gray-700">{entry.message}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 flex">
@@ -404,34 +1209,49 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
           <nav className="flex-1 overflow-y-auto py-4 px-3">
             <ul className="space-y-2">
               <li>
-                <Link to={`/space/${address}`} className={`flex items-center p-2 rounded-lg ${location.pathname === `/space/${address}` ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}>
+                <button 
+                  onClick={() => onNavigateToSection('home')}
+                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'home' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                >
                   <Home className="w-5 h-5 mr-3" />
                   <span>홈</span>
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to={`/space/${address}/content`} className={`flex items-center p-2 rounded-lg ${location.pathname.includes('/content') ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}>
+                <button 
+                  onClick={() => onNavigateToSection('content')}
+                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'content' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                >
                   <FileText className="w-5 h-5 mr-3" />
                   <span>제품/콘텐츠</span>
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to={`/space/${address}/community`} className={`flex items-center p-2 rounded-lg ${location.pathname.includes('/community') ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}>
+                <button 
+                  onClick={() => onNavigateToSection('community')}
+                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'community' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                >
                   <MessageSquare className="w-5 h-5 mr-3" />
                   <span>커뮤니티</span>
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to={`/space/${address}/following`} className={`flex items-center p-2 rounded-lg ${location.pathname.includes('/following') ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}>
+                <button 
+                  onClick={() => onNavigateToSection('following')}
+                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'following' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                >
                   <Users className="w-5 h-5 mr-3" />
                   <span>팔로잉 피어몰</span>
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to={`/space/${address}/guestbook`} className={`flex items-center p-2 rounded-lg ${location.pathname.includes('/guestbook') ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}>
+                <button 
+                  onClick={() => onNavigateToSection('guestbook')}
+                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'guestbook' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                >
                   <Mail className="w-5 h-5 mr-3" />
                   <span>방명록</span>
-                </Link>
+                </button>
               </li>
               
               <li className="pt-4 mt-4 border-t">
@@ -454,7 +1274,9 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
           <div className="border-t p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gray-200"></div>
+                <div className="w-8 h-8 rounded-full bg-gray-200">
+                  <img src="https://api.dicebear.com/7.x/personas/svg?seed=current-user" alt="User" className="w-full h-full rounded-full" />
+                </div>
                 <div>
                   <p className="text-sm font-medium">{isOwner ? '내 계정' : '게스트'}</p>
                   <p className="text-xs text-gray-500">{isOwner ? '관리자' : '방문자'}</p>
@@ -470,358 +1292,146 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
 
       {/* 메인 콘텐츠 영역 */}
       <div className="ml-64 flex-1">
-        {/* 히어로 섹션 */}
-        <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8 relative">
-          <div className="container mx-auto">
-            <div className="flex flex-col lg:flex-row items-start gap-6">
-              <div className="lg:w-2/3 z-10">
-                <div className="flex items-center gap-2 mb-3">
-                  <h1 className="text-3xl font-bold">{config.title}</h1>
-                  {config.isVerified && (
-                    <Badge className="bg-white text-blue-600 hover:bg-blue-50">
-                      <Star className="w-3 h-3 mr-1 fill-current" />
-                      인증됨
-                    </Badge>
-                  )}
-                  {config.badges.map((badge, index) => (
-                    <Badge key={index} variant="secondary">{badge}</Badge>
-                  ))}
-                </div>
-                <p className="mb-4 text-lg opacity-90">{config.description}</p>
-                <div className="flex items-center gap-3 mb-6 text-sm">
-                  <span className="flex items-center">
-                    <User className="w-4 h-4 mr-1" />
-                    {config.owner}
-                  </span>
-                  <span className="flex items-center">
-                    <CalendarDays className="w-4 h-4 mr-1" />
-                    {new Date(config.createdAt).toLocaleDateString()}
-                  </span>
-                  <span className="flex items-center">
-                    <Users className="w-4 h-4 mr-1" />
-                    팔로워 {config.followers}
-                  </span>
-                </div>
-                
-                <div className="flex flex-wrap gap-3">
-                  {!isOwner && (
-                    <>
-                      <Button onClick={handleFollow} variant="secondary" size="sm">
-                        <Heart className="mr-1 h-4 w-4" />
-                        팔로우
-                      </Button>
-                      <Button onClick={handleMessage} variant="secondary" size="sm">
-                        <MessageSquare className="mr-1 h-4 w-4" />
-                        메시지
-                      </Button>
-                    </>
-                  )}
-                  {isOwner && (
-                    <Button onClick={handleShowProductForm} variant="secondary" size="sm">
-                      <FileText className="mr-1 h-4 w-4" />
-                      제품 등록
-                    </Button>
-                  )}
-                  <Button onClick={handleShare} variant="outline" size="sm" className="bg-white/10 border-white/20">
-                    <Share2 className="mr-1 h-4 w-4" />
-                    공유
-                  </Button>
-                  <Button onClick={handleQRGenerate} variant="outline" size="sm" className="bg-white/10 border-white/20">
-                    <QrCode className="mr-1 h-4 w-4" />
-                    QR코드
-                  </Button>
-                  {!isOwner && (
-                    <BadgeSelector onBadgeAdd={handleAddBadge} currentBadges={config.badges} />
-                  )}
-                </div>
-              </div>
-              
-              <div className="lg:w-1/3 relative">
-                <div className="aspect-[16/9] rounded-lg overflow-hidden bg-black/20 backdrop-blur">
-                  {config.coverImage ? (
-                    <img src={config.coverImage} alt="Cover" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Image className="w-12 h-12 text-white/50" />
-                    </div>
-                  )}
-                </div>
-                {isOwner && (
-                  <Button size="sm" variant="secondary" className="absolute bottom-2 right-2 opacity-80 hover:opacity-100">
-                    <Image className="mr-1 h-4 w-4" />
-                    커버 변경
-                  </Button>
-                )}
-              </div>
-            </div>
+        {/* 상단 검색 영역 */}
+        <div className="sticky top-0 z-10 bg-white shadow-sm p-4 flex justify-between items-center">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none w-5 h-5" />
+            <input 
+              type="text" 
+              placeholder="제품, 콘텐츠, 게시물 검색..." 
+              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-          
-          {/* 반투명 패턴 오버레이 */}
-          <div className="absolute inset-0 bg-blue-500 opacity-10" style={{ 
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` 
-          }}></div>
-        </section>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={handleQRGenerate}>
+              <QrCode className="w-5 h-5" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleShare}>
+              <Share2 className="w-5 h-5" />
+            </Button>
+            {isOwner && (
+              <Button variant="ghost" size="sm" onClick={handleShowSettings}>
+                <Settings className="w-5 h-5" />
+              </Button>
+            )}
+          </div>
+        </div>
 
-        <div className="flex">
+        <div className="flex p-6">
           {/* 메인 콘텐츠 영역 */}
-          <div className="flex-1 p-6">
-            {/* 검색 바 */}
-            <div className="mb-6 relative">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none w-5 h-5" />
-                <input 
-                  type="text" 
-                  placeholder="제품, 콘텐츠, 게시물 검색..." 
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* 제품/콘텐츠 섹션 */}
-            <section className="mb-8 bg-white rounded-lg shadow p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">제품/콘텐츠</h2>
-                <div className="flex items-center gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className={currentView === 'blog' ? 'bg-gray-100' : ''}
-                    onClick={() => setCurrentView('blog')}
-                  >
-                    <Grid2X2 className="w-4 h-4 mr-1" />
-                    블로그형
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className={currentView === 'list' ? 'bg-gray-100' : ''}
-                    onClick={() => setCurrentView('list')}
-                  >
-                    <List className="w-4 h-4 mr-1" />
-                    리스트형
-                  </Button>
-                  {isOwner && (
-                    <Button variant="outline" size="sm" onClick={handleShowProductForm}>
-                      제품 추가
-                    </Button>
-                  )}
-                </div>
-              </div>
-              
-              {filteredProducts.length > 0 ? (
-                <div className={currentView === 'blog' 
-                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6" 
-                  : "space-y-4"
-                }>
-                  {filteredProducts.slice(0, 6).map((product) => (
-                    <div key={product.id}>
-                      <ProductCard
-                        id={product.id}
-                        title={product.title}
-                        description={product.description}
-                        price={Number(product.price || 0)}
-                        discountPrice={null}
-                        imageUrl={product.imageUrl}
-                        rating={4.5}
-                        reviewCount={10}
-                        peermallName={config.title}
-                        peermallId={address}
-                        category={product.category || '기타'}
-                        tags={product.tags || []}
-                        viewMode={currentView === 'blog' ? 'grid' : 'list'}
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">등록된 제품이 없습니다.</p>
-                  {isOwner && (
-                    <Button onClick={handleShowProductForm} className="mt-2">
-                      첫 제품 등록하기
-                    </Button>
-                  )}
-                </div>
-              )}
-              
-              {filteredProducts.length > 6 && (
-                <div className="mt-4 text-center">
-                  <Button variant="outline">더 보기 <ChevronRight className="ml-1 w-4 h-4" /></Button>
-                </div>
-              )}
-            </section>
-
-            {/* 게시글 섹션 */}
-            <section className="mb-8 bg-white rounded-lg shadow p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">게시글</h2>
-                <Button variant="outline" size="sm">
-                  모든 게시글 보기
-                </Button>
-              </div>
-              
-              {/* 블로그형 게시물 (상위에 노출) */}
-              {filteredPosts.length > 0 ? (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-                    {filteredPosts.slice(0, 4).map((post) => (
-                      <div key={post.id} className="bg-gray-50 rounded-lg overflow-hidden border hover:shadow-md transition-shadow">
-                        <div className="h-32 bg-gray-200 relative">
-                          {post.imageUrl ? (
-                            <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
-                              <FileText className="w-8 h-8" />
-                            </div>
-                          )}
-                          {post.tags && post.tags.length > 0 && (
-                            <Badge className="absolute top-2 left-2">{post.tags[0]}</Badge>
-                          )}
-                        </div>
-                        <div className="p-3">
-                          <h3 className="font-medium text-sm line-clamp-1">{post.title}</h3>
-                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">{post.description}</p>
-                          <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
-                            <span>{new Date(post.date).toLocaleDateString()}</span>
-                            <span className="flex items-center"><MessageSquare className="w-3 h-3 mr-1" />{post.comments}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                
-                  {/* 리스트형 게시물 (하단에 노출) */}
-                  <div className="space-y-2">
-                    {filteredPosts.slice(4, 9).map((post) => (
-                      <div key={post.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
-                            {post.imageUrl ? (
-                              <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover rounded" />
-                            ) : (
-                              <FileText className="w-6 h-6 text-gray-400" />
-                            )}
-                          </div>
-                          <div>
-                            <h3 className="font-medium text-sm">{post.title}</h3>
-                            <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
-                              <span>{new Date(post.date).toLocaleDateString()}</span>
-                              <span className="flex items-center"><MessageSquare className="w-3 h-3 mr-1" />{post.comments}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-gray-400" />
-                      </div>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">등록된 게시물이 없습니다.</p>
-                  {isOwner && (
-                    <Button className="mt-2">
-                      첫 게시물 작성하기
-                    </Button>
-                  )}
-                </div>
-              )}
-              
-              {filteredPosts.length > 9 && (
-                <div className="mt-4 text-center">
-                  <Button variant="outline">더 보기 <ChevronRight className="ml-1 w-4 h-4" /></Button>
-                </div>
-              )}
-            </section>
-            
-            {/* 방명록 섹션 */}
-            <section className="mb-8 bg-white rounded-lg shadow p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">방명록</h2>
-                <Button variant="outline" size="sm">
-                  전체 방명록 보기
-                </Button>
-              </div>
-              
-              <div className="space-y-4">
-                {guestbookEntries.map(entry => (
-                  <div key={entry.id} className="p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 font-medium">
-                        {entry.author.charAt(0)}
-                      </div>
-                      <div>
-                        <h4 className="font-medium">{entry.author}</h4>
-                        <span className="text-xs text-gray-500">{entry.date}</span>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-700">{entry.message}</p>
-                  </div>
-                ))}
-                
-                <div className="mt-4">
-                  <textarea 
-                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="방명록을 남겨보세요..."
-                    rows={3}
-                  ></textarea>
-                  <div className="mt-2 flex justify-end">
-                    <Button>남기기</Button>
-                  </div>
-                </div>
-              </div>
-            </section>
+          <div className="flex-1 pr-6">
+            {activeSection === 'home' && renderHomeSection()}
+            {activeSection === 'content' && renderContentSection()}
+            {activeSection === 'community' && renderCommunitySection()}
+            {activeSection === 'following' && renderFollowingSection()}
+            {activeSection === 'guestbook' && renderGuestbookSection()}
           </div>
 
           {/* 오른쪽 사이드바 */}
-          <div className="w-80 p-6 border-l border-gray-200 bg-white">
+          <div className="w-80 flex-shrink-0">
             {/* 공지사항 섹션 */}
-            <div className="mb-8">
-              <h3 className="font-bold text-lg mb-3">공지사항</h3>
-              <div className="space-y-3">
-                {notifications.map(notice => (
-                  <div key={notice.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
+            <div className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="p-4 border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                <h3 className="font-bold text-lg">공지사항</h3>
+              </div>
+              <div className="p-4">
+                {notificationsData.slice(0, 3).map(notice => (
+                  <div 
+                    key={notice.id} 
+                    className={`p-3 mb-2 last:mb-0 rounded-lg cursor-pointer ${
+                      notice.important ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-gray-50 hover:bg-gray-100'
+                    }`}
+                  >
                     <h4 className="font-medium text-sm">{notice.title}</h4>
                     <p className="text-xs text-gray-500 mt-1">{notice.date}</p>
                   </div>
                 ))}
+                
+                <Button variant="link" className="w-full mt-2 text-blue-600">
+                  모든 공지 보기
+                </Button>
               </div>
             </div>
             
             {/* 알림 섹션 */}
-            <div className="mb-8">
-              <h3 className="font-bold text-lg mb-3">최근 알림</h3>
-              <div className="space-y-3">
-                {alerts.map(alert => (
-                  <div key={alert.id} className="p-3 bg-gray-50 rounded-lg border-l-4 border-blue-500">
-                    <h4 className="font-medium text-sm">{alert.title}</h4>
-                    <p className="text-xs text-gray-600 mt-1">{alert.message}</p>
-                    <p className="text-xs text-gray-400 mt-1">{alert.time}</p>
+            <div className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="p-4 border-b flex justify-between items-center">
+                <h3 className="font-bold text-lg">최근 알림</h3>
+                <Badge variant="outline">{alertsData.filter(a => !a.read).length}</Badge>
+              </div>
+              <div className="p-4">
+                <div className="space-y-3">
+                  {alertsData.slice(0, 3).map(alert => (
+                    <div 
+                      key={alert.id} 
+                      className={`p-3 bg-gray-50 rounded-lg border-l-4 ${
+                        alert.read ? 'border-gray-300' : 'border-blue-500'
+                      }`}
+                    >
+                      <div className="flex justify-between">
+                        <h4 className="font-medium text-sm">{alert.title}</h4>
+                        {!alert.read && <div className="w-2 h-2 bg-blue-500 rounded-full"></div>}
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1">{alert.message}</p>
+                      <p className="text-xs text-gray-400 mt-1">{alert.time}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* 광고 섹션 */}
+            <div className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="p-4 border-b">
+                <h3 className="font-bold text-lg">스폰서</h3>
+              </div>
+              <div className="p-4">
+                {sponsorsData.map(sponsor => (
+                  <div key={sponsor.id} className="mb-4 last:mb-0 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    <div className="h-32 overflow-hidden">
+                      <img src={sponsor.imageUrl} alt={sponsor.title} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="p-3">
+                      <h4 className="font-bold text-sm">{sponsor.title}</h4>
+                      <p className="text-xs text-gray-500 mt-1">{sponsor.description}</p>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
             
-            {/* 광고 섹션 */}
-            <div className="mb-8">
-              <h3 className="font-bold text-lg mb-3">스폰서</h3>
-              <div className="bg-gray-100 rounded-lg p-2 text-center h-40 flex items-center justify-center">
-                <p className="text-gray-400">광고 영역</p>
-              </div>
-            </div>
-            
             {/* 피어맵 섹션 */}
-            <div>
-              <h3 className="font-bold text-lg mb-3">위치</h3>
-              <div className="bg-gray-100 rounded-lg overflow-hidden h-48 relative">
-                {/* 지도 플레이스홀더 */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <MapPin className="w-8 h-8 text-gray-400" />
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="p-4 border-b flex justify-between items-center">
+                <h3 className="font-bold text-lg">위치</h3>
+                <Button variant="link" size="sm" className="text-blue-600" onClick={handleOpenMap}>
+                  큰 지도 보기
+                </Button>
+              </div>
+              <div className="p-4">
+                <div className="bg-gray-100 rounded-lg overflow-hidden h-48 relative mb-3">
+                  <div className="absolute inset-0 flex items-center justify-center z-10">
+                    <Button onClick={handleOpenMap} className="bg-white text-blue-600">
+                      <Map className="w-4 h-4 mr-2" />
+                      지도 보기
+                    </Button>
+                  </div>
+                  <div className="absolute inset-0 opacity-60" onClick={handleOpenMap}>
+                    <EcosystemMap />
+                  </div>
                 </div>
-                {/* 실제로는 여기에 지도 컴포넌트가 들어감 */}
-                <div className="absolute bottom-3 left-3 right-3 bg-white/80 backdrop-blur-sm rounded p-2 text-sm">
-                  <p className="font-medium">{config.location && typeof config.location !== 'string' ? config.location.address : '위치 정보 없음'}</p>
+                <div className="bg-white rounded-lg p-3 shadow-sm">
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-sm">{config.location && typeof config.location !== 'string' ? config.location.address : '위치 정보 없음'}</p>
+                      {config.location && typeof config.location !== 'string' && (
+                        <p className="text-xs text-gray-500 mt-1">좌표: {config.location.lat}, {config.location.lng}</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -829,10 +1439,62 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         </div>
       </div>
       
+      {/* 위젯 버튼 */}
+      <div className="fixed bottom-6 right-6 z-30">
+        <div className="relative">
+          <Button 
+            onClick={toggleWidgets} 
+            className="rounded-full w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg flex items-center justify-center p-0"
+          >
+            {showWidgets ? <ChevronDown className="w-6 h-6" /> : <ChevronUp className="w-6 h-6" />}
+          </Button>
+          
+          {showWidgets && (
+            <div className="absolute bottom-16 right-0 bg-white rounded-lg shadow-xl p-3 space-y-3 animate-fade-in">
+              <Button 
+                onClick={handleCall}
+                className="w-10 h-10 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center p-0"
+              >
+                <Phone className="w-5 h-5" />
+              </Button>
+              <Button 
+                onClick={handleMessage}
+                className="w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center p-0"
+              >
+                <MessageSquare className="w-5 h-5" />
+              </Button>
+              <Button 
+                onClick={handleAddFriend}
+                className="w-10 h-10 rounded-full bg-purple-500 hover:bg-purple-600 flex items-center justify-center p-0"
+              >
+                <UserPlus className="w-5 h-5" />
+              </Button>
+              <Button 
+                onClick={handleAddToFavorites}
+                className="w-10 h-10 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center p-0"
+              >
+                <Heart className="w-5 h-5" />
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* 맨 위로 스크롤 버튼 */}
+      <div className="fixed bottom-6 left-6 z-30">
+        <Button 
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="rounded-full w-10 h-10 bg-white text-blue-600 shadow-md hover:bg-blue-50 flex items-center justify-center p-0"
+        >
+          <ArrowUp className="w-5 h-5" />
+        </Button>
+      </div>
+      
       {/* 모달 렌더링 */}
       {renderQRModal()}
       {renderProductFormModal()}
       {isOwner && renderSettingsModal()}
+      {renderMapModal()}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { PeerMallConfig } from '@/components/peer-space/types';
 import type { Peermall } from '@/pages/Index';
@@ -48,13 +48,31 @@ const savePeerSpaceConfig = (address: string, config: PeerMallConfig): void => {
 };
 
 const PeerSpace = () => {
+  const params = useParams<{ address: string }>();
   const location = useLocation();
-  const { address } = useParams<{ address: string }>();
+  const navigate = useNavigate();
+  const address = params.address || '';
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(true); // In reality, this would be based on authentication
   const [config, setConfig] = useState<PeerMallConfig | null>(null);
+  const [activeSection, setActiveSection] = useState<'home' | 'content' | 'community' | 'following' | 'guestbook'>('home');
 
   useEffect(() => {
+    // Determine active section from URL
+    const path = location.pathname;
+    if (path.includes('/content')) {
+      setActiveSection('content');
+    } else if (path.includes('/community')) {
+      setActiveSection('community');
+    } else if (path.includes('/following')) {
+      setActiveSection('following');
+    } else if (path.includes('/guestbook')) {
+      setActiveSection('guestbook');
+    } else {
+      setActiveSection('home');
+    }
+    
     // Simulate data loading and fetch configuration
     const timer = setTimeout(async () => {
       if (address) {
@@ -83,10 +101,11 @@ const PeerSpace = () => {
               type: 'personal',
               peerNumber: `P-${Math.floor(10000 + Math.random() * 90000)}-${Math.floor(1000 + Math.random() * 9000)}`,
               profileImage: peermallDetails.imageUrl || 'https://api.dicebear.com/7.x/personas/svg?seed=' + address,
-              badges: [],
-              followers: 0,
-              recommendations: 0,
-              isVerified: false,
+              coverImage: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?q=80&w=1200',
+              badges: ['인증됨', '프리미엄'],
+              followers: 120,
+              recommendations: 85,
+              isVerified: true,
               skin: 'default',
               sections: ['hero', 'content', 'community', 'events', 'reviews', 'infoHub', 'map', 'trust', 'relatedMalls', 'activityFeed', 'liveCollaboration'],
               customizations: {
@@ -115,7 +134,7 @@ const PeerSpace = () => {
     }, 500);
     
     return () => clearTimeout(timer);
-  }, [address]);
+  }, [address, location.pathname]);
 
   // Handle recommendations and badges updates
   const handleUpdateConfig = (updatedConfig: PeerMallConfig) => {
@@ -127,6 +146,18 @@ const PeerSpace = () => {
         description: "변경사항이 성공적으로 저장되었습니다.",
       });
     }
+  };
+  
+  // Handle section navigation
+  const handleNavigateToSection = (section: 'home' | 'content' | 'community' | 'following' | 'guestbook') => {
+    setActiveSection(section);
+    
+    // Update URL but don't reload the page
+    let path = `/space/${address}`;
+    if (section !== 'home') {
+      path += `/${section}`;
+    }
+    navigate(path, { replace: true });
   };
 
   if (isLoading) {
@@ -158,6 +189,8 @@ const PeerSpace = () => {
         address={address} 
         config={config}
         onUpdateConfig={handleUpdateConfig}
+        activeSection={activeSection}
+        onNavigateToSection={handleNavigateToSection}
       />
     </div>
   );
