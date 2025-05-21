@@ -52,17 +52,6 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/service" element={<ServicePage />} />
         <Route path="/my-info" element={<MyInfoPage />} />
-        {/* 수정: PeerSpace의 커뮤니티는 Community 컴포넌트를 사용하고 address를 prop으로 전달 */}
-        {/* <Route path="/space/:address/community" element={<CommunityWrapper />} />
-        <Route path="/space/:address/community/planet/:planetId" element={<CommunityWrapper />} />
-        <Route path="/space/:address/community/planet/:planetId/post/:postId" element={<CommunityWrapper />} /> */}
-
-        {/* <Route path="/space/community" element={<Community />} />
-        <Route path="/space/peers" element={<Peers />} />
-        <Route path="/space/achievements" element={<Achievements />} />
-        <Route path="/space/messages" element={<Messages />} /> */}
-        {/* <Route path="/space/:address" element={<Space />} /> */}
-
         <Route path="/space/:address" element={<PeerSpace />} />
         <Route path="/space/:address/settings" element={<PeerSpaceSettings />} />
         <Route path="/space/:address/content/:contentId" element={<ContentDetailPage />} />
