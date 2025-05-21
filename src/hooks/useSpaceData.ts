@@ -1,7 +1,7 @@
 
 // src/hooks/useSpaceData.ts
 import { useState, useEffect, useCallback } from 'react';
-import { Planet, Post, ChatMessage } from '@/components/community/types';
+import { Planet, Post, ChatMessage } from '@/types/community';
 import { initialPlanetsData, initialPosts } from '@/components/community/data';
 
 const PEERSPACE_PLANETS_KEY = 'peerspace_planets';

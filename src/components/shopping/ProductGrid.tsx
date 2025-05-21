@@ -62,10 +62,11 @@ const ProductGrid = ({ products, viewMode, filters }: ProductGridProps) => {
     
     // Status filters (bestseller, new, discount)
     if (filters.status && filters.status.length > 0) {
-      matchesStatus = (filters.status.includes('베스트셀러') && product.isBestSeller) ||
+      // Fix: Check if there are any status filters before assuming false
+      matchesStatus = filters.status.length === 0 || 
+                      (filters.status.includes('베스트셀러') && product.isBestSeller) ||
                       (filters.status.includes('신규') && product.isNew) ||
-                      (filters.status.includes('할인중') && product.discountPrice) ||
-                      !filters.status.length;
+                      (filters.status.includes('할인중') && !!product.discountPrice);
     }
     
     return matchesCategory && matchesPriceRange && matchesRating && matchesStatus;

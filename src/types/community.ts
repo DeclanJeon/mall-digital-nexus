@@ -1,3 +1,4 @@
+
 export type ZoneType = 'city' | 'village' | 'zone' | 'personal';
 export type ZoneStatus = 'normal' | 'growing' | 'crisis' | 'abandoned';
 export type ZonePrivacy = 'public' | 'partial' | 'private' | 'timed';

@@ -1,8 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { useSpaceData } from './useSpaceData';
-import { Post } from '@/components/community/types';
-import { ForumPostFormData } from '@/components/community/types';
+import { Post, ForumPostFormData } from '@/types/community';
 
 export const useForumManagement = (planetId: string) => {
   const { posts, addPost, updatePost, deletePostById } = useSpaceData();

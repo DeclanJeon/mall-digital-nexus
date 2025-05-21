@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductGrid from '@/components/shopping/ProductGrid';
 import PeermallGrid from '@/components/peermall-features/PeermallGrid';
-import { Filter, Grid, LayoutGrid, ShoppingBag, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Filter, Grid, LayoutGrid, ShoppingBag, ArrowRight, ArrowLeft, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Peermall } from './Index';
 import { QRCodeModal } from '@/components/peer-space/modals/QRCodeModal';

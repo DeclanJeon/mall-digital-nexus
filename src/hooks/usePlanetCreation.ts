@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { useSpaceData } from './useSpaceData';
-import { Planet, PlanetStage } from '@/components/community/types';
+import { Planet, PlanetStage } from '@/types/community';
 
 interface PlanetFormData {
   name: string;
