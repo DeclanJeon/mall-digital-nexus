@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,8 @@ import {
   CalendarDays,
   Image,
   PhoneCall,
-  UserPlus
+  UserPlus,
+  Plus
 } from 'lucide-react';
 import { createContent } from '@/services/contentService';
 import { getPeerSpaceContents } from '@/utils/peerSpaceStorage';
@@ -43,6 +45,7 @@ import BadgeSelector from './ui/BadgeSelector';
 import PeerSpaceHeader from './layout/PeerSpaceHeader';
 import EcosystemMap from '@/components/EcosystemMap';
 import PeermallMap from '../peermall-features/PeermallMap';
+import { Location } from '@/types/map';
 
 interface PeerSpaceHomeProps {
   isOwner: boolean;
@@ -90,7 +93,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<SectionType[]>(getSectionOrder(address, config.sections || ['hero', 'content', 'community']));
   const [activeTab, setActiveTab] = useState<string>('all');
-  const { tabs, setTabs } = usePeerSpaceTabs();
+  const { activeTab: hookActiveTab, handleTabChange, filterContentByTab } = usePeerSpaceTabs();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -144,7 +147,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
 
   const handleAddContent = async (content: ContentFormValues) => {
     try {
-      const newContent = {
+      const newContent: Content = {
         ...content,
         id: Date.now().toString(),
         peerSpaceAddress: address,
@@ -152,8 +155,10 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         comments: 0,
         views: 0,
         saves: 0,
+        date: new Date().toISOString(), // Added required date field
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        type: content.type || ContentType.Article, // Ensure type is set
       };
 
       // Save to indexedDB
@@ -210,12 +215,24 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       <h2 className="text-2xl font-bold mb-4">홈</h2>
       <p>피어스페이스 홈 섹션입니다. 여기에 피어스페이스에 대한 요약 정보나 주요 콘텐츠를 표시할 수 있습니다.</p>
       <Button onClick={handleOpenMap}>Show Map</Button>
-      <PeermallMap isOpen={isMapOpen} onClose={handleCloseMap} selectedLocation={config.location || null} allLocations={[{
-        lat: 37.5665,
-        lng: 126.9780,
-        address: 'Seoul, South Korea',
-        title: 'Seoul'
-      }]} />
+      <PeermallMap 
+        isOpen={isMapOpen} 
+        onClose={handleCloseMap} 
+        selectedLocation={
+          config.location ? {
+            lat: config.location.lat,
+            lng: config.location.lng,
+            address: config.location.address,
+            title: config.name || 'Location' // Added required title field
+          } : null
+        } 
+        allLocations={[{
+          lat: 37.5665,
+          lng: 126.9780,
+          address: 'Seoul, South Korea',
+          title: 'Seoul'
+        }]} 
+      />
     </div>
   );
 
@@ -234,7 +251,8 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         <EmptyState 
           title="콘텐츠가 없습니다"
           description="새로운 콘텐츠를 추가하여 피어스페이스를 풍성하게 만들어보세요."
-          action={isOwner ? <Button onClick={() => setIsAddingContent(true)}>콘텐츠 추가</Button> : null}
+          actionLabel={isOwner ? "콘텐츠 추가" : undefined}
+          onAction={isOwner ? () => setIsAddingContent(true) : undefined}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -303,8 +321,8 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       <PeerSpaceHeader 
         config={config}
         isOwner={isOwner}
-        onAddContent={handleAddContent}
-        onAddProduct={handleAddProduct}
+        onAddContent={() => setIsAddingContent(true)}
+        onAddProduct={() => setIsAddingProduct(true)}
       />
       <div className="container mx-auto">
         {renderMainContent()}
