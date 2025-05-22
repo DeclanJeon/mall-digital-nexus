@@ -1,4 +1,3 @@
-
 export type ZoneType = 'city' | 'village' | 'zone' | 'personal';
 export type ZoneStatus = 'normal' | 'growing' | 'crisis' | 'abandoned';
 export type ZonePrivacy = 'public' | 'partial' | 'private' | 'timed';
@@ -72,7 +71,7 @@ export interface Planet {
   createdAt: string;
   members: string[];
   activities: Activity[];
-  recentPosts: Post[];
+  recentPosts: import('./post').Post[];
   stage: PlanetStage;
   membersCount: number;
   health: number;
@@ -103,30 +102,25 @@ export interface ChatMessage {
   reactions?: { [key: string]: string[] };
 }
 
-export interface Post {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  authorId: string;
-  date: string;
-  createdAt: string;
-  likes: number;
-  comments: number;
-  tags: string[];
-  channelId?: string;
-  communityId?: string;
-  isNotice?: boolean;
-  authorAvatar?: string;
-  imageUrl?: string;
-  richContent?: string;
-  processedContent?: string;
-  htmlContent?: string;
-  viewCount?: number;
-  isEdited?: boolean;
-  lastEditedAt?: string;
-  country?: string;
-}
+export type ActivityDetails = {
+  [ActivityType.Join]: { planetId: string };
+  [ActivityType.Post]: { postId: string; contentPreview: string };
+  [ActivityType.Comment]: {
+    commentId: string;
+    postId: string;
+    contentPreview: string;
+  };
+  [ActivityType.React]: { targetId: string; reactionType: string };
+  [ActivityType.Leave]: { planetId: string; reason?: string };
+  [ActivityType.CreateRoom]: { roomId: string; roomName: string };
+  [ActivityType.ModifySetting]: {
+    settingType: string;
+    oldValue: string;
+    newValue: string;
+  };
+  [ActivityType.SendInvite]: { inviteeId: string; planetId: string };
+  [ActivityType.AcceptInvite]: { inviterId: string; planetId: string };
+};
 
 export interface Activity {
   id: string;
@@ -134,7 +128,7 @@ export interface Activity {
   userId: string;
   userName: string;
   timestamp: string;
-  details: Record<string, any>;
+  details: ActivityDetails[ActivityType];
 }
 
 export enum ActivityType {

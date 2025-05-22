@@ -1,6 +1,15 @@
 // src/data/communityMockData.ts
 
-export const CATEGORIES = [
+import {
+  Category,
+  FeaturedPost,
+  Post,
+  RecommendedPost,
+  SubsRising,
+  SubRisingPost,
+} from '@/types/community-data';
+
+export const CATEGORIES: Category[] = [
   { label: '여행·맛집', value: 'travel' },
   { label: '리빙·스타일', value: 'living' },
   { label: '가족·연애', value: 'family' },
@@ -8,7 +17,7 @@ export const CATEGORIES = [
   { label: '시사·지식', value: 'issue' },
 ];
 
-export const FEATURED = [
+export const FEATURED: FeaturedPost[] = [
   {
     id: 1,
     title:
@@ -36,7 +45,7 @@ export const FEATURED = [
   },
 ];
 
-export const POSTS = [
+export const POSTS: Post[] = [
   {
     id: 3,
     title: '가족 외식하기 좋은 용건점 한정식 밥상천하 다녀왔습니다.',
@@ -65,7 +74,7 @@ export const POSTS = [
   },
 ];
 
-export const RECOMMENDED = [
+export const RECOMMENDED: RecommendedPost[] = [
   {
     id: 101,
     title: '백종원 논란으로 연돈 가맹주들과 갈등, 맥도날드 사태와 비슷하다?',
@@ -109,7 +118,7 @@ export const RECOMMENDED = [
   },
 ];
 
-export const SUBS_RISING = {
+export const SUBS_RISING: SubsRising = {
   name: '노병의 맛집 기행',
   desc: '노병 이흥규의 블로그입니다. 맛집, 여행, 일상의 이야기를 주제로 운영 합니다.',
   subs: 703,

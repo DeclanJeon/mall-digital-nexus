@@ -2,16 +2,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { CategoryNavProps } from '@/types/category';
 
-interface CategoryNavProps {
-  categories: {
-    id: string;
-    name: string;
-    icon?: React.ReactNode;
-    url: string;
-  }[];
-  activeId?: string;
-}
 
 const CategoryNav: React.FC<CategoryNavProps> = ({ categories, activeId }) => {
   return (

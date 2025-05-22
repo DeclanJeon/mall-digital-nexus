@@ -4,10 +4,11 @@ import { ChevronRight, ChevronLeft, MessageCircle, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { CATEGORIES, FEATURED, POSTS } from "@/data/communityMockData";
+import { Category, FeaturedPost, Post } from "@/types/community-data";
 import CommunitySidebar from "./community/CommunitySidebar";
 
 const CommunityHighlights = () => {
-  const [selectedCat, setSelectedCat] = useState(CATEGORIES[0].value);
+  const [selectedCat, setSelectedCat] = useState<Category['value']>(CATEGORIES[0].value);
 
   return (
     <section className="w-full max-w-6xl mx-auto my-8 grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -18,7 +19,7 @@ const CommunityHighlights = () => {
       <main className="md:col-span-3">
         {/* 카테고리 탭 */}
         <nav className="flex gap-4 mb-5">
-          {CATEGORIES.map(cat => (
+          {CATEGORIES.map((cat: Category) => (
             <button
               key={cat.value}
               onClick={() => setSelectedCat(cat.value)}
@@ -30,7 +31,7 @@ const CommunityHighlights = () => {
         </nav>
         {/* 상단 추천/베스트 카드 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-          {FEATURED.map(item => (
+          {FEATURED.map((item: FeaturedPost) => (
             <Link to={`/community/post/${item.id}`} key={item.id} className="block group">
               <div className="rounded-xl shadow hover:shadow-xl overflow-hidden bg-white">
                 <img src={item.thumb} alt={item.title} className="w-full h-40 object-cover group-hover:scale-105 transition" />
@@ -50,7 +51,7 @@ const CommunityHighlights = () => {
         </div>
         {/* 리스트형 최신글 */}
         <div className="divide-y divide-gray-100">
-          {POSTS.map(item => (
+          {POSTS.map((item: Post) => (
             <div key={item.id} className="flex py-5 gap-3 items-start hover:bg-gray-50 transition">
               <div className="flex-1">
                 <Link to={`/community/post/${item.id}`} className="font-semibold text-lg truncate hover:text-accent-200">{item.title}</Link>

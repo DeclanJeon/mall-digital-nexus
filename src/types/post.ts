@@ -45,17 +45,3 @@ export interface Member {
   isActive: boolean;
   communityId: string;
 }
-
-export interface CommunityEvent {
-  id: string;
-  title: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  communityId: string;
-  createdBy: string;
-  imageUrl?: string;
-  location?: string;
-  attendeeCount?: number;
-  isHighlighted?: boolean;
-}
