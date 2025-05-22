@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { openDB } from 'idb';
 import CreatePeermallModal from '@/components/peermall-features/CreatePeermallModal';
 import { TransactionItem } from '@/components/my-info/ActivitySection';
-import { NetworkSectionProps } from '@/components/my-info/NetworkSection';
+import NetworkSectionProps from '@/components/my-info/Network';
 
 // Make sure to match the interface from PeermallManagementSection
 interface PeerMall {
@@ -72,6 +72,7 @@ const MyInfoPage = () => {
 
   // Define network data
   const networkData: NetworkSectionProps = {
+    backupRecommenders: [],
     friends: [
       { id: '1', name: '박지민', image: 'https://api.dicebear.com/7.x/personas/svg?seed=park', status: 'online' },
       { id: '2', name: '이현우', image: 'https://api.dicebear.com/7.x/personas/svg?seed=lee', status: 'offline', lastActive: '2시간 전' },
@@ -117,11 +118,15 @@ const MyInfoPage = () => {
     family: [
       {
         id: '13', name: '김지영', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jiyoung',
-        level: '가디언', certified: true, description: '피어몰 인증/사업권 담당'
+        level: '가디언' as const, certified: true, description: '피어몰 인증/사업권 담당'
       },
       {
         id: '14', name: '김지훈', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jihun',
-        level: '퍼실리테이터', certified: false, description: '운영 지원 및 컨설팅'
+        level: '퍼실리테이터' as const, certified: false, description: '운영 지원 및 컨설팅'
+      },
+      {
+        id: '15', name: '이지은', image: 'https://api.dicebear.com/7.x/personas/svg?seed=jiyeon',
+        level: '기본' as const, certified: false, description: '기본 사용자'
       }
     ]
   };
@@ -618,6 +623,7 @@ const MyInfoPage = () => {
               <TabsTrigger value="profile" className="w-full justify-start">내 정보</TabsTrigger>
               <TabsTrigger value="content" className="w-full justify-start">콘텐츠</TabsTrigger>
               <TabsTrigger value="network" className="w-full justify-start">네트워크</TabsTrigger>
+              <TabsTrigger value="peermall" className="w-full justify-start">피어몰 관리</TabsTrigger>
             </TabsList>
           </div>
           <div className="flex-1">
@@ -660,6 +666,15 @@ const MyInfoPage = () => {
             <TabsContent value="network">
               <div className="space-y-6">
                 <NetworkSection {...networkData} />
+                {/* <CommunicationSection
+                  messages={messages}
+                  notificationSettings={notificationSettings}
+                /> */}
+                {/* <QRCodeSection qrCodes={qrCodes} /> */}
+              </div>
+            </TabsContent>
+            <TabsContent value="peermall">
+              <div className="space-y-6">
                 <PeermallManagementSection
                   createdMalls={createdMalls}
                   followedMalls={followedMalls}
@@ -668,11 +683,6 @@ const MyInfoPage = () => {
                   onDeleteMall={(id) => console.log('Deleting mall:', id)}
                   onTransferMall={(id) => console.log('Transferring mall:', id)}
                 />
-                {/* <CommunicationSection
-                  messages={messages}
-                  notificationSettings={notificationSettings}
-                /> */}
-                {/* <QRCodeSection qrCodes={qrCodes} /> */}
               </div>
             </TabsContent>
           </div>
