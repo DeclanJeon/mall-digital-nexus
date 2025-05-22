@@ -1,34 +1,46 @@
 import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Heart, MessageSquare, FileText, User } from 'lucide-react';
-import { Content, PeerMallConfig } from '../types';
+import { Content } from '../types';
+import { FileText, Heart, MessageSquare, User } from 'lucide-react';
 
-interface PeerSpaceCommunitySectionProps {
+interface CommunitySectionProps {
   isOwner: boolean;
-  config: PeerMallConfig;
   posts: Content[];
-  filteredPosts: Content[];
+  owner: string;
+  onNavigateToSection?: (section: string) => void;
+  showAll?: boolean;
 }
 
-const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
+const CommunitySection: React.FC<CommunitySectionProps> = ({
   isOwner,
-  config,
   posts,
-  filteredPosts,
+  owner,
+  onNavigateToSection,
+  showAll = false
 }) => {
+  const displayedPosts = showAll ? posts : posts.slice(0, 3);
+
   return (
-    <div className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
+    <section className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
       <div className="p-6 border-b flex justify-between items-center">
         <h2 className="text-xl font-bold">커뮤니티</h2>
-        <Button variant="outline" size="sm">글쓰기</Button>
+        {!showAll && posts.length > 3 && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => onNavigateToSection?.('community')}
+          >
+            더 보기
+          </Button>
+        )}
       </div>
       
       <div className="p-6">
-        {filteredPosts.length > 0 ? (
+        {displayedPosts.length > 0 ? (
           <div className="space-y-4">
-            {filteredPosts.map((post) => (
+            {displayedPosts.map((post) => (
               <Card key={post.id} className="overflow-hidden hover:bg-gray-50 transition-colors cursor-pointer">
                 <div className="flex md:items-center p-4 flex-col md:flex-row gap-4">
                   <div className="md:w-1/3 w-full h-48 md:h-32 rounded-md overflow-hidden bg-gray-100">
@@ -43,7 +55,7 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
                   
                   <div className="md:w-2/3 w-full">
                     <div className="flex items-center gap-2 mb-2">
-                      {post.tags && post.tags.map((tag, i) => (
+                      {post.tags?.map((tag, i) => (
                         <Badge key={i} variant="secondary" className="bg-gray-100">{tag}</Badge>
                       ))}
                       <span className="text-xs text-gray-500">{post.category}</span>
@@ -54,9 +66,18 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
                     
                     <div className="flex items-center justify-between text-sm text-gray-500">
                       <div className="flex items-center gap-4">
-                        <span className="flex items-center"><Heart className="w-4 h-4 mr-1" />{post.likes}</span>
-                        <span className="flex items-center"><MessageSquare className="w-4 h-4 mr-1" />{post.comments}</span>
-                        <span className="flex items-center"><User className="w-4 h-4 mr-1" />{config.owner}</span>
+                        <span className="flex items-center">
+                          <Heart className="w-4 h-4 mr-1" />
+                          {post.likes || 0}
+                        </span>
+                        <span className="flex items-center">
+                          <MessageSquare className="w-4 h-4 mr-1" />
+                          {post.comments || 0}
+                        </span>
+                        <span className="flex items-center">
+                          <User className="w-4 h-4 mr-1" />
+                          {owner}
+                        </span>
                       </div>
                       <span>{new Date(post.date).toLocaleDateString()}</span>
                     </div>
@@ -76,8 +97,8 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 };
 
-export default PeerSpaceCommunitySection;
+export default CommunitySection;

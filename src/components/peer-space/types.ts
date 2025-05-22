@@ -19,10 +19,9 @@ export enum ContentType {
   Livestream = 'livestream',
   External = 'external',
   Stream = 'stream',
-  Challenge = 'challenge'
+  Challenge = 'challenge',
 }
 
-// Create an array of content types for checking includes
 export const CONTENT_TYPES = Object.values(ContentType);
 
 export interface PeerMallConfig {
@@ -31,12 +30,19 @@ export interface PeerMallConfig {
   description: string;
   owner: string;
   createdAt: string;
-  type: 'personal' | 'business' | 'community' | 'educational' | 'nonprofit' | 'other';
+  type:
+    | 'personal'
+    | 'business'
+    | 'community'
+    | 'educational'
+    | 'nonprofit'
+    | 'other';
   imageUrl?: string;
   bannerUrl?: string;
-  
-  // Add missing properties used in components
+  visibility?: 'public' | 'partial' | 'private';
+  familyMember?: string;
   title: string;
+  slogan?: string;
   address?: string;
   profileImage?: string;
   peerNumber: string;
@@ -45,22 +51,19 @@ export interface PeerMallConfig {
   badges: string[];
   sections: SectionType[];
   coverImage?: string;
-  location?: {
-    lat: number;
-    lng: number;
-    address: string;
-  };
+  location?: string | { lat: number; lng: number; address: string };
   contactEmail?: string;
-  contactPhone?: string;
+  contactPhone?: string; // phoneNumber를 contactPhone으로 변경
   socialLinks?: Record<string, string>;
+  externalUrl?: string; // externalUrl 추가
+  categories?: string[]; // categories 추가
   customizations?: {
     primaryColor: string;
     showChat: boolean;
     allowComments: boolean;
     showBadges: boolean;
   };
-  themeColor?: string; // Add missing property
-  
+  themeColor?: string;
   theme?: {
     primaryColor: string;
     secondaryColor: string;
@@ -99,21 +102,20 @@ export interface PeerMallConfig {
     engagement?: number;
     rating?: number;
   };
-  settings?: Record<string, any>;
-  
-  // Add missing properties used in PeerSpaceTrustSection
+  settings?: Record<string, unknown>;
   isVerified?: boolean;
+  trustScore?: number;
+  accountLevel?: string;
   familyGuilds?: Array<{ id: string; name: string; imageUrl: string }>;
   level?: number;
   experience?: number;
   nextLevelExperience?: number;
   completedChallenges?: number;
   activeQuests?: number;
-  
-  // Add properties used in PeerSpace.tsx
   category?: string;
   status?: string;
   skin?: string;
+  tags?: string[];
 }
 
 export interface Content {
@@ -142,11 +144,11 @@ export interface Content {
   isExternal?: boolean;
   externalUrl?: string;
   source?: string;
-  media?: any[];
-  ecosystem?: any;
+  media?: unknown[];
+  ecosystem?: Record<string, unknown>;
   completion?: number;
   maxParticipants?: number;
-  participants?: string[] | number;
+  participants?: string[];
   htmlContent?: string;
   rating?: number;
   attributes?: Record<string, unknown>;
@@ -178,8 +180,8 @@ export interface Review {
   id: string;
   title: string;
   content: string;
-  author: string;
-  authorId: string;
+  author?: string;
+  authorId?: string;
   date: string;
   rating: number;
   likes: number;
@@ -191,18 +193,13 @@ export interface Review {
   verified: boolean;
   helpful: number;
   tags?: string[];
-  // Add missing properties used in components
   userId?: string;
   authorImage?: string;
   source?: string;
   sourceSite?: string;
-  userName?: string; // Add for contentHelper.ts
-  text?: string; // Add for contentHelper.ts and ContentDetailView.tsx
-  peerMall?: {
-    id: string;
-    name: string;
-    address: string;
-  };
+  userName?: string;
+  text?: string;
+  peerMall?: { id: string; name: string; address: string };
 }
 
 export interface Quest {
@@ -210,12 +207,15 @@ export interface Quest {
   title: string;
   description: string;
   reward: string;
-  type: 'daily' | 'weekly' | 'achievement' | 'challenge' | 'tutorial' | 'community' | 'individual';
-  steps: {
-    id: string;
-    description: string;
-    completed: boolean;
-  }[];
+  type:
+    | 'daily'
+    | 'weekly'
+    | 'achievement'
+    | 'challenge'
+    | 'tutorial'
+    | 'community'
+    | 'individual';
+  steps: { id: string; description: string; completed: boolean }[];
   progress: number;
   startDate: string;
   endDate?: string;
@@ -228,10 +228,9 @@ export interface Quest {
   badgeReward?: string[];
   status: 'available' | 'in-progress' | 'completed' | 'expired' | 'active';
   prerequisiteQuests?: string[];
-  // Additional properties found in mockData.ts
   deadline?: string;
   goal?: number;
-  participants?: string[] | any[];
+  participants?: string[];
   maxParticipants?: number;
   completion?: number;
   creator?: string;
@@ -261,7 +260,6 @@ export interface User {
   };
 }
 
-// Define PeerSpaceData interface for LearningHubTopBar
 export interface PeerSpaceData {
   id: string;
   address: string;
@@ -285,13 +283,12 @@ export interface PeerSpaceData {
   activeQuests?: number;
 }
 
-// Define CommunityPost interface
 export interface CommunityPost {
   id: string;
   title: string;
   content: string;
-  author: string;
-  authorId: string;
+  author?: string;
+  authorId?: string;
   authorAvatar?: string;
   date: string;
   likes: number;
@@ -301,8 +298,7 @@ export interface CommunityPost {
   category?: string;
 }
 
-// Define SectionType for PeerSpaceHome
-export type SectionType = 
+export type SectionType =
   | 'hero'
   | 'content'
   | 'community'

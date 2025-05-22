@@ -1,31 +1,12 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Mail, User } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Mail } from 'lucide-react';
+import { guestbookData } from '../data/homeMockData';
 
-interface GuestbookEntry {
-  id: string;
-  author: string;
-  message: string;
-  date: string;
-  profileImg: string;
-}
-
-interface GuestbookSectionProps {
-  entries: GuestbookEntry[];
-  onNavigateToSection?: (section: string) => void;
-  showAll?: boolean;
-}
-
-const GuestbookSection: React.FC<GuestbookSectionProps> = ({
-  entries,
-  onNavigateToSection,
-  showAll = false
-}) => {
-  const displayedEntries = showAll ? entries : entries.slice(0, 3);
-
+const PeerSpaceGuestbookSection: React.FC = () => {
   return (
-    <section className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
+    <div className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
       <div className="p-6 border-b">
         <h2 className="text-xl font-bold">방명록</h2>
       </div>
@@ -54,16 +35,12 @@ const GuestbookSection: React.FC<GuestbookSectionProps> = ({
         <div className="mt-8">
           <h3 className="text-lg font-medium mb-4">모든 방명록</h3>
           <div className="space-y-4">
-            {displayedEntries.map((entry) => (
+            {guestbookData.map(entry => (
               <Card key={entry.id} className="bg-white">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-12 h-12 rounded-full overflow-hidden">
-                      <img 
-                        src={entry.profileImg} 
-                        alt={entry.author} 
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={entry.profileImg} alt={entry.author} className="w-full h-full object-cover" />
                     </div>
                     <div>
                       <h4 className="font-medium text-lg">{entry.author}</h4>
@@ -75,21 +52,10 @@ const GuestbookSection: React.FC<GuestbookSectionProps> = ({
               </Card>
             ))}
           </div>
-          
-          {!showAll && entries.length > 3 && (
-            <div className="mt-6 text-center">
-              <Button 
-                variant="outline" 
-                onClick={() => onNavigateToSection?.('guestbook')}
-              >
-                더 보기
-              </Button>
-            </div>
-          )}
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 
-export default GuestbookSection;
+export default PeerSpaceGuestbookSection;

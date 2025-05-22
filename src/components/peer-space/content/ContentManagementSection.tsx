@@ -1,8 +1,67 @@
-
-import React from "react";
-import { Card } from "@/components/ui/card";
-import { FileText, Plus, Search, Filter, SortAsc, ExternalLink, Tag, Pencil, Trash } from "lucide-react";
+import React, { useState } from 'react';
+import { 
+  Card, 
+  CardContent, 
+  CardFooter,
+  CardHeader 
+} from '@/components/ui/card';
+import { 
+  FileText, 
+  Plus, 
+  Search, 
+  Filter, 
+  SortAsc, 
+  ExternalLink, 
+  Pencil, 
+  Trash,
+  Grid,
+  LayoutGrid,
+  Star,
+  Heart,
+  MessageSquare,
+  Share,
+  MoreHorizontal
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { 
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent
+} from "@/components/ui/tabs";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "@/components/ui/tooltip";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Link } from 'react-router-dom';
+import { Content } from '../types';
+
+interface ContentItem extends Content {
+  id: string;
+  peerSpaceAddress: string;
+  title: string;
+  description: string;
+  type: string;
+  date: string;
+  status?: 'published' | 'draft';
+  views: number;
+  likes: number;
+  comments: number;
+  saves: number;
+}
 
 const contentTypes = [
   { id: "article", name: "아티클", count: 12 },
@@ -11,37 +70,64 @@ const contentTypes = [
   { id: "ebook", name: "E-Book", count: 2 },
 ];
 
-const contentItems = [
+const initialContentItems: ContentItem[] = [
   {
     id: "content-1",
+    peerSpaceAddress: "peer-space-address",
     title: "프로그래밍 기초 가이드",
+    description: "프로그래밍 기본 개념을 배우기 위한 가이드",
     type: "article",
-    created: "2025-04-10",
+    date: "2025-04-10",
     status: "published",
     views: 432,
-    likes: 28
+    likes: 28,
+    comments: 0,
+    saves: 0
   },
   {
     id: "content-2",
+    peerSpaceAddress: "peer-space-address",
     title: "데이터 분석 시작하기",
+    description: "데이터 분석의 기초를 소개하는 강의",
     type: "course",
-    created: "2025-04-05",
+    date: "2025-04-05",
     status: "published",
     views: 215,
-    likes: 19
+    likes: 19,
+    comments: 0,
+    saves: 0
   },
   {
     id: "content-3",
+    peerSpaceAddress: "peer-space-address",
     title: "UI/UX 디자인 원칙",
+    description: "효율적인 UI/UX 디자인을 위한 기본 원칙",
     type: "video",
-    created: "2025-04-01",
+    date: "2025-04-01",
     status: "draft",
     views: 0,
-    likes: 0
-  },
+    likes: 0,
+    comments: 0,
+    saves: 0
+  }
 ];
 
-const ContentManagementSection: React.FC = () => {
+interface ContentManagementSectionProps {
+  viewMode?: 'grid' | 'list';
+  onViewModeChange?: (mode: 'grid' | 'list') => void;
+  onContentEdit?: (content: ContentItem) => void;
+  onContentDelete?: (contentId: string) => void;
+}
+
+const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
+  viewMode = 'grid',
+  onViewModeChange,
+  onContentEdit,
+  onContentDelete
+}) => {
+  const [contentItems, setContentItems] = useState(initialContentItems);
+  const [searchQuery, setSearchQuery] = useState('');
+  
   return (
     <Card className="p-6 bg-white/70">
       <div className="flex items-center justify-between mb-6">
@@ -63,7 +149,9 @@ const ContentManagementSection: React.FC = () => {
             <div className="space-y-1">
               <div className="flex items-center justify-between text-sm p-2 bg-primary-100/30 rounded">
                 <span>전체</span>
-                <span className="bg-primary-300 text-white px-2 rounded-full text-xs">{contentTypes.reduce((acc, type) => acc + type.count, 0)}</span>
+                <span className="bg-primary-300 text-white px-2 rounded-full text-xs">
+                  {contentTypes.reduce((acc, type) => acc + type.count, 0)}
+                </span>
               </div>
               {contentTypes.map(type => (
                 <div key={type.id} className="flex items-center justify-between text-sm p-2 hover:bg-gray-100 rounded cursor-pointer">
@@ -103,6 +191,8 @@ const ContentManagementSection: React.FC = () => {
                 type="text" 
                 placeholder="콘텐츠 검색..." 
                 className="pl-10 pr-4 py-2 border rounded-md w-full sm:w-80"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <div className="flex gap-2">
@@ -128,42 +218,37 @@ const ContentManagementSection: React.FC = () => {
                   <th className="text-left p-3 text-sm font-medium">상태</th>
                   <th className="text-left p-3 text-sm font-medium">조회수</th>
                   <th className="text-left p-3 text-sm font-medium">좋아요</th>
-                  <th className="text-center p-3 text-sm font-medium">작업</th>
+                  <th className="text-left p-3 text-sm font-medium">액션</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
-                {contentItems.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
+              <tbody>
+                {contentItems.map(content => (
+                  <tr key={content.id} className="border-t hover:bg-gray-50">
+                    <td className="p-3">{content.title}</td>
+                    <td className="p-3">{content.type}</td>
+                    <td className="p-3">{content.date}</td>
                     <td className="p-3">
-                      <div className="font-medium">{item.title}</div>
+                      <Badge variant={content.status === 'published' ? 'default' : 'secondary'}>
+                        {content.status === 'published' ? '발행됨' : '초안'}
+                      </Badge>
                     </td>
+                    <td className="p-3">{content.views}</td>
+                    <td className="p-3">{content.likes}</td>
                     <td className="p-3">
-                      <span className="px-2 py-1 bg-primary-100/30 rounded-full text-xs">
-                        {item.type}
-                      </span>
-                    </td>
-                    <td className="p-3 text-sm text-gray-600">{item.created}</td>
-                    <td className="p-3">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        item.status === 'published' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {item.status === 'published' ? '발행됨' : '초안'}
-                      </span>
-                    </td>
-                    <td className="p-3 text-sm">{item.views}</td>
-                    <td className="p-3 text-sm">{item.likes}</td>
-                    <td className="p-3">
-                      <div className="flex justify-center space-x-1">
-                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => onContentEdit?.(content)}
+                        >
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-700">
-                          <Trash className="h-4 w-4" />
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => onContentDelete?.(content.id)}
+                        >
+                          <Trash className="h-4 w-4 text-red-500" />
                         </Button>
                       </div>
                     </td>
@@ -172,21 +257,6 @@ const ContentManagementSection: React.FC = () => {
               </tbody>
             </table>
           </div>
-          
-          {/* 페이지네이션 또는 "더 보기" */}
-          {contentItems.length > 0 ? (
-            <div className="flex justify-between items-center mt-4">
-              <div className="text-sm text-gray-500">3개 항목 중 1-3 표시</div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" disabled>이전</Button>
-                <Button size="sm" variant="outline" disabled>다음</Button>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center p-8 text-gray-500">
-              등록된 콘텐츠가 없습니다. '새 콘텐츠 추가' 버튼을 클릭하여 첫 번째 콘텐츠를 만들어보세요.
-            </div>
-          )}
         </div>
       </div>
     </Card>

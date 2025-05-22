@@ -1,77 +1,122 @@
-
-import React, { useState } from 'react';
-import { Content } from '../types';
-import ContentCard from '../content/ContentCard';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import AddContentForm from '../forms/AddContentForm';
-import EmptyState from '../ui/EmptyState';
+import { Badge } from '@/components/ui/badge';
+import ProductCard from '../../shopping/ProductCard';
+import { Grid2X2, List } from 'lucide-react';
+import { Content, PeerMallConfig } from '../types';
 
 interface PeerSpaceContentSectionProps {
-  contents: Content[];
   isOwner: boolean;
+  address: string;
+  config: PeerMallConfig;
+  products: Content[];
+  currentView: 'blog' | 'list';
+  setCurrentView: (view: 'blog' | 'list') => void;
+  handleShowProductForm: () => void;
+  filteredProducts: Content[];
 }
 
 const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
-  contents,
-  isOwner
+  isOwner,
+  address,
+  config,
+  products,
+  currentView,
+  setCurrentView,
+  handleShowProductForm,
+  filteredProducts,
 }) => {
-  const [isAddingContent, setIsAddingContent] = useState(false);
-
-  const handleAddContentClick = () => {
-    setIsAddingContent(true);
-  };
-
-  const handleContentSubmit = (formValues: any) => {
-    // Create a new Content object from the form values
-    const newContent: Content = {
-      id: Date.now().toString(),
-      peerSpaceAddress: 'peer-space-address', // Should be dynamically set
-      title: formValues.title || '',
-      description: formValues.description || '',
-      type: formValues.type || 'post',
-      date: new Date().toISOString(),
-      imageUrl: formValues.imageUrl || '',
-      price: formValues.price || '',
-      likes: 0,
-      comments: 0,
-      views: 0,
-      saves: 0
-    };
-    
-    console.log("새로운 콘텐츠:", newContent);
-    setIsAddingContent(false);
-  };
-
-  const handleCancelAddContent = () => {
-    setIsAddingContent(false);
-  };
-
   return (
-    <section className="mb-10">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">콘텐츠</h2>
-        {isOwner && (
-          <Button onClick={handleAddContentClick}>
-            콘텐츠 추가
+    <div className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="p-6 border-b">
+        <h2 className="text-xl font-bold">제품 & 콘텐츠</h2>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 cursor-pointer">전체</Badge>
+          <Badge variant="outline" className="hover:bg-blue-50 cursor-pointer">전자제품</Badge>
+          <Badge variant="outline" className="hover:bg-blue-50 cursor-pointer">패션</Badge>
+          <Badge variant="outline" className="hover:bg-blue-50 cursor-pointer">생활용품</Badge>
+          <Badge variant="outline" className="hover:bg-blue-50 cursor-pointer">도서</Badge>
+          <Badge variant="outline" className="hover:bg-blue-50 cursor-pointer">음식</Badge>
+          <Badge variant="outline" className="hover:bg-blue-50 cursor-pointer">취미</Badge>
+        </div>
+      </div>
+      
+      <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className={currentView === 'blog' ? 'bg-gray-100' : ''}
+            onClick={() => setCurrentView('blog')}
+          >
+            <Grid2X2 className="w-4 h-4 mr-1" />
+            블로그형
           </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className={currentView === 'list' ? 'bg-gray-100' : ''}
+            onClick={() => setCurrentView('list')}
+          >
+            <List className="w-4 h-4 mr-1" />
+            리스트형
+          </Button>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <select className="p-2 border rounded text-sm">
+            <option>최신순</option>
+            <option>인기순</option>
+            <option>가격 낮은순</option>
+            <option>가격 높은순</option>
+          </select>
+          
+          {isOwner && (
+            <Button variant="outline" size="sm" onClick={handleShowProductForm}>
+              제품 추가
+            </Button>
+          )}
+        </div>
+      </div>
+      
+      <div className="p-6">
+        {filteredProducts.length > 0 ? (
+          <div className={currentView === 'blog' 
+            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
+            : "space-y-4"
+          }>
+            {filteredProducts.map((product) => (
+              <div key={product.id}>
+                <ProductCard
+                  id={product.id}
+                  title={product.title}
+                  description={product.description}
+                  price={Number(product.price || 0)}
+                  discountPrice={null}
+                  imageUrl={product.imageUrl}
+                  rating={4.5}
+                  reviewCount={10}
+                  peermallName={config.title}
+                  peermallId={address}
+                  category={product.category || '기타'}
+                  tags={product.tags || []}
+                  viewMode={currentView === 'blog' ? 'grid' : 'list'}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-500">등록된 제품이 없습니다.</p>
+            {isOwner && (
+              <Button onClick={handleShowProductForm} className="mt-2">
+                첫 제품 등록하기
+              </Button>
+            )}
+          </div>
         )}
       </div>
-
-      {isAddingContent ? (
-        <AddContentForm onSubmit={handleContentSubmit} onCancel={handleCancelAddContent} />
-      ) : contents.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {contents.map(content => (
-            <ContentCard key={content.id} content={content} />
-          ))}
-        </div>
-      ) : (
-        <EmptyState 
-          title="콘텐츠가 없습니다."
-          description="새로운 콘텐츠를 추가하여 피어 스페이스를 풍성하게 만들어보세요."
-        />
-      )}
-    </section>
+    </div>
   );
 };
 

@@ -1,0 +1,225 @@
+# 프로젝트 구조
+
+## documents 폴더
+
+*   250512\_SRS\_v2.8.md
+*   UI&UX 디자인 가이드.md
+*   웹 사이트 디자인 프롬프트.md
+*   피어몰\_정책사항\_v1.2\_개정.md
+
+## src/ 폴더
+
+*   App.css
+*   App.tsx
+*   index.css
+*   main.tsx
+*   vite-env.d.ts
+*   components/
+    *   CategoryNav.tsx
+    *   CommunityHighlights.tsx
+    *   EcosystemMap.tsx
+    *   activity/
+        *   ActivityFeed.tsx
+        *   ActivityNotification.tsx
+    *   community/
+        *   Community.tsx
+        *   CommunityBoard.tsx
+        *   CommunityCreationForm.tsx
+        *   CommunityDetail.tsx
+        *   CommunityInfoPanel.tsx
+        *   data.ts
+        *   EmojiPicker.tsx
+        *   GlobeMap.tsx
+        *   MapControls.tsx
+        *   MapLegend.tsx
+        *   RichTextEditor.tsx
+        *   SeasonalSystem.tsx
+        *   SosResponseSystem.tsx
+        *   types.ts
+        *   UserLocationFeatures.tsx
+        *   utils.ts
+        *   WeatherOverlay.tsx
+        *   backup/
+    *   customer-support/
+        *   CategoryCards.tsx
+        *   CustomerSupportHeader.tsx
+        *   InquiryForm.tsx
+        *   MyInquiries.tsx
+        *   PopularFAQs.tsx
+        *   SupportChannels.tsx
+        *   SupportSidebar.tsx
+        *   TIESupport.tsx
+    *   feature-sections/
+        *   AddServiceModal.tsx
+        *   FavoriteServicesSection.tsx
+        *   QRFeature.tsx
+        *   ServiceCardsSection.tsx
+    *   layout/
+        *   Footer.tsx
+        *   Header.tsx
+        *   space/
+    *   my-info/
+        *   ActivitySection.tsx
+        *   CommunicationSection.tsx
+        *   ContentSection.tsx
+        *   Network.tsx
+        *   NetworkSection.tsx
+        *   PeermallManagementSection.tsx
+        *   ProfileSection.tsx
+        *   QRCodeSection.tsx
+        *   SecuritySection.tsx
+        *   SettingsSection.tsx
+    *   navigation/
+        *   CategoryNav.tsx
+        *   HashtagFilter.tsx
+    *   peer-space/
+        *   index.ts
+        *   LearningHubTabs.tsx
+        *   LearningHubTopBar.tsx
+        *   mockData.ts
+        *   PeerSpaceHero.tsx
+        *   PeerSpaceHome.tsx
+        *   PeerSpaceInfoHub.tsx
+        *   PeerSpaceTabs.tsx
+        *   types.ts
+        *   content/
+        *   forms/
+        *   layout/
+        *   others/
+        *   products/
+        *   settings/
+        *   ui/
+        *   data/
+            *   homeMockData.ts
+        *   modals/
+            *   PeerSpaceQRModal.tsx
+            *   PeerSpaceProductFormModal.tsx
+            *   PeerSpaceSettingsModal.tsx
+            *   PeerSpaceMapModal.tsx
+        *   sections/
+            *   BasicInfoSection.tsx
+            *   PeerSpaceHomeSection.tsx
+            *   PeerSpaceContentSection.tsx
+            *   PeerSpaceCommunitySection.tsx
+            *   PeerSpaceFollowingSection.tsx
+            *   PeerSpaceGuestbookSection.tsx
+        *   utils/
+            *   peerSpaceUtils.ts
+    *   peermall/
+        *   ControllerCard.tsx
+        *   FriendRequestCard.tsx
+        *   Header.tsx
+        *   NotificationCard.tsx
+        *   PurchaseCard.tsx
+        *   Sidebar.tsx
+        *   StatCard.tsx
+        *   WelcomeBanner.tsx
+    *   peermall-features/
+        *   CreatePeermall.tsx
+        *   CreatePeermallModal.tsx
+        *   PeermallCard_backup.tsx
+        *   PeermallCard.tsx
+        *   PeermallGrid.tsx
+        *   PeermallMap.tsx
+        *   ReviewSection.tsx
+    *   shopping/
+        *   ProductCard.tsx
+        *   ProductGrid.tsx
+        *   ShoppingFilter.tsx
+    *   ui/
+        *   accordion.tsx
+        *   alert-dialog.tsx
+        *   alert.tsx
+        *   aspect-ratio.tsx
+        *   avatar.tsx
+        *   badge.tsx
+        *   breadcrumb.tsx
+        *   button.tsx
+        *   calendar.tsx
+        *   card.tsx
+        *   carousel.tsx
+        *   chart.tsx
+        *   checkbox.tsx
+        *   collapsible.tsx
+        *   command.tsx
+        *   context-menu.tsx
+        *   dialog.tsx
+        *   drawer.tsx
+        *   dropdown-menu.tsx
+        *   form.tsx
+        *   hover-card.tsx
+        *   input-otp.tsx
+        *   input.tsx
+        *   label.tsx
+        *   menubar.tsx
+        *   modal.tsx
+        *   navigation-menu.tsx
+        *   pagination.tsx
+        *   popover.tsx
+        *   progress.tsx
+        *   radio-group.tsx
+        *   resizable.tsx
+        *   scroll-area.tsx
+        *   select.tsx
+        *   separator.tsx
+        *   sheet.tsx
+        *   sidebar.tsx
+        *   skeleton.tsx
+        *   slider.tsx
+        *   sonner.tsx
+        *   switch.tsx
+        *   table.tsx
+        *   tabs.tsx
+        *   textarea.tsx
+    *   user-interaction/
+*   data/
+    *   family-members.json
+*   hooks/
+    *   use-mobile.tsx
+    *   use-toast.ts
+    *   useForumManagement.ts
+    *   useLocalStorage.ts
+    *   usePeerSpaceTabs.tsx
+    *   usePlanetCreation.ts
+    *   useSettingsSave.ts
+    *   useSetupEditor.ts
+    *   useSpaceData.ts
+    *   useUserData.ts
+*   lib/
+    *   utils.ts
+*   pages/
+    *   Community.tsx
+    *   ContentDetailPage.tsx
+    *   CurationLinks.tsx
+    *   CustomerSupport.tsx
+    *   Index.tsx
+    *   Login.tsx
+    *   MyInfoPage.tsx
+    *   NotFound.tsx
+    *   PeerSpace.tsx
+    *   PeerSpaceSettings.tsx
+    *   PostDetailPage.tsx
+    *   Service.tsx
+    *   Shopping.tsx
+    *   my-info/
+*   services/
+    *   contentService.ts
+    *   peerSpaceService.ts
+    *   userService.ts
+    *   weatherService.ts
+*   styles/
+    *   editor-custom.css
+    *   leaflet-custom.css
+    *   map.css
+*   types/
+    *   community.ts
+    *   map.ts
+    *   post.ts
+*   utils/
+    *   contentHelper.ts
+    *   indexedDB.ts
+    *   indexedDBService.ts
+    *   mediaUtils.ts
+    *   peerSpaceStorage.ts
+    *   reviewUtils.ts
+    *   storageUtils.ts
