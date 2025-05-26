@@ -8,7 +8,7 @@ import CreatePeermall from '@/components/peermall-features/CreatePeermall';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeModal } from '@/components/peer-space/modals/QRCodeModal';
-import { ChevronRight, TrendingUp, Sparkles, Map, Users, Heart, Star } from 'lucide-react';
+import { ChevronRight, TrendingUp, Sparkles, Map, Users, Heart, Star, Phone, MessageSquare, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -154,6 +154,27 @@ const Index = () => {
   const [filteredMalls, setFilteredMalls] = useState<Peermall[]>([]);
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [selectedPeermall, setSelectedPeermall] = useState<Peermall | null>(null);
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
+
+  // Handle location selection from map
+  const handleLocationSelect = useCallback((location: any) => {
+    // Find the corresponding peermall
+    const peermall = peermalls.find(
+      p => p.location?.lat === location.lat && p.location?.lng === location.lng
+    );
+    
+    if (peermall) {
+      setSelectedPeermall(peermall);
+      setIsDetailViewOpen(true);
+    }
+  }, [peermalls]);
+
+  // Close detail view
+  const closeDetailView = useCallback(() => {
+    setIsDetailViewOpen(false);
+    setSelectedPeermall(null);
+  }, []);
 
   useEffect(() => {
     setFilteredMalls(peermalls);
@@ -242,9 +263,9 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h1 className={`${designTokens.typography.hero} text-gray-900`}>
+              {/* <h1 className={`${designTokens.typography.hero} text-gray-900`}>
                 피어몰 🏪
-              </h1>
+              </h1> */}
               {/* <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
                 {stats.totalMalls}개 운영중
               </Badge> */}
@@ -265,7 +286,7 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="px-4 py-8">
         {/* 🌟 즐겨찾기 서비스 섹션 - 개인화된 경험 */}
         {isLoggedIn && (
           <section className={`${designTokens.spacing.section}`}>
@@ -312,7 +333,7 @@ const Index = () => {
         </section>
 
         {/* 📊 메인 콘텐츠 그리드 - 정보 아키텍처 최적화 */}
-        <section className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-12">
+        <section className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-12">
           {/* 🏪 피어몰 메인 리스트 (3/4 너비) */}
           <div className="lg:col-span-3 space-y-8">
             {/* 🔥 인기 피어몰 섹션 */}
@@ -435,20 +456,22 @@ const Index = () => {
             </Card>
           </div>
 
-          {/* 🗺️ 사이드바 - 보조 정보 및 도구 (1/4 너비) */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* 피어맵 & 리뷰 */}
-            <Card className={`${designTokens.elevation.card} bg-gradient-to-br from-blue-50 to-cyan-50`}>
-              <CardHeader>
+          {/* 🗺️ 사이드바 - 보조 정보 및 도구 (1/3 너비) */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* 피어맵 */}
+            <Card className={`${designTokens.elevation.card} bg-gradient-to-br from-blue-50 to-cyan-50 h-full`}>
+              <CardHeader className="pb-2">
                 <div className="flex items-center space-x-2">
                   <Map className="w-5 h-5 text-blue-600" />
                   <h2 className={`${designTokens.typography.subheading} text-gray-900`}>
-                    피어맵 & 리뷰
+                    피어맵
                   </h2>
                 </div>
               </CardHeader>
-              <CardContent>
-                <EcosystemMap />
+              <CardContent className="p-0 h-[300px] min-h-[300px] w-full">
+                <div className="h-full overflow-hidden rounded-b-lg">
+                  <EcosystemMap onLocationSelect={handleLocationSelect} />
+                </div>
               </CardContent>
             </Card>
 
@@ -591,6 +614,84 @@ const Index = () => {
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 📍 피어몰 상세 보기 */}
+      <Dialog open={isDetailViewOpen} onOpenChange={closeDetailView}>
+        <DialogContent className="sm:max-w-2xl">
+          {selectedPeermall && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-bold">{selectedPeermall.title}</DialogTitle>
+                <p className="text-sm text-gray-500">{selectedPeermall.location?.address || '주소 정보 없음'}</p>
+              </DialogHeader>
+              
+              <div className="space-y-6">
+                {/* 썸네일 이미지 */}
+                {selectedPeermall.imageUrl && (
+                  <div className="relative h-48 rounded-lg overflow-hidden">
+                    <img 
+                      src={selectedPeermall.imageUrl} 
+                      alt={selectedPeermall.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 p-4 text-white">
+                      <div className="flex items-center space-x-2">
+                        <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                        <span>{selectedPeermall.rating?.toFixed(1) || '0.0'}</span>
+                        <span className="text-gray-300">•</span>
+                        <span>리뷰 {selectedPeermall.reviewCount || 0}개</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 설명 섹션 */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">소개</h3>
+                  <p className="text-gray-700">
+                    {selectedPeermall.description || '등록된 설명이 없습니다.'}
+                  </p>
+                </div>
+
+                {/* 태그 섹션 */}
+                {selectedPeermall.tags && selectedPeermall.tags.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg">태그</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedPeermall.tags.map((tag, index) => (
+                        <Badge key={index} variant="outline" className="text-sm">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 액션 버튼 */}
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <Button className="bg-blue-600 hover:bg-blue-700 h-12">
+                    <Phone className="w-4 h-4 mr-2" />
+                    전화하기
+                  </Button>
+                  <Button variant="outline" className="h-12">
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    메시지 보내기
+                  </Button>
+                  <Button variant="outline" className="h-12">
+                    <Star className="w-4 h-4 mr-2" />
+                    리뷰 작성하기
+                  </Button>
+                  <Button variant="outline" className="h-12">
+                    <Navigation className="w-4 h-4 mr-2" />
+                    길찾기
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 

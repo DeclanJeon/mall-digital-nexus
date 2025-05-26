@@ -158,29 +158,23 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
     }
   };
 
-  // 다음 단계로 - 수정된 버전
+  // 다음 단계로 - 수정된 버전 (추가 설정하기 버튼 클릭 시)
   const handleNextStep = async () => {
-    console.log('다음 단계 버튼 클릭됨');
+    console.log('추가 설정하기 버튼 클릭됨');
     
     try {
       // 1단계 필수 필드들 검증
-      const fieldsToValidate = [
-        'address',
-        'name', 
-        'description',
-        'representativeName',
-        'email'
-      ];
+      const step1Fields = ['address', 'name', 'description', 'representativeName', 'email'];
+      let isStep1Valid = true;
       
-      let isValid = true;
-      for (const field of fieldsToValidate) {
+      for (const field of step1Fields) {
         const result = await form.trigger(field as keyof PeermallFormData);
-        if (!result) isValid = false;
+        if (!result) isStep1Valid = false;
       }
 
       // 중복 주소 체크
       if (isDuplicateAddress) {
-        isValid = false;
+        isStep1Valid = false;
         toast({
           title: '중복된 주소',
           description: '이미 사용 중인 주소입니다. 다른 주소를 입력해주세요.',
@@ -188,14 +182,29 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
         });
       }
 
-      if (isValid) {
+      if (isStep1Valid) {
+        // 2단계로 이동
         setCurrentStep(2);
+        // 스크롤을 맨 위로 이동
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         toast({
           title: '1단계 완료! 🎉',
           description: '이제 브랜딩과 개인화 설정을 진행해보세요.',
           variant: 'default',
         });
       } else {
+        // 유효성 검사 실패 시 첫 번째 오류 필드로 스크롤
+        const errorFields = Object.keys(form.formState.errors);
+        if (errorFields.length > 0) {
+          const firstErrorField = document.querySelector(`[name="${errorFields[0]}"]`);
+          if (firstErrorField) {
+            firstErrorField.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+          }
+        }
+        
         toast({
           title: '입력 확인 필요',
           description: '필수 항목을 모두 올바르게 입력해주세요.',
@@ -291,22 +300,63 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
     setIsMapDialogOpen(false);
   };
 
-  // 폼 제출 - 기존과 동일하지만 로깅 추가
+  // 폼 제출 핸들러 - 멀티 스텝 폼 처리
   const onSubmit: SubmitHandler<PeermallFormData> = async (values) => {
-    console.log('폼 제출 시작:', values);
+    console.log('폼 제출 시작 - 현재 스텝:', currentStep, values);
     setIsLoading(true);
 
-    // ✅ 1단계에서 제출 시 필수 필드만 검증
+    // 1단계 필수 필드 검증 (모든 제출 시 공통)
+    const step1Fields = ['address', 'name', 'description', 'representativeName', 'email'];
+    let isStep1Valid = true;
+    
+    for (const field of step1Fields) {
+      const result = await form.trigger(field as keyof PeermallFormData);
+      if (!result) isStep1Valid = false;
+    }
+
+    // 1단계 유효성 검사 실패 시
+    if (!isStep1Valid) {
+      toast({
+        title: '입력 확인 필요',
+        description: '필수 항목을 모두 올바르게 입력해주세요.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // 중복 주소 체크
+    if (isDuplicateAddress) {
+      toast({
+        title: '중복된 주소',
+        description: '이미 사용 중인 주소입니다. 다른 주소를 입력해주세요.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // 1단계에서 '추가 설정하기' 버튼 클릭 시
     if (currentStep === 1) {
-      const step1Fields = ['address', 'name', 'description', 'representativeName', 'email'];
-      let isStep1Valid = true;
+      // 2단계로 이동
+      setCurrentStep(2);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setIsLoading(false);
+      return;
+    }
+
+    // 2단계에서 '피어몰 생성하기' 버튼 클릭 시
+    if (currentStep === 2) {
+      // 2단계 필드 검증 (선택사항이므로 스킵 가능)
+      const step2Fields = ['visibility'];
+      let isStep2Valid = true;
       
-      for (const field of step1Fields) {
+      for (const field of step2Fields) {
         const result = await form.trigger(field as keyof PeermallFormData);
-        if (!result) isStep1Valid = false;
+        if (!result) isStep2Valid = false;
       }
       
-      if (!isStep1Valid || isDuplicateAddress) {
+      if (!isStep2Valid) {
         toast({
           title: '입력 확인 필요',
           description: '필수 항목을 모두 올바르게 입력해주세요.',
@@ -1055,81 +1105,91 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
             {/* 하단 버튼 영역 */}
             <DialogFooter className="flex flex-col sm:flex-row gap-3 w-full">
               {currentStep === 1 ? (
-                <>
+                // 1단계 버튼 그룹
+                <div className="flex flex-col sm:flex-row justify-between w-full gap-3">
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleCancel}
+                      className="flex-1 sm:flex-none"
+                    >
+                      취소
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      disabled={isLoading || isDuplicateAddress}
+                      className="flex-1 sm:flex-none"
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                          저장 중...
+                        </>
+                      ) : (
+                        '바로 생성하기'
+                      )}
+                    </Button>
+                  </div>
                   <Button
                     type="button"
-                    variant="outline"
-                    onClick={handleCancel}
-                    className="w-full sm:w-auto order-3 sm:order-1"
-                  >
-                    취소
-                  </Button>
-                  <Button
-                    type="submit" // ✅ type을 submit으로 변경
-                    className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white order-1 sm:order-2"
-                    disabled={isDuplicateAddress || isLoading}
+                    onClick={handleNextStep}
+                    disabled={isLoading || isDuplicateAddress}
+                    className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white min-w-[150px]"
                   >
                     {isLoading ? (
                       <>
                         <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                        생성 중...
+                        처리 중...
                       </>
                     ) : (
                       <>
-                        <Check className="mr-2 h-4 w-4" />
-                        피어몰 생성 완료
+                        추가 설정하기
+                        <ChevronRight className="ml-2 h-4 w-4" />
                       </>
                     )}
                   </Button>
-                  <Button
-                    type="button"
-                    onClick={handleNextStep}
-                    variant="outline"
-                    className="w-full sm:w-auto order-2 sm:order-3"
-                    disabled={isDuplicateAddress}
-                  >
-                    추가 설정하기
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </>
+                </div>
               ) : (
-                // 기존 2단계 버튼들 유지
-                <>
+                // 2단계 버튼 그룹
+                <div className="flex justify-between w-full gap-3">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handlePrevStep}
-                    className="w-full sm:w-auto order-3 sm:order-1"
+                    disabled={isLoading}
+                    className="min-w-[120px]"
                   >
                     <ChevronLeft className="mr-2 h-4 w-4" />
                     이전 단계
                   </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={handleCancel}
-                    className="w-full sm:w-auto order-2 sm:order-2"
-                  >
-                    취소
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white order-1 sm:order-3"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                        생성 중...
-                      </>
-                    ) : (
-                      <>
-                        <Check className="mr-2 h-4 w-4" />
-                        피어몰 생성 완료
-                      </>
-                    )}
-                  </Button>
-                </>
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleCancel}
+                      disabled={isLoading}
+                      className="min-w-[80px]"
+                    >
+                      취소
+                    </Button>
+                    <Button 
+                      type="submit"
+                      className="bg-green-600 hover:bg-green-700 min-w-[150px]"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                          저장 중...
+                        </>
+                      ) : (
+                        '피어몰 생성하기'
+                      )}
+                    </Button>
+                  </div>
+                </div>
               )}
             </DialogFooter>
           </form>

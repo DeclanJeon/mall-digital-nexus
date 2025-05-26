@@ -11,7 +11,7 @@ const CommunityHighlights = () => {
   const [selectedCat, setSelectedCat] = useState<Category['value']>(CATEGORIES[0].value);
 
   return (
-    <section className="w-full max-w-6xl mx-auto my-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+    <section className="w-full mx-auto my-8 grid grid-cols-1 md:grid-cols-4 gap-8">
       {/* 좌: 인기 응원글 + 구독 급상승 */}
       <CommunitySidebar />
 
