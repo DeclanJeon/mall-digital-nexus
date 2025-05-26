@@ -1069,7 +1069,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                       />
 
                       {/* 추천인 코드 */}
-                      <FormField
+                      {/* <FormField
                         control={form.control}
                         name="referralCode"
                         render={({ field }) => (
@@ -1093,7 +1093,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                             </div>
                           </FormItem>
                         )}
-                      />
+                      /> */}
                     </div>
                   </div>
                 </CardContent>
