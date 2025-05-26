@@ -40,7 +40,7 @@ export const MapSelectorDialog: React.FC<MapSelectorDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto z-[1001]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">지도에서 위치 선택</DialogTitle>
         </DialogHeader>

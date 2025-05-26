@@ -570,11 +570,11 @@ const Index = () => {
         </DialogContent>
       </Dialog>
 
-      <PeermallDetailDialog 
+      {/* <PeermallDetailDialog 
         isOpen={isDetailViewOpen}
         onOpenChange={closeDetailView}
         selectedPeermall={selectedPeermall}
-      />
+      /> */}
 
       {/* 📱 QR 코드 모달 */}
       <QRCodeModal

@@ -633,7 +633,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto z-[1000]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center mb-2">
             피어몰 만들기
