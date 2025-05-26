@@ -236,21 +236,19 @@ const Header = () => {
             {/* <Link to="/customer-support" className="text-text-200 hover:text-primary-300">고객센터</Link> */}
             
             {isLoggedIn && (
-              <>
-                <button
-                  onClick={handleOpenMySpaces}
-                  className="text-accent-200 hover:text-accent-100"
-                >
-                  내 스페이스
-                </button>
-                <button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="ml-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                >
-                  피어몰 만들기
-                </button>
-              </>
+              <button
+                onClick={handleOpenMySpaces}
+                className="text-accent-200 hover:text-accent-100"
+              >
+                내 스페이스
+              </button>
             )}
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="ml-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              피어몰 만들기
+            </button>
           </nav>
 
           {/* User Actions (desktop) */}
@@ -411,21 +409,19 @@ const Header = () => {
               <Link to="/curation-links" className="py-2 text-text-200 hover:text-primary-300">큐레이션</Link>
               <Link to="/community" className="py-2 text-text-200 hover:text-primary-300">커뮤니티</Link>
               {isLoggedIn && (
-                <>
-                  <button 
-                    onClick={handleOpenMySpaces}
-                    className="py-2 text-left text-accent-200 hover:text-accent-100"
-                  >
-                    내 스페이스
-                  </button>
-                  <button 
-                    onClick={handleCreateModalOpen}
-                    className="py-2 text-left text-accent-200 hover:text-accent-100"
-                  >
-                    피어몰 만들기
-                  </button>
-                </>
+                <button 
+                  onClick={handleOpenMySpaces}
+                  className="py-2 text-left text-accent-200 hover:text-accent-100"
+                >
+                  내 스페이스
+                </button>
               )}
+              <button 
+                onClick={handleCreateModalOpen}
+                className="py-2 text-left text-accent-200 hover:text-accent-100"
+              >
+                피어몰 만들기
+              </button>
               <div className="flex items-center justify-between py-2">
                 <div className="flex items-center">
                   {/* 모바일 알림 아이콘 - 데스크탑과 동일한 Popover 사용 가능하나, UI/UX 고려하여 별도 처리 또는 버튼만 제공 */}

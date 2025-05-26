@@ -6,6 +6,8 @@ import { Button } from './ui/button';
 import { Location } from '@/types/map';
 import ReviewSection from './peermall-features/ReviewSection';
 
+const LOCAL_STORAGE_PEERMALL_KEY_PREFIX = 'peermall-';
+
 const EcosystemMap = () => {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
@@ -15,31 +17,52 @@ const EcosystemMap = () => {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [showControls, setShowControls] = useState(true);
 
-  const locations: Location[] = [
-    {
-      lat: 37.5665,
-      lng: 126.9780,
-      title: "서울시청 피어몰",
-      address: "서울특별시 중구 세종대로 110",
-      phone: "02-1234-5678",
-      reviews: [
-        {
-          author: "GPT카이",
-          rating: 4.6,
-          text: "최근 3개월의 리뷰를 모아봤어요. 이 서비스는 정말 편하고 직관적인 UI를 가지고 있어서 사용하기 쉬웠습니다. 특히 피어몰에서 제공하는 상품들의 품질이 우수하고 배송도 빨라서 만족스러웠습니다. 고객센터의 응대도 친절하고 문의사항에 빠르게 답변해 주셔서 좋았어요.",
-          likes: 24,
-          dislikes: 3,
-          date: "2025-04-10",
-          stats: {
-            satisfaction: 93,
-            quality: 74,
-            service: 66,
-            valueForMoney: 69
-          }
-        }
-      ]
-    }
-  ];
+  const [locations, setLocations] = useState<Location[]>([]);
+
+  // 로컬 스토리지에서 피어몰 데이터 로드
+  useEffect(() => {
+    const loadPeermalls = () => {
+      try {
+        const allPeermallIds = JSON.parse(localStorage.getItem('all_peermall_addresses') || '[]');
+        const peermalls = allPeermallIds.map((id: string) => {
+          const peermallStr = localStorage.getItem(`${LOCAL_STORAGE_PEERMALL_KEY_PREFIX}${id}`);
+          if (!peermallStr) return null;
+          
+          const peermall = JSON.parse(peermallStr);
+          return {
+            lat: peermall.location?.lat || 37.5665 + (Math.random() - 0.5) * 0.1,
+            lng: peermall.location?.lng || 126.9780 + (Math.random() - 0.5) * 0.1,
+            title: peermall.title || '피어몰',
+            address: peermall.address || '주소 정보 없음',
+            phone: peermall.phone || '전화번호 없음',
+            reviews: peermall.reviews || []
+          };
+        }).filter(Boolean);
+        
+        setLocations(peermalls);
+      } catch (error) {
+        console.error('피어몰 데이터 로드 중 오류 발생:', error);
+      }
+    };
+
+    // 초기 로드
+    loadPeermalls();
+    
+    // 스토리지 변경 이벤트 리스너 등록
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'all_peermall_addresses' || e.key?.startsWith(LOCAL_STORAGE_PEERMALL_KEY_PREFIX)) {
+        loadPeermalls();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('peermallUpdated', loadPeermalls);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('peermallUpdated', loadPeermalls);
+    };
+  }, []);
 
   useEffect(() => {
     if (!mapRef.current || mapInstance.current) return;

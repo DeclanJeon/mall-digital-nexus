@@ -109,6 +109,12 @@ const FormControl = React.forwardRef<
 >(({ ...props }, ref) => {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
 
+  // Filter out any undefined or null props to prevent React warnings
+  const { children, ...restProps } = props;
+  const filteredProps = Object.fromEntries(
+    Object.entries(restProps).filter(([_, value]) => value !== undefined && value !== null)
+  )
+
   return (
     <Slot
       ref={ref}
@@ -119,8 +125,10 @@ const FormControl = React.forwardRef<
           : `${formDescriptionId} ${formMessageId}`
       }
       aria-invalid={!!error}
-      {...props}
-    />
+      {...filteredProps}
+    >
+      {children}
+    </Slot>
   )
 })
 FormControl.displayName = "FormControl"

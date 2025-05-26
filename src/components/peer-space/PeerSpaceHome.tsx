@@ -40,7 +40,7 @@ import { createContent } from '@/services/contentService';
 import { getPeerSpaceContents } from '@/utils/peerSpaceStorage';
 import { ContentFormValues } from './forms/AddContentForm';
 import { usePeerSpaceTabs } from '@/hooks/usePeerSpaceTabs';
-import { add } from '@/utils/indexedDBService';
+// import { add } from '@/utils/indexedDBService';
 import EmptyState from './ui/EmptyState';
 import ProductCard from '../shopping/ProductCard';
 import BadgeSelector from './ui/BadgeSelector';
@@ -117,10 +117,10 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             const mockPosts = generateMockPosts(12);
             loadedContents = [...mockProducts, ...mockPosts];
             
-            // 더미 데이터 저장 (실제 앱에서는 필요 없을 수 있음)
-            for (const content of loadedContents) {
-              await add('contents', content);
-            }
+            // 더미 데이터 저장 (IndexedDB 사용 중지로 주석 처리)
+            // for (const content of loadedContents) {
+            //   await add('contents', content);
+            // }
           }
           
           setContents(loadedContents);

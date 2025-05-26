@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Search, Filter } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { openDB } from 'idb';
-import CreatePeermallModal from '@/components/peermall-features/CreatePeermallModal';
+
 import { TransactionItem } from '@/components/my-info/ActivitySection';
 import NetworkSectionProps from '@/components/my-info/Network';
 
@@ -689,10 +689,10 @@ const MyInfoPage = () => {
         </Tabs>
       </div>
       
-      <CreatePeermallModal 
+      {/* <CreatePeermallModal 
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={async (peermallData) => {
+        onSubmit={async (peermallData) => {
           try {
             const db = await initDB();
             await db.add('peermalls', {
@@ -712,7 +712,7 @@ const MyInfoPage = () => {
             console.error("피어몰 생성 실패:", error);
           }
         }}
-      />
+      /> */}
     </div>
   );
 };

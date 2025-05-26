@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from '@/hooks/use-toast';
 import ProductRegistrationForm from '../products/ProductRegistrationForm';
 import { Content } from '../types';
-import { add } from '@/utils/indexedDBService';
+// import { add } from '@/utils/indexedDBService';
 
 interface PeerSpaceProductFormModalProps {
   showProductForm: boolean;
@@ -56,7 +56,8 @@ const PeerSpaceProductFormModal: React.FC<PeerSpaceProductFormModalProps> = ({
               ecosystem: {},
               attributes: {}
             };
-            await add('products', newProduct);
+            // IndexedDB 사용 중지로 주석 처리
+            // await add('products', newProduct);
             setProducts([...products, newProduct]);
             setContents([...contents, newProduct]);
             setShowProductForm(false);
