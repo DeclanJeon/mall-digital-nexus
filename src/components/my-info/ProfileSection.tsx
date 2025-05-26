@@ -203,7 +203,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userProfile, setUserPro
 
   return (
     <Card>
-      <CardHeader className="pb-2">
+      <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle className="text-2xl">개인 프로필</CardTitle>
           {!isEditing ? (

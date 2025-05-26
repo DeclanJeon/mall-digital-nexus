@@ -115,14 +115,23 @@ const Index = () => {
     loadFromLocalStorage();
   }, []);
 
-  const handleCreatePeermall = (newMallData: Omit<Peermall, 'id' | 'rating' | 'reviewCount'>) => {
+  const handleCreatePeermall = (newMallData: Omit<Peermall, 'id' | 'rating' | 'reviewCount' | 'createdAt' | 'updatedAt'>) => {
+    const now = new Date().toISOString();
     const newPeermallWithDefaults: Peermall = {
-      ...newMallData,
-      id: `pm-${Date.now().toString()}-${Math.random().toString(36).substring(2, 7)}`,
+      // 기본값 설정
+      title: newMallData.title || '새로운 피어몰',
+      description: newMallData.description || '',
+      owner: newMallData.owner || '나',
+      imageUrl: newMallData.imageUrl || '/placeholder.svg',
+      category: newMallData.category || '기타',
       rating: 0,
       reviewCount: 0,
-      owner: newMallData.owner || '나',
-      createdAt: new Date().toISOString()
+      // 기존 값 유지
+      ...newMallData,
+      // ID와 타임스탬프 설정
+      id: `pm-${Date.now().toString()}-${Math.random().toString(36).substring(2, 7)}`,
+      createdAt: now,
+      updatedAt: now
     };
     
     setPeermalls(prevMalls => {
@@ -258,34 +267,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
-      {/* 🎨 헤더 영역 - 시각적 계층 구조와 명확한 정보 전달 */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              {/* <h1 className={`${designTokens.typography.hero} text-gray-900`}>
-                피어몰 🏪
-              </h1> */}
-              {/* <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
-                {stats.totalMalls}개 운영중
-              </Badge> */}
-            </div>
-            
-            {/* 🔄 실시간 통계 - 사용자 참여도 시각화 */}
-            {/* <div className="hidden md:flex items-center space-x-6">
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <Star className="w-4 h-4 text-yellow-500" />
-                <span>평균 {stats.avgRating}점</span>
-              </div>
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <Users className="w-4 h-4 text-blue-500" />
-                <span>내 스페이스 {stats.myMalls}개</span>
-              </div>
-            </div> */}
-          </div>
-        </div>
-      </header>
-
       <main className="px-4 py-8">
         {/* 🌟 즐겨찾기 서비스 섹션 - 개인화된 경험 */}
         {isLoggedIn && (

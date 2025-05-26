@@ -372,6 +372,7 @@ const Shopping = () => {
                 <div className="w-full"> 
                   <TabsContent value="products" className="mt-0">
                     <ProductGrid 
+                      id="shopping-products"
                       products={displayedProducts} 
                       viewMode={viewMode} 
                       filters={filters}

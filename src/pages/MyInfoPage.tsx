@@ -621,9 +621,9 @@ const MyInfoPage = () => {
           <div className="w-full lg:w-64 mb-6 lg:mb-0">
             <TabsList className="flex lg:flex-col justify-start lg:justify-start gap-2 lg:gap-4">
               <TabsTrigger value="profile" className="w-full justify-start">내 정보</TabsTrigger>
-              <TabsTrigger value="content" className="w-full justify-start">콘텐츠</TabsTrigger>
-              <TabsTrigger value="network" className="w-full justify-start">네트워크</TabsTrigger>
-              <TabsTrigger value="peermall" className="w-full justify-start">피어몰 관리</TabsTrigger>
+              {/* <TabsTrigger value="content" className="w-full justify-start">콘텐츠</TabsTrigger> */}
+              {/* <TabsTrigger value="network" className="w-full justify-start">네트워크</TabsTrigger> */}
+              {/* <TabsTrigger value="peermall" className="w-full justify-start">피어몰 관리</TabsTrigger> */}
             </TabsList>
           </div>
           <div className="flex-1">

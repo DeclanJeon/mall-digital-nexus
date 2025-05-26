@@ -319,4 +319,6 @@ export type SectionType =
   | 'activityFeed'
   | 'relatedMalls'
   | 'liveCollaboration'
-  | 'livestream';
+  | 'livestream'
+  | 'home'
+  | 'following';

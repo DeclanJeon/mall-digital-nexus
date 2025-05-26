@@ -1,12 +1,8 @@
 import { storage } from '@/utils/storage/storage';
+import { Peermall } from '@/types/peermall';
 
-export interface Peermall {
-  id: string;
-  title: string;
-  description: string;
-  // 추가 필드들
-  [key: string]: any;
-}
+// Peermall 타입을 다시 export하여 다른 컴포넌트들에서도 동일한 타입을 사용할 수 있게 함
+export type { Peermall };
 
 // 이벤트 리스너 타입 정의
 type PeermallStorageEventListener = (peermalls: Peermall[]) => void;
@@ -55,16 +51,27 @@ export const peermallStorage = {
   // 피어몰 저장 또는 업데이트
   save(peermall: Omit<Peermall, 'id'> & { id?: string }): Peermall {
     const peermalls = this.getAll();
-    // 필수 필드가 있는지 확인하고 기본값 설정
+    const existingIndex = peermalls.findIndex(p => p.id === peermall.id);
+    
+    // 기본값 설정
+    const now = new Date().toISOString();
     const newPeermall: Peermall = {
+      // 기본값 설정
+      title: peermall.title || '새로운 피어몰',
+      description: peermall.description || '',
+      owner: peermall.owner || 'unknown',
+      imageUrl: peermall.imageUrl || '/placeholder.svg',
+      category: peermall.category || '기타',
+      rating: peermall.rating || 0,
+      reviewCount: peermall.reviewCount || 0,
+      // 기존 값 유지
+      ...peermall,
+      // ID와 타임스탬프 설정
       id: peermall.id || Date.now().toString(),
-      title: peermall.title || '제목 없음',
-      description: peermall.description || '설명이 없습니다.',
-      ...peermall, // 기존 속성들 유지
-      createdAt: peermall['createdAt'] || new Date().toISOString()
+      createdAt: peermall.createdAt || now,
+      updatedAt: now
     };
 
-    const existingIndex = peermalls.findIndex(p => p.id === newPeermall.id);
     if (existingIndex >= 0) {
       peermalls[existingIndex] = newPeermall;
     } else {

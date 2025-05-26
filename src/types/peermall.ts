@@ -1,27 +1,36 @@
 // src/types/peermall.ts
 export interface Peermall {
+  // 기본 정보
   id: string;
   title: string;
   description: string;
   owner: string;
   imageUrl: string;
   category: string;
+  
+  // 메타데이터
   tags?: string[];
   rating: number;
   reviewCount: number;
+  likes?: number;
+  followers?: number;
   featured?: boolean;
-  type?: string;
-  feedDate?: string;
   recommended?: boolean;
+  certified?: boolean;
+  
+  // 위치 정보
   location?: {
     lat: number;
     lng: number;
     address: string;
   };
-  lat: number;
-  lng: number;
-  address: string;
+  
+  // 타임스탬프
   createdAt: string;
+  updatedAt?: string;
+  
+  // 추가 필드
+  [key: string]: any;
 }
 
 export interface PeermallCardProps {
