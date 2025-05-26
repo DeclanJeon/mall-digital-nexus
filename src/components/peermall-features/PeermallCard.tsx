@@ -337,7 +337,7 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
 
               {/* 🏆 프리미엄 뱃지 영역 - 시각적 팝아웃 최적화 */}
               <div className="absolute top-4 left-4 flex flex-col gap-2 z-20">
-                <AnimatePresence>
+                {/* <AnimatePresence>
                   {premiumBadges.slice(0, 3).map((badge, index) => (
                     <motion.div
                       key={badge.type}
@@ -355,10 +355,10 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
                       </Badge>
                     </motion.div>
                   ))}
-                </AnimatePresence>
+                </AnimatePresence> */}
 
                 {/* 신뢰도 점수 */}
-                <motion.div
+                {/* <motion.div
                   initial={{ opacity: 0, x: -30 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
@@ -370,69 +370,93 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
                     <Shield className="h-3 w-3" />
                     {premiumStats.trustScore}% 신뢰
                   </Badge>
-                </motion.div>
+                </motion.div> */}
               </div>
 
               {/* 💎 프리미엄 액션 버튼 영역 - 눈에 잘 띄는 위치 */}
-              <div className="absolute top-4 right-4 z-20">
+              <div className="absolute top-3 right-3 z-20">
                 <motion.div
                   className={cn(
-                    "flex flex-col gap-2",
+                    "flex items-center gap-1.5 p-1.5 rounded-2xl",
                     premiumTokens.glass.backdrop,
-                    "rounded-2xl p-2 shadow-2xl"
+                    "shadow-lg backdrop-blur-sm"
                   )}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 }}
                 >
-                  {/* 즉시 통화 버튼 - 최우선 시각적 위치 */}
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                  {/* 즉시 통화 버튼 */}
+                  <motion.div 
+                    whileHover={{ scale: 1.1 }} 
+                    whileTap={{ scale: 0.95 }}
+                    className="relative group"
+                  >
                     <Button 
-                      size="sm"
+                      size="icon"
+                      variant="ghost"
                       className={cn(
-                        "w-10 h-10 rounded-xl p-0 shadow-lg",
+                        "w-8 h-8 rounded-xl p-0",
                         "bg-gradient-to-r from-green-500 to-emerald-600",
                         "hover:from-green-600 hover:to-emerald-700",
-                        "text-white border-0 transition-all duration-300"
+                        "text-white transition-all duration-200"
                       )}
                       onClick={handleQuickCall}
                       title="즉시 통화하기"
                     >
-                      <Phone className="h-5 w-5" />
+                      <Phone className="h-4 w-4" />
                     </Button>
+                    <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200">
+                      통화하기
+                    </span>
                   </motion.div>
                   
-                  {/* 즉시 메시지 버튼 - 두 번째 우선순위 */}
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                  {/* 즉시 메시지 버튼 */}
+                  <motion.div 
+                    whileHover={{ scale: 1.1 }} 
+                    whileTap={{ scale: 0.95 }}
+                    className="relative group"
+                  >
                     <Button 
-                      size="sm"
+                      size="icon"
+                      variant="ghost"
                       className={cn(
-                        "w-10 h-10 rounded-xl p-0 shadow-lg",
+                        "w-8 h-8 rounded-xl p-0",
                         "bg-gradient-to-r from-blue-500 to-indigo-600",
                         "hover:from-blue-600 hover:to-indigo-700",
-                        "text-white border-0 transition-all duration-300"
+                        "text-white transition-all duration-200"
                       )}
                       onClick={handleQuickMessage}
                       title="즉시 메시지 보내기"
                     >
-                      <MessageSquare className="h-5 w-5" />
+                      <MessageSquare className="h-4 w-4" />
                     </Button>
+                    <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200">
+                      메시지
+                    </span>
                   </motion.div>
 
-                  {/* 추가 액션 버튼들 */}
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                  {/* 공유 버튼 */}
+                  <motion.div 
+                    whileHover={{ scale: 1.1 }} 
+                    whileTap={{ scale: 0.95 }}
+                    className="relative group"
+                  >
                     <Button 
-                      size="sm"
+                      size="icon"
+                      variant="ghost"
                       className={cn(
-                        "w-10 h-10 rounded-xl p-0 shadow-lg",
-                        "bg-white/90 hover:bg-white text-gray-700 hover:text-purple-600",
-                        "border-0 transition-all duration-300"
+                        "w-8 h-8 rounded-xl p-0",
+                        "bg-white/80 hover:bg-white text-gray-700 hover:text-purple-600",
+                        "transition-all duration-200"
                       )}
                       onClick={handleShare}
                       title="공유하기"
                     >
-                      <Share className="h-4 w-4" />
+                      <Share className="h-3.5 w-3.5" />
                     </Button>
+                    <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200">
+                      공유하기
+                    </span>
                   </motion.div>
                 </motion.div>
               </div>

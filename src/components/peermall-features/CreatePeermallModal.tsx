@@ -336,13 +336,11 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       return;
     }
 
-    // 1단계에서 '추가 설정하기' 버튼 클릭 시
+    // 1단계에서 '피어몰 생성하기' 버튼 클릭 시 바로 생성
     if (currentStep === 1) {
-      // 2단계로 이동
-      setCurrentStep(2);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      setIsLoading(false);
-      return;
+      // 2단계 유효성 검사 없이 바로 저장 진행
+      console.log('1단계에서 바로 저장 진행');
+      // 다음 코드 블록에서 처리 계속
     }
 
     // 2단계에서 '피어몰 생성하기' 버튼 클릭 시
@@ -1102,12 +1100,23 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
 
             <Separator className="my-6" />
 
-            {/* 하단 버튼 영역 */}
+            {/* 하단 버튼 영역 - 통합된 버튼 그룹 */}
             <DialogFooter className="flex flex-col sm:flex-row gap-3 w-full">
-              {currentStep === 1 ? (
-                // 1단계 버튼 그룹
-                <div className="flex flex-col sm:flex-row justify-between w-full gap-3">
-                  <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row justify-between w-full gap-3">
+                {/* 왼쪽 버튼 그룹 (뒤로가기/취소) */}
+                <div className="flex gap-3">
+                  {currentStep === 2 ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handlePrevStep}
+                      disabled={isLoading}
+                      className="min-w-[120px]"
+                    >
+                      <ChevronLeft className="mr-2 h-4 w-4" />
+                      이전 단계
+                    </Button>
+                  ) : (
                     <Button
                       type="button"
                       variant="outline"
@@ -1116,81 +1125,45 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                     >
                       취소
                     </Button>
+                  )}
+                </div>
+
+                {/* 오른쪽 버튼 그룹 (주요 액션) */}
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                  {currentStep === 1 && (
                     <Button
-                      type="submit"
+                      type="button"
                       variant="outline"
+                      onClick={handleNextStep}
                       disabled={isLoading || isDuplicateAddress}
-                      className="bg-green-600 hover:bg-green-700 min-w-[150px]"
+                      className="flex-1 sm:flex-none bg-white hover:bg-gray-50 text-gray-800 border-gray-300 hover:border-gray-400 min-w-[150px]"
                     >
-                      {isLoading ? (
-                        <>
-                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                          저장 중...
-                        </>
-                      ) : (
-                        '피어몰 생성하기'
-                      )}
+                      추가 설정하기
+                      <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
-                  </div>
-                  <Button
-                    type="button"
-                    onClick={handleNextStep}
+                  )}
+                  <Button 
+                    type="submit"
+                    className={`flex-1 sm:flex-none min-w-[150px] ${
+                      currentStep === 1 
+                        ? 'bg-blue-600 hover:bg-blue-700' 
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
                     disabled={isLoading || isDuplicateAddress}
-                    className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white min-w-[150px]"
                   >
                     {isLoading ? (
                       <>
                         <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                        처리 중...
+                        {currentStep === 1 ? '처리 중...' : '저장 중...'}
                       </>
                     ) : (
                       <>
-                        추가 설정하기
-                        <ChevronRight className="ml-2 h-4 w-4" />
+                        {currentStep === 1 ? '피어몰 생성하기' : '피어몰 생성하기'}
                       </>
                     )}
                   </Button>
                 </div>
-              ) : (
-                // 2단계 버튼 그룹
-                <div className="flex justify-between w-full gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handlePrevStep}
-                    disabled={isLoading}
-                    className="min-w-[120px]"
-                  >
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    이전 단계
-                  </Button>
-                  <div className="flex gap-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleCancel}
-                      disabled={isLoading}
-                      className="min-w-[80px]"
-                    >
-                      취소
-                    </Button>
-                    <Button 
-                      type="submit"
-                      className="bg-green-600 hover:bg-green-700 min-w-[150px]"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                          저장 중...
-                        </>
-                      ) : (
-                        '피어몰 생성하기'
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              )}
+              </div>
             </DialogFooter>
           </form>
         </Form>

@@ -233,6 +233,7 @@ const Header = () => {
             <Link to="/shopping" className="text-text-200 hover:text-primary-300">제품/피어몰</Link>
             {/* <Link to="/curation-links" className="text-text-200 hover:text-primary-300">큐레이션</Link> */}
             <Link to="/community" className="text-text-200 hover:text-primary-300">커뮤니티</Link>
+            <Link to="/create-qrcode" className="text-text-200 hover:text-primary-300">QR코드 만들기</Link>
             {/* <Link to="/customer-support" className="text-text-200 hover:text-primary-300">고객센터</Link> */}
             
             <button
