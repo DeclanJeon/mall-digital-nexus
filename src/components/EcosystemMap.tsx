@@ -991,7 +991,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
                   <ExternalLink className="w-4 h-4 mr-1 text-purple-600" />
                   방문하기
                 </Button>
-                <Button
+                {/* <Button
                   size="sm"
                   variant="outline"
                   className="border-orange-200 hover:bg-orange-50 hover:border-orange-300"
@@ -1002,7 +1002,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
                 >
                   <Navigation className="w-4 h-4 mr-1 text-orange-600" />
                   길찾기
-                </Button>
+                </Button> */}
               </div>
             </div>
           </motion.div>

@@ -14,7 +14,7 @@ const Footer = () => {
             <p className="text-sm text-gray-300 mb-4">
               'Peer'(귀족, 동료)와 'Mall'(쇼핑 장소)의 합성어로, 귀한 고객들이 품격 있게 사거나 팔 수 있는 사이트입니다.
             </p>
-            <div className="flex space-x-4">
+            {/* <div className="flex space-x-4">
               <a href="#" className="hover:text-accent-100 transition-colors">
                 <Facebook className="h-5 w-5" />
               </a>
@@ -27,21 +27,21 @@ const Footer = () => {
               <a href="#" className="hover:text-accent-100 transition-colors">
                 <Youtube className="h-5 w-5" />
               </a>
-            </div>
+            </div> */}
           </div>
           
           <div>
             <h3 className="font-bold mb-4">페이지</h3>
             <ul className="space-y-2 text-sm text-gray-300">
               <li><a href="#" className="hover:text-accent-100 transition-colors">홈</a></li>
-              <li><a href="#" className="hover:text-accent-100 transition-colors">소개</a></li>
-              <li><a href="#" className="hover:text-accent-100 transition-colors">서비스</a></li>
-              <li><a href="#" className="hover:text-accent-100 transition-colors">커뮤니티</a></li>
-              <li><a href="#" className="hover:text-accent-100 transition-colors">고객센터</a></li>
+              <li><a href="#" className="hover:text-accent-100 transition-colors">쇼핑</a></li>
+              <li><a href="#" className="hover:text-accent-100 transition-colors">QR코드 만들기</a></li>
+              {/* <li><a href="#" className="hover:text-accent-100 transition-colors">커뮤니티</a></li>
+              <li><a href="#" className="hover:text-accent-100 transition-colors">고객센터</a></li> */}
             </ul>
           </div>
           
-          <div>
+          {/* <div>
             <h3 className="font-bold mb-4">서비스</h3>
             <ul className="space-y-2 text-sm text-gray-300">
               <li><a href="#" className="hover:text-accent-100 transition-colors">피어몰 생성</a></li>
@@ -50,7 +50,7 @@ const Footer = () => {
               <li><a href="#" className="hover:text-accent-100 transition-colors">전화등록부</a></li>
               <li><a href="#" className="hover:text-accent-100 transition-colors">이메일 QR</a></li>
             </ul>
-          </div>
+          </div> */}
           
           <div>
             <h3 className="font-bold mb-4">뉴스레터 구독</h3>
