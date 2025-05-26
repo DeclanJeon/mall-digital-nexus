@@ -48,37 +48,35 @@ import { peermallStorage } from '@/services/storage/peermallStorage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-const DEFAULT_CENTER: [number, number] = [37.5665, 126.9780];
-
 interface MapLocation {
   lat: number;
   lng: number;
-  title: string;
   address: string;
-  phone: string;
-  reviews?: any[];
+  title: string;
   id?: string;
-  imageUrl?: string;
-  rating?: number;
-  followers?: number;
-  isPopular?: boolean;
   isFeatured?: boolean;
+  isPopular?: boolean;
   isVerified?: boolean;
-  description?: string;
-  tags?: string[];
+  rating?: number;
+  isOnline?: boolean;
   trustScore?: number;
   responseTime?: string;
-  isOnline?: boolean;
+  imageUrl?: string;
+  phone?: string;
+  description?: string;
+  tags?: string[];
 }
 
 interface EcosystemMapProps {
+  locations: MapLocation[];
   onLocationSelect?: (location: MapLocation) => void;
-  isFullscreen?: boolean;
 }
 
+const DEFAULT_CENTER: [number, number] = [37.5665, 126.9780];
+
 const EcosystemMap: React.FC<EcosystemMapProps> = ({ 
-  onLocationSelect, 
-  isFullscreen = false 
+  locations, 
+  onLocationSelect 
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -87,50 +85,15 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<MapLocation | null>(null);
   const [showControls, setShowControls] = useState(true);
-  const [locations, setLocations] = useState<MapLocation[]>([]);
-  const [mapFullscreen, setMapFullscreen] = useState(isFullscreen);
+  const [mapFullscreen, setMapFullscreen] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'popular' | 'verified' | 'featured'>('all');
   const [selectedHashtag, setSelectedHashtag] = useState<string | null>(null);
   const [availableHashtags, setAvailableHashtags] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Peermall 데이터를 MapLocation 타입으로 변환하는 헬퍼 함수
-  const convertPeermallToMapLocation = (peermall: Peermall): MapLocation => {
-    return {
-      id: peermall.id,
-      lat: peermall.location?.lat || DEFAULT_CENTER[0], 
-      lng: peermall.location?.lng || DEFAULT_CENTER[1], 
-      title: peermall.title,
-      address: peermall.location?.address || '주소 정보 없음', 
-      phone: peermall.phone || '전화번호 정보 없음', 
-      imageUrl: peermall.imageUrl,
-      rating: peermall.rating,
-      description: peermall.description,
-      tags: peermall.tags,
-      // 기타 필드들은 필요에 따라 추가
-    };
-  };
-
-  useEffect(() => {
-    // peermallStorage에서 데이터 로드 및 리스너 등록
-    const unsubscribe = peermallStorage.addEventListener(peermalls => {
-      const mappedLocations = peermalls.map(convertPeermallToMapLocation);
-      setLocations(mappedLocations);
-
-      // 해시태그 업데이트
-      const allTags = new Set<string>();
-      peermalls.forEach(p => p.tags?.forEach(tag => allTags.add(tag)));
-      setAvailableHashtags(allTags);
-    });
-
-    return () => {
-      unsubscribe(); // 컴포넌트 언마운트 시 리스너 해제
-    };
-  }, []);
-
   // 🎯 프리미엄 마커 아이콘 생성 함수
-  const createPremiumMarkerIcon = useCallback((location: MapLocation) => {
+  const createPremiumMarkerIcon = (location: MapLocation) => {
     const getMarkerClasses = () => {
       if (location.isFeatured) return 'premium-marker-featured';
       if (location.isPopular) return 'premium-marker-popular';
@@ -170,7 +133,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
       iconAnchor: [size/2, size],
       popupAnchor: [0, -size]
     });
-  }, []);
+  };
 
   // 🎨 팝업 생성 함수
   const createPremiumPopup = (location: MapLocation) => {
@@ -293,8 +256,6 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
             isOnline: Math.random() > 0.3
           };
         });
-      
-      setLocations(mappedLocations);
       
       // Extract all unique hashtags from all locations
       const allTags = new Set<string>();
@@ -447,6 +408,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
     } else if (filteredLocations.length > 1) {
       const bounds = L.latLngBounds(filteredLocations.map(loc => [loc.lat, loc.lng]));
       mapInstance.current.fitBounds(bounds, { padding: [50, 50] });
+      setSelectedLocation(filteredLocations[0]);
     }
   }, [locations, filterType, onLocationSelect]);
 

@@ -603,7 +603,7 @@ const Index = () => {
                 </CardHeader>
                 <CardContent className="p-0 h-full">
                   <div className="h-full overflow-hidden rounded-b-lg">
-                    <EcosystemMap onLocationSelect={handleLocationSelect} />
+                    <EcosystemMap onLocationSelect={handleLocationSelect} locations={allLocations} />
                   </div>
                 </CardContent>
               </Card>
