@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Content, ContentType, PeerMallConfig, SectionType } from './types';
+import { Peermall } from '@/types/peermall';
 import { 
   Heart, 
   MessageSquare, 
@@ -71,6 +72,7 @@ interface PeerSpaceHomeProps {
   isOwner: boolean;
   address: string;
   config: PeerMallConfig;
+  peermall: Peermall | null;
   onUpdateConfig: (updatedConfig: PeerMallConfig) => void;
   activeSection: 'home' | 'content' | 'community' | 'following' | 'guestbook' | 'settings';
   onNavigateToSection: (section: 'home' | 'content' | 'community' | 'following' | 'guestbook' | 'settings') => void;
@@ -80,6 +82,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   isOwner, 
   address,
   config,
+  peermall,
   onUpdateConfig,
   activeSection,
   onNavigateToSection
@@ -506,7 +509,12 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             {activeSection === 'guestbook' && (
               <PeerSpaceGuestbookSection />
             )}
-            {activeSection === 'settings' && <BasicInfoSection config={config} />}
+            {activeSection === 'settings' && (
+              <BasicInfoSection 
+                config={config} 
+                peermall={peermall}
+              />
+            )}
           </div>
 
           {/* 오른쪽 사이드바 */}

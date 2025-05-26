@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { peermallStorage, Peermall } from "@/services/storage/peermallStorage";
@@ -52,8 +53,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface PeermallCardProps extends Omit<Peermall, 'id'> {
-  id?: string;
+interface PeermallCardProps extends Peermall {
   isPopular?: boolean;
   isFamilyCertified?: boolean;
   isRecommended?: boolean;
@@ -62,7 +62,7 @@ interface PeermallCardProps extends Omit<Peermall, 'id'> {
   onOpenMap?: (location: { lat: number; lng: number; address: string; title: string }) => void;
 }
 
-// 🎨 프리미엄 디자인 토큰 - 럭셔리 브랜드 수준
+// 🎨 프리미엄 디자인 토큰
 const premiumTokens = {
   gradients: {
     primary: "from-blue-600 via-indigo-600 to-purple-700",
@@ -91,7 +91,7 @@ const premiumTokens = {
 };
 
 const PeerMallCard: React.FC<PeermallCardProps> = ({
-  id = '',
+  id,
   title = '이름 없음',
   owner = '미정',
   description = '설명이 없습니다.',
@@ -100,41 +100,60 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
   rating = 0,
   followers = 0,
   tags = [],
+  category = '기타',
+  featured = false,
+  certified = false,
+  recommended = false,
+  location,
   isPopular = false,
   isFamilyCertified = false,
   isRecommended = false,
   className,
   onShowQrCode,
   onOpenMap,
+  ...otherProps
 }) => {
   const { toast } = useToast();
   
-  // 상태 관리
+  // 상태 관리 - 실제 스토리지 데이터와 동기화
   const [isLiked, setIsLiked] = useState(false);
   const [currentLikes, setCurrentLikes] = useState(likes);
+  const [currentFollowers, setCurrentFollowers] = useState(followers);
   const [messageModalOpen, setMessageModalOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  
-  // 🏆 프리미엄 뱃지 시스템 - 계층화된 우선순위
+  const [isFollowing, setIsFollowing] = useState(false);
+
+  // 컴포넌트 마운트 시 스토리지에서 최신 데이터 동기화
+  useEffect(() => {
+    if (id) {
+      const storedPeermall = peermallStorage.getById(id);
+      if (storedPeermall) {
+        setCurrentLikes(storedPeermall.likes || likes);
+        setCurrentFollowers(storedPeermall.followers || followers);
+      }
+    }
+  }, [id, likes, followers]);
+
+  // 🏆 프리미엄 뱃지 시스템
   const premiumBadges = [
-    isPopular && { 
+    (isPopular || featured) && { 
       type: "HOT", 
       gradient: premiumTokens.gradients.fire,
       icon: <Flame className="h-3 w-3 fill-current" />,
       priority: 1,
       glow: true
     },
-    isRecommended && { 
+    (isRecommended || recommended) && { 
       type: "PREMIUM", 
       gradient: premiumTokens.gradients.gold,
       icon: <Crown className="h-3 w-3" />,
       priority: 2,
       glow: true
     },
-    isFamilyCertified && { 
+    (isFamilyCertified || certified) && { 
       type: "VERIFIED", 
       gradient: premiumTokens.gradients.emerald,
       icon: <Verified className="h-3 w-3" />,
@@ -153,11 +172,12 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
   // 📊 고급 통계 시스템
   const premiumStats = {
     totalLikes: currentLikes,
+    totalFollowers: currentFollowers,
     displayRating: Number(rating).toFixed(1),
     hasHighRating: rating >= 4.0,
-    isPopularItem: likes >= 100,
-    trustScore: Math.min(98, Math.floor(rating * 20 + (followers / 10))),
-    activityLevel: Math.floor(Math.random() * 50) + 20 // 실시간 활동 지표
+    isPopularItem: currentLikes >= 100,
+    trustScore: Math.min(98, Math.floor(rating * 20 + (currentFollowers / 10))),
+    activityLevel: Math.floor(Math.random() * 50) + 20
   };
 
   // 🎯 향상된 이벤트 핸들러들
@@ -165,19 +185,10 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
     e.preventDefault();
     e.stopPropagation();
     
-    // 마이크로 인터랙션 피드백
     toast({
       title: "📞 통화 연결 중...",
       description: `${owner}님과 연결하고 있습니다.`,
     });
-    
-    // 실제 통화 로직 구현 필요
-    setTimeout(() => {
-      toast({
-        title: "🎯 통화 준비 완료!",
-        description: "잠시 후 연결됩니다.",
-      });
-    }, 1500);
   }, [owner, toast]);
 
   const handleQuickMessage = useCallback((e: React.MouseEvent) => {
@@ -186,24 +197,90 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
     setMessageModalOpen(true);
   }, []);
 
+  // 💖 좋아요 기능 - 실제 스토리지 업데이트
   const handleLike = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    const newLikeState = !isLiked;
-    const newLikeCount = newLikeState ? currentLikes + 1 : currentLikes - 1;
+    if (!id) {
+      toast({
+        variant: "destructive",
+        title: "오류",
+        description: "피어몰 정보를 찾을 수 없습니다."
+      });
+      return;
+    }
+
+    try {
+      const newLikeState = !isLiked;
+      const newLikeCount = newLikeState ? currentLikes + 1 : Math.max(0, currentLikes - 1);
+      
+      // 로컬 상태 즉시 업데이트 (UX 개선)
+      setIsLiked(newLikeState);
+      setCurrentLikes(newLikeCount);
+      
+      // 스토리지의 피어몰 데이터 업데이트
+      const existingPeermall = peermallStorage.getById(id);
+      if (existingPeermall) {
+        const updatedPeermall = {
+          ...existingPeermall,
+          likes: newLikeCount
+        };
+        peermallStorage.save(updatedPeermall);
+      }
+      
+      // 프리미엄 피드백
+      toast({
+        title: newLikeState ? "💎 프리미엄 찜하기!" : "찜하기 취소",
+        description: newLikeState 
+          ? "VIP 관심 목록에 추가되었습니다" 
+          : "관심 목록에서 제거되었습니다"
+      });
+    } catch (error) {
+      console.error('좋아요 처리 오류:', error);
+      toast({
+        variant: "destructive",
+        title: "오류",
+        description: "좋아요 처리 중 오류가 발생했습니다."
+      });
+    }
+  }, [id, isLiked, currentLikes, toast]);
+
+  // 👥 팔로우 기능 - 실제 스토리지 업데이트
+  const handleFollow = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     
-    setIsLiked(newLikeState);
-    setCurrentLikes(newLikeCount);
-    
-    // 프리미엄 피드백
-    toast({
-      title: newLikeState ? "💎 프리미엄 찜하기!" : "찜하기 취소",
-      description: newLikeState 
-        ? "VIP 관심 목록에 추가되었습니다" 
-        : "관심 목록에서 제거되었습니다"
-    });
-  }, [isLiked, currentLikes, toast]);
+    if (!id) return;
+
+    try {
+      const newFollowState = !isFollowing;
+      const newFollowerCount = newFollowState ? currentFollowers + 1 : Math.max(0, currentFollowers - 1);
+      
+      // 로컬 상태 업데이트
+      setIsFollowing(newFollowState);
+      setCurrentFollowers(newFollowerCount);
+      
+      // 스토리지 업데이트
+      const existingPeermall = peermallStorage.getById(id);
+      if (existingPeermall) {
+        const updatedPeermall = {
+          ...existingPeermall,
+          followers: newFollowerCount
+        };
+        peermallStorage.save(updatedPeermall);
+      }
+      
+      toast({
+        title: newFollowState ? "🎉 팔로우 완료!" : "팔로우 취소",
+        description: newFollowState 
+          ? `${owner}님을 팔로우하기 시작했습니다` 
+          : `${owner}님 팔로우를 취소했습니다`
+      });
+    } catch (error) {
+      console.error('팔로우 처리 오류:', error);
+    }
+  }, [id, isFollowing, currentFollowers, owner, toast]);
 
   const handleShare = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -212,7 +289,7 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
     const shareData = {
       title: title,
       text: `✨ ${title} - ${owner}의 프리미엄 피어몰을 확인해보세요!`,
-      url: `${window.location.origin}/space/${id}`
+      url: `${window.location.origin}/peerspace/${id}`
     };
 
     if (navigator.share && navigator.canShare?.(shareData)) {
@@ -260,6 +337,9 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
     setImageLoaded(true);
   }, []);
 
+  // 기본 이미지 URL 처리
+  const displayImageUrl = imageUrl || "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=300&fit=crop";
+
   return (
     <>
       <motion.div
@@ -270,12 +350,12 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
       >
-        <Link to={`/space/${id}`} className="block h-full group">
+        <Link to={`/peerspace/${id}`} className="block h-full group">
           <Card className={cn(
             "h-full overflow-hidden border-0 bg-white relative",
             premiumTokens.shadows.luxury,
             premiumTokens.animations.float,
-            isPopular && premiumTokens.shadows.glow,
+            (isPopular || featured) && premiumTokens.shadows.glow,
             "ring-1 ring-gray-200/50 hover:ring-blue-500/30",
             className
           )}>
@@ -303,7 +383,7 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
                         <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-r-purple-500 rounded-full animate-spin animate-reverse" />
                       </div>
                       <span className="text-sm text-gray-600 font-medium">로딩 중...</span>
-                    </div>
+                    </div >
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -311,7 +391,7 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
               {/* 메인 이미지 */}
               {!imageError ? (
                 <motion.img
-                  src={imageUrl}
+                  src={displayImageUrl}
                   alt={title}
                   className={cn(
                     "w-full h-full object-cover transition-all duration-700 group-hover:scale-110",
@@ -335,10 +415,10 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
               {/* 프리미엄 오버레이 그라디언트 */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-              {/* 🏆 프리미엄 뱃지 영역 - 시각적 팝아웃 최적화 */}
+              {/* 🏆 프리미엄 뱃지 영역 */}
               <div className="absolute top-4 left-4 flex flex-col gap-2 z-20">
-                {/* <AnimatePresence>
-                  {premiumBadges.slice(0, 3).map((badge, index) => (
+                <AnimatePresence>
+                  {premiumBadges.slice(0, 2).map((badge, index) => (
                     <motion.div
                       key={badge.type}
                       initial={{ opacity: 0, x: -30, scale: 0.8 }}
@@ -355,25 +435,21 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
                       </Badge>
                     </motion.div>
                   ))}
-                </AnimatePresence> */}
+                </AnimatePresence>
 
-                {/* 신뢰도 점수 */}
-                {/* <motion.div
+                {/* 카테고리 뱃지 */}
+                <motion.div
                   initial={{ opacity: 0, x: -30 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <Badge className={cn(
-                    "bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0",
-                    "flex items-center gap-1 px-2 py-1 text-xs font-semibold shadow-lg"
-                  )}>
-                    <Shield className="h-3 w-3" />
-                    {premiumStats.trustScore}% 신뢰
+                  <Badge className="bg-white/90 text-gray-700 border-0 px-2 py-1 text-xs font-medium shadow-md">
+                    {category}
                   </Badge>
-                </motion.div> */}
+                </motion.div>
               </div>
 
-              {/* 💎 프리미엄 액션 버튼 영역 - 눈에 잘 띄는 위치 */}
+              {/* 💎 프리미엄 액션 버튼 영역 */}
               <div className="absolute top-3 right-3 z-20">
                 <motion.div
                   className={cn(
@@ -461,32 +537,10 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
                 </motion.div>
               </div>
 
-              {/* 🔥 실시간 활동 지표 - 하단 좌측 */}
-              {/* <motion.div
-                className="absolute bottom-4 left-4 z-20"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                <div className={cn(
-                  premiumTokens.glass.dark,
-                  "rounded-xl px-3 py-2 text-white shadow-lg"
-                )}>
-                  <div className="flex items-center gap-2 text-xs">
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                      <span className="font-medium">{premiumStats.activityLevel}명 접속</span>
-                    </div>
-                    <div className="w-1 h-1 bg-white/50 rounded-full" />
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-3 h-3" />
-                      <span>{Math.floor(Math.random() * 500) + 100}</span>
-                    </div>
-                  </div>
-                </div>
-              </motion.div> */}
+              {/* 🔥 실시간 활동 지표 */}
+              
 
-              {/* 💖 프리미엄 찜하기 버튼 - 하단 우측 */}
+              {/* 💖 프리미엄 찜하기 버튼 */}
               <motion.div
                 className="absolute bottom-4 right-4 z-20"
                 whileHover={{ scale: 1.1 }}
@@ -535,20 +589,14 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
                     </div>
                     <div>
                       <span className="text-sm font-semibold text-gray-800">{owner}</span>
-                      {/* {isFamilyCertified && (
+                      {(isFamilyCertified || certified) && (
                         <div className="flex items-center gap-1">
                           <Verified className="h-3 w-3 text-blue-500" />
                           <span className="text-xs text-blue-600 font-medium">인증된 셀러</span>
                         </div>
-                      )} */}
+                      )}
                     </div>
                   </div>
-                  
-                  {/* 실시간 상태 */}
-                  {/* <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <span className="font-medium">온라인</span>
-                  </div> */}
                 </div>
               </div>
               
@@ -556,80 +604,6 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
               <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
                 {description}
               </p>
-              
-              {/* 프리미엄 통계 대시보드 */}
-              <div className="grid grid-cols-3 gap-3 py-3 border-t border-gray-100">
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-red-500 mb-1">
-                    <Heart className={cn(
-                      "h-4 w-4 transition-colors",
-                      isLiked && "fill-current"
-                    )} />
-                    <span className="font-bold text-sm">{premiumStats.totalLikes}</span>
-                  </div>
-                  <span className="text-xs text-gray-500">좋아요</span>
-                </div>
-                
-                {/* <div className="text-center border-x border-gray-100">
-                  <div className="flex items-center justify-center gap-1 text-blue-500 mb-1">
-                    <Users className="h-4 w-4" />
-                    <span className="font-bold text-sm">{followers}</span>
-                  </div>
-                  <span className="text-xs text-gray-500">팔로워</span>
-                </div> */}
-                
-                {/* <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-purple-500 mb-1">
-                    <TrendingUp className="h-4 w-4" />
-                    <span className="font-bold text-sm">{premiumStats.trustScore}%</span>
-                  </div>
-                  <span className="text-xs text-gray-500">신뢰도</span>
-                </div> */}
-              </div>
-              
-              {/* 태그와 CTA */}
-              <div className="flex items-center justify-between pt-2">
-                {/* 태그 */}
-                <div className="flex flex-wrap gap-1">
-                  {tags.slice(0, 2).map((tag) => (
-                    <Badge 
-                      key={tag} 
-                      variant="secondary" 
-                      className="text-xs px-2 py-1 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-200 hover:from-blue-100 hover:to-indigo-100 transition-all"
-                    >
-                      #{tag}
-                    </Badge>
-                  ))}
-                  {tags.length > 2 && (
-                    <Badge 
-                      variant="secondary" 
-                      className="text-xs px-2 py-1 bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 border border-purple-200"
-                    >
-                      +{tags.length - 2}
-                    </Badge>
-                  )}
-                </div>
-                
-                {/* 프리미엄 CTA */}
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    size="sm"
-                    className={cn(
-                      "bg-gradient-to-r from-blue-600 to-indigo-700",
-                      "hover:from-blue-700 hover:to-indigo-800",
-                      "text-white shadow-lg hover:shadow-xl",
-                      "px-4 py-2 rounded-xl font-semibold text-xs",
-                      "transition-all duration-300"
-                    )}
-                  >
-                    <span>둘러보기</span>
-                    <ChevronRight className="h-3 w-3 ml-1" />
-                  </Button>
-                </motion.div>
-              </div>
             </CardContent>
 
             {/* 🌟 호버 시 프리미엄 효과 */}
@@ -666,13 +640,13 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
           
           <div className="space-y-6 py-6">
             {/* 피어몰 정보 카드 */}
-             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-200">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-200">
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <div className="w-16 h-16 rounded-xl overflow-hidden shadow-lg">
                     {!imageError ? (
                       <img
-                        src={imageUrl}
+                        src={displayImageUrl}
                         alt={title}
                         className="w-full h-full object-cover"
                       />
@@ -692,12 +666,12 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
                   <h4 className="font-bold text-lg text-gray-900">{title}</h4>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-sm text-gray-600">운영자: {owner}</span>
-                    {/* {isFamilyCertified && (
+                    {(isFamilyCertified || certified) && (
                       <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">
                         <Verified className="w-3 h-3 mr-1" />
                         인증됨
                       </Badge>
-                    )} */}
+                    )}
                   </div>
                   <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                     <div className="flex items-center gap-1">
@@ -708,10 +682,10 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
                       <Star className="w-3 h-3 text-yellow-500 fill-current" />
                       <span>{premiumStats.displayRating} 평점</span>
                     </div>
-                    {/* <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1">
                       <Shield className="w-3 h-3 text-green-500" />
                       <span>{premiumStats.trustScore}% 신뢰도</span>
-                    </div> */}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -725,7 +699,7 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
                   메시지 내용
                 </label>
                 <Textarea 
-                  placeholder="안녕하세요! 귀하의 피어몰에 관심이 있어서 연락드립니다.&#10;&#10;• 궁금한 점이나 문의사항을 자세히 적어주세요&#10;• 구체적인 질문일수록 빠른 답변을 받으실 수 있습니다&#10;• 예: 제품 문의, 가격 정보, 배송 관련 등"
+                  placeholder="안녕하세요! 귀하의 피어몰에 관심이 있어서 연락드립니다.&#10;&#10;• 궁금한 점이나 문의사항을 자세히 적어주세요&#10;&#10;• 구체적인 질문일수록 빠른 답변을 받으실 수 있습니다&#10;• 예: 제품 문의, 가격 정보, 배송 관련 등"
                   className="resize-none h-40 border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl text-sm leading-relaxed"
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
@@ -792,7 +766,7 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
                   <Phone className="w-4 h-4 mr-2 text-green-600" />
                   <div className="text-left">
                     <div className="font-medium text-green-800 text-xs">즉시 통화</div>
-                    {/* <div className="text-green-600 text-xs">바로 연결</div> */}
+                    <div className="text-green-600 text-xs">바로 연결</div>
                   </div>
                 </Button>
                 
@@ -801,11 +775,11 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
                   size="sm"
                   className="h-12 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
                 >
-                  {/* <Calendar className="w-4 h-4 mr-2 text-blue-600" />
+                  <Calendar className="w-4 h-4 mr-2 text-blue-600" />
                   <div className="text-left">
                     <div className="font-medium text-blue-800 text-xs">예약 상담</div>
                     <div className="text-blue-600 text-xs">시간 예약</div>
-                  </div> */}
+                  </div>
                 </Button>
               </div>
             </div>

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { User, Info, Mail, Phone, MapPin, Building, Shield, Link, Users, FileText, Image as ImageIcon, Globe, UploadCloud } from "lucide-react"; // 아이콘 추가!
+import { User, Info, Mail, Phone, MapPin, Building, Shield, Link, Users, FileText, Image as ImageIcon, Globe, UploadCloud, X } from "lucide-react"; // 아이콘 추가!
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label"; // Label 컴포넌트 추가
 import { PeerMallConfig } from '../types'; // PeerMallConfig 타입 임포트
+import { Peermall } from '@/types/peermall';
 
 // 이미지 업로드 및 미리보기 컴포넌트 재정의
 // 인지 부하를 줄이고 어포던스를 명확히 하기 위해 디자인 개선
@@ -13,7 +14,8 @@ const ImageUploadPreview: React.FC<{
   label: string;
   storageKey: string;
   description: string; // 설명 추가!
-}> = ({ label, storageKey, description }) => {
+  initialImage?: string; // initialImage prop 추가
+}> = ({ label, storageKey, description, initialImage }) => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const inputId = `upload-${storageKey}`; // 각 업로더에 고유 ID 부여
 
@@ -21,8 +23,10 @@ const ImageUploadPreview: React.FC<{
     const savedImage = localStorage.getItem(storageKey);
     if (savedImage) {
       setImagePreview(savedImage);
+    } else if (initialImage) { // initialImage가 있을 경우 설정
+      setImagePreview(initialImage);
     }
-  }, [storageKey]);
+  }, [storageKey, initialImage]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -62,7 +66,7 @@ const ImageUploadPreview: React.FC<{
               className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
               onClick={handleRemoveImage} // 제거 버튼 클릭 시
             >
-              X {/* 간단한 제거 버튼 */}
+              <X />
             </Button>
           </div>
         ) : (
@@ -91,9 +95,10 @@ const ImageUploadPreview: React.FC<{
 
 interface BasicInfoSectionProps {
   config: PeerMallConfig;
+  peermall: Peermall | null; // peermall prop 추가
 }
 
-const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ config }) => {
+const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ config, peermall }) => {
   const [activeTab, setActiveTab] = useState("site-info");
 
   return (
@@ -125,7 +130,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ config }) => {
           <div className="grid md:grid-cols-2 gap-y-6 gap-x-8 border-b pb-6 border-gray-200"> {/* 그룹별 구분선 */}
             <div>
               <div className="text-sm text-primary-200 mb-1">피어몰 이름</div>
-              <div className="font-bold text-text-100 text-lg">{config.title}</div> {/* 중요 정보는 더 강조 */}
+              <div className="font-bold text-text-100 text-lg">{peermall?.title || config.title}</div> {/* 중요 정보는 더 강조 */}
             </div>
             
             <div>
@@ -143,7 +148,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ config }) => {
 
             <div>
               <div className="text-sm text-primary-200 mb-1">피어몰 ID (고유 식별자)</div>
-              <div className="text-text-100 bg-primary-100/30 px-3 py-1 rounded inline-block text-sm font-mono">{config.address}</div> {/* 코드처럼 보이게 폰트 변경 */}
+              <div className="text-text-100 bg-primary-100/30 px-3 py-1 rounded inline-block text-sm font-mono">{peermall?.id || config.address}</div> {/* 코드처럼 보이게 폰트 변경 */}
             </div>
             
             <div>
@@ -159,7 +164,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ config }) => {
           <div className="border-b pb-6 border-gray-200"> {/* 그룹별 구분선 */}
              <div className="text-sm text-primary-200 mb-2">피어몰 설명</div>
              <div className="text-text-200 text-sm bg-gray-50/50 p-4 rounded-md leading-relaxed"> {/* 패딩, 줄 간격 조정 */}
-                {config.description}
+                {peermall?.description || config.description}
              </div>
           </div>
 
@@ -169,6 +174,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ config }) => {
                 label="대표 이미지"
                 storageKey="peerspace_rep_image"
                 description="피어몰 목록/검색 결과에 표시됩니다."
+                initialImage={peermall?.imageUrl} // peermall?.imageUrl이 있다면 기본값으로 사용
              />
              <ImageUploadPreview
                 label="로고 이미지"
@@ -230,7 +236,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ config }) => {
                 <Phone className="h-5 w-5 text-primary-300" /> {/* 아이콘 크기 조정 */}
                  <div>
                   <div className="text-sm text-primary-200">전화번호</div>
-                  <div className="font-semibold text-text-100 text-base">{config.contactPhone}</div>
+                  <div className="font-semibold text-text-100 text-base">{peermall?.phone || config.contactPhone}</div>
                 </div>
               </div>
             </div>
@@ -240,9 +246,9 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ config }) => {
                <div className="flex items-start gap-3"> {/* 아이콘과 텍스트 정렬 조정 */}
                 <MapPin className="h-5 w-5 text-primary-300 mt-1" /> {/* 아이콘 크기 및 위치 조정 */}
                  <div>
-                  <div className="text-sm text-primary-200">사업장 주소</div>
+                  <div className="text-sm text-primary-200">주소</div>
                   <div className="font-semibold text-text-100 text-base leading-relaxed">
-                    {config.location && typeof config.location !== 'string' ? config.location.address : '위치 정보 없음'}
+                    {peermall?.location?.address}
                   </div>
                 </div>
               </div>

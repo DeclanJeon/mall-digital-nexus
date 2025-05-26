@@ -7,6 +7,7 @@ export interface Peermall {
   owner: string;
   imageUrl: string;
   category: string;
+  phone?: string; // 전화번호 필드 추가
   
   // 메타데이터
   tags?: string[];
@@ -105,4 +106,3 @@ export interface FamilyMember {
   certified?: boolean;
   description?: string;
 }
-

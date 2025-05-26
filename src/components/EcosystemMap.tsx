@@ -95,8 +95,42 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Peermall 데이터를 MapLocation 타입으로 변환하는 헬퍼 함수
+  const convertPeermallToMapLocation = (peermall: Peermall): MapLocation => {
+    return {
+      id: peermall.id,
+      lat: peermall.location?.lat || DEFAULT_CENTER[0], 
+      lng: peermall.location?.lng || DEFAULT_CENTER[1], 
+      title: peermall.title,
+      address: peermall.location?.address || '주소 정보 없음', 
+      phone: peermall.phone || '전화번호 정보 없음', 
+      imageUrl: peermall.imageUrl,
+      rating: peermall.rating,
+      description: peermall.description,
+      tags: peermall.tags,
+      // 기타 필드들은 필요에 따라 추가
+    };
+  };
+
+  useEffect(() => {
+    // peermallStorage에서 데이터 로드 및 리스너 등록
+    const unsubscribe = peermallStorage.addEventListener(peermalls => {
+      const mappedLocations = peermalls.map(convertPeermallToMapLocation);
+      setLocations(mappedLocations);
+
+      // 해시태그 업데이트
+      const allTags = new Set<string>();
+      peermalls.forEach(p => p.tags?.forEach(tag => allTags.add(tag)));
+      setAvailableHashtags(allTags);
+    });
+
+    return () => {
+      unsubscribe(); // 컴포넌트 언마운트 시 리스너 해제
+    };
+  }, []);
+
   // 🎯 프리미엄 마커 아이콘 생성 함수
-  const createPremiumMarkerIcon = (location: MapLocation) => {
+  const createPremiumMarkerIcon = useCallback((location: MapLocation) => {
     const getMarkerClasses = () => {
       if (location.isFeatured) return 'premium-marker-featured';
       if (location.isPopular) return 'premium-marker-popular';
@@ -136,7 +170,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
       iconAnchor: [size/2, size],
       popupAnchor: [0, -size]
     });
-  };
+  }, []);
 
   // 🎨 팝업 생성 함수
   const createPremiumPopup = (location: MapLocation) => {

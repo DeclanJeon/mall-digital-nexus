@@ -189,6 +189,7 @@ const PeerSpace = () => {
         isOwner={isOwner} 
         address={address} 
         config={config}
+        peermall={peermall}
         onUpdateConfig={handleUpdateConfig}
         activeSection={activeSection}
         onNavigateToSection={handleNavigateToSection}

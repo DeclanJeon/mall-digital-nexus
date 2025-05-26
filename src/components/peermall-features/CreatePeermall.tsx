@@ -1,12 +1,16 @@
-
 import React, { useState } from 'react';
 import { Store, ChevronRight, PenLine, LayoutTemplate, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import CreatePeermallModal from './CreatePeermallModal';
 import { toast } from '@/hooks/use-toast';
+import { Peermall } from '@/services/storage/peermallStorage';
 
-const CreatePeermall = () => {
+interface CreatePeermallProps {
+  onCreatePeermall: (newMallData: Omit<Peermall, "id" | "rating" | "reviewCount" | "createdAt" | "updatedAt">) => void;
+}
+
+const CreatePeermall: React.FC<CreatePeermallProps> = ({ onCreatePeermall }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
   
@@ -29,7 +33,7 @@ const CreatePeermall = () => {
     {
       icon: <Globe className="h-6 w-6 text-accent-100" />,
       title: '발행',
-      description: '미리보기 확인 후 피어몰을 발행하고 공유하세요.'
+      description: '피어몰을 발행하고 전 세계에 공유하세요.'
     }
   ];
 
@@ -46,6 +50,15 @@ const CreatePeermall = () => {
       description: "새로운 피어몰이 성공적으로 생성되었습니다.",
     });
     
+    // Index.tsx로 새로운 피어몰 데이터를 전달
+    onCreatePeermall({
+      title: peermallData.name,
+      category: peermallData.type,
+      description: '', // 필요에 따라 추가 정보 설정
+      owner: '', // 필요에 따라 추가 정보 설정
+      imageUrl: '', // 필요에 따라 추가 정보 설정
+    });
+
     // Navigate to the new Peermall
     setTimeout(() => {
       navigate(`/peermall/${peermallData.name}`);
@@ -54,8 +67,6 @@ const CreatePeermall = () => {
 
   return (
     <>
-      
-      
       <CreatePeermallModal 
         isOpen={isModalOpen} 
         onClose={closeModal} 
