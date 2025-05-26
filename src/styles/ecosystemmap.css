@@ -120,3 +120,21 @@
 .premium-popup-content::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #2563eb, #1e40af);
 }
+
+/* @/styles/ecosystemmap.css에 추가 */
+.ecosystem-map-container {
+  transition: height 0.3s ease-out;
+}
+
+@media (max-height: 600px) {
+  .ecosystem-map-container {
+    height: 50vh !important;
+  }
+}
+
+@media (min-height: 1000px) {
+  .ecosystem-map-container {
+    height: 60vh !important;
+  }
+}
+

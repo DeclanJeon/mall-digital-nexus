@@ -253,18 +253,7 @@ const Index = () => {
     console.log('✅ 필터링 완료:', filtered.length, '개');
   }, [peermalls]);
 
-  // 🗺️ 지도 관련 핸들러
-  const handleLocationSelect = useCallback((location: any) => {
-    const peermall = peermalls.find(
-      p => p.location?.lat === location.lat && p.location?.lng === location.lng
-    );
-    
-    if (peermall) {
-      navigate(`/peerspace/${peermall.id}`);
-    }
-  }, [peermalls, navigate]);
-
-  const handleOpenMap = useCallback((location: Location) => {
+    const handleOpenMap = useCallback((location: Location) => {
     setSelectedLocation(location);
     setIsMapOpen(true);
   }, []);
@@ -277,12 +266,12 @@ const Index = () => {
 
   const handleSelectSpace = useCallback((id: string) => {
     handleCloseMySpaces();
-    navigate(`/peerspace/${id}`);
+    navigate(`/space/${id}`);
   }, [navigate, handleCloseMySpaces]);
 
   // 📱 QR 코드 핸들러
   const handleShowPeermallQrCode = useCallback((peermallId: string, peermallTitle: string) => {
-    setQrCodeUrl(`${window.location.origin}/peerspace/${peermallId}`);
+    setQrCodeUrl(`${window.location.origin}/space/${peermallId}`);
     setQrModalTitle(`${peermallTitle} QR 코드`);
     setQrModalOpen(true);
   }, []);
@@ -350,6 +339,19 @@ const Index = () => {
       address: mall.location!.address,
       title: mall.title
     }));
+  
+  const handleLocationSelect = useCallback((location: any) => {
+    // Find the corresponding peermall
+    const peermall = peermalls.find(
+      p => p.location?.lat === location.lat && p.location?.lng === location.lng
+    );
+    
+    if (peermall) {
+      setSelectedPeermall(peermall);
+      setIsDetailViewOpen(true);
+    }
+  }, [peermalls]);
+
 
   // 로딩 상태 렌더링
   if (isLoading) {
@@ -369,6 +371,8 @@ const Index = () => {
       </div>
     );
   }
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
@@ -582,9 +586,14 @@ const Index = () => {
 
           {/* 🗺️ 사이드바 */}
           <div className="lg:col-span-2 space-y-6">
-            {/* 🗺️ 피어맵 */}
+            {/* 🗺️ 피어맵 - 반응형 크기 */}
             <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.3 }}>
-              <Card className={`${designTokens.elevation.card} bg-gradient-to-br from-blue-50 to-cyan-50 h-96`}>
+              {/* <Card className={`${designTokens.elevation.card} bg-gradient-to-br from-blue-50 to-cyan-50 
+                h-64 sm:h-80 md:h-96 lg:h-[500px] xl:h-[600px] 2xl:h-[700px]
+                min-h-[300px] max-h-[800px]`}> */}
+              <Card className={`${designTokens.elevation.card} bg-gradient-to-br from-blue-50 to-cyan-50 
+  h-[40vh] sm:h-[45vh] md:h-[50vh] lg:h-[55vh] xl:h-[60vh]
+  min-h-[300px] max-h-[800px]`}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
@@ -603,39 +612,14 @@ const Index = () => {
                 </CardHeader>
                 <CardContent className="p-0 h-full">
                   <div className="h-full overflow-hidden rounded-b-lg">
-                    <EcosystemMap onLocationSelect={handleLocationSelect} locations={allLocations} />
+                    <EcosystemMap onLocationSelect={handleLocationSelect} />
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
           </div>
-        </section>
 
-        {/* 🎪 커뮤니티 하이라이트 (선택적 렌더링) */}
-        {peermalls.length > 10 && (
-          <motion.section 
-            className={designTokens.spacing.section}
-            {...designTokens.animations.fadeIn}
-            transition={{ delay: 0.6 }}
-          >
-            <Card className={`${designTokens.elevation.card} bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50`}>
-              <CardHeader>
-                <div className="flex items-center space-x-2">
-                  <Users className="w-6 h-6 text-indigo-600" />
-                  <h2 className={`${designTokens.typography.hero} text-gray-900`}>
-                    🎪 커뮤니티 하이라이트
-                  </h2>
-                </div>
-                <p className={`${designTokens.typography.caption} mt-2`}>
-                  피어몰 커뮤니티의 생생한 소식과 이야기들
-                </p>
-              </CardHeader>
-              <CardContent>
-                <CommunityHighlights />
-              </CardContent>
-            </Card>
-          </motion.section>
-        )}
+        </section>
       </main>
 
       {/* 📱 QR 코드 모달 */}
@@ -650,3 +634,11 @@ const Index = () => {
 };
 
 export default Index;
+
+function setSelectedPeermall(peermall: Peermall) {
+  throw new Error('Function not implemented.');
+}
+function setIsDetailViewOpen(arg0: boolean) {
+  throw new Error('Function not implemented.');
+}
+

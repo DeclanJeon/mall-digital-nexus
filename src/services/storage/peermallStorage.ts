@@ -63,15 +63,26 @@ export const peermallStorage = {
     }
     
     const peermalls = this.getAll();
-    const found = peermalls.find(p => p.id === id);
-    console.log(`🔍 피어몰 조회 (ID: ${id}):`, found ? '발견' : '없음');
+    const found = peermalls.find((p: Peermall) => p.id === id);
+    if (found) {
+      console.log(`🔍 피어몰 발견 (ID: ${id}):`, {
+        title: found.title,
+        owner: found.owner,
+        category: found.category
+      });
+    } else {
+      console.warn(`❌ 피어몰을 찾을 수 없습니다 (ID: ${id}). 사용 가능한 ID들:`, 
+        peermalls.map((p: Peermall) => p.id)
+      );
+    }
+    
     return found;
   },
 
   // 카테고리별 피어몰 조회
   getByCategory(category: string): Peermall[] {
     const peermalls = this.getAll();
-    const filtered = peermalls.filter(p => p.category === category);
+    const filtered = peermalls.filter((p: Peermall) => p.category === category);
     console.log(`📂 카테고리별 조회 (${category}):`, filtered.length, '개');
     return filtered;
   },

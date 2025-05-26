@@ -4,6 +4,7 @@ import { toast } from '@/hooks/use-toast';
 import { PeerMallConfig } from '@/components/peer-space/types';
 import { Peermall } from '@/types/peermall';
 import PeerSpaceHome from '@/components/peer-space/PeerSpaceHome';
+import Community from '@/components/community/Community';
 import { Loader2 } from 'lucide-react';
 import { peermallStorage } from '@/services/storage/peermallStorage';
 import { storage } from '@/utils/storage/storage';
@@ -57,7 +58,7 @@ const PeerSpace = () => {
   const [isOwner, setIsOwner] = useState(true); // In reality, this would be based on authentication
   const [config, setConfig] = useState<PeerMallConfig | null>(null);
   const [peermall, setPeermall] = useState<Peermall | null>(null);
-  const [activeSection, setActiveSection] = useState<'home' | 'content' | 'community' | 'following' | 'guestbook'>('home');
+  const [activeSection, setActiveSection] = useState<'home' | 'content' | 'community' | 'following' | 'guestbook' | 'settings'>('home');
 
   useEffect(() => {
     const loadPeermallData = async () => {
@@ -66,7 +67,7 @@ const PeerSpace = () => {
       setIsLoading(true);
       try {
         // 1. Load basic peermall details using peermallStorage
-        const peermallData = getPeermallDetails(address);
+        const peermallData = peermallStorage.getById(address);
 
         if (!peermallData) {
           toast({
@@ -79,11 +80,45 @@ const PeerSpace = () => {
         }
         setPeermall(peermallData);
 
+        // 🔥 수정: 피어몰 데이터를 기반으로 PeerSpace 설정 생성
+        const defaultConfig: PeerMallConfig = {
+          id: peermallData.id,
+          name: peermallData.title,
+          type: 'personal',
+          title: peermallData.title,
+          owner: peermallData.owner,
+          description: peermallData.description,
+          profileImage: peermallData.imageUrl,
+          peerNumber: peermallData.id,
+          location: peermallData.location || '위치 정보 없음',
+          followers: peermallData.followers || 0,
+          recommendations: peermallData.likes || 0,
+          badges: [],
+          sections: ['home', 'content', 'community', 'following', 'guestbook'],
+          createdAt: peermallData.createdAt,
+        };
+
         // 2. Load peer space configuration using storage utility
-        const config = getPeerSpaceConfig(address);
-        if (config) {
-          setConfig(config);
+        let config = getPeerSpaceConfig(address);
+        if (!config) {
+          config = defaultConfig;
+          savePeerSpaceConfig(address, config);
         }
+        else {
+          // 🔥 피어몰 데이터가 업데이트된 경우 설정도 동기화
+          config = {
+            ...config,
+            title: peermallData.title,
+            owner: peermallData.owner,
+            description: peermallData.description,
+            profileImage: peermallData.imageUrl,
+            followers: peermallData.followers || config.followers || 0,
+            recommendations: peermallData.likes || config.recommendations || 0
+          };
+          savePeerSpaceConfig(address, config);
+        }
+
+        setConfig(config);
 
         // 3. Listen for peermall updates
         const handlePeermallUpdate = (peermalls: Peermall[]) => {
@@ -150,7 +185,7 @@ const PeerSpace = () => {
   };
   
   // Handle section navigation
-  const handleNavigateToSection = (section: 'home' | 'content' | 'community' | 'following' | 'guestbook') => {
+  const handleNavigateToSection = (section: 'home' | 'content' | 'community' | 'following' | 'guestbook' | 'settings') => {
     setActiveSection(section);
     
     // Update URL but don't reload the page
@@ -173,27 +208,29 @@ const PeerSpace = () => {
     );
   }
 
-  if (!address || !config) {
+  if (!config || !peermall) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <div className="text-4xl mb-4">🏪</div>
-        <h1 className="text-2xl font-bold mb-2">피어몰을 찾을 수 없습니다</h1>
-        <p className="text-gray-600">요청하신 주소에 해당하는 피어몰이 존재하지 않습니다.</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p>피어몰 정보를 불러오는데 실패했습니다.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <PeerSpaceHome 
-        isOwner={isOwner} 
-        address={address} 
-        config={config}
-        peermall={peermall}
-        onUpdateConfig={handleUpdateConfig}
-        activeSection={activeSection}
-        onNavigateToSection={handleNavigateToSection}
-      />
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+      {/* PeerSpaceHeader 등 공통 레이아웃 요소가 있다면 여기에 위치 */}
+      
+      <main className="container mx-auto px-4 py-8">
+        <PeerSpaceHome 
+            isOwner={isOwner}
+            address={address}
+            config={config}
+            peermall={peermall}
+            onUpdateConfig={handleUpdateConfig}
+            activeSection={activeSection}
+            onNavigateToSection={handleNavigateToSection}
+          />
+      </main>
     </div>
   );
 };

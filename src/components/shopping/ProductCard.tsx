@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, X, MessageCircle, Phone, Check, ChevronLeft, MoreVertical, UserPlus } from 'lucide-react';
+import { Heart, X, MessageCircle, Phone, Check, ChevronLeft, MoreVertical, UserPlus, Star, Eye, ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 interface ProductCardProps {
-  id: string | number; // number도 허용
+  id: string | number;
   title: string;
   description: string;
   price: number;
@@ -22,6 +22,7 @@ interface ProductCardProps {
   rating: number;
   reviewCount: number;
   viewMode: 'grid' | 'list';
+  cardSize?: 'small' | 'medium' | 'large';
   seller?: {
     id: string;
     name: string;
@@ -40,18 +41,48 @@ const ProductCard: React.FC<ProductCardProps> = ({
   rating,
   reviewCount,
   viewMode,
+  cardSize = 'medium',
   seller,
   onAddFriend
 }) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
   const [wishlistHover, setWishlistHover] = useState(false);
-  const [wishlistPulse, setWishlistPulse] = useState(false);
   const [isFriend, setIsFriend] = useState(false);
   const [friendStatus, setFriendStatus] = useState<'idle' | 'adding' | 'added'>('idle');
+  const [isHovered, setIsHovered] = useState(false);
+
+  const getCardClasses = () => {
+    if (viewMode === 'list') {
+      return 'flex flex-row h-48 w-full';
+    }
+    
+    switch (cardSize) {
+      case 'small':
+        return 'h-full flex flex-col';
+      case 'large':
+        return 'h-full flex flex-col min-h-[400px]';
+      default:
+        return 'h-full flex flex-col min-h-[350px]';
+    }
+  };
+
+  const getImageClasses = () => {
+    if (viewMode === 'list') {
+      return 'w-48 h-full';
+    }
+    
+    switch (cardSize) {
+      case 'small':
+        return 'aspect-square h-32';
+      case 'large':
+        return 'aspect-square h-64';
+      default:
+        return 'aspect-square h-48';
+    }
+  };
 
   const handlePurchase = () => {
-    // TODO: Implement purchase logic
     console.log('Purchase product:', id);
   };
 
@@ -60,27 +91,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const newWishlistStatus = !isWishlisted;
     setIsWishlisted(newWishlistStatus);
     
-    // Visual feedback
     if (newWishlistStatus) {
-      setWishlistPulse(true);
       setShowWishlist(true);
     }
     
-    // TODO: Sync with backend
     console.log('Wishlist status:', newWishlistStatus, 'for product:', id);
-    
-    // Reset pulse animation after it completes
-    setTimeout(() => setWishlistPulse(false), 1000);
-  };
-
-  const handleMessage = () => {
-    // TODO: Implement messaging logic
-    console.log('Message seller about product:', id);
-  };
-
-  const handleCall = () => {
-    // TODO: Implement call logic
-    console.log('Call about product:', id);
   };
 
   const handleAddFriend = (e: React.MouseEvent) => {
@@ -89,272 +104,245 @@ const ProductCard: React.FC<ProductCardProps> = ({
     
     setFriendStatus('adding');
     
-    // Simulate API call
     setTimeout(() => {
       onAddFriend(seller.id, seller.name, seller.image);
       setIsFriend(true);
       setFriendStatus('added');
       
-      // Reset status after showing success
       setTimeout(() => setFriendStatus('idle'), 2000);
     }, 1000);
   };
 
-  const toggleWishlistView = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowWishlist(!showWishlist);
-    // TODO: Fetch wishlist items when opening the view
-    if (!showWishlist) {
-      console.log('Fetching wishlist items...');
-    }
-  };
   return (
-    <Card className={viewMode === 'grid' ? 'h-full flex flex-col' : 'w-full'}>
-      <CardHeader className="p-0 relative">
-        <div className="aspect-square overflow-hidden rounded-t-lg relative">
-          <img 
-            src={imageUrl} 
-            alt={title}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          />
-          <motion.button 
-            className={cn(
-              'absolute top-3 right-3 p-2.5 bg-white/90 backdrop-blur-sm rounded-full',
-              'shadow-md hover:shadow-lg transition-all duration-200',
-              'flex flex-col items-center justify-center',
-              'group/wishlist',
-              isWishlisted ? 'text-red-500' : 'text-gray-600 hover:text-red-400',
-              wishlistPulse && 'animate-pulse'
-            )}
-            aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-            onClick={toggleWishlist}
-            onMouseEnter={() => setWishlistHover(true)}
-            onMouseLeave={() => setWishlistHover(false)}
-            whileTap={{ scale: 0.9 }}
-          >
-            <motion.div 
-              className="relative"
-              animate={wishlistHover ? { scale: 1.1 } : { scale: 1 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+    <motion.div
+      whileHover={{ y: -4, scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+    >
+      <Card className={cn(
+        getCardClasses(),
+        "overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300",
+        "bg-gradient-to-br from-white to-gray-50/30",
+        isHovered && "ring-2 ring-purple-200"
+      )}>
+        <CardHeader className="p-0 relative">
+          <div className={cn("overflow-hidden relative", getImageClasses(), viewMode === 'list' ? 'rounded-l-lg' : 'rounded-t-lg')}>
+            <img 
+              src={imageUrl} 
+              alt={title}
+              className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+            />
+            
+            {/* 호버 오버레이 */}
+            <AnimatePresence>
+              {isHovered && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-black/20 flex items-center justify-center"
+                >
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="flex gap-2"
+                  >
+                    <Button size="sm" variant="secondary" className="rounded-full bg-white/90 hover:bg-white">
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                    <Button size="sm" variant="secondary" className="rounded-full bg-white/90 hover:bg-white">
+                      <ShoppingCart className="w-4 h-4" />
+                    </Button>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            {/* 찜하기 버튼 */}
+            <motion.button 
+              className={cn(
+                'absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full',
+                'shadow-lg hover:shadow-xl transition-all duration-200',
+                isWishlisted ? 'text-red-500 bg-red-50' : 'text-gray-600 hover:text-red-400'
+              )}
+              onClick={toggleWishlist}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
             >
               <Heart 
-                className={cn(
-                  'w-5 h-5 transition-colors',
-                  isWishlisted ? 'fill-red-500' : 'group-hover/wishlist:fill-red-100',
-                  wishlistPulse && 'scale-125'
-                )} 
-                strokeWidth={2}
+                className={cn('w-4 h-4', isWishlisted && 'fill-red-500')} 
               />
-              {isWishlisted && (
-                <motion.div 
-                  className="absolute -bottom-1 -right-1 w-2 h-2 bg-red-500 rounded-full"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                />
-              )}
-            </motion.div>
-            <motion.span 
-              className={cn(
-                'text-[10px] font-medium mt-0.5',
-                isWishlisted ? 'text-red-500' : 'text-gray-600 group-hover/wishlist:text-red-400',
-                'transition-colors'
-              )}
-            >
-              {isWishlisted ? '찜함' : '찜하기'}
-            </motion.span>
-          </motion.button>
-        </div>
-      </CardHeader>
-      <CardContent className="p-4 flex-1">
-        <div className="flex justify-between items-start">
-          <h3 className="font-bold text-lg flex-1 pr-2">{title}</h3>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 -mt-1 -mr-2">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {seller && onAddFriend && (
-                <DropdownMenuItem 
-                  onClick={handleAddFriend} 
-                  disabled={isFriend || friendStatus === 'adding'}
-                  className={isFriend ? 'bg-green-50' : ''}
-                >
-                  {friendStatus === 'adding' ? (
-                    <>
-                      <div className="mr-2 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                      <span>추가 중...</span>
-                    </>
-                  ) : isFriend ? (
-                    <>
-                      <Check className="mr-2 h-4 w-4 text-green-500" />
-                      <span className="text-green-600">친구 추가됨</span>
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      <span>친구 추가하기</span>
-                    </>
-                  )}
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem onClick={handleMessage}>
-                <MessageCircle className="mr-2 h-4 w-4" />
-                <span>메시지 보내기</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleCall}>
-                <Phone className="mr-2 h-4 w-4" />
-                <span>통화하기</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        <div className="flex items-center gap-2 mt-2">
-          <span className="text-lg font-bold">
-            {discountPrice ? (
-              <>
-                <span className="text-red-500">₩{discountPrice.toLocaleString()}</span>
-                <span className="text-gray-400 line-through ml-2 text-sm">₩{price.toLocaleString()}</span>
-              </>
-            ) : (
-              `₩${price.toLocaleString()}`
+            </motion.button>
+
+            {/* 할인 뱃지 */}
+            {discountPrice && (
+              <div className="absolute top-3 left-3">
+                <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold">
+                  {Math.round(((price - discountPrice) / price) * 100)}% OFF
+                </Badge>
+              </div>
             )}
-          </span>
-          {discountPrice && (
-            <Badge variant="destructive" className="text-xs">
-              {Math.round(((price - discountPrice) / price) * 100)}%
-            </Badge>
+          </div>
+        </CardHeader>
+
+        <CardContent className={cn("flex-1", viewMode === 'list' ? 'p-4 flex flex-col justify-between' : 'p-4')}>
+          <div className="flex justify-between items-start mb-2">
+            <h3 className={cn(
+              "font-bold line-clamp-2",
+              cardSize === 'small' ? 'text-sm' : cardSize === 'large' ? 'text-lg' : 'text-base'
+            )}>
+              {title}
+            </h3>
+            
+            {viewMode !== 'list' && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-6 w-6 -mt-1">
+                    <MoreVertical className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {seller && onAddFriend && (
+                    <DropdownMenuItem onClick={handleAddFriend} disabled={isFriend}>
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      <span>{isFriend ? '친구 추가됨' : '친구 추가'}</span>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem>
+                    <MessageCircle className="mr-2 h-4 w-4" />
+                    <span>메시지</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 mb-2">
+            <span className={cn(
+              "font-bold",
+              cardSize === 'small' ? 'text-sm' : 'text-lg'
+            )}>
+              {discountPrice ? (
+                <>
+                  <span className="text-red-500">₩{discountPrice.toLocaleString()}</span>
+                  <span className="text-gray-400 line-through ml-2 text-sm">₩{price.toLocaleString()}</span>
+                </>
+              ) : (
+                `₩${price.toLocaleString()}`
+              )}
+            </span>
+          </div>
+
+          {cardSize !== 'small' && (
+            <p className="text-sm text-gray-600 mb-3 line-clamp-2">{description}</p>
           )}
-        </div>
-        <p className="text-sm text-gray-600 mt-2 line-clamp-2">{description}</p>
-        <div className="flex items-center gap-2 mt-3">
-          <div className="flex items-center">
-            {[...Array(5)].map((_, i) => (
-              <span 
-                key={i}
-                className={`text-sm ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`}
-              >
-                ★
-              </span>
-            ))}
-          </div>
-          <span className="text-sm text-gray-500">({reviewCount})</span>
-        </div>
-      </CardContent>
-      <CardFooter className="p-4 pt-0">
-        {viewMode === 'grid' ? (
-          <div className="grid grid-cols-2 gap-2 w-full">
-            <Button 
-              variant="outline" 
-              className="w-full"
-              onClick={() => console.log('View details:', id)}
-            >
-              상세 보기
-            </Button>
-            <Button 
-              className="w-full"
-              onClick={handlePurchase}
-            >
-              구매하기
-            </Button>
-          </div>
-        ) : (
-          <div className="flex gap-2 w-full">
-            <Button 
-              variant="outline" 
-              className="flex-1"
-              onClick={() => console.log('View details:', id)}
-            >
-              상세 보기
-            </Button>
-            <Button 
-              className="flex-1"
-              onClick={handlePurchase}
-            >
-              구매하기
-            </Button>
-          </div>
-        )}
-      </CardFooter>
-      
-      {/* Wishlist Popup */}
-      <AnimatePresence>
-        {showWishlist && (
-          <motion.div 
-            className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-lg flex flex-col p-5 z-20 shadow-xl border border-gray-100"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-5 pb-3 border-b border-gray-100">
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
               <div className="flex items-center">
+                {[...Array(5)].map((_, i) => (
+                  <Star 
+                    key={i}
+                    className={cn(
+                      "w-3 h-3",
+                      i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                    )}
+                  />
+                ))}
+              </div>
+              <span className="text-xs text-gray-500">({reviewCount})</span>
+            </div>
+            
+            {cardSize === 'large' && (
+              <Badge variant="secondary" className="text-xs">
+                무료배송
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+
+        <CardFooter className={cn("pt-0", viewMode === 'list' ? 'p-4' : 'p-4')}>
+          {viewMode === 'list' ? (
+            <div className="flex gap-2 w-full">
+              <Button variant="outline" className="flex-1" size="sm">
+                상세보기
+              </Button>
+              <Button className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500" size="sm">
+                구매하기
+              </Button>
+            </div>
+          ) : cardSize === 'small' ? (
+            <Button 
+              className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white" 
+              size="sm"
+              onClick={handlePurchase}
+            >
+              구매
+            </Button>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 w-full">
+              <Button variant="outline" size="sm">
+                상세보기
+              </Button>
+              <Button 
+                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white" 
+                size="sm"
+                onClick={handlePurchase}
+              >
+                구매하기
+              </Button>
+            </div>
+          )}
+        </CardFooter>
+
+        {/* 찜 목록 팝업 */}
+        <AnimatePresence>
+          {showWishlist && (
+            <motion.div 
+              className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-lg flex flex-col p-5 z-20 shadow-2xl border border-purple-100"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                  찜 목록에 추가됨! 💜
+                </h4>
                 <Button 
                   variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8 -ml-2 mr-1"
+                  size="icon"
                   onClick={() => setShowWishlist(false)}
                 >
-                  <ChevronLeft className="h-5 w-5" />
+                  <X className="h-4 w-4" />
                 </Button>
-                <h4 className="text-lg font-semibold text-gray-800">찜 목록</h4>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="text-gray-500 hover:text-gray-700"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowWishlist(false);
-                }}
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto py-2">
-              {/* Empty state */}
-              <div className="flex flex-col items-center justify-center h-full py-8 text-center">
-                <div className="bg-red-50 p-4 rounded-full mb-4">
-                  <Heart className="h-8 w-8 text-red-400" fill="currentColor" />
-                </div>
-                <h5 className="text-lg font-medium text-gray-800 mb-1">찜한 상품이 없어요</h5>
-                <p className="text-sm text-gray-500 max-w-xs">상품을 찜하면 여기에 표시됩니다</p>
               </div>
               
-              {/* Wishlist items would be mapped here */}
-              {/* {wishlistItems.map(item => (
-                <WishlistItem key={item.id} {...item} />
-              ))} */}
-            </div>
-            
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <Button 
-                className="w-full py-6 text-base font-medium bg-red-500 hover:bg-red-600 transition-colors"
-                onClick={() => {
-                  // Handle wishlist action
-                  setShowWishlist(false);
-                }}
-              >
-                <Check className="h-5 w-5 mr-2" />
-                <span>찜 목록 확인하기</span>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="w-full mt-3 py-6 text-base font-medium hover:bg-gray-50"
-                onClick={() => setShowWishlist(false)}
-              >
-                계속 쇼핑하기
-              </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </Card>
+              <div className="flex-1 flex flex-col items-center justify-center text-center">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: 'spring' }}
+                  className="text-4xl mb-3"
+                >
+                  💖
+                </motion.div>
+                <p className="text-sm text-gray-600 mb-4">
+                  {title}이(가) 찜 목록에 추가되었어요!
+                </p>
+                <Button 
+                  className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                  onClick={() => setShowWishlist(false)}
+                >
+                  계속 쇼핑하기
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Card>
+    </motion.div>
   );
 };
 

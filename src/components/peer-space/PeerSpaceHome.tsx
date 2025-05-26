@@ -67,6 +67,7 @@ import {
   followingPeermalls 
 } from './data/homeMockData';
 import { saveSectionOrder, getSectionOrder, getSectionDisplayName } from './utils/peerSpaceUtils';
+import { peermallStorage } from '@/services/storage/peermallStorage';
 
 interface PeerSpaceHomeProps {
   isOwner: boolean;
@@ -111,6 +112,27 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
     const loadContents = async () => {
       if (address) {
         try {
+          // 🔥 추가: 피어몰 데이터와 설정 동기화 확인
+          const currentPeermall = peermallStorage.getById(address);
+          if (currentPeermall && config) {
+            // 설정이 피어몰 데이터와 다르면 업데이트
+            if (config.title !== currentPeermall.title || 
+                config.owner !== currentPeermall.owner ||
+                config.profileImage !== currentPeermall.imageUrl) {
+              
+              const updatedConfig = {
+                ...config,
+                title: currentPeermall.title,
+                owner: currentPeermall.owner,
+                profileImage: currentPeermall.imageUrl,
+                followers: currentPeermall.followers || config.followers,
+                recommendations: currentPeermall.likes || config.recommendations
+              };
+              
+              onUpdateConfig(updatedConfig);
+              console.log('🔄 피어스페이스 설정이 피어몰 데이터와 동기화되었습니다');
+            }
+          }
           // 실제 데이터 로딩
           let loadedContents = await getPeerSpaceContents(address);
           
@@ -368,7 +390,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                   className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'content' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
                 >
                   <FileText className="w-5 h-5 mr-3" />
-                  <span>제품/콘텐츠</span>
+                  <span>제품</span>
                 </button>
               </li>
               <li>
@@ -380,7 +402,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                   <span>커뮤니티</span>
                 </button>
               </li>
-              <li>
+              {/* <li>
                 <button 
                   onClick={() => onNavigateToSection('following')}
                   className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'following' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
@@ -388,8 +410,8 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                   <Users className="w-5 h-5 mr-3" />
                   <span>팔로잉 피어몰</span>
                 </button>
-              </li>
-              <li>
+              </li> */}
+              {/* <li>
                 <button 
                   onClick={() => onNavigateToSection('guestbook')}
                   className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'guestbook' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
@@ -397,7 +419,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                   <Mail className="w-5 h-5 mr-3" />
                   <span>방명록</span>
                 </button>
-              </li>
+              </li> */}
               
               <li className="pt-4 mt-4 border-t">
                 {isOwner ? (
@@ -520,7 +542,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
           {/* 오른쪽 사이드바 */}
           <div className="w-80 flex-shrink-0">
             {/* 공지사항 섹션 */}
-            <div className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
+            {/* <div className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="p-4 border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white">
                 <h3 className="font-bold text-lg">공지사항</h3>
               </div>
@@ -541,10 +563,10 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                   모든 공지 보기
                 </Button>
               </div>
-            </div>
+            </div> */}
             
             {/* 알림 섹션 */}
-            <div className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
+            {/* <div className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="p-4 border-b flex justify-between items-center">
                 <h3 className="font-bold text-lg">최근 알림</h3>
                 <Badge variant="outline">{alertsData.filter(a => !a.read).length}</Badge>
@@ -568,10 +590,10 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                   ))}
                 </div>
               </div>
-            </div>
+            </div> */}
             
             {/* 광고 섹션 */}
-            <div className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
+            {/* <div className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="p-4 border-b">
                 <h3 className="font-bold text-lg">스폰서</h3>
               </div>
@@ -588,7 +610,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
             
             {/* 피어맵 섹션 */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -625,57 +647,6 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             </div>
           </div>
         </div>
-      </div>
-      
-      {/* 위젯 버튼 */}
-      <div className="fixed bottom-6 right-6 z-30">
-        <div className="relative">
-          <Button 
-            onClick={toggleWidgets} 
-            className="rounded-full w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg flex items-center justify-center p-0"
-          >
-            {showWidgets ? <ChevronDown className="w-6 h-6" /> : <ChevronUp className="w-6 h-6" />}
-          </Button>
-          
-          {showWidgets && (
-            <div className="absolute bottom-16 right-0 bg-white rounded-lg shadow-xl p-3 space-y-3 animate-fade-in">
-              <Button 
-                onClick={handleCall}
-                className="w-10 h-10 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center p-0"
-              >
-                <Phone className="w-5 h-5" />
-              </Button>
-              <Button 
-                onClick={handleMessage}
-                className="w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center p-0"
-              >
-                <MessageSquare className="w-5 h-5" />
-              </Button>
-              <Button 
-                onClick={handleAddFriend}
-                className="w-10 h-10 rounded-full bg-purple-500 hover:bg-purple-600 flex items-center justify-center p-0"
-              >
-                <UserPlus className="w-5 h-5" />
-              </Button>
-              <Button 
-                onClick={handleAddToFavorites}
-                className="w-10 h-10 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center p-0"
-              >
-                <Heart className="w-5 h-5" />
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
-      
-      {/* 맨 위로 스크롤 버튼 */}
-      <div className="fixed bottom-6 left-6 z-30">
-        <Button 
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="rounded-full w-10 h-10 bg-white text-blue-600 shadow-md hover:bg-blue-50 flex items-center justify-center p-0"
-        >
-          <ArrowUp className="w-5 h-5" />
-        </Button>
       </div>
       
       {/* 모달 렌더링 */}

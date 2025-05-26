@@ -289,7 +289,7 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
     const shareData = {
       title: title,
       text: `✨ ${title} - ${owner}의 프리미엄 피어몰을 확인해보세요!`,
-      url: `${window.location.origin}/peerspace/${id}`
+      url: `${window.location.origin}/space/${id}`
     };
 
     if (navigator.share && navigator.canShare?.(shareData)) {
@@ -350,7 +350,7 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
       >
-        <Link to={`/peerspace/${id}`} className="block h-full group">
+        <Link to={`/space/${id}`} className="block h-full group">
           <Card className={cn(
             "h-full overflow-hidden border-0 bg-white relative",
             premiumTokens.shadows.luxury,

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -56,9 +55,28 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/service" element={<ServicePage />} />
         <Route path="/my-info" element={<MyInfoPage />} />
-        <Route path="/space/:address" element={<PeerSpace />} />
-        <Route path="/space/:address/settings" element={<PeerSpaceSettings />} />
-        <Route path="/space/:address/content/:contentId" element={<ContentDetailPage />} />
+        
+        {/* PeerSpace 관련 라우트는 PeerSpace 컴포넌트가 내부적으로 처리하도록 단일 라우트만 남깁니다. */}
+        <Route path="/space/:address/*" element={<PeerSpace />} /> 
+        {/* 
+          기존 /space/:address 라우트 외에 /settings, /content/:contentId 등도 
+          PeerSpace 컴포넌트 내부에서 Outlet과 중첩 라우팅으로 처리하는 것이 일반적입니다.
+          만약 PeerSpaceSettings, ContentDetailPage가 PeerSpace 레이아웃을 공유하지 않는다면
+          현재 구조를 유지해도 됩니다. 
+          하지만 '/space/:address/community'는 PeerSpace 내부에서 처리해야 하므로 아래 라우트들은 제거합니다.
+        */}
+        
+        <Route path="/space/:address/settings" element={<PeerSpaceSettings />} /> {/* PeerSpace 레이아웃 공유 여부 확인 필요 */}
+        <Route path="/space/:address/content/:contentId" element={<ContentDetailPage />} /> {/* PeerSpace 레이아웃 공유 여부 확인 필요 */}
+
+        {/* 아래 /space/:address/community 관련 라우트들 제거 */}
+        {/* 
+        <Route path="/space/:address/community" element={<CommunityPage />} />
+        <Route path="/space/:address/community/:communityId" element={<CommunityDetailPage />} />
+        <Route path="/space/:address/community/:communityId/post/:postId" element={<PostDetailPage />} />
+        <Route path="/space/:address/community/:communityId/post/by-slug/:slug" element={<PostDetailPage />} />
+        */}
+
         <Route path="/customer-support" element={<CustomerSupport />} />
         {/* 변경된 채팅방 상세 경로 */}
         {/* <Route path="/community/planet/:planetId/chat/:roomId" element={<ChatRoomView />} /> */}

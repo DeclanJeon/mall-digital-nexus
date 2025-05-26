@@ -47,36 +47,41 @@ import ReviewSection from './peermall-features/ReviewSection';
 import { peermallStorage } from '@/services/storage/peermallStorage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import CallModal from '@/components/features/CallModal';
+import MessageModal from '@/components/features/MessageModal';
+
+const DEFAULT_CENTER: [number, number] = [37.5665, 126.9780];
 
 interface MapLocation {
   lat: number;
   lng: number;
-  address: string;
   title: string;
+  address: string;
+  phone: string;
+  reviews?: any[];
   id?: string;
-  isFeatured?: boolean;
-  isPopular?: boolean;
-  isVerified?: boolean;
-  rating?: number;
-  isOnline?: boolean;
-  trustScore?: number;
-  responseTime?: string;
   imageUrl?: string;
-  phone?: string;
+  rating?: number;
+  followers?: number;
+  isPopular?: boolean;
+  isFeatured?: boolean;
+  isVerified?: boolean;
   description?: string;
   tags?: string[];
+  trustScore?: number;
+  responseTime?: string;
+  isOnline?: boolean;
+  owner?: string; // 🎯 이거 추가
 }
 
 interface EcosystemMapProps {
-  locations: MapLocation[];
   onLocationSelect?: (location: MapLocation) => void;
+  isFullscreen?: boolean;
 }
 
-const DEFAULT_CENTER: [number, number] = [37.5665, 126.9780];
-
 const EcosystemMap: React.FC<EcosystemMapProps> = ({ 
-  locations, 
-  onLocationSelect 
+  onLocationSelect, 
+  isFullscreen = false 
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -85,12 +90,17 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<MapLocation | null>(null);
   const [showControls, setShowControls] = useState(true);
-  const [mapFullscreen, setMapFullscreen] = useState(false);
+  const [locations, setLocations] = useState<MapLocation[]>([]);
+  const [mapFullscreen, setMapFullscreen] = useState(isFullscreen);
   const [filterType, setFilterType] = useState<'all' | 'popular' | 'verified' | 'featured'>('all');
   const [selectedHashtag, setSelectedHashtag] = useState<string | null>(null);
   const [availableHashtags, setAvailableHashtags] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+const [callModalOpen, setCallModalOpen] = useState(false);
+const [messageModalOpen, setMessageModalOpen] = useState(false);
+const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLocation | null>(null);
 
   // 🎯 프리미엄 마커 아이콘 생성 함수
   const createPremiumMarkerIcon = (location: MapLocation) => {
@@ -141,7 +151,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
     const responseTime = location.responseTime || '평균 5분';
     
     return `
-      <div class="premium-popup-content w-80 p-0 overflow-hidden rounded-2xl shadow-2xl bg-white">
+      <div class="premium-popup-content w-80 h-[500px] p-0 overflow-hidden rounded-2xl shadow-2xl bg-white">
         <!-- 헤더 이미지 영역 -->
         <div class="relative h-32 bg-gradient-to-br from-blue-500 via-purple-600 to-pink-600 overflow-hidden">
           ${location.imageUrl ? `
@@ -253,9 +263,12 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
             tags: tags,
             trustScore: Math.floor(Math.random() * 20) + 80,
             responseTime: ['즉시', '5분 이내', '10분 이내', '30분 이내'][Math.floor(Math.random() * 4)],
-            isOnline: Math.random() > 0.3
+            isOnline: Math.random() > 0.3,
+            owner: (peermall as any).owner || `${peermall.title} 운영자` // 🎯 이거 추가
           };
         });
+      
+      setLocations(mappedLocations);
       
       // Extract all unique hashtags from all locations
       const allTags = new Set<string>();
@@ -395,6 +408,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
       marker.on('click', () => {
         mapInstance.current?.setView([loc.lat, loc.lng], 15);
         setSelectedLocation(loc);
+        setSelectedLocationForAction(loc);
         
         if (onLocationSelect) {
           onLocationSelect(loc);
@@ -408,7 +422,6 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
     } else if (filteredLocations.length > 1) {
       const bounds = L.latLngBounds(filteredLocations.map(loc => [loc.lat, loc.lng]));
       mapInstance.current.fitBounds(bounds, { padding: [50, 50] });
-      setSelectedLocation(filteredLocations[0]);
     }
   }, [locations, filterType, onLocationSelect]);
 
@@ -506,6 +519,18 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
     }
   }, [searchQuery, locations]);
 
+  // 🎯 통화 모달 열기 함수
+  const handleOpenCallModal = useCallback((location: MapLocation) => {
+    setSelectedLocationForAction(location);
+    setCallModalOpen(true);
+  }, []);
+
+  // 🎯 메시지 모달 열기 함수
+  const handleOpenMessageModal = useCallback((location: MapLocation) => {
+    setSelectedLocationForAction(location);
+    setMessageModalOpen(true);
+  }, []);
+
   const filteredCount = locations.filter(loc => {
     switch (filterType) {
       case 'popular': return loc.isPopular;
@@ -518,7 +543,9 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
   return (
     <div className={cn(
       "relative rounded-2xl overflow-hidden shadow-2xl",
-      mapFullscreen ? "fixed inset-0 z-50" : "w-full h-[600px]"
+      mapFullscreen ? "fixed inset-0 z-50" : "w-full",
+      // 🎯 반응형 높이 클래스 추가
+      mapFullscreen ? "h-screen" : "h-full min-h-[250px]"
     )}>
       
       <div 
@@ -961,7 +988,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
                 <Button
                   size="sm"
                   className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg"
-                  onClick={() => console.log('통화하기:', selectedLocation.title)}
+                  onClick={() => handleOpenCallModal(selectedLocation)} // 🎯 수정
                 >
                   <Phone className="w-4 h-4 mr-1" />
                   통화
@@ -969,7 +996,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
                 <Button
                   size="sm"
                   className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg"
-                  onClick={() => console.log('메시지:', selectedLocation.title)}
+                  onClick={() => handleOpenMessageModal(selectedLocation)} // 🎯 수정
                 >
                   <MessageSquare className="w-4 h-4 mr-1" />
                   메시지
@@ -987,7 +1014,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
                   <ExternalLink className="w-4 h-4 mr-1 text-purple-600" />
                   방문하기
                 </Button>
-                {/* <Button
+                <Button
                   size="sm"
                   variant="outline"
                   className="border-orange-200 hover:bg-orange-50 hover:border-orange-300"
@@ -998,7 +1025,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
                 >
                   <Navigation className="w-4 h-4 mr-1 text-orange-600" />
                   길찾기
-                </Button> */}
+                </Button>
               </div>
             </div>
           </motion.div>
@@ -1025,6 +1052,35 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* 🎯 통화 모달 */}
+      <CallModal
+        open={callModalOpen}
+        onOpenChange={setCallModalOpen}
+        location={selectedLocationForAction || {
+          title: '',
+          owner: '',
+          phone: '',
+          imageUrl: '',
+          trustScore: 0,
+          responseTime: '',
+          isOnline: false
+        }}
+      />
+
+      {/* 🎯 메시지 모달 */}
+      <MessageModal
+        open={messageModalOpen}
+        onOpenChange={setMessageModalOpen}
+        location={selectedLocationForAction || {
+          title: '',
+          owner: '',
+          imageUrl: '',
+          trustScore: 0,
+          responseTime: '',
+          isOnline: false
+        }}
+      />
     </div>
   );
 };
