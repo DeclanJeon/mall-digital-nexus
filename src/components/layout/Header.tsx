@@ -222,7 +222,7 @@ const Header = () => {
               <input
                 type="text"
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-primary-200"
-                placeholder="피어몰, 피어스페이스, 콘텐츠 검색... "
+                placeholder="피어몰, 제품 검색... "
               />
               <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
@@ -235,17 +235,9 @@ const Header = () => {
             <Link to="/community" className="text-text-200 hover:text-primary-300">커뮤니티</Link>
             {/* <Link to="/customer-support" className="text-text-200 hover:text-primary-300">고객센터</Link> */}
             
-            {/* {isLoggedIn && (
-              <button
-                onClick={handleOpenMySpaces}
-                className="text-accent-200 hover:text-accent-100"
-              >
-                내 스페이스
-              </button>
-            )} */}
             <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="ml-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              onClick={handleCreateModalOpen}
+              className="bg-primary-200 hover:bg-primary-300 text-white font-bold py-2 px-4 rounded"
             >
               피어몰 만들기
             </button>

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Peermall } from '@/types/peermall';
+import { PeermallDetailDialog } from '@/components/peermall-features/PeermallDetailDialog';
 
 interface Location {
   lat: number;
@@ -267,6 +268,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
+
       <main className="px-4 py-8">
         {/* 🌟 즐겨찾기 서비스 섹션 - 개인화된 경험 */}
         {isLoggedIn && (
@@ -378,7 +380,32 @@ const Index = () => {
             </Card>
 
             {/* ✨ 신규 피어몰 섹션 */}
-            <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-green-50 to-emerald-50`}>
+            
+          </div>
+
+          {/* 🗺️ 사이드바 - 보조 정보 및 도구 (1/3 너비) */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* 피어맵 */}
+            <Card className={`${designTokens.elevation.card} bg-gradient-to-br from-blue-50 to-cyan-50 h-full`}>
+              <CardHeader className="pb-2">
+                <div className="flex items-center space-x-2">
+                  <Map className="w-5 h-5 text-blue-600" />
+                  <h2 className={`${designTokens.typography.subheading} text-gray-900`}>
+                    피어맵
+                  </h2>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 h-full w-full">
+                <div className="h-full overflow-hidden rounded-b-lg">
+                  <EcosystemMap onLocationSelect={handleLocationSelect} />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        <div className="lg:col-span-3 space-y-8">
+          <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-green-50 to-emerald-50`}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
@@ -435,65 +462,10 @@ const Index = () => {
                 )}
               </CardContent>
             </Card>
-          </div>
-
-          {/* 🗺️ 사이드바 - 보조 정보 및 도구 (1/3 너비) */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* 피어맵 */}
-            <Card className={`${designTokens.elevation.card} bg-gradient-to-br from-blue-50 to-cyan-50 h-full`}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center space-x-2">
-                  <Map className="w-5 h-5 text-blue-600" />
-                  <h2 className={`${designTokens.typography.subheading} text-gray-900`}>
-                    피어맵
-                  </h2>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0 h-[300px] min-h-[300px] w-full">
-                <div className="h-full overflow-hidden rounded-b-lg">
-                  <EcosystemMap onLocationSelect={handleLocationSelect} />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 📈 실시간 통계 카드 */}
-            {/* <Card className={`${designTokens.elevation.card} bg-gradient-to-br from-purple-50 to-pink-50`}>
-              <CardHeader>
-                <h3 className={`${designTokens.typography.subheading} text-gray-900`}>
-                  📈 실시간 현황
-                </h3>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className={designTokens.typography.body}>전체 피어몰</span>
-                  </div>
-                  <Badge variant="secondary">{stats.totalMalls}개</Badge>
-                </div>
-                
-                <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className={designTokens.typography.body}>내 스페이스</span>
-                  </div>
-                  <Badge variant="secondary">{stats.myMalls}개</Badge>
-                </div>
-                
-                <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                  <div className="flex items-center space-x-2">
-                    <Star className="w-3 h-3 text-yellow-500" />
-                    <span className={designTokens.typography.body}>평균 평점</span>
-                  </div>
-                  <Badge variant="secondary">{stats.avgRating}점</Badge>
-                </div>
-              </CardContent>
-            </Card> */}
-          </div>
-        </section>
+        </div>
 
         {/* 🎪 커뮤니티 하이라이트 */}
-        <section className={designTokens.spacing.section}>
+        {/* <section className={designTokens.spacing.section}>
           <Card className={`${designTokens.elevation.card} bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50`}>
             <CardHeader>
               <div className="flex items-center space-x-2">
@@ -510,7 +482,7 @@ const Index = () => {
               <CommunityHighlights />
             </CardContent>
           </Card>
-        </section>
+        </section> */}
       </main>
 
       {/* 🗺️ 지도 모달 */}
@@ -581,7 +553,7 @@ const Index = () => {
                   <Users className="w-10 h-10 text-gray-400" />
                 </div>
                 <h3 className={`${designTokens.typography.subheading} text-gray-700 mb-2`}>
-                  생성된 스페이스가 없습니다
+                  생성된 피어몰이 없습니다
                 </h3>
                 <p className={`${designTokens.typography.caption} mb-4`}>
                   새로운 피어몰을 만들어 여정을 시작해보세요! 🎯
@@ -598,83 +570,11 @@ const Index = () => {
         </DialogContent>
       </Dialog>
 
-      {/* 📍 피어몰 상세 보기 */}
-      <Dialog open={isDetailViewOpen} onOpenChange={closeDetailView}>
-        <DialogContent className="sm:max-w-2xl">
-          {selectedPeermall && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-bold">{selectedPeermall.title}</DialogTitle>
-                <p className="text-sm text-gray-500">{selectedPeermall.location?.address || '주소 정보 없음'}</p>
-              </DialogHeader>
-              
-              <div className="space-y-6">
-                {/* 썸네일 이미지 */}
-                {selectedPeermall.imageUrl && (
-                  <div className="relative h-48 rounded-lg overflow-hidden">
-                    <img 
-                      src={selectedPeermall.imageUrl} 
-                      alt={selectedPeermall.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                    <div className="absolute bottom-0 left-0 p-4 text-white">
-                      <div className="flex items-center space-x-2">
-                        <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                        <span>{selectedPeermall.rating?.toFixed(1) || '0.0'}</span>
-                        <span className="text-gray-300">•</span>
-                        <span>리뷰 {selectedPeermall.reviewCount || 0}개</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 설명 섹션 */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">소개</h3>
-                  <p className="text-gray-700">
-                    {selectedPeermall.description || '등록된 설명이 없습니다.'}
-                  </p>
-                </div>
-
-                {/* 태그 섹션 */}
-                {selectedPeermall.tags && selectedPeermall.tags.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg">태그</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedPeermall.tags.map((tag, index) => (
-                        <Badge key={index} variant="outline" className="text-sm">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* 액션 버튼 */}
-                <div className="grid grid-cols-2 gap-3 pt-2">
-                  <Button className="bg-blue-600 hover:bg-blue-700 h-12">
-                    <Phone className="w-4 h-4 mr-2" />
-                    전화하기
-                  </Button>
-                  <Button variant="outline" className="h-12">
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    메시지 보내기
-                  </Button>
-                  <Button variant="outline" className="h-12">
-                    <Star className="w-4 h-4 mr-2" />
-                    리뷰 작성하기
-                  </Button>
-                  <Button variant="outline" className="h-12">
-                    <Navigation className="w-4 h-4 mr-2" />
-                    길찾기
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      <PeermallDetailDialog 
+        isOpen={isDetailViewOpen}
+        onOpenChange={closeDetailView}
+        selectedPeermall={selectedPeermall}
+      />
 
       {/* 📱 QR 코드 모달 */}
       <QRCodeModal

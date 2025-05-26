@@ -904,7 +904,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                       />
 
                       {/* 공개 범위 */}
-                      <FormField
+                      {/* <FormField
                         control={form.control}
                         name="visibility"
                         render={({ field }) => (
@@ -946,7 +946,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                             </div>
                           </FormItem>
                         )}
-                      />
+                      /> */}
                     </div>
 
                     {/* 오른쪽 컬럼 */}
@@ -1120,7 +1120,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                       type="submit"
                       variant="outline"
                       disabled={isLoading || isDuplicateAddress}
-                      className="flex-1 sm:flex-none"
+                      className="bg-green-600 hover:bg-green-700 min-w-[150px]"
                     >
                       {isLoading ? (
                         <>
@@ -1128,7 +1128,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                           저장 중...
                         </>
                       ) : (
-                        '바로 생성하기'
+                        '피어몰 생성하기'
                       )}
                     </Button>
                   </div>

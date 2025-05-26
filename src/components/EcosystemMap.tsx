@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Star, ChevronUp, ChevronDown, MapPin, Phone, MessageSquare, Navigation, Search, X } from 'lucide-react';
+import { Star, ChevronUp, ChevronDown, MapPin, Phone, MessageSquare, Search, X, SatelliteIcon, LocateFixed, Navigation } from 'lucide-react';
 import { Button } from './ui/button';
 import { Peermall } from '@/types/peermall';
 import ReviewSection from './peermall-features/ReviewSection';
@@ -399,30 +399,6 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({ onLocationSelect }) => {
           style={{backgroundColor: '#f5f5f5'}}
         />
         
-        {/* 검색창 */}
-        <div className="absolute top-4 left-4 z-[1000] w-64">
-          <div className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={handleSearchInputChange}
-              onKeyDown={handleKeyDown}
-              placeholder="피어몰 검색..."
-              className="w-full p-2 pl-10 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-          {renderSearchResults()}
-        </div>
-        
         {/* 컨트롤 버튼 */}
         <div className="absolute top-4 right-4 z-[1000] flex flex-col space-y-2">
           <button
@@ -454,14 +430,14 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({ onLocationSelect }) => {
                 className={`p-2 rounded-md flex items-center justify-center ${mapType === 'satellite' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 hover:bg-gray-200'}`}
                 title="위성 지도 보기"
               >
-                <MapPin className="w-4 h-4" />
+                <SatelliteIcon className="w-4 h-4" />
               </button>
               <button 
                 onClick={findMyLocation}
                 className="p-2 rounded-md bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
                 title="내 위치 찾기"
               >
-                <Navigation className="w-4 h-4" />
+                <LocateFixed className="w-4 h-4" />
               </button>
             </div>
             
@@ -544,19 +520,6 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({ onLocationSelect }) => {
         </div>
       </div>
       
-      {/* 리뷰 섹션 모달 */}
-      <ReviewSection 
-        location={selectedLocation} 
-        isOpen={!!selectedLocation}
-        onClose={() => setSelectedLocation(null)}
-        onReviewSubmit={(review) => {
-          // 리뷰 제출 처리 로직 (필요시 구현)
-          console.log('새 리뷰 제출됨:', review);
-          
-          // 리뷰가 제출되면 선택 해제
-          setSelectedLocation(null);
-        }}
-      />
     </div>
   );
 };
