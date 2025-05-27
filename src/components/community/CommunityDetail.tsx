@@ -58,7 +58,8 @@ import {
   deletePostFromLocalStorage
 } from '@/utils/storageUtils';
 import { processContentWithMediaEmbeds } from '@/utils/mediaUtils';
-import { Post, Channel, Member, CommunityEvent } from '@/types/post';
+import { Post, Channel, Member } from '@/types/post';
+import { CommunityMapEvent } from '@/types/community';
 import { CommunityZone } from '@/types/community';
 import RichTextEditor from '@/components/community/RichTextEditor';
 import { Editor } from '@toast-ui/react-editor';
@@ -142,7 +143,7 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ community }) => {
   const { toast } = useToast();
   const [posts, setPosts] = useState<Post[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
-  const [events, setEvents] = useState<CommunityEvent[]>([]);
+  const [events, setEvents] = useState<CommunityMapEvent[]>([]);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [isWriteDialogOpen, setIsWriteDialogOpen] = useState(false);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
@@ -197,38 +198,15 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ community }) => {
     }
     
     // Load events from localStorage or use sample data
-    let loadedEvents: CommunityEvent[] = [];
+    let loadedEvents: CommunityMapEvent[] = [];
     try {
       const eventsJSON = localStorage.getItem('communityEvents');
       if (eventsJSON) {
         const allEvents = JSON.parse(eventsJSON);
-        loadedEvents = allEvents.filter((event: CommunityEvent) => event.communityId === communityId);
-      } else if (community.hasEvent) {
-        // Initialize with sample data if community has events
-        loadedEvents = [{
-          id: `event-${Date.now()}`,
-          title: '봄 축제',
-          description: '커뮤니티 봄 축제에 참여하세요!',
-          startDate: '2025-05-20',
-          endDate: '2025-05-25',
-          communityId,
-          createdBy: '관리자'
-        }];
-        localStorage.setItem('communityEvents', JSON.stringify(loadedEvents));
-      }
+        loadedEvents = allEvents.filter((event: CommunityMapEvent) => event.communityId === communityId);
+      } 
     } catch (error) {
       console.error('Error loading events:', error);
-      if (community.hasEvent) {
-        loadedEvents = [{
-          id: `event-${Date.now()}`,
-          title: '봄 축제',
-          description: '커뮤니티 봄 축제에 참여하세요!',
-          startDate: '2025-05-20',
-          endDate: '2025-05-25',
-          communityId,
-          createdBy: '관리자'
-        }];
-      }
     }
     
     setPosts(loadedPosts);
@@ -437,14 +415,13 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ community }) => {
       return;
     }
     
-    const newEvent: CommunityEvent = {
+    const newEvent: CommunityMapEvent = {
       id: `event-${Date.now()}`,
       title: newEventTitle,
       description: newEventDesc,
       startDate: newEventStart,
       endDate: newEventEnd,
       communityId: community.id,
-      createdBy: "현재 사용자"
     };
     
     // Update events in localStorage
@@ -1136,7 +1113,7 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ community }) => {
                       <span className="text-sm text-gray-500">{event.startDate}</span>
                     </div>
                     <p className="text-gray-600 text-sm mt-1">
-                      {event.createdBy}님이 '{event.title}' 이벤트를 생성했습니다.
+                      {event.communityId}님이 '{event.title}' 이벤트를 생성했습니다.
                     </p>
                   </Card>
                 ))}
