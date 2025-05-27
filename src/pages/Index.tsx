@@ -588,12 +588,9 @@ const Index = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* 🗺️ 피어맵 - 반응형 크기 */}
             <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.3 }}>
-              {/* <Card className={`${designTokens.elevation.card} bg-gradient-to-br from-blue-50 to-cyan-50 
-                h-64 sm:h-80 md:h-96 lg:h-[500px] xl:h-[600px] 2xl:h-[700px]
-                min-h-[300px] max-h-[800px]`}> */}
               <Card className={`${designTokens.elevation.card} bg-gradient-to-br from-blue-50 to-cyan-50 
-  h-[40vh] sm:h-[45vh] md:h-[50vh] lg:h-[55vh] xl:h-[60vh]
-  min-h-[300px] max-h-[800px]`}>
+              h-[40vh] sm:h-[45vh] md:h-[50vh] lg:h-[55vh] xl:h-[60vh]
+              min-h-[300px] max-h-[800px]`}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
@@ -612,7 +609,13 @@ const Index = () => {
                 </CardHeader>
                 <CardContent className="p-0 h-full">
                   <div className="h-full overflow-hidden rounded-b-lg">
-                    <EcosystemMap onLocationSelect={handleLocationSelect} />
+                    <EcosystemMap 
+                      onLocationSelect={handleLocationSelect}
+                      onFullscreenChange={(isFullscreen) => {
+                        // 전체화면 상태 변경 시 필요한 로직 추가 가능
+                        console.log('맵 전체화면 상태:', isFullscreen);
+                      }}
+                    />
                   </div>
                 </CardContent>
               </Card>

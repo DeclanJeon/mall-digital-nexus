@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from "framer-motion";
+import EnhancedMessageModal from "../features/EnhancedMessageModal";
 
 interface PeermallCardProps extends Peermall {
   isPopular?: boolean;
@@ -622,195 +623,15 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
       </motion.div>
       
       {/* 📨 프리미엄 메시지 모달 */}
-      <Dialog open={messageModalOpen} onOpenChange={setMessageModalOpen}>
-        <DialogContent className="sm:max-w-[600px] border-0 shadow-2xl">
-          <DialogHeader className="space-y-4">
-            <DialogTitle className="flex items-center space-x-3 text-xl">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
-                <MessageSquare className="h-6 w-6" />
-              </div>
-              <div>
-                <span className="bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent font-bold">
-                  {owner}님에게 메시지
-                </span>
-                <p className="text-sm text-gray-500 font-normal">빠른 응답을 받으실 수 있습니다</p>
-              </div>
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-6 py-6">
-            {/* 피어몰 정보 카드 */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-200">
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <div className="w-16 h-16 rounded-xl overflow-hidden shadow-lg">
-                    {!imageError ? (
-                      <img
-                        src={displayImageUrl}
-                        alt={title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl">
-                        🏪
-                      </div>
-                    )}
-                  </div>
-                  {/* 온라인 상태 표시 */}
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white shadow-lg">
-                    <div className="w-full h-full bg-green-400 rounded-full animate-pulse" />
-                  </div>
-                </div>
-                
-                <div className="flex-1">
-                  <h4 className="font-bold text-lg text-gray-900">{title}</h4>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-sm text-gray-600">운영자: {owner}</span>
-                    {(isFamilyCertified || certified) && (
-                      <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">
-                        <Verified className="w-3 h-3 mr-1" />
-                        인증됨
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      <span>평균 응답: 5분</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                      <span>{premiumStats.displayRating} 평점</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Shield className="w-3 h-3 text-green-500" />
-                      <span>{premiumStats.trustScore}% 신뢰도</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* 메시지 입력 영역 */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-blue-600" />
-                  메시지 내용
-                </label>
-                <Textarea 
-                  placeholder="안녕하세요! 귀하의 피어몰에 관심이 있어서 연락드립니다.&#10;&#10;• 궁금한 점이나 문의사항을 자세히 적어주세요&#10;&#10;• 구체적인 질문일수록 빠른 답변을 받으실 수 있습니다&#10;• 예: 제품 문의, 가격 정보, 배송 관련 등"
-                  className="resize-none h-40 border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl text-sm leading-relaxed"
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  maxLength={1000}
-                />
-                <div className="flex justify-between items-center text-xs">
-                  <div className="flex items-center gap-4 text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <Zap className="w-3 h-3 text-yellow-500" />
-                      <span>빠른 응답 보장</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Shield className="w-3 h-3 text-green-500" />
-                      <span>안전한 메시지</span>
-                    </div>
-                  </div>
-                  <span className={cn(
-                    "font-medium",
-                    messageText.length > 800 ? "text-orange-500" : "text-gray-500"
-                  )}>
-                    {messageText.length}/1000
-                  </span>
-                </div>
-              </div>
 
-              {/* 빠른 메시지 템플릿 */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">빠른 메시지 선택</label>
-                <div className="grid grid-cols-1 gap-2">
-                  {[
-                    "안녕하세요! 제품에 대해 문의드리고 싶습니다.",
-                    "가격 정보와 배송 방법을 알고 싶습니다.",
-                    "매장 방문 가능한 시간을 알려주세요.",
-                    "맞춤 제작이나 주문 제작 가능한지 궁금합니다."
-                  ].map((template, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      size="sm"
-                      className="justify-start text-left h-auto py-2 px-3 border-gray-200 hover:border-blue-300 hover:bg-blue-50 text-xs"
-                      onClick={() => setMessageText(template)}
-                    >
-                      <MessageSquare className="w-3 h-3 mr-2 text-blue-500" />
-                      {template}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* 추가 연락 옵션 */}
-            <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-              <h5 className="font-semibold text-sm text-gray-800 flex items-center gap-2">
-                <Phone className="w-4 h-4 text-green-600" />
-                다른 연락 방법
-              </h5>
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-12 border-green-200 hover:bg-green-50 hover:border-green-300"
-                  onClick={handleQuickCall}
-                >
-                  <Phone className="w-4 h-4 mr-2 text-green-600" />
-                  <div className="text-left">
-                    <div className="font-medium text-green-800 text-xs">즉시 통화</div>
-                    <div className="text-green-600 text-xs">바로 연결</div>
-                  </div>
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-12 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
-                >
-                  <Calendar className="w-4 h-4 mr-2 text-blue-600" />
-                  <div className="text-left">
-                    <div className="font-medium text-blue-800 text-xs">예약 상담</div>
-                    <div className="text-blue-600 text-xs">시간 예약</div>
-                  </div>
-                </Button>
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter className="space-x-3 pt-6 border-t border-gray-100">
-            <Button 
-              variant="outline" 
-              onClick={() => setMessageModalOpen(false)}
-              className="border-gray-200 hover:bg-gray-50 px-6"
-            >
-              취소
-            </Button>
-            <Button 
-              onClick={handleSendMessage}
-              disabled={!messageText.trim()}
-              className={cn(
-                "bg-gradient-to-r from-blue-600 to-indigo-700",
-                "hover:from-blue-700 hover:to-indigo-800",
-                "disabled:opacity-50 disabled:cursor-not-allowed",
-                "text-white shadow-lg hover:shadow-xl",
-                "px-8 py-2 font-semibold",
-                "transition-all duration-300"
-              )}
-            >
-              <MessageSquare className="h-4 w-4 mr-2" />
-              메시지 보내기
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EnhancedMessageModal
+        messageModalOpen={messageModalOpen}
+        setMessageModalOpen={setMessageModalOpen}
+        owner={owner}
+        title={title}
+        displayImageUrl={displayImageUrl}
+        imageError={imageError}
+      />
     </>
   );
 };

@@ -616,9 +616,6 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="p-4 border-b flex justify-between items-center">
                 <h3 className="font-bold text-lg">위치</h3>
-                <Button variant="link" size="sm" className="text-blue-600" onClick={handleOpenMap}>
-                  큰 지도 보기
-                </Button>
               </div>
               <div className="p-4">
                 <div className="bg-gray-100 rounded-lg overflow-hidden h-48 relative mb-3">

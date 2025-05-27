@@ -220,7 +220,7 @@ const PeerSpace = () => {
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       {/* PeerSpaceHeader 등 공통 레이아웃 요소가 있다면 여기에 위치 */}
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="mx-auto px-4 py-8">
         <PeerSpaceHome 
             isOwner={isOwner}
             address={address}

@@ -29,7 +29,7 @@ const ProductContentSection: React.FC<ProductContentSectionProps> = ({
     <section className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
       <div className="p-6 border-b">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">제품/콘텐츠</h2>
+          <h2 className="text-xl font-bold">제품</h2>
           <div className="flex items-center gap-2">
             <Button 
               variant="ghost" 

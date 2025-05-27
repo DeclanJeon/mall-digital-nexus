@@ -77,7 +77,7 @@ const CallModal: React.FC<CallModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px] border-0 shadow-2xl bg-gradient-to-br from-white to-blue-50">
+      <DialogContent className="sm:max-w-[400px] border-0 shadow-2xl bg-gradient-to-br from-white to-blue-50 z-[1001]">
         <DialogHeader className="space-y-4">
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -226,20 +226,13 @@ const CallModal: React.FC<CallModalProps> = ({
           {/* 🎮 액션 버튼들 */}
           <div className="space-y-3">
             {callStatus === 'idle' && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 <Button
                   onClick={handleStartCall}
                   className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all h-12"
                 >
                   <Phone className="w-5 h-5 mr-2" />
                   음성 통화
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-blue-200 hover:bg-blue-50 hover:border-blue-300 h-12"
-                >
-                  <Video className="w-5 h-5 mr-2 text-blue-600" />
-                  영상 통화
                 </Button>
               </div>
             )}

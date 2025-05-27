@@ -49,10 +49,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import CallModal from '@/components/features/CallModal';
 import MessageModal from '@/components/features/MessageModal';
+import EnhancedMessageModal from './features/EnhancedMessageModal';
 
 const DEFAULT_CENTER: [number, number] = [37.5665, 126.9780];
 
 interface MapLocation {
+  isFamilyCertified: unknown;
+  certified: unknown;
+  premiumStats: unknown;
   lat: number;
   lng: number;
   title: string;
@@ -264,7 +268,10 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
             trustScore: Math.floor(Math.random() * 20) + 80,
             responseTime: ['즉시', '5분 이내', '10분 이내', '30분 이내'][Math.floor(Math.random() * 4)],
             isOnline: Math.random() > 0.3,
-            owner: (peermall as any).owner || `${peermall.title} 운영자` // 🎯 이거 추가
+            owner: (peermall as any).owner || `${peermall.title} 운영자`, // 🎯 이거 추가,
+            isFamilyCertified: false, // 기본값 설정
+            certified: false,         // 기본값 설정
+            premiumStats: null         // 기본값 설정
           };
         });
       
@@ -996,7 +1003,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
                 <Button
                   size="sm"
                   className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg"
-                  onClick={() => handleOpenMessageModal(selectedLocation)} // 🎯 수정
+                  onClick={() => handleOpenMessageModal(selectedLocation)}
                 >
                   <MessageSquare className="w-4 h-4 mr-1" />
                   메시지
@@ -1069,18 +1076,16 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
       />
 
       {/* 🎯 메시지 모달 */}
-      <MessageModal
-        open={messageModalOpen}
-        onOpenChange={setMessageModalOpen}
-        location={selectedLocationForAction || {
-          title: '',
-          owner: '',
-          imageUrl: '',
-          trustScore: 0,
-          responseTime: '',
-          isOnline: false
-        }}
-      />
+      {selectedLocationForAction && (
+        <EnhancedMessageModal 
+          messageModalOpen={messageModalOpen}
+          setMessageModalOpen={setMessageModalOpen}
+          owner={selectedLocationForAction.owner || '운영자'}
+          title={selectedLocationForAction.title}
+          displayImageUrl={selectedLocationForAction.imageUrl}
+          imageError={false}
+        />
+      )}
     </div>
   );
 };

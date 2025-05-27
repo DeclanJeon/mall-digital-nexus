@@ -69,17 +69,17 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
                 onNavigateToSection={onNavigateToSection}
               />
 
-              <CommunitySection
+              {/* <CommunitySection
                 posts={filteredPosts}
                 isOwner={isOwner}
                 onNavigateToSection={onNavigateToSection}
                 owner={config.owner}
-              />
+              /> */}
 
-              <GuestbookSection
+              {/* <GuestbookSection
                 entries={guestbookData}
                 onNavigateToSection={onNavigateToSection}
-              />
+              /> */}
             </>
           )}
 
