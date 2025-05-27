@@ -1,9 +1,17 @@
 // src/types/peermall.ts
 export interface Peermall {
   // 기본 정보
+  peerMallKey: string;
+  peerMallName: string;
+  peerMallAddress: string;
+  ownerName: string;
+  description: string;
+  contact: string;
+  email: string;
+  likeCount: string;
+
   id: string;
   title: string;
-  description: string;
   owner: string;
   imageUrl: string;
   category: string;
@@ -66,7 +74,7 @@ export interface PeermallFormData {
   address: string;
   name: string;
   description: string;
-  representativeName: string;
+  ownerName: string;
   email: string;
   membershipType: string;
   imageUrl: string;
