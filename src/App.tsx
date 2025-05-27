@@ -56,7 +56,6 @@ const AppContent = () => {
         <Route path="/service" element={<ServicePage />} />
         <Route path="/my-info" element={<MyInfoPage />} />
         
-        {/* PeerSpace 관련 라우트는 PeerSpace 컴포넌트가 내부적으로 처리하도록 단일 라우트만 남깁니다. */}
         <Route path="/space/:address/*" element={<PeerSpace />} /> 
         {/* 
           기존 /space/:address 라우트 외에 /settings, /content/:contentId 등도 
