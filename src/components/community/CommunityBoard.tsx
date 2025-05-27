@@ -23,14 +23,16 @@ import CommunityBoardHelpTips from './board/components/CommunityBoardHelpTips';
 
 interface CommunityBoardProps {
   zoneName: string;
-  posts?: Post[]; // propPosts로 전달될 수 있음
+  posts?: Post[];
   communityId?: string;
+  onPostClick?: (post: Post) => void; // 🔥 PeerSpace에서 전달받는 핸들러
 }
 
 const CommunityBoard: React.FC<CommunityBoardProps> = ({
   zoneName,
   posts: propPosts,
-  communityId = 'global'
+  communityId = 'global',
+  onPostClick // 🔥 외부에서 전달받은 onPostClick
 }) => {
   const {
     searchQuery,
@@ -57,7 +59,7 @@ const CommunityBoard: React.FC<CommunityBoardProps> = ({
     setViewMode,
     setSortOption,
     setActiveFilters,
-    handlePostClick,
+    handlePostClick, // 🔥 훅에서 반환되는 handlePostClick (onPostClick이 적용된)
     handleSubmitNewPost,
     handleShowQRCode,
     getPostUrl,
@@ -66,12 +68,14 @@ const CommunityBoard: React.FC<CommunityBoardProps> = ({
     handleChannelDelete,
     toggleFilter,
     dismissHelpTips,
-  } = useCommunityBoardLogic({ communityId, initialPosts: propPosts, zoneName });
+  } = useCommunityBoardLogic({ 
+    communityId, 
+    initialPosts: propPosts, 
+    zoneName, 
+    onPostClick // 🔥 훅에 onPostClick 전달
+  });
 
-  const searchInputRef = useRef<HTMLInputElement>(null); // Keep ref for keyboard shortcut
-
-  // 채널 관리 다이얼로그 reset (useCommunityBoardLogic에서 관리되므로 여기서는 제거)
-  // const resetChannelDialog = () => { ... };
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="h-full">
@@ -189,7 +193,7 @@ const CommunityBoard: React.FC<CommunityBoardProps> = ({
           isLoading={isLoading}
           searchQuery={searchQuery}
           channels={channels}
-          handlePostClick={handlePostClick}
+          onPostClick={handlePostClick} // 🔥 훅에서 반환된 handlePostClick 사용
           handleShowQRCode={handleShowQRCode}
           getPostUrl={getPostUrl}
           setSearchQuery={setSearchQuery}
@@ -213,7 +217,6 @@ const CommunityBoard: React.FC<CommunityBoardProps> = ({
         selectedChannel={activeTab !== "all" && activeTab !== "notice" ? activeTab : (channels[1]?.id || "channel-2")}
         onChannelSelect={setActiveTab}
         onSubmit={handleSubmitNewPost}
-        // initialPost prop은 게시글 수정 시에만 필요하므로, 여기서는 전달하지 않습니다.
       />
 
       <QRCodeDialog

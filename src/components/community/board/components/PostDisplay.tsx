@@ -29,7 +29,7 @@ interface PostDisplayProps {
   isLoading: boolean;
   searchQuery: string;
   channels: Channel[];
-  handlePostClick: (post: Post) => void;
+  onPostClick: (post: Post) => void;
   handleShowQRCode: (e: React.MouseEvent, post: Post) => void;
   getPostUrl: (post: Post) => string;
   setSearchQuery: (query: string) => void;
@@ -41,7 +41,7 @@ const PostDisplay: React.FC<PostDisplayProps> = ({
   isLoading,
   searchQuery,
   channels,
-  handlePostClick,
+  onPostClick,
   handleShowQRCode,
   getPostUrl,
   setSearchQuery,
@@ -185,7 +185,7 @@ const PostDisplay: React.FC<PostDisplayProps> = ({
               <Card 
                 className={`overflow-hidden cursor-pointer transition-all h-full flex flex-col 
                   ${post.isNotice ? 'border-l-4 border-l-yellow-400' : ''}`}
-                onClick={() => handlePostClick(post)}
+                onClick={() => onPostClick(post)}
               >
                 <div className="p-4 flex flex-col h-full">
                   <div className="flex justify-between items-start mb-3">
@@ -266,7 +266,7 @@ const PostDisplay: React.FC<PostDisplayProps> = ({
               className={`flex items-center justify-between py-2 px-3 border-b hover:bg-gray-50 cursor-pointer ${
                 post.isNotice ? 'bg-yellow-50 hover:bg-yellow-100' : ''
               }`}
-              onClick={() => handlePostClick(post)}
+              onClick={() => onPostClick(post)}
             >
               <div className="flex items-center gap-3 flex-grow overflow-hidden">
                 {post.isNotice && <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200 text-xs whitespace-nowrap">공지</Badge>}
@@ -302,7 +302,7 @@ const PostDisplay: React.FC<PostDisplayProps> = ({
                 className={`cursor-pointer transition-all ${
                   post.isNotice ? 'border-l-4 border-l-yellow-400' : ''
                 }`}
-                onClick={() => handlePostClick(post)}
+                onClick={() => onPostClick(post)}
               >
                 <div className="p-5">
                   <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-3 gap-2">

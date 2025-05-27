@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import {
   loadPostsFromLocalStorage,
@@ -8,6 +8,7 @@ import {
   saveChannelToLocalStorage,
   removeChannelFromLocalStorage,
   loadCommunitiesFromLocalStorage,
+  incrementPostViewCount,
 } from '@/utils/storageUtils';
 import { Post, Channel } from '@/types/post';
 import { CommunityZone } from '@/types/community';
@@ -35,14 +36,17 @@ interface UseCommunityBoardLogicProps {
   communityId: string;
   initialPosts?: Post[];
   zoneName: string;
+  onPostClick?: (post: Post) => void;
 }
 
 const useCommunityBoardLogic = ({
   communityId,
   initialPosts,
   zoneName,
+  onPostClick // 🔥 받아온 onPostClick
 }: UseCommunityBoardLogicProps) => {
   const navigate = useNavigate();
+  const { address } = useParams<{ address: string }>(); // 🔥 현재 PeerSpace 주소 확인
   const { toast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,7 +65,7 @@ const useCommunityBoardLogic = ({
     const dismissed = localStorage.getItem('communityHelpTipsDismissed');
     return dismissed !== 'true';
   });
-  const [hasNotifications, setHasNotifications] = useState(false); // Dummy state for notifications
+  const [hasNotifications, setHasNotifications] = useState(false);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [breadcrumbs, setBreadcrumbs] = useState<
     { label: string; path: string }[]
@@ -143,19 +147,29 @@ const useCommunityBoardLogic = ({
     return filtered;
   }, [posts, searchQuery, activeTab, sortOption, activeFilters]);
 
-  // Post Handlers
+  // 🔥 Post Handlers - 핵심 수정 부분
   const handlePostClick = (post: Post) => {
-    sessionStorage.setItem('lastViewedPost', post.id);
-    if (post.slug) {
-      navigate(`/community/${communityId}/post/by-slug/${post.slug}`);
+    if (onPostClick) {
+      // PeerSpace에서 전달받은 핸들러가 있으면 사용 (상태 변경만)
+      onPostClick(post);
     } else {
-      navigate(`/community/${communityId}/post/${post.id}`);
+      // 독립적인 커뮤니티 페이지에서는 기존 로직 사용 (페이지 이동)
+      const updatedPost = incrementPostViewCount(post.id);
+      if (updatedPost) {
+        setPosts(prevPosts => 
+          prevPosts.map(p => p.id === post.id ? updatedPost : p)
+        );
+      }
+
+      if (address) {
+        navigate(`/space/${address}/community/${post.communityId}/post/${post.id}`);
+      }
+      else {
+        // 여기서 페이지 이동 로직 실행
+        navigate(`/community/${post.communityId}/post/${post.id}`);
+
+      }
     }
-    const updatedPost = { ...post, viewCount: (post.viewCount || 0) + 1 };
-    savePostToLocalStorage(updatedPost);
-    setPosts((prevPosts) =>
-      prevPosts.map((p) => (p.id === post.id ? updatedPost : p))
-    );
   };
 
   const handleSubmitNewPost = (
@@ -166,13 +180,13 @@ const useCommunityBoardLogic = ({
   ) => {
     const newPost: Post = {
       id: `post-${Date.now()}`,
-      author: '현재 사용자', // Replace with actual user data
+      author: '현재 사용자',
       date: new Date().toISOString().split('T')[0],
       likes: 0,
       comments: 0,
       viewCount: 0,
       ...newPostData,
-      communityId, // Ensure communityId is correct
+      communityId,
     };
 
     savePostToLocalStorage(newPost);
@@ -195,10 +209,18 @@ const useCommunityBoardLogic = ({
 
   const getPostUrl = (post: Post) => {
     const baseUrl = window.location.origin;
-    if (post.slug) {
-      return `${baseUrl}/community/${communityId}/post/by-slug/${post.slug}`;
+    
+    // 🔥 URL 생성도 현재 컨텍스트에 맞게 수정
+    if (address) {
+      // PeerSpace 내부
+      return `${baseUrl}/space/${address}/community/post/${post.id}`;
     } else {
-      return `${baseUrl}/community/${communityId}/post/${post.id}`;
+      // 독립 커뮤니티
+      if (post.slug) {
+        return `${baseUrl}/community/${communityId}/post/by-slug/${post.slug}`;
+      } else {
+        return `${baseUrl}/community/${communityId}/post/${post.id}`;
+      }
     }
   };
 
@@ -297,12 +319,12 @@ const useCommunityBoardLogic = ({
     setIsWriteDialogOpen,
     setIsQRDialogOpen,
     setIsChannelDialogOpen,
-    setPosts, // Expose setPosts for potential external updates
-    setChannels, // Expose setChannels for potential external updates
+    setPosts,
+    setChannels,
     setViewMode,
     setSortOption,
     setActiveFilters,
-    handlePostClick,
+    handlePostClick, // 🔥 이 핸들러가 onPostClick을 고려함
     handleSubmitNewPost,
     handleShowQRCode,
     getPostUrl,

@@ -408,7 +408,7 @@ export const loadEventsFromLocalStorage = (
 
     return communityId
       ? allEvents.filter(
-          (event: CommunityEvent) => event.communityId === communityId
+          (event: CommunityMapEvent) => event.communityId === communityId
         )
       : allEvents;
   } catch (error) {

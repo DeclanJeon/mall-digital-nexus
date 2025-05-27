@@ -23,7 +23,7 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
     <div className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
       <Community />
     </div>
-  );
+  ); 
 };
 
 export default PeerSpaceCommunitySection;
