@@ -8,17 +8,17 @@ export interface Peermall {
   imageUrl: string;
   category: string;
   phone?: string; // 전화번호 필드 추가
-  type: string; // 'peermall'과 같은 타입을 나타내는 필드 추가
+  type?: string; // 'peermall'과 같은 타입을 나타내는 필드 추가 (선택적)
   
   // 메타데이터
-  tags?: string[];
-  rating: number;
-  reviewCount: number;
-  likes?: number;
-  followers?: number;
-  featured?: boolean;
-  recommended?: boolean;
-  certified?: boolean;
+  tags?: string[]; // 선택적
+  rating?: number; // 선택적
+  reviewCount?: number; // 선택적
+  likes?: number; // 선택적
+  followers?: number; // 선택적
+  featured?: boolean; // 선택적
+  recommended?: boolean; // 선택적
+  certified?: boolean; // 선택적
   
   // 위치 정보
   location?: {
@@ -28,29 +28,21 @@ export interface Peermall {
   };
   
   // 타임스탬프
-  createdAt: string;
+  createdAt?: string; // 선택적
   updatedAt?: string;
   
   // 추가 필드
   [key: string]: any;
 }
 
-export interface PeermallCardProps {
-  id: string;
-  title: string;
-  owner: string;
-  description: string;
-  imageUrl: string;
-  likes: number;
-  rating: number;
-  followers: number;
-  tags: string[];
+export interface PeermallCardProps extends Peermall {
   isPopular?: boolean;          // 인기 피어몰
   isFamilyCertified?: boolean;  // 패밀리 멤버 인증
   isRecommended?: boolean;      // 추천 피어몰
   className?: string;
   onShowQrCode?: (id: string, title: string) => void;
   onOpenMap?: (location: { lat: number; lng: number; address: string; title: string }) => void;
+  type?: string;
 }
 
 export interface PeermallGridProps {

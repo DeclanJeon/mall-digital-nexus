@@ -8,17 +8,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import CreatePeermall from '@/components/peermall-features/CreatePeermall';
 import { peermallStorage } from '@/services/storage/peermallStorage';
 import { toast } from '@/hooks/use-toast';
-import { CreatePeermallSuccessData } from '@/types/peermall';
+import { CreatePeermallSuccessData, Peermall } from '@/types/peermall';
 import { useAuth } from '@/hooks/useAuth';
-
-interface Peermall {
-  id: string;
-  title: string;
-  description: string;
-  type: string;
-  imageUrl: string;
-  owner: string;
-}
 
 interface Notification {
   id: string;

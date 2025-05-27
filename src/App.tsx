@@ -20,12 +20,7 @@ import CustomerSupport from "./pages/CustomerSupport";
 import CommunityDetailPage from "./pages/ContentDetailPage";
 import PostDetailPage from "./pages/PostDetailPage";
 import QRCodeGenerator from "@/components/feature-sections/QRCodeGenerator";
-
-// Remove imports for non-existent pages
-// import Peers from "./pages/space/Peers";
-// import Achievements from "./pages/space/Achievements";
-// import Messages from "./pages/space/Messages";
-// import Space from "./pages/space/Space";
+import PeermallsPage from "./pages/PeermallsPage"; // PeermallsPage import 추가
 
 const queryClient = new QueryClient();
 
@@ -39,8 +34,8 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/products" element={<Shopping />} />
-        {/* <Route path="/peermalls" element={< />} / >
-        <Route path="/products" element={< />} /> */}
+        <Route path="/peermalls" element={<PeermallsPage />} /> {/* 이 라인 수정 */}
+        {/* <Route path="/products" element={< />} /> */}
         {/* <Route path="/curation-links" element={<CurationLinks />} /> */}
         <Route path="/create-qrcode" element={<QRCodeGenerator />} />
         {/* <Route path="/community" element={<Community />} /> 

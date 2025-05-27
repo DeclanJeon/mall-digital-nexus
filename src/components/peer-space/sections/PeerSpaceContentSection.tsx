@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import ProductCard from '../../shopping/ProductCard';
+import ProductCard from '@/components/shopping/products/ProductCard';
 import { Grid2X2, List, Grid3X3, LayoutGrid, Rows3, Eye, Filter, SlidersHorizontal } from 'lucide-react';
-import { Content, PeerMallConfig } from '../types';
+import { Content, PeerMallConfig } from '@/types/space';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface PeerSpaceContentSectionProps {

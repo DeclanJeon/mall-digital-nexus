@@ -43,7 +43,7 @@ import { ContentFormValues } from './forms/AddContentForm';
 import { usePeerSpaceTabs } from '@/hooks/usePeerSpaceTabs';
 // import { add } from '@/utils/indexedDBService';
 import EmptyState from './ui/EmptyState';
-import ProductCard from '../shopping/ProductCard';
+import ProductCard from '@/components/shopping/products/ProductCard';
 import BadgeSelector from './ui/BadgeSelector';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import BasicInfoSection from './sections/BasicInfoSection';
