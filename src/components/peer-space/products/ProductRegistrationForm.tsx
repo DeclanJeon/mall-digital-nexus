@@ -256,7 +256,8 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
   const convertToContent = (formValues: ProductFormValues): Omit<Content, 'id' | 'createdAt' | 'updatedAt' | 'peerSpaceAddress'> => {
     const now = new Date().toISOString();
     return {
-      title: formValues.name || 'Untitled Product',
+      name: formValues.name,
+      title: formValues.title || 'Untitled Product',
       description: formValues.description || '',
       type: 'product',
       date: now,
@@ -309,10 +310,9 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
         createdAt: now,
         updatedAt: now
       };
-      
-      await addPeerSpaceContent(address, newProduct);
-      // Modified line to cast newProduct as any to avoid type mismatch
-      await savePostToLocalStorage(newProduct as any);
+      debugger;
+      //await addPeerSpaceContent(address, newProduct);
+      //await savePostToLocalStorage(newProduct as any);
       await handleFormSubmit(formValues);
       
       toast({
@@ -570,10 +570,10 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-1">
                   <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="mb-4 grid grid-cols-3">
+                    <TabsList className="mb-4 grid grid-cols-2">
                       <TabsTrigger value="basic">기본 정보</TabsTrigger>
                       <TabsTrigger value="details">상세 정보</TabsTrigger>
-                      <TabsTrigger value="options">옵션 및 설정</TabsTrigger>
+                      {/* <TabsTrigger value="options">옵션 및 설정</TabsTrigger> */}
                     </TabsList>
                     
                     <TabsContent value="basic" className="space-y-4">

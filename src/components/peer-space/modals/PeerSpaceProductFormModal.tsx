@@ -3,6 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from '@/hooks/use-toast';
 import ProductRegistrationForm from '../products/ProductRegistrationForm';
 import { Content } from '../types';
+import { useSearchParams } from 'react-router-dom';
+import productService from '@/services/productService';
 // import { add } from '@/utils/indexedDBService';
 
 interface PeerSpaceProductFormModalProps {
@@ -24,6 +26,9 @@ const PeerSpaceProductFormModal: React.FC<PeerSpaceProductFormModalProps> = ({
   products,
   contents,
 }) => {
+  const [ searchParams ] = useSearchParams();
+  const peerMallKey = searchParams.get('mk');
+
   return (
     <Dialog open={showProductForm} onOpenChange={setShowProductForm}>
       <DialogContent className="max-w-5xl h-[90vh] overflow-y-auto z-[9999]">
@@ -56,10 +61,10 @@ const PeerSpaceProductFormModal: React.FC<PeerSpaceProductFormModalProps> = ({
               ecosystem: {},
               attributes: {}
             };
-            // IndexedDB 사용 중지로 주석 처리
-            // await add('products', newProduct);
-            setProducts([...products, newProduct]);
-            setContents([...contents, newProduct]);
+            
+            await productService.registerProduct(newProduct, address, peerMallKey);
+            // setProducts([...products, newProduct]);
+            // setContents([...contents, newProduct]);
             setShowProductForm(false);
             toast({ title: "제품 등록 완료", description: `${newProduct.title} 제품이 등록되었습니다.` });
           }}
