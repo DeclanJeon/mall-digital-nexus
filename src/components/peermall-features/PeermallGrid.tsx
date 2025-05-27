@@ -27,37 +27,33 @@ const PeermallGrid = ({
       
       console.log('🔄 피어몰 데이터 로드 시작...');
 
-      // 실제 스토리지에서 피어몰 데이터 가져오기
-      const peermalls = peermallStorage.getAll();
-      // console.log('📦 스토리지에서 로드된 피어몰:', peermalls);
-      
-      if (peermalls && peermalls.length > 0) {
+      if (initialMalls.length > 0) {
         // 인기 섹션인 경우 특별 필터링
-        let filteredPeermalls = [...peermalls];
+        let filteredPeermalls;
         
         if (isPopularSection) {
           // 인기 피어몰 필터링 (좋아요 수, 평점 기준)
-          filteredPeermalls = peermalls
-            .filter(p => p.likes >= 10 || p.rating >= 4.0 || p.featured)
-            .sort((a, b) => {
-              // 인기도 점수 계산 (좋아요 * 2 + 평점 * 10 + 팔로워)
-              const scoreA = (a.likes || 0) * 2 + (a.rating || 0) * 10 + (a.followers || 0);
-              const scoreB = (b.likes || 0) * 2 + (b.rating || 0) * 10 + (b.followers || 0);
-              return scoreB - scoreA;
-            });
+          // filteredPeermalls = initialMalls
+          //   .filter(p => p.likes >= 10 || p.rating >= 4.0 || p.featured)
+          //   .sort((a, b) => {
+          //     // 인기도 점수 계산 (좋아요 * 2 + 평점 * 10 + 팔로워)
+          //     const scoreA = (a.likes || 0) * 2 + (a.rating || 0) * 10 + (a.followers || 0);
+          //     const scoreB = (b.likes || 0) * 2 + (b.rating || 0) * 10 + (b.followers || 0);
+          //     return scoreB - scoreA;
+          //   });
         } else {
           // 일반 섹션은 최신순 정렬
-          filteredPeermalls = filteredPeermalls.sort((a, b) => {
-            const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 
-                        a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 
-                        b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            return dateB - dateA;
-          });
+          // filteredPeermalls = filteredPeermalls.sort((a, b) => {
+          //   const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 
+          //               a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          //   const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 
+          //               b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          //   return dateB - dateA;
+          // });
         }
         
-        setMalls(filteredPeermalls);
-        console.log('✅ 피어몰 데이터 설정 완료:', filteredPeermalls.length, '개');
+        setMalls(initialMalls);
+        console.log('✅ 피어몰 데이터 설정 완료:', initialMalls.length, '개');
       } else {
         // 스토리지가 비어있으면 initialMalls 사용
         console.log('📝 스토리지가 비어있음, initialMalls 사용:', initialMalls.length, '개');
@@ -90,43 +86,9 @@ const PeermallGrid = ({
       loadPeermalls();
     }
 
-    // 스토리지 변경 이벤트 리스너
-    const removeListener = peermallStorage.addEventListener((updatedPeermalls) => {
-      if (!isMounted) return;
-      
-      console.log('🔔 스토리지 업데이트 감지:', updatedPeermalls?.length || 0, '개');
-      
-      if (updatedPeermalls) {
-        let filteredPeermalls = [...updatedPeermalls];
-        
-        if (isPopularSection) {
-          // 인기 섹션 필터링
-          filteredPeermalls = updatedPeermalls
-            .filter(p => p.likes >= 10 || p.rating >= 4.0 || p.featured)
-            .sort((a, b) => {
-              const scoreA = (a.likes || 0) * 2 + (a.rating || 0) * 10 + (a.followers || 0);
-              const scoreB = (b.likes || 0) * 2 + (b.rating || 0) * 10 + (b.followers || 0);
-              return scoreB - scoreA;
-            });
-        } else {
-          // 최신순 정렬
-          filteredPeermalls = filteredPeermalls.sort((a, b) => {
-            const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 
-                        a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 
-                        b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            return dateB - dateA;
-          });
-        }
-        
-        setMalls(filteredPeermalls);
-      }
-    });
-
     // 클린업
     return () => {
       isMounted = false;
-      removeListener?.();
     };
   }, [loadPeermalls, isPopularSection]);
 

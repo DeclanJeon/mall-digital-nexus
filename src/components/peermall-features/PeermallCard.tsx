@@ -92,11 +92,16 @@ const premiumTokens = {
 };
 
 const PeerMallCard: React.FC<PeermallCardProps> = ({
+  peerMallKey,
+  peerMallName = '이름 없음',
+  peerMallAddress,
+  ownerName = '미정',
+  contact,
+  eamil,
+  likeCount,
+  imageLocation = '',
   id,
-  title = '이름 없음',
-  owner = '미정',
   description = '설명이 없습니다.',
-  imageUrl = '',
   likes = 0,
   rating = 0,
   followers = 0,
@@ -186,11 +191,13 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
     e.preventDefault();
     e.stopPropagation();
     
-    toast({
-      title: "📞 통화 연결 중...",
-      description: `${owner}님과 연결하고 있습니다.`,
-    });
-  }, [owner, toast]);
+    // toast({
+    //   title: "📞 통화 연결 중...",
+    //   description: `${ownerName}님과 연결하고 있습니다.`,
+    // });
+    const url = `https://peerterra.com/one/channel/${peerMallName}?mk=${peerMallKey}`;
+    window.open(url, '_blank');
+  }, [ownerName, toast]);
 
   const handleQuickMessage = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -247,50 +254,14 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
     }
   }, [id, isLiked, currentLikes, toast]);
 
-  // 👥 팔로우 기능 - 실제 스토리지 업데이트
-  const handleFollow = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!id) return;
-
-    try {
-      const newFollowState = !isFollowing;
-      const newFollowerCount = newFollowState ? currentFollowers + 1 : Math.max(0, currentFollowers - 1);
-      
-      // 로컬 상태 업데이트
-      setIsFollowing(newFollowState);
-      setCurrentFollowers(newFollowerCount);
-      
-      // 스토리지 업데이트
-      const existingPeermall = peermallStorage.getById(id);
-      if (existingPeermall) {
-        const updatedPeermall = {
-          ...existingPeermall,
-          followers: newFollowerCount
-        };
-        peermallStorage.save(updatedPeermall);
-      }
-      
-      toast({
-        title: newFollowState ? "🎉 팔로우 완료!" : "팔로우 취소",
-        description: newFollowState 
-          ? `${owner}님을 팔로우하기 시작했습니다` 
-          : `${owner}님 팔로우를 취소했습니다`
-      });
-    } catch (error) {
-      console.error('팔로우 처리 오류:', error);
-    }
-  }, [id, isFollowing, currentFollowers, owner, toast]);
-
   const handleShare = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     const shareData = {
-      title: title,
-      text: `✨ ${title} - ${owner}의 프리미엄 피어몰을 확인해보세요!`,
-      url: `${window.location.origin}/space/${id}`
+      title: peerMallName,
+      text: `✨ ${peerMallName} - ${ownerName}의 프리미엄 피어몰을 확인해보세요!`,
+      url: `${window.location.origin}/space/${peerMallKey}`
     };
 
     if (navigator.share && navigator.canShare?.(shareData)) {
@@ -307,7 +278,7 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
           description: "링크 복사에 실패했습니다."
         }));
     }
-  }, [id, title, owner, toast]);
+  }, [id, peerMallName, ownerName, toast]);
 
   const handleSendMessage = useCallback(() => {
     if (!messageText.trim()) {
@@ -321,12 +292,12 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
 
     toast({
       title: "📨 프리미엄 메시지 전송 완료",
-      description: `${owner}님에게 메시지를 보냈습니다.`
+      description: `${ownerName}님에게 메시지를 보냈습니다.`
     });
     
     setMessageText("");
     setMessageModalOpen(false);
-  }, [messageText, owner, toast]);
+  }, [messageText, ownerName, toast]);
 
   // 🖼️ 이미지 에러 핸들링
   const handleImageError = useCallback(() => {
@@ -339,7 +310,7 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
   }, []);
 
   // 기본 이미지 URL 처리
-  const displayImageUrl = imageUrl || "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=300&fit=crop";
+  const displayImageUrl = imageLocation || "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=300&fit=crop";
 
   return (
     <>
@@ -351,7 +322,7 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
       >
-        <Link to={`/space/${id}`} className="block h-full group">
+        <Link to={`/space/${peerMallName}?mk=${peerMallKey}`} className="block h-full group">
           <Card className={cn(
             "h-full overflow-hidden border-0 bg-white relative",
             premiumTokens.shadows.luxury,
@@ -393,7 +364,7 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
               {!imageError ? (
                 <motion.img
                   src={displayImageUrl}
-                  alt={title}
+                  alt={peerMallName}
                   className={cn(
                     "w-full h-full object-cover transition-all duration-700 group-hover:scale-110",
                     !imageLoaded && "opacity-0"
@@ -412,43 +383,6 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
                   </div>
                 </div>
               )}
-
-              {/* 프리미엄 오버레이 그라디언트 */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-              {/* 🏆 프리미엄 뱃지 영역 */}
-              <div className="absolute top-4 left-4 flex flex-col gap-2 z-20">
-                <AnimatePresence>
-                  {premiumBadges.slice(0, 2).map((badge, index) => (
-                    <motion.div
-                      key={badge.type}
-                      initial={{ opacity: 0, x: -30, scale: 0.8 }}
-                      animate={{ opacity: 1, x: 0, scale: 1 }}
-                      transition={{ delay: index * 0.1, duration: 0.4 }}
-                    >
-                      <Badge className={cn(
-                        `bg-gradient-to-r ${badge.gradient} text-white border-0`,
-                        "flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold shadow-lg",
-                        badge.glow && "shadow-2xl animate-pulse"
-                      )}>
-                        {badge.icon}
-                        {badge.type}
-                      </Badge>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-
-                {/* 카테고리 뱃지 */}
-                <motion.div
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <Badge className="bg-white/90 text-gray-700 border-0 px-2 py-1 text-xs font-medium shadow-md">
-                    {category}
-                  </Badge>
-                </motion.div>
-              </div>
 
               {/* 💎 프리미엄 액션 버튼 영역 */}
               <div className="absolute top-3 right-3 z-20">
@@ -572,7 +506,7 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
               <div className="space-y-3">
                 <div className="flex items-start justify-between">
                   <h3 className="font-bold text-xl text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors leading-tight">
-                    {title}
+                    {peerMallName}
                   </h3>
                   {premiumStats.hasHighRating && (
                     <div className="flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-1 rounded-full shadow-lg">
@@ -586,10 +520,10 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                      {owner.charAt(0)}
+                      {ownerName.charAt(0)}
                     </div>
                     <div>
-                      <span className="text-sm font-semibold text-gray-800">{owner}</span>
+                      <span className="text-sm font-semibold text-gray-800">{ownerName}</span>
                       {(isFamilyCertified || certified) && (
                         <div className="flex items-center gap-1">
                           <Verified className="h-3 w-3 text-blue-500" />
@@ -627,8 +561,8 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
       <EnhancedMessageModal
         messageModalOpen={messageModalOpen}
         setMessageModalOpen={setMessageModalOpen}
-        owner={owner}
-        title={title}
+        owner={ownerName}
+        title={peerMallName}
         displayImageUrl={displayImageUrl}
         imageError={imageError}
       />
