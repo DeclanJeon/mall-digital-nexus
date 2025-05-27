@@ -25,10 +25,14 @@ export enum ContentType {
 export const CONTENT_TYPES = Object.values(ContentType);
 
 export interface PeerMallConfig {
-  id: string;
-  name: string;
+  peerMallKey: string;
+  peerMallName: string;
+  peerMallAddress: string;
+  ownerName: string;
   description: string;
-  owner: string;
+  contact: string;
+  email: string;
+  likeCount: string;
   createdAt: string;
   type:
     | 'personal'
@@ -41,7 +45,6 @@ export interface PeerMallConfig {
   bannerUrl?: string;
   visibility?: 'public' | 'partial' | 'private';
   familyMember?: string;
-  title: string;
   slogan?: string;
   address?: string;
   profileImage?: string;
@@ -71,12 +74,12 @@ export interface PeerMallConfig {
     fontFamily: string;
     darkMode: boolean;
   };
-  contact?: {
-    email?: string;
-    phone?: string;
-    website?: string;
-    address?: string;
-  };
+  // contact?: {
+  //   email?: string;
+  //   phone?: string;
+  //   website?: string;
+  //   address?: string;
+  // };
   social?: {
     twitter?: string;
     facebook?: string;
@@ -121,6 +124,7 @@ export interface PeerMallConfig {
 export interface Content {
   id: string;
   peerSpaceAddress: string;
+  name: string;
   title: string;
   description: string;
   type: ContentType | string;
