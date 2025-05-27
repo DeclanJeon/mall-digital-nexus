@@ -98,6 +98,8 @@ export interface CreatePeermallModalProps {
   onSuccess?: (data: CreatePeermallSuccessData) => void;
 }
 
+// PeerMallConfig는 이제 src/components/peer-space/types.ts에서 가져와 사용합니다.
+
 export interface FamilyMember {
   id: string;
   name: string;

@@ -641,7 +641,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
             )}
           >
             <MapPin className="w-3 h-3 mr-1" />
-            일반
+            지도뷰
           </Button>
           <Button
             variant={mapType === 'satellite' ? 'default' : 'outline'}
@@ -655,7 +655,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
             )}
           >
             <SatelliteIcon className="w-3 h-3 mr-1" />
-            위성
+            위성뷰
           </Button>
           <Button
             variant="outline"

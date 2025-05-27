@@ -25,19 +25,26 @@ import ContentManagementSection from '../content/ContentManagementSection';
 import DesignSettingsSection from '../sections/DesignSettingsSection';
 import BasicInfoSection from '../sections/BasicInfoSection';
 import AdminDashboardSection from '../sections/AdminDashboardSection';
+import type { PeerMallConfig } from '@/components/peer-space/types';
 
 interface ContentSectionProps {
   activeSection: string;
   saved: boolean;
   onSave: () => void;
   address: string;
+  config: PeerMallConfig;
+  peermall?: any; // 실제 타입으로 대체하세요
+  isLoading?: boolean;
 }
 
 const ContentSection: React.FC<ContentSectionProps> = ({ 
   activeSection, 
   saved, 
   onSave,
-  address
+  address,
+  config,
+  peermall,
+  isLoading = false
 }) => {
   const getSectionTitle = () => {
     switch(activeSection) {
@@ -76,7 +83,13 @@ const ContentSection: React.FC<ContentSectionProps> = ({
       </div>
       
       {activeSection === 'dashboard' && <AdminDashboardSection />}
-      {activeSection === 'basic-info' && <BasicInfoSection />}
+      {activeSection === 'basic-info' && (
+        <BasicInfoSection 
+          config={config} 
+          peermall={peermall} 
+          isLoading={isLoading} 
+        />
+      )}
       {activeSection === 'design' && <DesignSettingsSection />}
       {activeSection === 'content' && <ContentManagementSection />}
       {activeSection === 'products' && <ProductManagementSection />}

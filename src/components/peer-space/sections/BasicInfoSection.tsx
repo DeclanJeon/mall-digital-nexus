@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
+import type { PeerMallConfig } from "@/components/peer-space/types";
 import { Card } from "@/components/ui/card";
 import { User, Info, Mail, Phone, MapPin, Building, Shield, Link, Users, FileText, Image as ImageIcon, Globe, UploadCloud, X } from "lucide-react"; // 아이콘 추가!
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label"; // Label 컴포넌트 추가
-import { PeerMallConfig } from '../types'; // PeerMallConfig 타입 임포트
-import { Peermall } from '@/types/peermall';
+import type { Peermall } from '@/types/peermall';
 
 // 이미지 업로드 및 미리보기 컴포넌트 재정의
 // 인지 부하를 줄이고 어포던스를 명확히 하기 위해 디자인 개선
@@ -95,10 +95,38 @@ const ImageUploadPreview: React.FC<{
 
 interface BasicInfoSectionProps {
   config: PeerMallConfig;
-  peermall?: Peermall | null; // peermall prop 추가
+  peermall?: {
+    title?: string;
+    [key: string]: any; // 다른 속성들도 허용
+  };
+  isLoading?: boolean;
+  onSave?: (data: any) => void;
+  onCancel?: () => void;
+  isEditing?: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  onEditToggle?: () => void;
 }
 
-const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ config, peermall }) => {
+const BasicInfoSection = ({ config, peermall, isLoading = false, onSave, onCancel, isEditing, onEdit, onDelete, onEditToggle }: BasicInfoSectionProps) => {
+  // 기본값 설정
+  const safeConfig = config || { 
+    title: '로딩 중...', 
+    slogan: '', 
+    externalUrl: '#' 
+  };
+  
+  const safePeermall = peermall || { title: '로딩 중...' };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+        <span className="ml-2">로딩 중...</span>
+      </div>
+    );
+  }
+
   const [activeTab, setActiveTab] = useState("site-info");
 
   return (
@@ -130,19 +158,23 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ config, peermall })
           <div className="grid md:grid-cols-2 gap-y-6 gap-x-8 border-b pb-6 border-gray-200"> {/* 그룹별 구분선 */}
             <div>
               <div className="text-sm text-primary-200 mb-1">피어몰 이름</div>
-              <div className="font-bold text-text-100 text-lg">{peermall?.title || config.title}</div> {/* 중요 정보는 더 강조 */}
+              <div className="font-bold text-text-100 text-lg">
+                {safePeermall.title || safeConfig.title}
+              </div>
             </div>
             
             <div>
               <div className="text-sm text-primary-200 mb-1">슬로건</div>
-              <div className="text-text-100 text-base">{config.slogan}</div>
+              <div className="text-text-100 text-base">{safeConfig.slogan}</div>
             </div>
 
             <div className="md:col-span-2">
               <div className="text-sm text-primary-200 mb-1">피어몰 주소 (URL)</div>
               <div className="flex items-center gap-2 text-text-100 text-base">
                 <Globe className="h-4 w-4 text-primary-300" /> {/* 아이콘 색상 조정 */}
-                <a href={config.externalUrl} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline font-medium">{config.externalUrl}</a>
+                <a href={safeConfig.externalUrl} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline font-medium">
+                  {safeConfig.externalUrl}
+                </a>
               </div>
             </div>
 
