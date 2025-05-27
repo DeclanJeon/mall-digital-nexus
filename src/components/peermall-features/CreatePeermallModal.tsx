@@ -54,6 +54,7 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { CreatePeermallModalProps, CreatePeermallSuccessData, FamilyMember, PeermallFormData } from '@/types/peermall';
+import { createPeerMall } from '@/services/peerMallService';
 
 
 
@@ -64,7 +65,7 @@ const step1Schema = z.object({
     .regex(/^[a-zA-Z0-9-가-힣]+$/, { message: '한글, 영문 대소문자, 숫자, 하이픈(-)만 사용 가능합니다' }),
   name: z.string().min(2, { message: '피어몰 이름은 2자 이상이어야 합니다' }),
   description: z.string().min(10, { message: '설명은 10자 이상이어야 합니다' }),
-  representativeName: z.string().min(1, { message: '대표자 이름을 입력해주세요' }),
+  ownerName: z.string().min(1, { message: '대표자 이름을 입력해주세요' }),
   email: z.string().email({ message: '유효한 이메일을 입력해주세요' }),
 });
 
@@ -98,6 +99,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
     lng: number;
     address: string;
   } | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
 
 
@@ -108,7 +110,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       address: '',
       name: '',
       description: '',
-      representativeName: '',
+      ownerName: '',
       email: '',
       membershipType: '',
       imageUrl: '',
@@ -142,7 +144,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       address: form.getValues('address'),
       name: form.getValues('name'),
       description: form.getValues('description'),
-      representativeName: form.getValues('representativeName'),
+      ownerName: form.getValues('ownerName'),
       email: form.getValues('email'),
     };
 
@@ -164,7 +166,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
     
     try {
       // 1단계 필수 필드들 검증
-      const step1Fields = ['address', 'name', 'description', 'representativeName', 'email'];
+      const step1Fields = ['address', 'name', 'description', 'ownerName', 'email'];
       let isStep1Valid = true;
       
       for (const field of step1Fields) {
@@ -261,6 +263,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       });
     };
     reader.readAsDataURL(file);
+    setImageFile(file);
   };
 
   // 해시태그 처리
@@ -306,7 +309,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
     setIsLoading(true);
 
     // 1단계 필수 필드 검증 (모든 제출 시 공통)
-    const step1Fields = ['address', 'name', 'description', 'representativeName', 'email'];
+    const step1Fields = ['address', 'name', 'description', 'ownerName', 'email'];
     let isStep1Valid = true;
     
     for (const field of step1Fields) {
@@ -409,9 +412,9 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
     const dataForStorage = {
       address: id,
       name: values.name,                    // title 대신 name
-      representativeName: values.representativeName, // owner 대신 representativeName
+      ownerName: values.ownerName, // owner 대신 ownerName
       description: values.description,
-      owner: values.representativeName,
+      owner: values.ownerName,
       email: values.email,
       imageUrl: values.imageUrl || '',
       membershipType: values.membershipType || '',
@@ -440,7 +443,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       address: id,
       name: values.name,
       description: values.description,
-      representativeName: values.representativeName,
+      ownerName: values.ownerName,
       email: values.email,
       membershipType: values.membershipType || '',
       imageUrl: values.imageUrl || '',
@@ -460,7 +463,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
         lng: finalLocation?.lng || 126.9780,
       },
       title: values.name, // name을 title로 매핑
-      owner: values.representativeName,
+      owner: values.ownerName,
       type: 'peermall',
       createdAt: new Date().toISOString(),
       
@@ -468,37 +471,22 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       ...(values as any) // 나머지 필드들도 포함 (타입 단언 사용)
     };
 
-    console.log('저장할 데이터:', dataForStorage);
-
     // 저장 로직
     try {
-      // peermallStorage를 사용하여 데이터 저장
-      const savedPeermall = peermallStorage.save({
-        ...dataForStorage,
-        id: id, // 고유 ID 할당
-        title: values.name, // name을 title로 매핑
-        // 필수 필드들
-        description: values.description || '설명이 없습니다.',
-        owner: values.representativeName || '작성자 없음',
-        // 기본 이미지 설정
-        imageUrl: values.imageUrl || 'https://picsum.photos/400/300',
-        // 추가 필드들
-        rating: 0,
-        reviewCount: 0,
-        followers: 0,
-        tags: dataForStorage.tags || [],
-        location: dataForStorage.location || {
-          lat: 37.5665,
-          lng: 126.9780,
-          address: '주소 없음'
-        },
-        featured: false,
-        certified: false,
-        recommended: false,
-        createdAt: new Date().toISOString()
+      const formData = new FormData();
+      // 텍스트 데이터 추가
+      Object.keys(values).forEach(key => {
+        formData.append(key, values[key]);
       });
-      
-      console.log('피어몰 저장 완료:', savedPeermall);
+      formData.append('lat', String(finalLocation?.lat || 37.5665));
+      formData.append('lng', String(finalLocation?.lng || 126.9780));
+
+      // 이미지 파일 추가
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
+      const { success, peerMallKey } = await createPeerMall(formData);
+      successData['peerMallKey'] = peerMallKey;
       
       // 성공 토스트 메시지
       toast({
@@ -727,7 +715,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                     {/* 대표자 이름 */}
                     <FormField
                       control={form.control}
-                      name="representativeName"
+                      name="ownerName"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>

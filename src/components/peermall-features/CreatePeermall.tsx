@@ -39,8 +39,9 @@ const CreatePeermall: React.FC<CreatePeermallProps> = ({ onCreatePeermall }) => 
     };
   }, [isOpen, closeModal]);
 
-  const handleCreateSuccess = (peermallData: any) => {
+  const handleCreateSuccess = (peerMallData: any) => {
     try {
+      debugger;
       closeModal();
       
       toast({
@@ -49,27 +50,28 @@ const CreatePeermall: React.FC<CreatePeermallProps> = ({ onCreatePeermall }) => 
       });
       
       // 안전한 데이터 추출
-      const mallName = peermallData?.name || peermallData?.title || 'new-peermall';
-      const mallType = peermallData?.type || peermallData?.category || 'general';
+      const mallName = peerMallData?.name || peerMallData?.title || 'new-peermall';
+      const mallType = peerMallData?.type || peerMallData?.category || 'general';
+      const mallKey = peerMallData?.peerMallKey;
       
       onCreatePeermall({
         title: mallName,
         category: mallType,
-        description: peermallData?.description || '',
-        owner: peermallData?.owner || peermallData?.representativeName || '',
-        imageUrl: peermallData?.imageUrl || '',
+        description: peerMallData?.description || '',
+        owner: peerMallData?.owner || peerMallData?.representativeName || '',
+        imageUrl: peerMallData?.imageUrl || '',
       });
 
       // 네비게이션 - 에러 핸들링 포함
       setTimeout(() => {
         try {
-          const urlFriendlyName = mallName
-            .toLowerCase()
-            .replace(/[^a-z0-9가-힣]/g, '-')
-            .replace(/-+/g, '-')
-            .replace(/^-|-$/g, '');
+          // const urlFriendlyName = mallName
+          //   .toLowerCase()
+          //   .replace(/[^a-z0-9가-힣]/g, '-')
+          //   .replace(/-+/g, '-')
+          //   .replace(/^-|-$/g, '');
           
-          navigate(`/space/${urlFriendlyName || 'new-peermall'}`);
+          navigate(`/space/${mallName || 'new-peermall'}?mk=${mallKey}`);
         } catch (error) {
           console.error('네비게이션 에러:', error);
           navigate('/'); // 홈으로 fallback
