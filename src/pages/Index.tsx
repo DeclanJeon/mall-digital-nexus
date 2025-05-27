@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import SearchAndFilterBar from '@/components/navigation/SearchAndFilterBar';
+import { getPeerMallList } from "@/services/peerMallService.ts";
 
 interface Location {
   lat: number;
@@ -123,6 +124,8 @@ const Index = () => {
   const [selectedHashtags, setSelectedHashtags] = useState<string[]>(['전체']);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [hotPeerMalls, setHotPeerMalls] = useState<Peermall[]>([]);
+  const [newPeerMalls, setNewPeerMalls] = useState<Peermall[]>([]);
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
@@ -171,6 +174,12 @@ const Index = () => {
         // 스토리지에서 피어몰 데이터 가져오기
         const storedPeermalls = peermallStorage.getAll();
         console.log('📦 스토리지에서 로드된 피어몰:', storedPeermalls.length, '개');
+        const storedPeerMallLists = await getPeerMallList();
+
+        if(storedPeerMallLists['success']) {
+          setHotPeerMalls(storedPeerMallLists['hostPeerMallList']);
+          setNewPeerMalls(storedPeerMallLists['newPeerMallList']);
+        }
         
         setPeermalls(storedPeermalls);
         setFilteredMalls(storedPeermalls);
@@ -348,28 +357,15 @@ const Index = () => {
       setRefreshing(false);
     }
   }, [toast]);
-
-  // 📊 통계 및 데이터 계산
-  const stats = {
-    totalMalls: peermalls.length,
-    myMalls: mySpaces.length,
-    totalRating: peermalls.reduce((sum, mall) => sum + (mall.rating || 0), 0),
-    avgRating: peermalls.length > 0 ? (Number(peermalls.reduce((sum, mall) => sum + (mall.rating || 0), 0) / peermalls.length)).toFixed(1) : '0.0',
-    totalLikes: peermalls.reduce((sum, mall) => sum + (mall.likes || 0), 0),
-    totalFollowers: peermalls.reduce((sum, mall) => sum + (mall.followers || 0), 0)
-  };
-
-  // 🔥 인기 피어몰 계산 (스토리지 내장 함수 사용)
-  const popularMalls = peermallStorage.getPopular(4);
   
   // ✨ 신규 피어몰 계산
-  const newestMalls = [...filteredMalls]
-    .sort((a, b) => {
-      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return dateB - dateA;
-    })
-    .slice(0, 4);
+  // const newestMalls = [...filteredMalls]
+  //   .sort((a, b) => {
+  //     const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+  //     const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+  //     return dateB - dateA;
+  //   })
+  //   .slice(0, 4);
 
   // 🗺️ 지도용 위치 데이터
   const allLocations = peermalls
@@ -484,9 +480,9 @@ const Index = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Badge variant="secondary" className="bg-orange-100 text-orange-700">
-                        {popularMalls.length}개
+                        {hotPeerMalls.length}개
                       </Badge>
-                      {popularMalls.length > 0 && (
+                      {hotPeerMalls.length > 0 && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -499,10 +495,10 @@ const Index = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {popularMalls.length > 0 ? (
+                  {hotPeerMalls.length > 0 ? (
                     <PeermallGrid
                       title=""
-                      malls={popularMalls}
+                      malls={hotPeerMalls}
                       onOpenMap={handleOpenMap}
                       viewMore={false}
                       viewMode={viewMode}
@@ -546,9 +542,9 @@ const Index = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        {newestMalls.length}개
+                        {newPeerMalls.length}개
                       </Badge>
-                      {newestMalls.length > 0 && (
+                      {newPeerMalls.length > 0 && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -561,10 +557,10 @@ const Index = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {newestMalls.length > 0 ? (
+                  {newPeerMalls.length > 0 ? (
                     <PeermallGrid
                       title=""
-                      malls={newestMalls}
+                      malls={newPeerMalls}
                       onOpenMap={handleOpenMap}
                       viewMore={false}
                       viewMode={viewMode}
