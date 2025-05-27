@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useParams, useNavigate } from 'react-router-dom';
+import { useLocation, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { PeerMallConfig } from '@/components/peer-space/types';
 import { Peermall } from '@/types/peermall';
@@ -9,6 +9,7 @@ import { Loader2 } from 'lucide-react';
 import { peermallStorage } from '@/services/storage/peermallStorage';
 import { storage } from '@/utils/storage/storage';
 import { STORAGE_KEYS } from '@/utils/storage/constants';
+import { getPeerMallData } from "@/services/peerMallService.ts";
 
 // Peermall 타입을 다시 export하여 컴포넌트 전체에서 일관되게 사용
 export type { Peermall } from '@/types/peermall';
@@ -53,6 +54,8 @@ const PeerSpace = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const address = params.address || '';
+  const [ searchParams ] = useSearchParams();
+  const peerMallKey = searchParams.get('mk');
 
   const [isLoading, setIsLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(true); // In reality, this would be based on authentication
@@ -66,8 +69,7 @@ const PeerSpace = () => {
 
       setIsLoading(true);
       try {
-        // 1. Load basic peermall details using peermallStorage
-        const peermallData = peermallStorage.getById(address);
+        const peermallData = await getPeerMallData(address, peerMallKey);
 
         if (!peermallData) {
           toast({
@@ -82,11 +84,10 @@ const PeerSpace = () => {
 
         // 🔥 수정: 피어몰 데이터를 기반으로 PeerSpace 설정 생성
         const defaultConfig: PeerMallConfig = {
-          id: peermallData.id,
-          name: peermallData.title,
+          peerMallKey: peermallData.peerMallKey,
+          peerMallName: peermallData.peerMallName,
           type: 'personal',
-          title: peermallData.title,
-          owner: peermallData.owner,
+          ownerName: peermallData.ownerName,
           description: peermallData.description,
           profileImage: peermallData.imageUrl,
           peerNumber: peermallData.id,
@@ -96,6 +97,10 @@ const PeerSpace = () => {
           badges: [],
           sections: ['home', 'content', 'community', 'following', 'guestbook'],
           createdAt: peermallData.createdAt,
+          peerMallAddress: '',
+          contact: '',
+          email: '',
+          likeCount: '',
         };
 
         // 2. Load peer space configuration using storage utility
@@ -108,8 +113,7 @@ const PeerSpace = () => {
           // 🔥 피어몰 데이터가 업데이트된 경우 설정도 동기화
           config = {
             ...config,
-            title: peermallData.title,
-            owner: peermallData.owner,
+            ownerName: peermallData.ownerName,
             description: peermallData.description,
             profileImage: peermallData.imageUrl,
             followers: peermallData.followers || config.followers || 0,
