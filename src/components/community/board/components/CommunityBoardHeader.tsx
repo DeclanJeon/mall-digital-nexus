@@ -65,24 +65,6 @@ const CommunityBoardHeader: React.FC<CommunityBoardHeaderProps> = ({
 
   return (
     <>
-      <div className="bg-gray-50 px-4 py-2 flex items-center text-sm">
-        <div className="flex items-center space-x-2">
-          {breadcrumbs.map((crumb, i) => (
-            <React.Fragment key={i}>
-              {i > 0 && <span className="text-gray-400 mx-1">/</span>}
-              {crumb.path ? (
-                <a href={crumb.path} className="text-indigo-600 hover:underline flex items-center">
-                  {i === 0 && <Home className="h-3 w-3 mr-1" />}
-                  {crumb.label}
-                </a>
-              ) : (
-                <span className="text-gray-700 font-medium">{crumb.label}</span>
-              )}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
-
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">

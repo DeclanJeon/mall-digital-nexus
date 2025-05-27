@@ -29,7 +29,7 @@ const PeermallGrid = ({
 
       // 실제 스토리지에서 피어몰 데이터 가져오기
       const peermalls = peermallStorage.getAll();
-      console.log('📦 스토리지에서 로드된 피어몰:', peermalls);
+      // console.log('📦 스토리지에서 로드된 피어몰:', peermalls);
       
       if (peermalls && peermalls.length > 0) {
         // 인기 섹션인 경우 특별 필터링

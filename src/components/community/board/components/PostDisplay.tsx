@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,7 @@ const PostDisplay: React.FC<PostDisplayProps> = ({
   getPostUrl,
   setSearchQuery,
 }) => {
+  
   const getChannelInfo = (channelId: string) => {
     return channels.find(c => c.id === channelId);
   };

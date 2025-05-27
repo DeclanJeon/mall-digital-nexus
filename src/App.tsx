@@ -47,10 +47,10 @@ const AppContent = () => {
         <Route path="/community/planet/:planetId" element={<Community />} /> 
         <Route path="/community/planet/:planetId/post/:postId" element={<Community />} /> */}
 
-        <Route path="/community" element={<CommunityPage />} />
-        <Route path="/community/:communityId" element={<CommunityDetailPage />} />
-        <Route path="/community/:communityId/post/:postId" element={<PostDetailPage />} />
-        <Route path="/community/:communityId/post/by-slug/:slug" element={<PostDetailPage />} />
+        {/* <Route path="/space/:address/community" element={<CommunityPage />} /> */}
+        <Route path="/space/:address/community/:communityId" element={<CommunityDetailPage />} />
+        <Route path="/space/:address/community/:communityId/post/:postId" element={<PostDetailPage />} />
+        <Route path="/space/:address/community/:communityId/post/by-slug/:slug" element={<PostDetailPage />} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/service" element={<ServicePage />} />

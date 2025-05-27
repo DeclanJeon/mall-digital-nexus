@@ -77,8 +77,8 @@ const useCommunityBoardLogic = ({
       setIsLoading(true);
       // Simulate API call delay
       setTimeout(() => {
-        const loadedPosts =
-          initialPosts || loadPostsFromLocalStorage(communityId);
+        const loadedPosts = initialPosts || loadPostsFromLocalStorage(communityId);
+
         let loadedChannels = loadChannelsFromLocalStorage(communityId);
         if (!loadedChannels || loadedChannels.length === 0) {
           loadedChannels = DEFAULT_CHANNELS;

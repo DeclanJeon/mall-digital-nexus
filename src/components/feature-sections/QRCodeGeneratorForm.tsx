@@ -26,11 +26,28 @@ interface QrTypeDefinition {
     placeholder?: string;
     type?: 'text' | 'textarea' | 'email' | 'tel' | 'url';
     required?: boolean;
+    value?: string;
+    readOnly?: boolean;
   }[];
 }
 
 // Main services that should be shown by default
 const MAIN_SERVICES: QrTypeDefinition[] = [
+  { 
+    value: 'peermall', 
+    label: '피어몰 생성', 
+    icon: Store, 
+    fields: [
+      { 
+        id: 'url', 
+        label: '피어몰 생성 URL', 
+        type: 'url', 
+        value: typeof window !== 'undefined' ? `${window.location.origin}/create-qrcode?create-peermall=true&step=1` : '', 
+        readOnly: true, 
+        required: true 
+      }
+    ]
+  },
   { 
     value: 'peernumber', 
     label: '피어넘버', 

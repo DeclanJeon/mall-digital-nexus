@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Trash2, Check } from "lucide-react";
+import { Edit, Trash2, Check, Smile, ChevronDown, Loader2 } from "lucide-react";
+import { fetchEmojiCategories, fetchEmojisByCategory, POPULAR_EMOJIS } from "@/api/emojiApi";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Channel, Post } from '@/types/post';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -45,8 +47,72 @@ const ChannelManagementDialog: React.FC<ChannelManagementDialogProps> = ({
   const [newChannelIcon, setNewChannelIcon] = useState("💡");
   const [newChannelDesc, setNewChannelDesc] = useState("");
   const [newChannelColor, setNewChannelColor] = useState("#6366f1");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState('popular');
+  const [emojis, setEmojis] = useState<{ [key: string]: string[] }>({ popular: POPULAR_EMOJIS });
+  const [isLoading, setIsLoading] = useState(false);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
   
   const { toast } = useToast();
+  
+  // Load categories on component mount
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const loadedCategories = await fetchEmojiCategories();
+        setCategories(loadedCategories);
+      } catch (error) {
+        console.error('Failed to load emoji categories:', error);
+      }
+    };
+    
+    loadCategories();
+  }, []);
+  
+  // Load emojis when category changes
+  useEffect(() => {
+    const loadEmojis = async () => {
+      if (activeCategory === 'popular' || !categories.includes(activeCategory)) return;
+      
+      if (!emojis[activeCategory]) {
+        setIsLoading(true);
+        try {
+          const emojiData = await fetchEmojisByCategory(activeCategory);
+          const emojiChars = emojiData.map(e => e.character);
+          setEmojis(prev => ({
+            ...prev,
+            [activeCategory]: emojiChars
+          }));
+        } catch (error) {
+          console.error(`Failed to load emojis for category ${activeCategory}:`, error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    
+    loadEmojis();
+  }, [activeCategory, categories]);
+  
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
+  const handleEmojiSelect = (emoji: string) => {
+    setNewChannelIcon(emoji);
+    setShowEmojiPicker(false);
+  };
 
   useEffect(() => {
     if (!isOpen) {
@@ -219,16 +285,86 @@ const ChannelManagementDialog: React.FC<ChannelManagementDialogProps> = ({
                   required
                 />
               </div>
-              <div>
+              <div className="space-y-2 relative">
                 <label className="text-sm font-medium">이모지/아이콘</label>
-                <Input
-                  value={newChannelIcon}
-                  onChange={e => setNewChannelIcon(e.target.value)}
-                  placeholder="이모지/아이콘"
-                  className="mt-1"
-                  maxLength={2}
-                />
-                <p className="text-xs text-gray-500 mt-1">이모지 또는 특수문자 1-2자</p>
+                <div className="relative">
+                  <Input
+                    value={newChannelIcon}
+                    onChange={e => setNewChannelIcon(e.target.value)}
+                    placeholder="이모지/아이콘"
+                    className="mt-1 pl-10"
+                    maxLength={2}
+                    readOnly
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute left-0 top-0 h-full w-10 text-gray-500 hover:text-gray-700"
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  >
+                    <Smile className="w-5 h-5" />
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500">이모지 또는 특수문자 1-2자</p>
+                
+                {showEmojiPicker && (
+                  <div 
+                    ref={emojiPickerRef}
+                    className="absolute z-10 mt-1 w-80 bg-white border rounded-lg shadow-lg overflow-hidden"
+                  >
+                    <Tabs 
+                      value={activeCategory} 
+                      onValueChange={setActiveCategory}
+                      className="w-full"
+                    >
+                      <div className="border-b px-2">
+                        <TabsList className="w-full justify-start overflow-x-auto">
+                          <TabsTrigger value="popular" className="text-sm">인기</TabsTrigger>
+                          {categories.map(category => {
+                            // 카테고리 슬러그를 보기 좋은 이름으로 변환
+                            const displayName = category
+                              .split('-')
+                              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                              .join(' ');
+                            
+                            return (
+                              <TabsTrigger 
+                                key={category} 
+                                value={category}
+                                className="text-sm"
+                              >
+                                {displayName}
+                              </TabsTrigger>
+                            );
+                          })}
+                        </TabsList>
+                      </div>
+                      
+                      <div className="max-h-60 overflow-y-auto p-2">
+                        {isLoading ? (
+                          <div className="flex justify-center items-center h-20">
+                            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-8 gap-1">
+                            {emojis[activeCategory]?.map((emoji, index) => (
+                              <button
+                                key={`${activeCategory}-${index}`}
+                                type="button"
+                                className="text-2xl p-1 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-center"
+                                onClick={() => handleEmojiSelect(emoji)}
+                                title={emoji}
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </Tabs>
+                  </div>
+                )}
               </div>
               <div className="md:col-span-2">
                 <label className="text-sm font-medium">설명</label>

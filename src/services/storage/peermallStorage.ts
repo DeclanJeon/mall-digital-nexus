@@ -129,7 +129,7 @@ export const peermallStorage = {
       // 새 피어몰 객체 생성
       const newPeermall: Peermall = {
         ...normalizedData,
-        id: peermallData.id || `peermall_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: peermallData.id,
         createdAt: peermallData.createdAt || now,
         updatedAt: now
       };

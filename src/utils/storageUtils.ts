@@ -1,5 +1,5 @@
 import { CommunityZone, CommunityMapEvent } from '@/types/community';
-import { Post, Channel, Member, CommunityEvent } from '@/types/post';
+import { Post, Channel, Member } from '@/types/post';
 
 // Community storage functions
 export const loadCommunitiesFromLocalStorage = (): CommunityZone[] => {
@@ -191,52 +191,46 @@ export const saveCommunityEvent = (event: CommunityMapEvent): void => {
 // Post storage functions
 export const loadPostsFromLocalStorage = (communityId?: string): Post[] => {
   try {
-    const postsJSON = localStorage.getItem('communityPosts');
-    const allPosts = postsJSON ? JSON.parse(postsJSON) : [];
+    const postsJSON = localStorage.getItem('posts');
+    let posts: Post[] = postsJSON ? JSON.parse(postsJSON) : [];
 
-    return communityId
-      ? allPosts.filter((post: Post) => post.communityId === communityId)
-      : allPosts;
+    // Ensure all posts have a communityId (for backward compatibility)
+    posts = posts.map((post) => ({
+      ...post,
+      communityId: post.communityId || 'global',
+    }));
+
+    if (communityId) {
+      return posts.filter((post) => post.communityId === communityId);
+    }
+
+    return posts;
   } catch (error) {
     console.error('Error loading posts from localStorage:', error);
     return [];
   }
 };
 
-// Function to generate slug from title
-export const generateSlug = (title: string): string => {
-  return title
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '') // Remove special characters
-    .replace(/\s+/g, '-') // Replace spaces with hyphens
-    .replace(/-+/g, '-') // Replace multiple hyphens with a single hyphen
-    .trim() // Trim leading/trailing spaces
-    .concat(`-${Date.now().toString().slice(-6)}`); // Append timestamp for uniqueness
-};
-
 export const savePostToLocalStorage = (post: Post): void => {
   try {
-    // Generate slug if it doesn't exist
-    if (!post.slug && post.title) {
-      post.slug = generateSlug(post.title);
-    }
+    const posts = loadPostsFromLocalStorage();
+    const existingPostIndex = posts.findIndex((p) => p.id === post.id);
 
-    const existingPosts = loadPostsFromLocalStorage();
-    const postExists = existingPosts.some((p) => p.id === post.id);
+    // Ensure the post has a communityId
+    const postToSave = {
+      ...post,
+      communityId: post.communityId || 'global',
+    };
 
-    let updatedPosts;
-    if (postExists) {
-      updatedPosts = existingPosts.map((p) => (p.id === post.id ? post : p));
+    if (existingPostIndex >= 0) {
+      // Update existing post
+      posts[existingPostIndex] = postToSave;
     } else {
-      updatedPosts = [...existingPosts, post];
+      // Add new post
+      posts.unshift(postToSave);
     }
 
-    localStorage.setItem('communityPosts', JSON.stringify(updatedPosts));
-
-    // TODO: This will be replaced with a backend API call in the future
-    console.log(
-      'Post saved to localStorage. Will be replaced with API call in future.'
-    );
+    localStorage.setItem('posts', JSON.stringify(posts));
   } catch (error) {
     console.error('Error saving post to localStorage:', error);
   }
@@ -295,7 +289,7 @@ export const deletePostFromLocalStorage = (postId: string): void => {
   try {
     const existingPosts = loadPostsFromLocalStorage();
     const updatedPosts = existingPosts.filter((p) => p.id !== postId);
-    localStorage.setItem('communityPosts', JSON.stringify(updatedPosts));
+    localStorage.setItem('posts', JSON.stringify(updatedPosts));
 
     // TODO: This will be replaced with a backend API call in the future
     console.log(
@@ -311,7 +305,7 @@ export const loadChannelsFromLocalStorage = (
   communityId?: string
 ): Channel[] => {
   try {
-    const channelsJSON = localStorage.getItem('communityChannels');
+    const channelsJSON = localStorage.getItem('channels');
     const allChannels = channelsJSON
       ? JSON.parse(channelsJSON)
       : getDefaultChannels();
@@ -324,8 +318,7 @@ export const loadChannelsFromLocalStorage = (
     return communityId
       ? allChannels.filter(
           (channel: Channel) =>
-            channel.communityId === communityId ||
-            channel.communityId === 'global'
+            channel.communityId === communityId || channel.communityId === 'global'
         )
       : allChannels;
   } catch (error) {
@@ -336,27 +329,25 @@ export const loadChannelsFromLocalStorage = (
 
 export const saveChannelToLocalStorage = (
   channel: Channel,
-  communityId: string
+  communityId?: string
 ): void => {
   try {
-    const existingChannels = loadChannelsFromLocalStorage();
-    const channelExists = existingChannels.some((c) => c.id === channel.id);
+    const channels = loadChannelsFromLocalStorage();
+    const existingChannelIndex = channels.findIndex((c) => c.id === channel.id);
 
-    let updatedChannels;
-    if (channelExists) {
-      updatedChannels = existingChannels.map((c) =>
-        c.id === channel.id ? channel : c
-      );
+    // Ensure the channel has a communityId
+    const channelToSave = {
+      ...channel,
+      communityId: communityId || channel.communityId || 'global',
+    };
+
+    if (existingChannelIndex >= 0) {
+      channels[existingChannelIndex] = channelToSave;
     } else {
-      updatedChannels = [...existingChannels, channel];
+      channels.push(channelToSave);
     }
 
-    localStorage.setItem('communityChannels', JSON.stringify(updatedChannels));
-
-    // TODO: This will be replaced with a backend API call in the future
-    console.log(
-      'Channel saved to localStorage. Will be replaced with API call in future.'
-    );
+    localStorage.setItem('channels', JSON.stringify(channels));
   } catch (error) {
     console.error('Error saving channel to localStorage:', error);
   }
@@ -364,7 +355,7 @@ export const saveChannelToLocalStorage = (
 
 export const saveChannelsToLocalStorage = (channels: Channel[]): void => {
   try {
-    localStorage.setItem('communityChannels', JSON.stringify(channels));
+    localStorage.setItem('channels', JSON.stringify(channels));
   } catch (error) {
     console.error('Error saving channels to localStorage:', error);
   }
@@ -410,7 +401,7 @@ export const saveMemberToLocalStorage = (member: Member): void => {
 // Event storage functions
 export const loadEventsFromLocalStorage = (
   communityId?: string
-): CommunityEvent[] => {
+): CommunityMapEvent[] => {
   try {
     const eventsJSON = localStorage.getItem('communityEvents');
     const allEvents = eventsJSON ? JSON.parse(eventsJSON) : [];

@@ -38,7 +38,7 @@ import {
   Map
 } from 'lucide-react';
 import { createContent } from '@/services/contentService';
-import { getPeerSpaceContents } from '@/utils/peerSpaceStorage';
+// import { getPeerSpaceContents } from '@/utils/peerSpaceStorage';
 import { ContentFormValues } from './forms/AddContentForm';
 import { usePeerSpaceTabs } from '@/hooks/usePeerSpaceTabs';
 // import { add } from '@/utils/indexedDBService';
