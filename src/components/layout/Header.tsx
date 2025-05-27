@@ -179,12 +179,18 @@ const Header = () => {
 
           {/* Center - Logo */}
           <Link to="/" className="flex items-center">
-            <div className="flex items-center space-x-2">
-              <div className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold">
-                당신의 세상을 넓히는 연결의 시작
+            <div className="flex flex-col gap-3 items-center space-x-2">
+
+              <div className="flex items-center space-x-2">
+                <div className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold">
+                  세상을 넓히는 연결의 시작
+                </div>
               </div>
-              <span className="text-3xl font-bold text-blue-600">PEER</span>
-              <span className="text-3xl font-bold text-gray-800">MALL</span>
+              <div className="flex items-center space-x-2">
+                <span className="text-3xl font-bold text-blue-600">PEER</span>
+                <span className="text-3xl font-bold text-gray-800">MALL</span>
+              </div>
+
             </div>
           </Link>
 

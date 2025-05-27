@@ -110,44 +110,72 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
 
   // 프리미엄 마커 아이콘 생성 함수
   const createPremiumMarkerIcon = (location: MapLocation) => {
-    const getMarkerClasses = () => {
-      if (location.isFeatured) return 'premium-marker-featured';
-      if (location.isPopular) return 'premium-marker-popular';
-      if (location.isVerified) return 'premium-marker-verified';
-      if ((location.rating || 0) >= 4.5) return 'premium-marker-excellent';
-      return 'premium-marker-default';
+    const getMarkerStyle = () => {
+      let backgroundColor = '#3B82F6'; // 기본 파란색
+      let borderColor = '#1E40AF';
+      let emoji = '🏪';
+      let size = 36;
+
+      if (location.isFeatured) {
+        backgroundColor = '#F59E0B';
+        borderColor = '#D97706';
+        emoji = '⭐';
+        size = 48;
+      } else if (location.isPopular) {
+        backgroundColor = '#EF4444';
+        borderColor = '#DC2626';
+        emoji = '🔥';
+        size = 42;
+      } else if (location.isVerified) {
+        backgroundColor = '#10B981';
+        borderColor = '#059669';
+        emoji = '✅';
+        size = 40;
+      }
+
+      return { backgroundColor, borderColor, emoji, size };
     };
 
-    const getMarkerEmoji = () => {
-      if (location.isFeatured) return '';
-      if (location.isPopular) return '';
-      if (location.isVerified) return '';
-      return '';
-    };
-
-    const size = location.isFeatured ? 48 : location.isPopular ? 42 : 36;
-    const markerClass = getMarkerClasses();
+    const style = getMarkerStyle();
     
     return L.divIcon({
       className: 'premium-marker-container',
       html: `
-        <div class="relative">
-          <div class="w-${size/4} h-${size/4} rounded-full ${markerClass} 
-                      shadow-2xl border-4 border-white flex items-center justify-center
-                      transform hover:scale-110 transition-all duration-300 cursor-pointer
-                      animate-pulse">
-            <div class="text-white font-bold text-xs">
-              ${getMarkerEmoji()}
-            </div>
+        <div style="position: relative;">
+          <div style="
+            width: ${style.size}px;
+            height: ${style.size}px;
+            background: linear-gradient(135deg, ${style.backgroundColor}, ${style.borderColor});
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: ${style.size * 0.4}px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+          " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+            ${style.emoji}
           </div>
           ${location.isOnline ? `
-            <div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
+            <div style="
+              position: absolute;
+              top: -2px;
+              right: -2px;
+              width: 12px;
+              height: 12px;
+              background: #10B981;
+              border-radius: 50%;
+              border: 2px solid white;
+              animation: pulse 2s infinite;
+            "></div>
           ` : ''}
         </div>
       `,
-      iconSize: [size, size],
-      iconAnchor: [size/2, size],
-      popupAnchor: [0, -size]
+      iconSize: [style.size, style.size],
+      iconAnchor: [style.size/2, style.size],
+      popupAnchor: [0, -style.size]
     });
   };
 
@@ -243,18 +271,41 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
 
   // 피어몰 데이터 로드 함수
   const loadPeermalls = useCallback(() => {
+    console.log('피어몰 데이터 로드 시작');
     setIsLoading(true);
+    
     try {
       const peermalls = peermallStorage.getAll();
-      
+      console.log('원본 피어몰 데이터:', peermalls);
+
       const mappedLocations = peermalls
-        .filter(peermall => peermall.lat && peermall.lng)
+        .filter(peermall => {
+          // 위치 데이터가 있는지 확인
+          const hasLocation = (peermall.lat && peermall.lng) || 
+                            (peermall.location?.lat && peermall.location?.lng);
+          
+          if (!hasLocation) {
+            console.warn('위치 정보 없는 피어몰:', peermall.title || peermall.id);
+          }
+          
+          return hasLocation;
+        })
         .map(peermall => {
+          const lat = peermall.location?.lat ?? peermall.lat;
+          const lng = peermall.location?.lng ?? peermall.lng;
+          
+          // 좌표 유효성 검사
+          if (!lat || !lng || isNaN(Number(lat)) || isNaN(Number(lng))) {
+            console.warn('잘못된 좌표:', { title: peermall.title, lat, lng });
+            return null;
+          }
+
           const tags = peermall.tags || ['쇼핑', '서비스', '로컬'];
+          
           return {
             id: peermall.id,
-            lat: peermall.location?.lat ?? peermall.lat,
-            lng: peermall.location?.lng ?? peermall.lng,
+            lat: Number(lat),
+            lng: Number(lng),
             title: peermall.title || '피어몰',
             address: peermall.location?.address ?? peermall.address ?? '주소 정보 없음',
             phone: (peermall as any).phone || '전화번호 없음',
@@ -270,21 +321,24 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
             trustScore: Math.floor(Math.random() * 20) + 80,
             responseTime: ['즉시', '5분 이내', '10분 이내', '30분 이내'][Math.floor(Math.random() * 4)],
             isOnline: Math.random() > 0.3,
-            owner: (peermall as any).owner || `${peermall.title} 운영자`, // 
-            isFamilyCertified: false, // 기본값 설정
-            certified: false,         // 기본값 설정
-            premiumStats: null         // 기본값 설정
+            owner: (peermall as any).owner || `${peermall.title} 운영자`,
+            isFamilyCertified: false,
+            certified: false,
+            premiumStats: null
           };
-        });
+        })
+        .filter(Boolean); // null 값 제거
       
-      setLocations(mappedLocations);
+      console.log('매핑된 위치 데이터:', mappedLocations);
+      setLocations(mappedLocations as MapLocation[]);
       
       // Extract all unique hashtags from all locations
       const allTags = new Set<string>();
       mappedLocations.forEach(location => {
-        location.tags?.forEach(tag => allTags.add(tag));
+        location?.tags?.forEach(tag => allTags.add(tag));
       });
       setAvailableHashtags(allTags);
+      
     } catch (error) {
       console.error('피어몰 데이터 로드 중 오류 발생:', error);
     } finally {
@@ -330,15 +384,36 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
 
   // 프리미엄 마커 업데이트
   useEffect(() => {
-    if (!mapInstance.current) return;
+    if (!mapInstance.current || locations.length === 0) {
+      console.log('지도 인스턴스 또는 위치 데이터 없음:', { 
+        hasMap: !!mapInstance.current, 
+        locationCount: locations.length 
+      });
+      return;
+    }
     
+    console.log('마커 업데이트 시작:', locations);
+    
+    // 기존 마커 제거
     mapInstance.current.eachLayer(layer => {
-      if (layer instanceof L.Marker) {
+      if (layer instanceof L.Marker && !(layer.options as any).isUserLocation) {
         mapInstance.current?.removeLayer(layer);
       }
     });
 
     const filteredLocations = locations.filter(loc => {
+      // 위치 데이터 유효성 검사 강화
+      const hasValidCoords = loc.lat && loc.lng && 
+                            !isNaN(Number(loc.lat)) && 
+                            !isNaN(Number(loc.lng)) &&
+                            Math.abs(Number(loc.lat)) <= 90 && 
+                            Math.abs(Number(loc.lng)) <= 180;
+      
+      if (!hasValidCoords) {
+        console.warn('잘못된 좌표 데이터:', loc);
+        return false;
+      }
+
       // Apply filter type
       const typeMatch = filterType === 'all' || 
         (filterType === 'popular' && loc.isPopular) ||
@@ -351,88 +426,55 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
       return typeMatch && hashtagMatch;
     });
 
-    filteredLocations.forEach(loc => {
-      if (!loc.lat || !loc.lng) return;
-      
-      const marker = L.marker([loc.lat, loc.lng], { 
-        icon: createPremiumMarkerIcon(loc) 
-      }).addTo(mapInstance.current!);
+    console.log('필터링된 위치:', filteredLocations);
 
-      // const popup = L.popup({
-      //   maxWidth: 320,
-      //   minWidth: 300,
-      //   className: 'premium-popup',
-      //   closeButton: true,
-      //   autoClose: false,
-      //   closeOnEscapeKey: true
-      // }).setContent(createPremiumPopup(loc));
-
-      // marker.bindPopup(popup);
-      
-      marker.on('popupopen', (e) => {
-        const popupElement = e.popup.getElement();
-        if (!popupElement) return;
-
-        const callBtn = popupElement.querySelector('.call-btn');
-        const messageBtn = popupElement.querySelector('.message-btn');
-        const visitBtn = popupElement.querySelector('.visit-btn');
-        const shareBtn = popupElement.querySelector('.share-btn');
-        const bookmarkBtn = popupElement.querySelector('.bookmark-btn');
-        const directionsBtn = popupElement.querySelector('.directions-btn');
-        const likeBtn = popupElement.querySelector('.like-btn');
-
-        callBtn?.addEventListener('click', () => {
-          console.log('통화하기:', loc.title);
+    // 마커 추가
+    filteredLocations.forEach((loc, index) => {
+      try {
+        const lat = Number(loc.lat);
+        const lng = Number(loc.lng);
+        
+        console.log(`마커 ${index + 1} 추가 중:`, { title: loc.title, lat, lng });
+        
+        const marker = L.marker([lat, lng], { 
+          icon: createPremiumMarkerIcon(loc) 
         });
 
-        messageBtn?.addEventListener('click', () => {
-          console.log('메시지 보내기:', loc.title);
-        });
-
-        visitBtn?.addEventListener('click', () => {
-          console.log('방문하기:', loc.title);
-          if (loc.id) {
-            window.open(`/space/${loc.id}`, '_blank');
+        marker.addTo(mapInstance.current!);
+        
+        // 클릭 이벤트 추가
+        marker.on('click', () => {
+          console.log('마커 클릭됨:', loc.title);
+          mapInstance.current?.setView([lat, lng], 15);
+          setSelectedLocation(loc);
+          setSelectedLocationForAction(loc);
+          
+          if (onLocationSelect) {
+            onLocationSelect(loc);
           }
         });
 
-        shareBtn?.addEventListener('click', () => {
-          console.log('공유하기:', loc.title);
-        });
-
-        bookmarkBtn?.addEventListener('click', () => {
-          console.log('북마크:', loc.title);
-        });
-
-        directionsBtn?.addEventListener('click', () => {
-          const url = `https://www.google.com/maps/dir/?api=1&destination=${loc.lat},${loc.lng}`;
-          window.open(url, '_blank');
-        });
-
-        likeBtn?.addEventListener('click', () => {
-          console.log('좋아요:', loc.title);
-        });
-      });
-      
-      marker.on('click', () => {
-        mapInstance.current?.setView([loc.lat, loc.lng], 15);
-        setSelectedLocation(loc);
-        setSelectedLocationForAction(loc);
-        
-        if (onLocationSelect) {
-          onLocationSelect(loc);
-        }
-      });
+        console.log(`마커 ${index + 1} 추가 완료`);
+      } catch (error) {
+        console.error(`마커 추가 실패 (${loc.title}):`, error);
+      }
     });
-    
-    if (filteredLocations.length === 1) {
-      const loc = filteredLocations[0];
-      mapInstance.current.setView([loc.lat, loc.lng], 15);
-    } else if (filteredLocations.length > 1) {
-      const bounds = L.latLngBounds(filteredLocations.map(loc => [loc.lat, loc.lng]));
+  
+  // 지도 뷰 조정
+  if (filteredLocations.length === 1) {
+    const loc = filteredLocations[0];
+    mapInstance.current.setView([Number(loc.lat), Number(loc.lng)], 15);
+  } else if (filteredLocations.length > 1) {
+    try {
+      const bounds = L.latLngBounds(
+        filteredLocations.map(loc => [Number(loc.lat), Number(loc.lng)])
+      );
       mapInstance.current.fitBounds(bounds, { padding: [50, 50] });
+    } catch (error) {
+      console.error('지도 경계 설정 실패:', error);
     }
-  }, [locations, filterType, onLocationSelect]);
+  }
+}, [locations, filterType, selectedHashtag, onLocationSelect]);
 
   // 맵 타입 변경
   useEffect(() => {

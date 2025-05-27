@@ -414,9 +414,26 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
             address: values.mapAddress
           };
           console.log('지오코딩 성공:', finalLocation);
+          toast({
+            title: '주소 지오코딩 성공! 🗺️',
+            description: `'${values.mapAddress}'에 대한 위치 정보가 설정되었습니다.`,
+            variant: 'default',
+          });
+        } else {
+          console.warn('지오코딩 결과 없음:', values.mapAddress);
+          toast({
+            title: '주소 지오코딩 실패',
+            description: `'${values.mapAddress}'에 대한 정확한 위치를 찾을 수 없습니다. 기본 위치가 사용됩니다.`,
+            variant: 'destructive',
+          });
         }
       } catch (error) {
         console.error('지오코딩 실패:', error);
+        toast({
+          title: '지오코딩 오류',
+          description: '주소를 위치 정보로 변환하는 중 오류가 발생했습니다. 기본 위치가 사용됩니다.',
+          variant: 'destructive',
+        });
       }
     }
 
@@ -454,8 +471,8 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       recommended: false,
       location: {
         address: finalLocation?.address || values.mapAddress || values.address,
-        lat: finalLocation?.lat || 37.5665, // Default if geocoding fails
-        lng: finalLocation?.lng || 126.9780, // Default if geocoding fails
+        lat: finalLocation?.lat ?? 37.5665, // Default if geocoding fails
+        lng: finalLocation?.lng ?? 126.9780, // Default if geocoding fails
       },
       createdAt: new Date().toISOString(),
     };
@@ -606,12 +623,31 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
           <StepIndicator />
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            
-            {/* 1단계: 기본 정보 */}
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              onKeyDown={(e) => {
+                if (e.key === 'Tab') {
+                  const currentStepFields = document.querySelectorAll(`[data-step="${currentStep}"] input:not([disabled]), [data-step="${currentStep}"] textarea:not([disabled]), [data-step="${currentStep}"] button:not([disabled])`);
+                  if (currentStepFields.length === 0) return;
+
+                  const firstField = currentStepFields[0];
+                  const lastField = currentStepFields[currentStepFields.length - 1];
+
+                  if (document.activeElement === lastField && !e.shiftKey) {
+                    e.preventDefault();
+                    (firstField as HTMLElement).focus();
+                  } else if (document.activeElement === firstField && e.shiftKey) {
+                    e.preventDefault();
+                    (lastField as HTMLElement).focus();
+                  }
+                }
+              }}
+              className="space-y-6"
+            >
+            {/* 각 단계별 카드에 data-step 속성 추가 */}
             {currentStep === 1 && (
-              <Card className="border-blue-100 bg-blue-50/30">
+              <Card className="border-blue-100 bg-blue-50/30" data-step="1">
                 <CardContent className="p-6 space-y-5">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -765,10 +801,9 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                 </CardContent>
               </Card>
             )}
-
-            {/* 2단계: 추가 설정 */}
+            
             {currentStep === 2 && (
-              <Card className="border-green-100 bg-green-50/30">
+              <Card className="border-green-100 bg-green-50/30" data-step="2">
                 <CardContent className="p-6 space-y-5">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -1061,9 +1096,14 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                 </CardContent>
               </Card>
             )}
+            
+            {/* 나머지 코드 유지 */}
+          </form>
+        </Form>
 
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <Separator className="my-6" />
-
             {/* 하단 버튼 영역 - 통합된 버튼 그룹 */}
             <DialogFooter className="flex flex-col sm:flex-row gap-3 w-full">
               <div className="flex flex-col sm:flex-row justify-between w-full gap-3">
