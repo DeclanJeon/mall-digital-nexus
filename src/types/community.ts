@@ -1,3 +1,5 @@
+import { Content, PeerMallConfig } from './space';
+
 export type ZoneType = 'city' | 'village' | 'zone' | 'personal';
 export type ZoneStatus = 'normal' | 'growing' | 'crisis' | 'abandoned';
 export type ZonePrivacy = 'public' | 'partial' | 'private' | 'timed';
@@ -159,4 +161,18 @@ export interface ForumPostFormData {
   channelId?: string;
   htmlContent?: string;
   isNotice?: boolean;
+}
+
+export interface CommunityStats {
+  totalCommunities: number;
+  activeCommunities: number;
+  activeUsers: number;
+  todayPosts: number;
+}
+
+export interface PeerSpaceCommunitySectionProps {
+  isOwner: boolean;
+  config: PeerMallConfig;
+  posts: Content[];
+  filteredPosts: Content[];
 }

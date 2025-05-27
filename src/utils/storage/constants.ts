@@ -2,7 +2,11 @@
 export const STORAGE_KEYS = {
   PEERMALLS: 'peermall_storage',
   ECOSYSTEM_MAP: 'ecosystem_map_storage',
-  USER_PREFERENCES: 'user_preferences_storage'
+  USER_PREFERENCES: 'user_preferences_storage',
+  COMMUNITY_POSTS: 'community_posts_storage',
+  COMMUNITY_COMMENTS: 'community_comments_storage',
+  COMMUNITIES: 'communities_storage',
+  CHANNELS: 'channels_storage'
 } as const;
 
 // 실제 스토리지 키 값들의 타입

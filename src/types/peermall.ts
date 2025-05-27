@@ -8,6 +8,7 @@ export interface Peermall {
   imageUrl: string;
   category: string;
   phone?: string; // 전화번호 필드 추가
+  type: string; // 'peermall'과 같은 타입을 나타내는 필드 추가
   
   // 메타데이터
   tags?: string[];
@@ -77,20 +78,7 @@ export interface PeermallFormData {
   referralCode: string;
 }
 
-export interface CreatePeermallSuccessData extends PeermallFormData {
-  id: string;
-  rating: number;
-  reviewCount: number;
-  location: {
-    address: string;
-    lat: number;
-    lng: number;
-  };
-  createdAt: string;
-  title: string;
-  owner: string;
-  type: string;
-}
+export interface CreatePeermallSuccessData extends Peermall {}
 
 export interface CreatePeermallModalProps {
   isOpen: boolean;

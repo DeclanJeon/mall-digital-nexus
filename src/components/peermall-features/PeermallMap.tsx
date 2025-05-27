@@ -41,7 +41,7 @@ const PeermallMap: React.FC<PeermallMapProps> = ({
         </div>
         
         <div className="flex-grow p-4 overflow-hidden">
-          <EcosystemMap locations={allLocations} />
+          <EcosystemMap />
         </div>
         
         <div className="p-4 border-t flex justify-end">

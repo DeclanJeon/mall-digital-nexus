@@ -4,7 +4,6 @@ import { toast } from '@/hooks/use-toast';
 import { PeerMallConfig } from '@/components/peer-space/types';
 import { Peermall } from '@/types/peermall';
 import PeerSpaceHome from '@/components/peer-space/PeerSpaceHome';
-import Community from '@/components/community/Community';
 import { Loader2 } from 'lucide-react';
 import { peermallStorage } from '@/services/storage/peermallStorage';
 import { storage } from '@/utils/storage/storage';

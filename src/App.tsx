@@ -17,10 +17,8 @@ import PeerSpace from "./pages/PeerSpace";
 import PeerSpaceSettings from "./pages/PeerSpaceSettings";
 import ContentDetailPage from "./pages/ContentDetailPage";
 import CustomerSupport from "./pages/CustomerSupport";
-import CommunityPage from "./pages/Community";
 import CommunityDetailPage from "./pages/ContentDetailPage";
 import PostDetailPage from "./pages/PostDetailPage";
-import Community from "./components/community/Community";
 import QRCodeGenerator from "@/components/feature-sections/QRCodeGenerator";
 
 // Remove imports for non-existent pages
@@ -40,8 +38,10 @@ const AppContent = () => {
       {!isPeerSpacePage && <Header />}
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/shopping" element={<Shopping />} />
-        <Route path="/curation-links" element={<CurationLinks />} />
+        {/* <Route path="/shopping" element={<Shopping />} /> */}
+        {/* <Route path="/peermalls" element={< />} / >
+        <Route path="/products" element={< />} /> */}
+        {/* <Route path="/curation-links" element={<CurationLinks />} /> */}
         <Route path="/create-qrcode" element={<QRCodeGenerator />} />
         {/* <Route path="/community" element={<Community />} /> 
         <Route path="/community/planet/:planetId" element={<Community />} /> 

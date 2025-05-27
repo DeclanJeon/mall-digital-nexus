@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import CreatePeermallModal from '@/components/peermall-features/CreatePeermallModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import CreatePeermall from '../peermall-features/CreatePeermall';
+import CreatePeermall from '@/components/peermall-features/CreatePeermall';
 import { peermallStorage } from '@/services/storage/peermallStorage';
 import { toast } from '@/hooks/use-toast';
 

@@ -69,7 +69,7 @@ const PeerSpaceRelatedMallsSection: React.FC = () => {
                 </span>
               </div>
               <Button asChild variant="outline" className="w-full">
-                <Link to={`/peermall/${mall.id}`}>방문하기</Link>
+                <Link to={`/space/${mall.id}`}>방문하기</Link>
               </Button>
             </div>
           ))}

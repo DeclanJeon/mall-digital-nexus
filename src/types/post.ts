@@ -10,6 +10,7 @@ export interface Post {
   channelId?: string;
   communityId?: string;
   isNotice?: boolean;
+  isPinned?: boolean;
   imageUrl?: string;
   richContent?: string; // For Toast UI Editor content
   processedContent?: string; // For content with embedded media

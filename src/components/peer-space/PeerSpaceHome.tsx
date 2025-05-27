@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { Content, ContentType, PeerMallConfig, SectionType } from './types';
+import { Content, ContentType, PeerMallConfig, SectionType } from '@/types/space';
 import { Peermall } from '@/types/peermall';
 import { 
   Heart, 
@@ -133,29 +133,6 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
               console.log('🔄 피어스페이스 설정이 피어몰 데이터와 동기화되었습니다');
             }
           }
-          // 실제 데이터 로딩
-          let loadedContents = await getPeerSpaceContents(address);
-          
-          // 데이터가 없으면 더미 데이터로 대체
-          if (!loadedContents || loadedContents.length === 0) {
-            const mockProducts = generateMockProducts(8);
-            const mockPosts = generateMockPosts(12);
-            loadedContents = [...mockProducts, ...mockPosts];
-            
-            // 더미 데이터 저장 (IndexedDB 사용 중지로 주석 처리)
-            // for (const content of loadedContents) {
-            //   await add('contents', content);
-            // }
-          }
-          
-          setContents(loadedContents);
-          
-          // 제품과 게시물 분류
-          const productsData = loadedContents.filter(item => item.type === 'product');
-          const postsData = loadedContents.filter(item => item.type === 'post' || item.type === 'article');
-          
-          setProducts(productsData);
-          setPosts(postsData);
           
           const storedSections = getSectionOrder(address, config.sections);
           setSections(storedSections);

@@ -1,5 +1,4 @@
-
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { peermallStorage, Peermall } from "@/services/storage/peermallStorage";
 import { 
@@ -7,28 +6,10 @@ import {
   Star, 
   User, 
   BadgeCheck, 
-  ThumbsUp, 
   MessageSquare, 
-  Share, 
-  MoreHorizontal, 
   QrCode, 
-  MapPin,
-  Eye,
-  Users,
   Award,
-  Sparkles,
   Phone,
-  Crown,
-  Shield,
-  Zap,
-  TrendingUp,
-  Calendar,
-  Clock,
-  Gift,
-  ExternalLink,
-  ChevronRight,
-  Verified,
-  Diamond,
   Flame
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -36,23 +17,9 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from "framer-motion";
-import EnhancedMessageModal from "../features/EnhancedMessageModal";
+import EnhancedMessageModal from "@/components/features/EnhancedMessageModal";
+import CallModal from "@/components/features/CallModal";
 
 interface PeermallCardProps extends Peermall {
   isPopular?: boolean;
@@ -67,566 +34,303 @@ interface PeermallCardProps extends Peermall {
 const premiumTokens = {
   gradients: {
     primary: "from-blue-600 via-indigo-600 to-purple-700",
-    gold: "from-yellow-400 via-yellow-500 to-amber-600",
-    platinum: "from-slate-400 via-slate-500 to-slate-600",
-    diamond: "from-cyan-400 via-blue-500 to-indigo-600",
-    fire: "from-orange-500 via-red-500 to-pink-600",
-    emerald: "from-emerald-400 via-green-500 to-teal-600",
-    royal: "from-purple-500 via-violet-600 to-indigo-700"
+    secondary: "from-amber-500 to-pink-500",
+    success: "from-green-500 to-emerald-600",
+    danger: "from-rose-500 to-pink-600",
+    premium: "from-amber-400 via-rose-500 to-fuchsia-600"
   },
   shadows: {
-    luxury: "shadow-2xl shadow-black/10 hover:shadow-3xl hover:shadow-black/20",
-    glow: "shadow-lg shadow-blue-500/25 hover:shadow-2xl hover:shadow-blue-500/40",
-    premium: "shadow-xl shadow-purple-500/20 hover:shadow-2xl hover:shadow-purple-500/30",
-    floating: "shadow-lg hover:shadow-2xl transition-all duration-500 ease-out"
+    glow: "shadow-[0_0_30px_rgba(99,102,241,0.3)] dark:shadow-[0_0_30px_rgba(139,92,246,0.5)]",
+    luxury: "shadow-xl shadow-blue-500/10 dark:shadow-purple-500/20",
+    hover: "hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-300"
   },
   animations: {
-    float: "hover:translate-y-[-8px] transition-all duration-500 ease-out",
-    scale: "hover:scale-[1.03] transition-all duration-300 ease-out",
-    glow: "hover:ring-4 hover:ring-blue-500/20 transition-all duration-300"
-  },
-  glass: {
-    backdrop: "backdrop-blur-xl bg-white/80 border border-white/20",
-    dark: "backdrop-blur-xl bg-black/20 border border-white/10"
+    float: "hover:-translate-y-1 transition-transform duration-300",
+    pulse: "animate-pulse"
   }
 };
 
-const PeerMallCard: React.FC<PeermallCardProps> = ({
+const PeermallCard: React.FC<PeermallCardProps> = ({
   id,
-  title = '이름 없음',
-  owner = '미정',
-  description = '설명이 없습니다.',
-  imageUrl = '',
-  likes = 0,
-  rating = 0,
-  followers = 0,
+  title,
+  description,
+  owner,
+  imageUrl,
+  category,
+  phone,
   tags = [],
-  category = '기타',
+  rating = 0,
+  reviewCount = 0,
+  likes: initialLikes = 0,
+  followers: initialFollowers = 0,
   featured = false,
-  certified = false,
   recommended = false,
-  location,
+  certified = false,
   isPopular = false,
   isFamilyCertified = false,
   isRecommended = false,
-  className,
+  className = "",
   onShowQrCode,
   onOpenMap,
-  ...otherProps
+  ...rest
 }) => {
   const { toast } = useToast();
-  
-  // 상태 관리 - 실제 스토리지 데이터와 동기화
   const [isLiked, setIsLiked] = useState(false);
-  const [currentLikes, setCurrentLikes] = useState(likes);
-  const [currentFollowers, setCurrentFollowers] = useState(followers);
-  const [messageModalOpen, setMessageModalOpen] = useState(false);
-  const [messageText, setMessageText] = useState("");
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [currentLikes, setCurrentLikes] = useState(initialLikes);
+  const [currentFollowers, setCurrentFollowers] = useState(initialFollowers);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
 
-  // 컴포넌트 마운트 시 스토리지에서 최신 데이터 동기화
-  useEffect(() => {
-    if (id) {
-      const storedPeermall = peermallStorage.getById(id);
-      if (storedPeermall) {
-        setCurrentLikes(storedPeermall.likes || likes);
-        setCurrentFollowers(storedPeermall.followers || followers);
-      }
-    }
-  }, [id, likes, followers]);
-
-  // 🏆 프리미엄 뱃지 시스템
-  const premiumBadges = [
-    (isPopular || featured) && { 
-      type: "HOT", 
-      gradient: premiumTokens.gradients.fire,
-      icon: <Flame className="h-3 w-3 fill-current" />,
-      priority: 1,
-      glow: true
-    },
-    (isRecommended || recommended) && { 
-      type: "PREMIUM", 
-      gradient: premiumTokens.gradients.gold,
-      icon: <Crown className="h-3 w-3" />,
-      priority: 2,
-      glow: true
-    },
-    (isFamilyCertified || certified) && { 
-      type: "VERIFIED", 
-      gradient: premiumTokens.gradients.emerald,
-      icon: <Verified className="h-3 w-3" />,
-      priority: 3,
-      glow: false
-    },
-    rating >= 4.5 && { 
-      type: "EXCELLENCE", 
-      gradient: premiumTokens.gradients.diamond,
-      icon: <Diamond className="h-3 w-3" />,
-      priority: 4,
-      glow: false
-    }
-  ].filter(Boolean).sort((a, b) => a.priority - b.priority);
-
-  // 📊 고급 통계 시스템
-  const premiumStats = {
-    totalLikes: currentLikes,
-    totalFollowers: currentFollowers,
-    displayRating: Number(rating).toFixed(1),
-    hasHighRating: rating >= 4.0,
-    isPopularItem: currentLikes >= 100,
-    trustScore: Math.min(98, Math.floor(rating * 20 + (currentFollowers / 10))),
-    activityLevel: Math.floor(Math.random() * 50) + 20
-  };
-
-  // 🎯 향상된 이벤트 핸들러들
-  const handleQuickCall = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    toast({
-      title: "📞 통화 연결 중...",
-      description: `${owner}님과 연결하고 있습니다.`,
-    });
-  }, [owner, toast]);
-
-  const handleQuickMessage = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setMessageModalOpen(true);
-  }, []);
-
-  // 💖 좋아요 기능 - 실제 스토리지 업데이트
-  const handleLike = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!id) {
-      toast({
-        variant: "destructive",
-        title: "오류",
-        description: "피어몰 정보를 찾을 수 없습니다."
-      });
-      return;
-    }
-
-    try {
-      const newLikeState = !isLiked;
-      const newLikeCount = newLikeState ? currentLikes + 1 : Math.max(0, currentLikes - 1);
-      
-      // 로컬 상태 즉시 업데이트 (UX 개선)
-      setIsLiked(newLikeState);
-      setCurrentLikes(newLikeCount);
-      
-      // 스토리지의 피어몰 데이터 업데이트
-      const existingPeermall = peermallStorage.getById(id);
-      if (existingPeermall) {
-        const updatedPeermall = {
-          ...existingPeermall,
-          likes: newLikeCount
-        };
-        peermallStorage.save(updatedPeermall);
-      }
-      
-      // 프리미엄 피드백
-      toast({
-        title: newLikeState ? "💎 프리미엄 찜하기!" : "찜하기 취소",
-        description: newLikeState 
-          ? "VIP 관심 목록에 추가되었습니다" 
-          : "관심 목록에서 제거되었습니다"
-      });
-    } catch (error) {
-      console.error('좋아요 처리 오류:', error);
-      toast({
-        variant: "destructive",
-        title: "오류",
-        description: "좋아요 처리 중 오류가 발생했습니다."
-      });
-    }
-  }, [id, isLiked, currentLikes, toast]);
-
-  // 👥 팔로우 기능 - 실제 스토리지 업데이트
-  const handleFollow = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!id) return;
-
-    try {
-      const newFollowState = !isFollowing;
-      const newFollowerCount = newFollowState ? currentFollowers + 1 : Math.max(0, currentFollowers - 1);
-      
-      // 로컬 상태 업데이트
-      setIsFollowing(newFollowState);
-      setCurrentFollowers(newFollowerCount);
-      
-      // 스토리지 업데이트
-      const existingPeermall = peermallStorage.getById(id);
-      if (existingPeermall) {
-        const updatedPeermall = {
-          ...existingPeermall,
-          followers: newFollowerCount
-        };
-        peermallStorage.save(updatedPeermall);
-      }
-      
-      toast({
-        title: newFollowState ? "🎉 팔로우 완료!" : "팔로우 취소",
-        description: newFollowState 
-          ? `${owner}님을 팔로우하기 시작했습니다` 
-          : `${owner}님 팔로우를 취소했습니다`
-      });
-    } catch (error) {
-      console.error('팔로우 처리 오류:', error);
-    }
-  }, [id, isFollowing, currentFollowers, owner, toast]);
-
-  const handleShare = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const shareData = {
-      title: title,
-      text: `✨ ${title} - ${owner}의 프리미엄 피어몰을 확인해보세요!`,
-      url: `${window.location.origin}/space/${id}`
-    };
-
-    if (navigator.share && navigator.canShare?.(shareData)) {
-      navigator.share(shareData).catch(err => console.log('Share failed:', err));
-    } else {
-      navigator.clipboard.writeText(shareData.url)
-        .then(() => toast({
-          title: "🔗 프리미엄 링크 복사 완료",
-          description: "친구들과 공유해보세요!",
-        }))
-        .catch(() => toast({
-          variant: "destructive",
-          title: "복사 실패",
-          description: "링크 복사에 실패했습니다."
-        }));
-    }
-  }, [id, title, owner, toast]);
-
-  const handleSendMessage = useCallback(() => {
-    if (!messageText.trim()) {
-      toast({
-        variant: "destructive",
-        title: "메시지를 입력해주세요",
-        description: "메시지 내용을 입력하셔야 합니다."
-      });
-      return;
-    }
-
-    toast({
-      title: "📨 프리미엄 메시지 전송 완료",
-      description: `${owner}님에게 메시지를 보냈습니다.`
-    });
-    
-    setMessageText("");
-    setMessageModalOpen(false);
-  }, [messageText, owner, toast]);
-
-  // 🖼️ 이미지 에러 핸들링
+  // 이미지 에러 핸들링
   const handleImageError = useCallback(() => {
     setImageError(true);
-    setImageLoaded(true);
-  }, []);
-
-  const handleImageLoad = useCallback(() => {
-    setImageLoaded(true);
   }, []);
 
   // 기본 이미지 URL 처리
-  const displayImageUrl = imageUrl || "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=300&fit=crop";
+  const displayImageUrl = imageError ? "/placeholder-shop.jpg" : (imageUrl || "/placeholder-shop.jpg");
+
+  // 좋아요 토글
+  const toggleLike = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const newIsLiked = !isLiked;
+    setIsLiked(newIsLiked);
+    
+    // 좋아요 수 업데이트
+    setCurrentLikes(prev => newIsLiked ? prev + 1 : Math.max(0, prev - 1));
+    
+    // TODO: 서버에 좋아요 상태 저장
+  }, [isLiked]);
+
+  // 팔로우 토글
+  const toggleFollow = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const newIsFollowing = !isFollowing;
+    setIsFollowing(newIsFollowing);
+    
+    // 팔로워 수 업데이트
+    setCurrentFollowers(prev => newIsFollowing ? prev + 1 : Math.max(0, prev - 1));
+    
+    toast({
+      title: newIsFollowing ? "팔로우했습니다" : "팔로우를 취소했습니다",
+      description: newIsFollowing 
+        ? `${owner}님의 새로운 소식을 받아볼 수 있습니다.` 
+        : `${owner}님의 소식을 더 이상 받아보지 않습니다.`,
+    });
+  }, [isFollowing, owner, toast]);
+
+  // QR 코드 표시
+  const showQrCode = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (onShowQrCode) {
+      onShowQrCode(id, title);
+    } else {
+      toast({
+        title: "QR 코드",
+        description: `${title}의 QR 코드를 표시할 수 없습니다.`,
+        variant: "destructive",
+      });
+    }
+  }, [id, onShowQrCode, title, toast]);
+
+  // 지도에서 보기
+  const showOnMap = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (onOpenMap && rest.location) {
+      onOpenMap({
+        ...rest.location,
+        title,
+      });
+    } else {
+      toast({
+        title: "지도",
+        description: "이 상점의 위치 정보를 가져올 수 없습니다.",
+        variant: "destructive",
+      });
+    }
+  }, [onOpenMap, rest.location, title, toast]);
+
+  // 통화하기
+  const handleQuickCall = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsCallModalOpen(true);
+  }, []);
+
+  // 메시지 보내기
+  const handleQuickMessage = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsMessageModalOpen(true);
+  }, []);
+
+  // 메시지 전송
+  const handleSendMessage = useCallback(() => {
+    if (!message.trim()) {
+      toast({
+        variant: "destructive",
+        title: "메시지를 입력해주세요",
+        description: "메시지 내용이 비어있습니다.",
+      });
+      return;
+    }
+
+    setIsSending(true);
+    
+    // TODO: 메시지 전송 API 호출
+    setTimeout(() => {
+      setIsSending(false);
+      setIsMessageModalOpen(false);
+      setMessage("");
+      
+      toast({
+        title: "메시지 전송 성공",
+        description: `${owner}님에게 메시지를 보냈습니다.`
+      });
+    }, 1000);
+  }, [message, owner, toast]);
 
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="h-full"
+        transition={{ duration: 0.3 }}
+        className={cn("relative group", className)}
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
       >
-        <Link to={`/space/${id}`} className="block h-full group">
-          <Card className={cn(
-            "h-full overflow-hidden border-0 bg-white relative",
-            premiumTokens.shadows.luxury,
-            premiumTokens.animations.float,
-            (isPopular || featured) && premiumTokens.shadows.glow,
-            "ring-1 ring-gray-200/50 hover:ring-blue-500/30",
-            className
-          )}>
-            
-            {/* 🌟 프리미엄 글로우 효과 */}
-            <div className={cn(
-              "absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500",
-              "bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5"
-            )} />
-
-            {/* 🖼️ 프리미엄 이미지 영역 */}
-            <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200">
+        <Link to={`/space/${id}`} className="block h-full">
+          <Card className="h-full overflow-hidden transition-shadow duration-300 hover:shadow-lg">
+            {/* 이미지 영역 */}
+            <div className="relative aspect-video bg-gray-100 overflow-hidden">
+              <img
+                src={displayImageUrl}
+                alt={title}
+                className="w-full h-full object-cover"
+                onError={handleImageError}
+              />
               
-              {/* 로딩 애니메이션 */}
-              <AnimatePresence>
-                {!imageLoaded && (
-                  <motion.div
-                    initial={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-100 to-gray-200"
-                  >
-                    <div className="flex flex-col items-center space-y-3">
-                      <div className="relative">
-                        <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-                        <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-r-purple-500 rounded-full animate-spin animate-reverse" />
-                      </div>
-                      <span className="text-sm text-gray-600 font-medium">로딩 중...</span>
-                    </div >
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* 메인 이미지 */}
-              {!imageError ? (
-                <motion.img
-                  src={displayImageUrl}
-                  alt={title}
-                  className={cn(
-                    "w-full h-full object-cover transition-all duration-700 group-hover:scale-110",
-                    !imageLoaded && "opacity-0"
-                  )}
-                  onLoad={handleImageLoad}
-                  onError={handleImageError}
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.7, ease: "easeOut" }}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-gray-200">
-                  <div className="text-center text-gray-500">
-                    <div className="text-6xl mb-3 opacity-50">🏪</div>
-                    <p className="text-sm font-medium">프리미엄 이미지</p>
-                    <p className="text-xs opacity-75">준비 중...</p>
-                  </div>
-                </div>
-              )}
-
-              {/* 프리미엄 오버레이 그라디언트 */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-              {/* 🏆 프리미엄 뱃지 영역 */}
-              <div className="absolute top-4 left-4 flex flex-col gap-2 z-20">
-                <AnimatePresence>
-                  {premiumBadges.slice(0, 2).map((badge, index) => (
-                    <motion.div
-                      key={badge.type}
-                      initial={{ opacity: 0, x: -30, scale: 0.8 }}
-                      animate={{ opacity: 1, x: 0, scale: 1 }}
-                      transition={{ delay: index * 0.1, duration: 0.4 }}
-                    >
-                      <Badge className={cn(
-                        `bg-gradient-to-r ${badge.gradient} text-white border-0`,
-                        "flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold shadow-lg",
-                        badge.glow && "shadow-2xl animate-pulse"
-                      )}>
-                        {badge.icon}
-                        {badge.type}
-                      </Badge>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-
-                {/* 카테고리 뱃지 */}
-                <motion.div
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <Badge className="bg-white/90 text-gray-700 border-0 px-2 py-1 text-xs font-medium shadow-md">
-                    {category}
+              {/* 배지들 */}
+              <div className="absolute top-2 left-2 flex flex-col items-start gap-1">
+                {isPopular && (
+                  <Badge variant="secondary" className="bg-amber-500 text-white">
+                    <Flame className="w-3 h-3 mr-1" /> 인기
                   </Badge>
-                </motion.div>
+                )}
+                {isFamilyCertified && (
+                  <Badge variant="secondary" className="bg-blue-500 text-white">
+                    <BadgeCheck className="w-3 h-3 mr-1" /> 패밀리 인증
+                  </Badge>
+                )}
+                {isRecommended && (
+                  <Badge variant="secondary" className="bg-green-500 text-white">
+                    <Award className="w-3 h-3 mr-1" /> 추천
+                  </Badge>
+                )}
               </div>
-
-              {/* 💎 프리미엄 액션 버튼 영역 */}
-              <div className="absolute top-3 right-3 z-20">
-                <motion.div
-                  className={cn(
-                    "flex items-center gap-1.5 p-1.5 rounded-2xl",
-                    premiumTokens.glass.backdrop,
-                    "shadow-lg backdrop-blur-sm"
-                  )}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  {/* 즉시 통화 버튼 */}
-                  <motion.div 
-                    whileHover={{ scale: 1.1 }} 
-                    whileTap={{ scale: 0.95 }}
-                    className="relative group"
-                  >
-                    <Button 
-                      size="icon"
-                      variant="ghost"
-                      className={cn(
-                        "w-8 h-8 rounded-xl p-0",
-                        "bg-gradient-to-r from-green-500 to-emerald-600",
-                        "hover:from-green-600 hover:to-emerald-700",
-                        "text-white transition-all duration-200"
-                      )}
-                      onClick={handleQuickCall}
-                      title="즉시 통화하기"
-                    >
-                      <Phone className="h-4 w-4" />
-                    </Button>
-                    <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200">
-                      통화하기
-                    </span>
-                  </motion.div>
-                  
-                  {/* 즉시 메시지 버튼 */}
-                  <motion.div 
-                    whileHover={{ scale: 1.1 }} 
-                    whileTap={{ scale: 0.95 }}
-                    className="relative group"
-                  >
-                    <Button 
-                      size="icon"
-                      variant="ghost"
-                      className={cn(
-                        "w-8 h-8 rounded-xl p-0",
-                        "bg-gradient-to-r from-blue-500 to-indigo-600",
-                        "hover:from-blue-600 hover:to-indigo-700",
-                        "text-white transition-all duration-200"
-                      )}
-                      onClick={handleQuickMessage}
-                      title="즉시 메시지 보내기"
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                    </Button>
-                    <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200">
-                      메시지
-                    </span>
-                  </motion.div>
-
-                  {/* 공유 버튼 */}
-                  <motion.div 
-                    whileHover={{ scale: 1.1 }} 
-                    whileTap={{ scale: 0.95 }}
-                    className="relative group"
-                  >
-                    <Button 
-                      size="icon"
-                      variant="ghost"
-                      className={cn(
-                        "w-8 h-8 rounded-xl p-0",
-                        "bg-white/80 hover:bg-white text-gray-700 hover:text-purple-600",
-                        "transition-all duration-200"
-                      )}
-                      onClick={handleShare}
-                      title="공유하기"
-                    >
-                      <Share className="h-3.5 w-3.5" />
-                    </Button>
-                    <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200">
-                      공유하기
-                    </span>
-                  </motion.div>
-                </motion.div>
-              </div>
-
-              {/* 🔥 실시간 활동 지표 */}
               
-
-              {/* 💖 프리미엄 찜하기 버튼 */}
-              <motion.div
-                className="absolute bottom-4 right-4 z-20"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <Button
-                  className={cn(
-                    "w-12 h-12 rounded-full p-0 shadow-2xl transition-all duration-300",
-                    isLiked 
-                      ? "bg-gradient-to-r from-red-500 to-pink-600 text-white" 
-                      : "bg-white/90 text-gray-700 hover:text-red-500 hover:bg-white"
-                  )}
-                  onClick={handleLike}
-                  title={isLiked ? "찜하기 취소" : "찜하기"}
+              {/* 호버 시 액션 버튼들 */}
+              <div className={cn(
+                "absolute inset-0 bg-black/50 flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+                isHovered && "opacity-100"
+              )}>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="rounded-full bg-white/90 hover:bg-white"
+                  onClick={handleQuickCall}
                 >
-                  <Heart className={cn(
-                    "h-6 w-6 transition-all duration-300",
-                    isLiked && "fill-current"
-                  )} />
+                  <Phone className="h-4 w-4" />
                 </Button>
-              </motion.div>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="rounded-full bg-white/90 hover:bg-white"
+                  onClick={handleQuickMessage}
+                >
+                  <MessageSquare className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="rounded-full bg-white/90 hover:bg-white"
+                  onClick={showQrCode}
+                >
+                  <QrCode className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-
-            {/* 📝 프리미엄 콘텐츠 영역 */}
-            <CardContent className="p-6 space-y-5 relative z-10">
-              
-              {/* 제목과 평점 */}
-              <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <h3 className="font-bold text-xl text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors leading-tight">
-                    {title}
-                  </h3>
-                  {premiumStats.hasHighRating && (
-                    <div className="flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-1 rounded-full shadow-lg">
-                      <Star className="h-3 w-3 fill-current" />
-                      <span className="text-xs font-bold">{premiumStats.displayRating}</span>
-                    </div>
-                  )}
-                </div>
-                
-                {/* 소유자 정보 */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                      {owner.charAt(0)}
-                    </div>
-                    <div>
-                      <span className="text-sm font-semibold text-gray-800">{owner}</span>
-                      {(isFamilyCertified || certified) && (
-                        <div className="flex items-center gap-1">
-                          <Verified className="h-3 w-3 text-blue-500" />
-                          <span className="text-xs text-blue-600 font-medium">인증된 셀러</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+            
+            {/* 내용 영역 */}
+            <CardContent className="p-4">
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-semibold text-lg line-clamp-1">{title}</h3>
+                <div className="flex items-center">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+                  <span className="text-sm font-medium">{rating.toFixed(1)}</span>
                 </div>
               </div>
               
-              {/* 설명 */}
-              <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-                {description}
-              </p>
+              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{description}</p>
+              
+              <div className="flex flex-wrap gap-1 mb-3">
+                {tags.slice(0, 3).map((tag, index) => (
+                  <Badge key={index} variant="outline" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+              
+              <div className="flex items-center justify-between text-sm text-gray-500">
+                <div className="flex items-center">
+                  <User className="h-4 w-4 mr-1" />
+                  <span>{owner}</span>
+                </div>
+                <div className="flex items-center">
+                  <Heart className={cn(
+                    "h-4 w-4 mr-1",
+                    isLiked ? "fill-red-500 text-red-500" : "text-gray-400"
+                  )} />
+                  <span>{currentLikes}</span>
+                </div>
+              </div>
             </CardContent>
-
-            {/* 🌟 호버 시 프리미엄 효과 */}
-            <AnimatePresence>
-              {isHovered && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-xl pointer-events-none"
-                />
-              )}
-            </AnimatePresence>
           </Card>
         </Link>
       </motion.div>
       
-      {/* 📨 프리미엄 메시지 모달 */}
-
+      {/* 통화 모달 */}
+      <CallModal 
+        open={isCallModalOpen} 
+        onOpenChange={setIsCallModalOpen} 
+        location={{
+          title: title || '상점',
+          owner: owner || '점주',
+          phone: phone || '010-1234-5678',
+          imageUrl: displayImageUrl,
+          trustScore: 95,
+          responseTime: "즉시 응답",
+          isOnline: true
+        }} 
+      />
+      
+      {/* 메시지 모달 */}
       <EnhancedMessageModal
-        messageModalOpen={messageModalOpen}
-        setMessageModalOpen={setMessageModalOpen}
+        messageModalOpen={isMessageModalOpen}
+        setMessageModalOpen={setIsMessageModalOpen}
         owner={owner}
         title={title}
         displayImageUrl={displayImageUrl}
@@ -636,4 +340,4 @@ const PeerMallCard: React.FC<PeermallCardProps> = ({
   );
 };
 
-export default PeerMallCard;
+export default PeermallCard;

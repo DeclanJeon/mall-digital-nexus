@@ -45,15 +45,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { CreatePeermallModalProps, CreatePeermallSuccessData, FamilyMember, PeermallFormData } from '@/types/peermall';
+import { CreatePeermallModalProps, Peermall, FamilyMember, PeermallFormData } from '@/types/peermall';
 
 
 
@@ -408,12 +401,14 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
     // 저장용 데이터 객체
     const dataForStorage = {
       address: id,
+      id: id,
+      title: values.name, // name을 title로 매핑
       name: values.name,                    // title 대신 name
       representativeName: values.representativeName, // owner 대신 representativeName
       description: values.description,
       owner: values.representativeName,
       email: values.email,
-      imageUrl: values.imageUrl || '',
+      imageUrl: values.imageUrl || 'https://picsum.photos/400/300',
       membershipType: values.membershipType || '',
       visibility: values.visibility,
       requestCertification: !!values.requestCertification,
@@ -424,81 +419,37 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       type: 'peermall',
       rating: 0,
       reviewCount: 0,
+      followers: 0,
+      featured: false,
+      certified: false,
+      recommended: false,
       location: {
         address: finalLocation?.address || values.mapAddress || values.address,
         lat: finalLocation?.lat || 37.5665,
         lng: finalLocation?.lng || 126.9780,
       },
-      lat: finalLocation?.lat || 37.5665,
-      lng: finalLocation?.lng || 126.9780,
       createdAt: new Date().toISOString(),
     };
 
-    // onSuccess에 전달할 데이터 (CreatePeermallSuccessData 타입에 맞춤)
-    const successData: CreatePeermallSuccessData = {
-      // PeermallFormData 필수 필드들
-      address: id,
-      name: values.name,
-      description: values.description,
-      representativeName: values.representativeName,
-      email: values.email,
-      membershipType: values.membershipType || '',
-      imageUrl: values.imageUrl || '',
-      hashtags: values.hashtags || '',
-      mapAddress: values.mapAddress || '',
-      visibility: values.visibility,
-      requestCertification: !!values.requestCertification,
-      referralCode: values.referralCode || '',
-      
-      // CreatePeermallSuccessData 추가 필드들
-      id: id,
-      rating: 0,
-      reviewCount: 0,
-      location: {
-        address: finalLocation?.address || values.mapAddress || values.address,
-        lat: finalLocation?.lat || 37.5665,
-        lng: finalLocation?.lng || 126.9780,
-      },
-      title: values.name, // name을 title로 매핑
-      owner: values.representativeName,
-      type: 'peermall',
-      createdAt: new Date().toISOString(),
-      
-      // 추가 필요한 필드들 (PeermallFormData에 있지만 CreatePeermallSuccessData에 없을 수 있는 필드들)
-      ...(values as any) // 나머지 필드들도 포함 (타입 단언 사용)
-    };
-
-    console.log('저장할 데이터:', dataForStorage);
-
-    // 저장 로직
     try {
       // peermallStorage를 사용하여 데이터 저장
       const savedPeermall = peermallStorage.save({
         ...dataForStorage,
-        id: id, // 고유 ID 할당
-        title: values.name, // name을 title로 매핑
-        // 필수 필드들
-        description: values.description || '설명이 없습니다.',
-        owner: values.representativeName || '작성자 없음',
-        // 기본 이미지 설정
-        imageUrl: values.imageUrl || 'https://picsum.photos/400/300',
-        // 추가 필드들
-        rating: 0,
-        reviewCount: 0,
-        followers: 0,
-        tags: dataForStorage.tags || [],
-        location: dataForStorage.location || {
-          lat: 37.5665,
-          lng: 126.9780,
-          address: '주소 없음'
-        },
-        featured: false,
-        certified: false,
-        recommended: false,
-        createdAt: new Date().toISOString()
       });
       
       console.log('피어몰 저장 완료:', savedPeermall);
+
+        // 초기화
+      form.reset();
+      setCurrentStep(1);
+      setShowImagePreview(true);
+      setIsDuplicateAddress(false);
+      setMapLocation(null);
+      setIsLoading(false);
+
+      if (onSuccess) {
+        onSuccess(savedPeermall);
+      }
       
       // 성공 토스트 메시지
       toast({
@@ -522,17 +473,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       variant: 'default',
     });
 
-    // 초기화
-    form.reset();
-    setCurrentStep(1);
-    setShowImagePreview(true);
-    setIsDuplicateAddress(false);
-    setMapLocation(null);
-    setIsLoading(false);
-
-    if (onSuccess) {
-      onSuccess(successData);
-    }
+    
     onClose(); // Always close the modal
   };
 

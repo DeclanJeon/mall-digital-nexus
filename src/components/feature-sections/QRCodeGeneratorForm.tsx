@@ -79,17 +79,6 @@ const MAIN_SERVICES: QrTypeDefinition[] = [
       { id: 'description', label: '커뮤니티 소개', type: 'textarea' }
     ]
   },
-  { 
-    value: 'peermall', 
-    label: '피어몰 만들기', 
-    icon: Store,
-    fields: [
-      { id: 'storeName', label: '스토어 이름', required: true },
-      { id: 'ownerName', label: '대표자명', required: true },
-      { id: 'email', label: '이메일', type: 'email', required: true },
-      { id: 'phone', label: '전화번호', type: 'tel', required: true }
-    ]
-  }
 ];
 
 // Other services that will be in the dropdown
@@ -483,7 +472,6 @@ const QRCodeGeneratorForm = () => {
                     }`}
                     onClick={() => {
                       setSelectedType(type.value);
-                      setShowOtherServices(false);
                     }}
                   >
                     <type.icon className="h-5 w-5 mb-1" />
