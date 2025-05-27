@@ -95,7 +95,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   const [posts, setPosts] = useState<Content[]>([]);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [currentView, setCurrentView] = useState<'blog' | 'list'>('blog');
+  const [currentView, setCurrentView] = useState<'list' | 'blog' | 'grid-small' | 'grid-medium' | 'grid-large' | 'masonry'>('list');
   const [sections, setSections] = useState<SectionType[]>(
     getSectionOrder(address, config.sections)
   );

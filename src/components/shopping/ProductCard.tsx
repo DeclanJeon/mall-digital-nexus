@@ -21,6 +21,10 @@ interface ProductCardProps {
   imageUrl: string;
   rating: number;
   reviewCount: number;
+  peermallName?: string;
+  peermallId?: string;
+  category?: string;
+  tags?: string[];
   viewMode: 'grid' | 'list';
   cardSize?: 'small' | 'medium' | 'large';
   seller?: {
@@ -40,6 +44,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
   imageUrl,
   rating,
   reviewCount,
+  peermallName,
+  peermallId,
+  category,
+  tags,
   viewMode,
   cardSize = 'medium',
   seller,

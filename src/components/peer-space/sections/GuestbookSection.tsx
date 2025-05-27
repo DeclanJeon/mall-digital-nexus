@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Mail, User } from 'lucide-react';
 
 interface GuestbookEntry {
-  id: string;
+  id: string | number;
   author: string;
   message: string;
   date: string;

@@ -16,10 +16,10 @@ interface PeerSpaceHomeSectionProps {
   products: Content[];
   posts: Content[];
   searchQuery: string;
-  currentView: 'blog' | 'list';
+  currentView: 'list' | 'blog' | 'grid-small' | 'grid-medium' | 'grid-large' | 'masonry';
   onNavigateToSection: (section: string) => void;
   setSearchQuery: (query: string) => void;
-  setCurrentView: (view: 'blog' | 'list') => void;
+  setCurrentView: (view: 'list' | 'blog' | 'grid-small' | 'grid-medium' | 'grid-large' | 'masonry') => void;
   handleShowProductForm: () => void;
 }
 

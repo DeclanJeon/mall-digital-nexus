@@ -6,7 +6,7 @@ import { Search } from 'lucide-react';
 interface FollowingPeermall {
   id: string;
   title: string;
-  imageUrl: string;
+  imageUrl?: string;
 }
 
 interface FollowingSectionProps {

@@ -95,7 +95,7 @@ const ImageUploadPreview: React.FC<{
 
 interface BasicInfoSectionProps {
   config: PeerMallConfig;
-  peermall: Peermall | null; // peermall prop 추가
+  peermall?: Peermall | null; // peermall prop 추가
 }
 
 const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ config, peermall }) => {

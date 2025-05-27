@@ -11,8 +11,8 @@ interface PeerSpaceContentSectionProps {
   address: string;
   config: PeerMallConfig;
   products: Content[];
-  currentView: 'grid-small' | 'grid-medium' | 'grid-large' | 'list' | 'masonry';
-  setCurrentView: (view: 'grid-small' | 'grid-medium' | 'grid-large' | 'list' | 'masonry') => void;
+  currentView: 'grid-small' | 'grid-medium' | 'grid-large' | 'list' | 'masonry' | 'blog';
+  setCurrentView: (view: 'grid-small' | 'grid-medium' | 'grid-large' | 'list' | 'masonry' | 'blog') => void;
   handleShowProductForm: () => void;
   filteredProducts: Content[];
 }

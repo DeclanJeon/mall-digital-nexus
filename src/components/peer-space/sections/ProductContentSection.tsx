@@ -7,8 +7,8 @@ import { Grid2X2, List, ChevronRight } from 'lucide-react';
 interface ProductContentSectionProps {
   isOwner: boolean;
   products: Content[];
-  currentView: 'blog' | 'list';
-  setCurrentView: (view: 'blog' | 'list') => void;
+  currentView: 'list' | 'blog' | 'grid-small' | 'grid-medium' | 'grid-large' | 'masonry';
+  setCurrentView: (view: 'list' | 'blog' | 'grid-small' | 'grid-medium' | 'grid-large' | 'masonry') => void;
   handleShowProductForm: () => void;
   onNavigateToSection?: (section: string) => void;
   showAll?: boolean;
