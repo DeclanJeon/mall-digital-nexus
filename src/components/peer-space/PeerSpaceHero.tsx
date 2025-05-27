@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PeerMallConfig } from './types';
+import { PeerMallConfig } from '@/types/space';
 import { toast } from '@/hooks/use-toast';
 import { Award, Heart, ThumbsUp, Shield, Star, Gift, Users, Hash, CheckCircle } from 'lucide-react'; // Users, Hash, CheckCircle 아이콘 추가
 

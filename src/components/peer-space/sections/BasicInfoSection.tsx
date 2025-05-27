@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import type { PeerMallConfig } from "@/components/peer-space/types";
+import type { PeerMallConfig } from "@/types/space";
 import { Card } from "@/components/ui/card";
 import { User, Info, Mail, Phone, MapPin, Building, Shield, Link, Users, FileText, Image as ImageIcon, Globe, UploadCloud, X } from "lucide-react"; // 아이콘 추가!
 import { Button } from "@/components/ui/button";

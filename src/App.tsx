@@ -38,7 +38,7 @@ const AppContent = () => {
       {!isPeerSpacePage && <Header />}
       <Routes>
         <Route path="/" element={<Index />} />
-        {/* <Route path="/shopping" element={<Shopping />} /> */}
+        <Route path="/products" element={<Shopping />} />
         {/* <Route path="/peermalls" element={< />} / >
         <Route path="/products" element={< />} /> */}
         {/* <Route path="/curation-links" element={<CurationLinks />} /> */}

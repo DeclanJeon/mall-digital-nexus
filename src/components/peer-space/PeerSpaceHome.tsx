@@ -327,6 +327,10 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
     return <div className="container mx-auto p-6"><EmptyState title="404 - 피어스페이스를 찾을 수 없습니다" description="올바른 피어스페이스 주소인지 확인해주세요." /></div>;
   }
 
+   function handleLogout(event: React.MouseEvent<HTMLButtonElement>): void {
+     window.location.href = "/";
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 flex">
       {/* 왼쪽 사이드바 */}
@@ -426,7 +430,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                   <p className="text-xs text-gray-500">{isOwner ? '관리자' : '방문자'}</p>
                 </div>
               </div>
-              <button className="text-gray-500 hover:text-gray-700">
+              <button onClick={handleLogout} className="text-gray-500 hover:text-gray-700">
                 {isOwner ? <LogOut className="w-4 h-4" /> : <User className="w-4 h-4" />}
               </button>
             </div>

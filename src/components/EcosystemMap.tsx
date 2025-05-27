@@ -50,6 +50,7 @@ import { cn } from '@/lib/utils';
 import CallModal from '@/components/features/CallModal';
 import MessageModal from '@/components/features/MessageModal';
 import EnhancedMessageModal from './features/EnhancedMessageModal';
+import { useAuth } from '@/hooks/useAuth';
 
 const DEFAULT_CENTER: [number, number] = [37.5665, 126.9780];
 
@@ -75,7 +76,7 @@ interface MapLocation {
   trustScore?: number;
   responseTime?: string;
   isOnline?: boolean;
-  owner?: string; // 🎯 이거 추가
+  owner?: string; // 
 }
 
 interface EcosystemMapProps {
@@ -89,6 +90,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
+  const { isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [mapType, setMapType] = useState('street');
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -102,11 +104,11 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-const [callModalOpen, setCallModalOpen] = useState(false);
-const [messageModalOpen, setMessageModalOpen] = useState(false);
-const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLocation | null>(null);
+  const [callModalOpen, setCallModalOpen] = useState(false);
+  const [messageModalOpen, setMessageModalOpen] = useState(false);
+  const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLocation | null>(null);
 
-  // 🎯 프리미엄 마커 아이콘 생성 함수
+  // 프리미엄 마커 아이콘 생성 함수
   const createPremiumMarkerIcon = (location: MapLocation) => {
     const getMarkerClasses = () => {
       if (location.isFeatured) return 'premium-marker-featured';
@@ -117,10 +119,10 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
     };
 
     const getMarkerEmoji = () => {
-      if (location.isFeatured) return '👑';
-      if (location.isPopular) return '🔥';
-      if (location.isVerified) return '✓';
-      return '🏪';
+      if (location.isFeatured) return '';
+      if (location.isPopular) return '';
+      if (location.isVerified) return '';
+      return '';
     };
 
     const size = location.isFeatured ? 48 : location.isPopular ? 42 : 36;
@@ -149,10 +151,10 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
     });
   };
 
-  // 🎨 팝업 생성 함수
+  // 팝업 생성 함수
   const createPremiumPopup = (location: MapLocation) => {
     const trustScore = location.trustScore || Math.floor((location.rating || 4.0) * 20);
-    const responseTime = location.responseTime || '평균 5분';
+    const responseTime = location.responseTime || '5';
     
     return `
       <div class="premium-popup-content w-80 h-[500px] p-0 overflow-hidden rounded-2xl shadow-2xl bg-white">
@@ -268,7 +270,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
             trustScore: Math.floor(Math.random() * 20) + 80,
             responseTime: ['즉시', '5분 이내', '10분 이내', '30분 이내'][Math.floor(Math.random() * 4)],
             isOnline: Math.random() > 0.3,
-            owner: (peermall as any).owner || `${peermall.title} 운영자`, // 🎯 이거 추가,
+            owner: (peermall as any).owner || `${peermall.title} 운영자`, // 
             isFamilyCertified: false, // 기본값 설정
             certified: false,         // 기본값 설정
             premiumStats: null         // 기본값 설정
@@ -526,13 +528,13 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
     }
   }, [searchQuery, locations]);
 
-  // 🎯 통화 모달 열기 함수
+  // 통화 모달 열기 함수
   const handleOpenCallModal = useCallback((location: MapLocation) => {
     setSelectedLocationForAction(location);
     setCallModalOpen(true);
   }, []);
 
-  // 🎯 메시지 모달 열기 함수
+  // 메시지 모달 열기 함수
   const handleOpenMessageModal = useCallback((location: MapLocation) => {
     setSelectedLocationForAction(location);
     setMessageModalOpen(true);
@@ -550,8 +552,8 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
   return (
     <div className={cn(
       "relative rounded-2xl overflow-hidden shadow-2xl",
-      mapFullscreen ? "fixed inset-0 z-50" : "w-full",
-      // 🎯 반응형 높이 클래스 추가
+      mapFullscreen ? "fixed inset-0 z-[9999] w-screen" : "w-full",
+      // 반응형 높이 클래스 추가
       mapFullscreen ? "h-screen" : "h-full min-h-[250px]"
     )}>
       
@@ -560,7 +562,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         className="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-100"
       />
       
-      {/* 🎯 프리미엄 컨트롤 패널 */}
+      {/* 프리미엄 컨트롤 패널 */}
       <motion.div 
         className="absolute top-6 left-6 z-[1000] backdrop-blur-xl bg-white/90 border border-white/20 rounded-2xl p-4 shadow-xl hover:shadow-2xl transition-all duration-500"
         initial={{ opacity: 0, x: -50 }}
@@ -601,10 +603,10 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         {/* 필터 버튼들 */}
         {/* <div className="grid grid-cols-2 gap-2 mb-4">
           {[
-            { key: 'all', label: '전체', icon: '🌟', count: locations.length },
-            { key: 'featured', label: '추천', icon: '👑', count: locations.filter(l => l.isFeatured).length },
-            { key: 'popular', label: '인기', icon: '🔥', count: locations.filter(l => l.isPopular).length },
-            { key: 'verified', label: '인증', icon: '✅', count: locations.filter(l => l.isVerified).length }
+            { key: 'all', label: '전체', icon: '', count: locations.length },
+            { key: 'featured', label: '추천', icon: '', count: locations.filter(l => l.isFeatured).length },
+            { key: 'popular', label: '인기', icon: '', count: locations.filter(l => l.isPopular).length },
+            { key: 'verified', label: '인증', icon: '', count: locations.filter(l => l.isVerified).length }
           ].map(filter => (
             <Button
               key={filter.key}
@@ -670,7 +672,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         </div>
       </motion.div>
 
-      {/* 🎮 우측 상단 컨트롤 */}
+      {/* 우측 상단 컨트롤 */}
       <motion.div 
         className="absolute top-6 right-6 z-[1000] backdrop-blur-xl bg-white/90 border border-white/20 rounded-2xl p-3 shadow-xl hover:shadow-2xl transition-all duration-500"
         initial={{ opacity: 0, x: 50 }}
@@ -711,7 +713,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         </div>
       </motion.div>
 
-      {/* 📊 하단 통계 패널 */}
+      {/* 하단 통계 패널 */}
       <motion.div 
         className="absolute bottom-6 left-6 z-[1000] backdrop-blur-xl bg-white/90 border border-white/20 rounded-2xl p-4 shadow-xl hover:shadow-2xl transition-all duration-500"
         initial={{ opacity: 0, y: 50 }}
@@ -758,7 +760,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         </div>
       </motion.div>
 
-      {/* 🎨 고급 필터 패널 */}
+      {/* 고급 필터 패널 */}
       <AnimatePresence>
         {showFilters && (
           <motion.div
@@ -844,9 +846,9 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
                   <label className="text-xs font-medium text-gray-700 mb-2 block">운영 상태</label>
                   <div className="space-y-2">
                     {[
-                      { key: 'online', label: '현재 온라인', icon: '🟢' },
-                      { key: 'quick', label: '빠른 응답', icon: '⚡' },
-                      { key: 'verified', label: '인증된 업체', icon: '✅' }
+                      { key: 'online', label: '현재 온라인', icon: '' },
+                      { key: 'quick', label: '빠른 응답', icon: '' },
+                      { key: 'verified', label: '인증된 업체', icon: '' }
                     ].map(option => (
                       <Button
                         key={option.key}
@@ -866,7 +868,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         )}
       </AnimatePresence>
 
-       {/* 🎯 선택된 위치 상세 패널 */}
+       {/* 선택된 위치 상세 패널 */}
       <AnimatePresence>
         {selectedLocation && (
           <motion.div
@@ -896,12 +898,12 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
                     {/* <div className="flex gap-1">
                       {selectedLocation.isFeatured && (
                         <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs">
-                          👑 추천
+                          추천
                         </Badge>
                       )}
                       {selectedLocation.isVerified && (
                         <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs">
-                          ✅ 인증
+                          인증
                         </Badge>
                       )}
                     </div> */}
@@ -992,22 +994,28 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
 
               {/* 액션 버튼들 */}
               <div className="grid grid-cols-2 gap-2 pt-2">
-                <Button
-                  size="sm"
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg"
-                  onClick={() => handleOpenCallModal(selectedLocation)} // 🎯 수정
-                >
-                  <Phone className="w-4 h-4 mr-1" />
-                  통화
-                </Button>
-                <Button
-                  size="sm"
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg"
-                  onClick={() => handleOpenMessageModal(selectedLocation)}
-                >
-                  <MessageSquare className="w-4 h-4 mr-1" />
-                  메시지
-                </Button>
+
+                {isAuthenticated && (
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg"
+                    onClick={() => handleOpenCallModal(selectedLocation)} // 
+                  >
+                    <Phone className="w-4 h-4 mr-1" />
+                    통화
+                  </Button>
+
+                )}
+                {isAuthenticated && (
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg"
+                    onClick={() => handleOpenMessageModal(selectedLocation)}
+                  >
+                    <MessageSquare className="w-4 h-4 mr-1" />
+                    메시지
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="outline"
@@ -1017,7 +1025,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
                       window.open(`/space/${selectedLocation.id}`, '_blank');
                     }
                   }}
-                >
+                >u
                   <ExternalLink className="w-4 h-4 mr-1 text-purple-600" />
                   방문하기
                 </Button>
@@ -1039,7 +1047,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         )}
       </AnimatePresence>
 
-      {/* 🎨 로딩 오버레이 */}
+      {/* 로딩 오버레이 */}
       <AnimatePresence>
         {isLoading && (
           <motion.div
@@ -1060,7 +1068,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         )}
       </AnimatePresence>
 
-      {/* 🎯 통화 모달 */}
+      {/* 통화 모달 */}
       <CallModal
         open={callModalOpen}
         onOpenChange={setCallModalOpen}
@@ -1075,7 +1083,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         }}
       />
 
-      {/* 🎯 메시지 모달 */}
+      {/* 메시지 모달 */}
       {selectedLocationForAction && (
         <EnhancedMessageModal 
           messageModalOpen={messageModalOpen}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Bell, Menu, X, User, Store, CheckCircle, MessageSquare, ShoppingCart, Tag, Bookmark, Instagram, Facebook } from 'lucide-react';
@@ -9,6 +8,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import CreatePeermall from '@/components/peermall-features/CreatePeermall';
 import { peermallStorage } from '@/services/storage/peermallStorage';
 import { toast } from '@/hooks/use-toast';
+import { CreatePeermallSuccessData } from '@/types/peermall';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Peermall {
   id: string;
@@ -24,13 +25,15 @@ interface Notification {
   type: 'new_comment' | 'new_order' | 'quest_completed' | 'new_follower' | 'system';
   message: string;
   link?: string;
-  timestamp: Date;
+  timestamp: Date; 
   read: boolean;
   icon?: React.ElementType;
   relatedUser?: string;
 }
 
 const Header = () => {
+  const { isAuthenticated } = useAuth();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isMySpacesOpen, setIsMySpacesOpen] = useState(false);
@@ -77,7 +80,15 @@ const Header = () => {
     navigate(`/space/${id}`);
   };
 
-  const handleCreateSuccess = (peermallData: { name: string; type: string; id: string }) => {
+  const handleCreatePeermall = (peermallData: CreatePeermallSuccessData) => {
+    const updatedMalls = peermallStorage.getAll();
+    setMySpaces(updatedMalls);
+
+    toast({
+      title: "피어몰 생성 완료! ",
+      description: `${peermallData.title} 피어몰이 성공적으로 생성되었습니다.`,
+    });
+
     handleCreateModalClose();
     navigate(`/space/${peermallData.id}`);
   };
@@ -164,37 +175,6 @@ const Header = () => {
     }
   };
 
-  const handleCreatePeermall = useCallback((newMallData: Omit<Peermall, 'id' | 'rating' | 'reviewCount' | 'createdAt' | 'updatedAt'>) => {
-      try {
-        console.log('🆕 새 피어몰 생성 시작:', newMallData.title);
-        
-        // 스토리지에 저장 (자동으로 ID와 타임스탬프 생성됨)
-        const savedPeermall = peermallStorage.save({
-          ...newMallData,
-          rating: 0,
-          reviewCount: 0,
-          likes: 0,
-          followers: 0
-        });
-        
-        console.log('✅ 피어몰 생성 완료:', savedPeermall.id);
-        
-        // 성공 토스트
-        toast({
-          title: "🎉 피어몰 생성 완료!",
-          description: `${savedPeermall.title}이(가) 성공적으로 생성되었습니다.`,
-        });
-        
-      } catch (error) {
-        console.error('❌ 피어몰 생성 오류:', error);
-        toast({
-          variant: "destructive",
-          title: "생성 실패",
-          description: "피어몰 생성 중 오류가 발생했습니다."
-        });
-      }
-    }, [toast]);
-
   return (
     <header className="bg-white shadow-sm">
       {/* Main Header */}
@@ -274,7 +254,9 @@ const Header = () => {
           <Link to="/peermalls" className="text-gray-700 hover:text-blue-600 font-medium">피어몰 보러가기</Link>
           <Link to="/products" className="text-gray-700 hover:text-blue-600 font-medium">제품 보러가기</Link>
           <Link to="/create-qrcode" className="text-gray-700 hover:text-blue-600 font-medium">QR코드 만들기</Link>
-          <CreatePeermall onCreatePeermall={handleCreatePeermall} />
+          {isAuthenticated && (
+            <CreatePeermall onCreatePeermall={handleCreatePeermall} />
+          )}
         </nav>
       </div>
 
@@ -286,12 +268,15 @@ const Header = () => {
               <Link to="/peermalls" className="py-2 text-gray-700 hover:text-blue-600">피어몰 보러가기</Link>
               <Link to="/products" className="py-2 text-gray-700 hover:text-blue-600">제품 보러가기</Link>
               <Link to="/create-qrcode" className="py-2 text-gray-700 hover:text-blue-600">QR코드 만들기</Link>
-              <button 
-                onClick={handleCreateModalOpen}
-                className="py-2 text-left text-blue-600 hover:text-blue-700"
-              >
-                피어몰 만들기
-              </button>
+              {isAuthenticated ? (
+                <button 
+                  onClick={handleCreateModalOpen}
+                  className="py-2 text-left text-blue-600 hover:text-blue-700"
+                >
+                  피어몰 만들기
+                </button>
+              ) : null}
+
               {isLoggedIn ? (
                 <>
                   <Link to="/my-info" className="py-2 text-gray-700 hover:text-blue-600" onClick={() => setIsMenuOpen(false)}>내 정보</Link>
@@ -356,7 +341,9 @@ const Header = () => {
       <CreatePeermallModal
         isOpen={isCreateModalOpen}
         onClose={handleCreateModalClose}
-        onSuccess={handleCreateSuccess}
+        onSuccess={(peermallData: CreatePeermallSuccessData) => {
+          handleCreatePeermall(peermallData);
+        }}
       />
     </header>
   );

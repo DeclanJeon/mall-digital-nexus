@@ -52,7 +52,7 @@ const Footer = () => {
             </ul>
           </div> */}
           
-          <div>
+          {/* <div>
             <h3 className="font-bold mb-4">뉴스레터 구독</h3>
             <p className="text-sm text-gray-300 mb-4">최신 업데이트와 소식을 받아보세요.</p>
             <div className="flex">
@@ -65,7 +65,7 @@ const Footer = () => {
                 <Mail className="h-5 w-5" />
               </button>
             </div>
-          </div>
+          </div> */}
         </div>
         
         <div className="border-t border-gray-700 pt-6 mt-6">

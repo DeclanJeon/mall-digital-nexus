@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
-import { PeerMallConfig } from '@/components/peer-space/types';
+import { PeerMallConfig } from '@/types/space';
 import { Peermall } from '@/types/peermall';
 import PeerSpaceHome from '@/components/peer-space/PeerSpaceHome';
 import { Loader2 } from 'lucide-react';
@@ -26,9 +26,6 @@ const getPeerSpaceConfig = (address: string): PeerMallConfig | null => {
 // Function to get peermall details from storage
 const getPeermallDetails = (address: string): Peermall | null => {
   try {
-
-    console.log(peermallStorage.getById(address))
-
     return peermallStorage.getById(address) || null;
   } catch (error) {
     console.error("Error loading peermall details:", error);
@@ -68,15 +65,15 @@ const PeerSpace = () => {
         // 1. Load basic peermall details using peermallStorage
         const peermallData = peermallStorage.getById(address);
 
-        if (!peermallData) {
-          toast({
-            title: '피어몰을 찾을 수 없습니다',
-            description: '요청하신 피어몰이 존재하지 않거나 삭제되었습니다.',
-            variant: 'destructive',
-          });
-          navigate('/');
-          return;
-        }
+        // if (!peermallData) {
+        //   toast({
+        //     title: '피어몰을 찾을 수 없습니다',
+        //     description: '요청하신 피어몰이 존재하지 않거나 삭제되었습니다.',
+        //     variant: 'destructive',
+        //   });
+        //   navigate('/');
+        //   return;
+        // }
         setPeermall(peermallData);
 
         // 🔥 수정: 피어몰 데이터를 기반으로 PeerSpace 설정 생성

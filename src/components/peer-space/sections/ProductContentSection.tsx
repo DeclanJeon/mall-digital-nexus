@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Content } from '../types';
+import { Content } from '@/types/space';
 import ProductCard from '@/components/shopping/ProductCard';
 import { Grid2X2, List, ChevronRight } from 'lucide-react';
 

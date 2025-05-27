@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { peermallStorage, Peermall } from "@/services/storage/peermallStorage";
 import { 
@@ -20,6 +20,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 import EnhancedMessageModal from "@/components/features/EnhancedMessageModal";
 import CallModal from "@/components/features/CallModal";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PeermallCardProps extends Peermall {
   isPopular?: boolean;
@@ -75,6 +76,7 @@ const PeermallCard: React.FC<PeermallCardProps> = ({
   ...rest
 }) => {
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
   const [isLiked, setIsLiked] = useState(false);
   const [currentLikes, setCurrentLikes] = useState(initialLikes);
   const [currentFollowers, setCurrentFollowers] = useState(initialFollowers);
@@ -202,6 +204,12 @@ const PeermallCard: React.FC<PeermallCardProps> = ({
     }, 1000);
   }, [message, owner, toast]);
 
+  useEffect(() => {
+    if (initialLikes !== undefined) {
+      setCurrentLikes(initialLikes);
+    }
+  }, [initialLikes]);
+
   return (
     <>
       <motion.div
@@ -247,22 +255,30 @@ const PeermallCard: React.FC<PeermallCardProps> = ({
                 "absolute inset-0 bg-black/50 flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
                 isHovered && "opacity-100"
               )}>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="rounded-full bg-white/90 hover:bg-white"
-                  onClick={handleQuickCall}
-                >
-                  <Phone className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="rounded-full bg-white/90 hover:bg-white"
-                  onClick={handleQuickMessage}
-                >
-                  <MessageSquare className="h-4 w-4" />
-                </Button>
+
+                {isAuthenticated && ( 
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="rounded-full bg-white/90 hover:bg-white"
+                    onClick={handleQuickCall}
+                  >
+                    <Phone className="h-4 w-4" />
+                  </Button>
+                )}
+
+                {isAuthenticated && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="rounded-full bg-white/90 hover:bg-white"
+                    onClick={handleQuickMessage}
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                  </Button>
+                )}
+
+                
                 <Button 
                   variant="outline" 
                   size="icon" 
@@ -311,6 +327,49 @@ const PeermallCard: React.FC<PeermallCardProps> = ({
           </Card>
         </Link>
       </motion.div>
+      
+      {/* 하단 버튼 그룹 */}
+      {/* <div className="absolute bottom-4 right-4 flex space-x-2 z-10">
+        {onShowQrCode && (
+          <Button
+            size="icon" 
+            className="rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-all duration-300 text-gray-700 hover:text-blue-600"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onShowQrCode(id, title);
+            }}
+          >
+            <QrCode className="h-5 w-5" />
+          </Button>
+        )}
+        {isAuthenticated && (
+          <Button
+            size="icon"
+            className="rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-all duration-300 text-gray-700 hover:text-green-600"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsCallModalOpen(true);
+            }}
+          >
+            <Phone className="h-5 w-5" />
+          </Button>
+        )}
+        {isAuthenticated && (
+          <Button
+            size="icon"
+            className="rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-all duration-300 text-gray-700 hover:text-purple-600"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsMessageModalOpen(true);
+            }}
+          >
+            <MessageSquare className="h-5 w-5" />
+          </Button>
+        )}
+      </div> */}
       
       {/* 통화 모달 */}
       <CallModal 

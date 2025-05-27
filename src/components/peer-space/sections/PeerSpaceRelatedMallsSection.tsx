@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Users, Star, Heart } from 'lucide-react';
 // TODO: Import PeerMallConfig if needed later
-// import { PeerMallConfig } from './types';
+import { PeerMallConfig } from '@/types/space';
 
 const PeerSpaceRelatedMallsSection: React.FC = () => {
   // Placeholder data - replace with actual data from config or API

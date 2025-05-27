@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Content, PeerMallConfig } from '../types';
+import { Content, PeerMallConfig } from '@/types/space';
 import { heroSlides, guestbookData, followingPeermalls } from '../data/homeMockData';
 import BasicInfoSection from './BasicInfoSection';
 import HeroSection from './HeroSection';
@@ -50,7 +50,7 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
     ), [posts, searchQuery]);
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 flex">
+    <div className="min-h-screen bg-gray-50 text-gray-900 flex align-center justify-center">
       <div className="flex p-6">
         <div className="flex-1 pr-6">
           {activeSection === 'home' && (

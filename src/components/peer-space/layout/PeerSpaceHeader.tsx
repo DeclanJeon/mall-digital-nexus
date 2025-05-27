@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { PeerMallConfig } from '../types';
+import { PeerMallConfig } from '@/types/space';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Plus, Settings, Package, Users } from 'lucide-react'; // Users 아이콘 추가
