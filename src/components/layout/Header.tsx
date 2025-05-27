@@ -197,25 +197,6 @@ const Header = () => {
 
   return (
     <header className="bg-white shadow-sm">
-      {/* Top Navigation Bar */}
-      <div className="bg-gray-800 text-white text-sm py-2">
-        <div className="container mx-auto px-4 flex justify-between items-center">
-          <div className="flex space-x-4">
-            <span>로그인</span>
-            <span>회원가입</span>
-            <span>장바구니</span>
-            <span className="bg-gray-600 px-2 py-1 rounded text-xs">0</span>
-            <span>주문조회</span>
-            <span>마이페이지</span>
-          </div>
-          <div className="flex space-x-4">
-            <span>고객센터</span>
-            <span>배송조회</span>
-            <span>즐겨찾기</span>
-          </div>
-        </div>
-      </div>
-
       {/* Main Header */}
       <div className="mx-auto px-4">
         <div className="flex justify-between items-center py-4">
