@@ -1,10 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react'; // useRef 추가
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Bell, Menu, X, User, Store, CheckCircle, MessageSquare, ShoppingCart, Tag } from 'lucide-react'; // 아이콘 추가
+import { Search, Bell, Menu, X, User, Store, CheckCircle, MessageSquare, ShoppingCart, Tag, Bookmark, Instagram, Facebook } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CreatePeermallModal from '@/components/peermall-features/CreatePeermallModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Popover 추가
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import CreatePeermall from '../peermall-features/CreatePeermall';
+import { peermallStorage } from '@/services/storage/peermallStorage';
+import { toast } from '@/hooks/use-toast';
 
 interface Peermall {
   id: string;
@@ -15,7 +19,6 @@ interface Peermall {
   owner: string;
 }
 
-// 알림 데이터 인터페이스 정의
 interface Notification {
   id: string;
   type: 'new_comment' | 'new_order' | 'quest_completed' | 'new_follower' | 'system';
@@ -23,8 +26,8 @@ interface Notification {
   link?: string;
   timestamp: Date;
   read: boolean;
-  icon?: React.ElementType; // 아이콘 컴포넌트 타입
-  relatedUser?: string; // 관련 사용자 (예: 댓글 작성자)
+  icon?: React.ElementType;
+  relatedUser?: string;
 }
 
 const Header = () => {
@@ -35,18 +38,13 @@ const Header = () => {
   const [mySpaces, setMySpaces] = useState<Peermall[]>([]);
   const navigate = useNavigate();
 
-  // 알림 관련 상태
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const notificationRef = useRef<HTMLDivElement>(null); // Popover 외부 클릭 감지용
+  const notificationRef = useRef<HTMLDivElement>(null);
 
-  // 임시 알림 데이터 (백엔드 연동 시 이 부분은 API 호출로 대체)
   const mockNotifications: Notification[] = [
     { id: '1', type: 'new_comment', message: '새로운 댓글이 달렸습니다: "정말 멋진 공간이네요!"', link: '/community/post/123', timestamp: new Date(Date.now() - 3600000), read: false, icon: MessageSquare, relatedUser: '피어몰러버' },
     { id: '2', type: 'new_order', message: '새로운 주문이 들어왔습니다: "피어몰 티셔츠 외 2건"', link: '/my-info/orders/456', timestamp: new Date(Date.now() - 7200000), read: false, icon: ShoppingCart },
-    { id: '3', type: 'quest_completed', message: "'첫 피어몰 탐방' 퀘스트를 완료했습니다!", link: '/my-info/quests', timestamp: new Date(Date.now() - 10800000), read: true, icon: CheckCircle },
-    { id: '4', type: 'new_follower', message: "'커뮤니티매니저'님이 회원님을 팔로우하기 시작했습니다.", link: '/profile/communitymanager', timestamp: new Date(Date.now() - 86400000), read: true, icon: User },
-    { id: '5', type: 'system', message: "피어몰 시스템 점검 안내 (05/10 02:00 ~ 04:00)", timestamp: new Date(Date.now() - 172800000), read: true, icon: Tag },
   ];
 
   const handleCreateModalOpen = () => setIsCreateModalOpen(true);
@@ -61,7 +59,6 @@ const Header = () => {
     setIsMySpacesOpen(false);
   };
 
-  // Load my spaces from localStorage
   const loadMySpaces = () => {
     try {
       const storedPeermalls = localStorage.getItem('peermalls');
@@ -80,29 +77,20 @@ const Header = () => {
     navigate(`/space/${id}`);
   };
 
-  // Handle successful peermall creation
   const handleCreateSuccess = (peermallData: { name: string; type: string; id: string }) => {
-    // Close modal
     handleCreateModalClose();
-    
-    // Navigate to the new peermall
     navigate(`/space/${peermallData.id}`);
   };
 
   useEffect(() => {
-    // Check if user is logged in using localStorage
     const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
     setIsLoggedIn(userLoggedIn);
     
-    // Initial load of my spaces
     if (userLoggedIn) {
       loadMySpaces();
-      // 백엔드 연동 시: 실제 알림 데이터 로드
-      // fetchNotifications();
-      setNotifications(mockNotifications); // 임시 데이터 사용
+      setNotifications(mockNotifications);
     }
 
-    // Popover 외부 클릭 시 닫기
     const handleClickOutside = (event: MouseEvent) => {
       if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
         setIsNotificationsOpen(false);
@@ -112,18 +100,7 @@ const Header = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-
   }, []);
-
-  // 백엔드 연동 시 사용할 알림 로드 함수 (예시)
-  // const fetchNotifications = async () => {
-  //   try {
-  //     // const response = await api.get('/notifications'); // API 호출
-  //     // setNotifications(response.data);
-  //   } catch (error) {
-  //     console.error("Error fetching notifications:", error);
-  //   }
-  // };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -137,48 +114,30 @@ const Header = () => {
     localStorage.removeItem('userLoggedIn');
     localStorage.removeItem('userEmail');
     setIsLoggedIn(false);
-    setNotifications([]); // 로그아웃 시 알림 초기화
-    window.location.reload(); // Refresh to update all components
+    setNotifications([]);
+    window.location.reload();
   };
 
-  // 알림 아이콘 클릭 핸들러
   const toggleNotifications = () => {
     setIsNotificationsOpen(prev => !prev);
-    // 백엔드 연동 시: 알림을 열 때 읽지 않은 알림 수를 초기화하거나,
-    // 특정 알림을 읽음 처리하는 API를 호출할 수 있습니다.
   };
 
-  // 알림 읽음 처리 핸들러 (UI 상에서만)
   const handleMarkAsRead = (id: string) => {
     setNotifications(prevNotifications =>
       prevNotifications.map(notif =>
         notif.id === id ? { ...notif, read: true } : notif
       )
     );
-    // 백엔드 연동 시: 특정 알림을 읽음 처리하는 API 호출
-    // try {
-    //   await api.post(`/notifications/${id}/read`);
-    // } catch (error) {
-    //   console.error("Error marking notification as read:", error);
-    // }
   };
   
-  // 모든 알림 읽음 처리 핸들러 (UI 상에서만)
   const handleMarkAllAsRead = () => {
     setNotifications(prevNotifications =>
       prevNotifications.map(notif => ({ ...notif, read: true }))
     );
-    // 백엔드 연동 시: 모든 알림을 읽음 처리하는 API 호출
-    // try {
-    //   await api.post('/notifications/mark-all-as-read');
-    // } catch (error) {
-    //   console.error("Error marking all notifications as read:", error);
-    // }
   };
 
   const unreadNotificationsCount = notifications.filter(n => !n.read).length;
 
-  // 시간 포맷 함수
   const formatTimeAgo = (date: Date) => {
     const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
     let interval = seconds / 31536000;
@@ -194,7 +153,6 @@ const Header = () => {
     return Math.floor(seconds) + "초 전";
   };
 
-  // 알림 아이콘 매핑
   const getNotificationIcon = (type: Notification['type']) => {
     switch (type) {
       case 'new_comment': return <MessageSquare className="h-5 w-5 text-blue-500" />;
@@ -206,191 +164,137 @@ const Header = () => {
     }
   };
 
+  const handleCreatePeermall = useCallback((newMallData: Omit<Peermall, 'id' | 'rating' | 'reviewCount' | 'createdAt' | 'updatedAt'>) => {
+      try {
+        console.log('🆕 새 피어몰 생성 시작:', newMallData.title);
+        
+        // 스토리지에 저장 (자동으로 ID와 타임스탬프 생성됨)
+        const savedPeermall = peermallStorage.save({
+          ...newMallData,
+          rating: 0,
+          reviewCount: 0,
+          likes: 0,
+          followers: 0
+        });
+        
+        console.log('✅ 피어몰 생성 완료:', savedPeermall.id);
+        
+        // 성공 토스트
+        toast({
+          title: "🎉 피어몰 생성 완료!",
+          description: `${savedPeermall.title}이(가) 성공적으로 생성되었습니다.`,
+        });
+        
+      } catch (error) {
+        console.error('❌ 피어몰 생성 오류:', error);
+        toast({
+          variant: "destructive",
+          title: "생성 실패",
+          description: "피어몰 생성 중 오류가 발생했습니다."
+        });
+      }
+    }, [toast]);
 
   return (
     <header className="bg-white shadow-sm">
+      {/* Top Navigation Bar */}
+      <div className="bg-gray-800 text-white text-sm py-2">
+        <div className="container mx-auto px-4 flex justify-between items-center">
+          <div className="flex space-x-4">
+            <span>로그인</span>
+            <span>회원가입</span>
+            <span>장바구니</span>
+            <span className="bg-gray-600 px-2 py-1 rounded text-xs">0</span>
+            <span>주문조회</span>
+            <span>마이페이지</span>
+          </div>
+          <div className="flex space-x-4">
+            <span>고객센터</span>
+            <span>배송조회</span>
+            <span>즐겨찾기</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Header */}
       <div className="mx-auto px-4">
         <div className="flex justify-between items-center py-4">
-          {/* Logo */}
-          <Link to="/" className="text-2xl font-bold text-primary-300">
-            PeerMall
-          </Link>
-
-          {/* Search Bar (desktop) */}
-          <div className="hidden md:flex items-center flex-1 mx-8">
-            <div className="relative w-full max-w-xl">
-              <input
-                type="text"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-primary-200"
-                placeholder="피어몰, 제품 검색... "
-              />
-              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-            </div>
+          {/* Left Side - Bookmark and Search */}
+          <div className="flex items-center space-x-4">
+            {/* <Bookmark className="h-6 w-6 text-gray-600" />
+            <Search className="h-6 w-6 text-gray-600" /> */}
           </div>
 
-          {/* Navigation Links (desktop) */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/shopping" className="text-text-200 hover:text-primary-300">제품/피어몰</Link>
-            {/* <Link to="/curation-links" className="text-text-200 hover:text-primary-300">큐레이션</Link> */}
-            {/* <Link to="/community" className="text-text-200 hover:text-primary-300">커뮤니티</Link> */}
-            <Link to="/create-qrcode" className="text-text-200 hover:text-primary-300">QR코드 만들기</Link>
-            {/* <Link to="/customer-support" className="text-text-200 hover:text-primary-300">고객센터</Link> */}
-            
-            <button
-              onClick={handleCreateModalOpen}
-              className="bg-primary-200 hover:bg-primary-300 text-white font-bold py-2 px-4 rounded"
-            >
-              피어몰 만들기
-            </button>
-          </nav>
+          {/* Center - Logo */}
+          <Link to="/" className="flex items-center">
+            <div className="flex items-center space-x-2">
+              <div className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold">
+                당신의 세상을 넓히는 연결의 시작
+              </div>
+              <span className="text-3xl font-bold text-blue-600">PEER</span>
+              <span className="text-3xl font-bold text-gray-800">MALL</span>
+            </div>
+          </Link>
 
-          {/* User Actions (desktop) */}
-          <div className="hidden md:flex items-center ml-6">
-            {/* {isLoggedIn && ( // 로그인 상태일 때만 알림 아이콘 표시
-            <Popover open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
-              <PopoverTrigger asChild>
-                <button onClick={toggleNotifications} className="p-2 relative">
-                  <Bell className="h-5 w-5 text-text-200 hover:text-primary-300" />
-                  {unreadNotificationsCount > 0 && (
-                    <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                      {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
-                    </span>
-                  )}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent
-                ref={notificationRef}
-                className="w-80 md:w-96 p-0 shadow-xl rounded-lg border"
-                align="end"
-              >
-                <div className="p-4 border-b">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold text-gray-800">알림</h3>
-                    {notifications.length > 0 && (
-                      <Button variant="link" size="sm" onClick={handleMarkAllAsRead} className="text-sm text-blue-600 hover:text-blue-800">
-                        모두 읽음
-                      </Button>
+          {/* Right Side - Social Icons */}
+          <div className="flex items-center space-x-4">
+            <div className="w-6 h-6 bg-gray-600 rounded flex items-center justify-center">
+              <div className="hidden md:flex items-center justify-end py-2">
+                {isLoggedIn ? (
+                  <div className="relative">
+                    <div 
+                      className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white cursor-pointer"
+                      onClick={() => setIsMenuOpen(prev => !prev)}
+                    >
+                      <User className="h-5 w-5" />
+                    </div>
+                    {isMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                        <Link to="/my-info" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 정보</Link>
+                        <button 
+                          onClick={handleOpenMySpaces}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          내 스페이스
+                        </button>
+                        <button 
+                          onClick={handleLogout}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          로그아웃
+                        </button>
+                      </div>
                     )}
                   </div>
-                </div>
-                {notifications.length === 0 ? (
-                  <div className="p-6 text-center text-gray-500">
-                    새로운 알림이 없습니다.
-                  </div>
                 ) : (
-                  <div className="max-h-[60vh] overflow-y-auto">
-                    {notifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        className={`p-3 border-b hover:bg-gray-50 ${!notification.read ? 'bg-blue-50' : 'bg-white'}`}
-                      >
-                        <Link
-                          to={notification.link || '#'}
-                          onClick={() => {
-                            handleMarkAsRead(notification.id);
-                            setIsNotificationsOpen(false); // 링크 클릭 시 팝오버 닫기
-                          }}
-                          className="block"
-                        >
-                          <div className="flex items-start space-x-3">
-                            <div className="flex-shrink-0 pt-1">
-                              {getNotificationIcon(notification.type)}
-                            </div>
-                            <div className="flex-1">
-                              <p className={`text-sm ${!notification.read ? 'font-semibold text-gray-800' : 'text-gray-700'}`}>
-                                {notification.relatedUser && <span className="font-bold">{notification.relatedUser}</span>}
-                                {notification.relatedUser ? '님이 ' : ''}
-                                {notification.message}
-                              </p>
-                              <p className="text-xs text-gray-500 mt-0.5">
-                                {formatTimeAgo(notification.timestamp)}
-                              </p>
-                            </div>
-                            {!notification.read && (
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault(); // 링크 이동 방지
-                                  e.stopPropagation(); // 이벤트 버블링 방지
-                                  handleMarkAsRead(notification.id);
-                                }}
-                                className="p-1 rounded-full hover:bg-gray-200"
-                                title="읽음으로 표시"
-                              >
-                                <CheckCircle className="h-4 w-4 text-gray-400 hover:text-green-500" />
-                              </button>
-                            )}
-                          </div>
-                        </Link>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div className="p-2 text-center border-t">
-                  <Link to="/my-info/notifications" onClick={() => setIsNotificationsOpen(false)} className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                    모든 알림 보기
-                  </Link>
-                </div>
-              </PopoverContent>
-            </Popover>
-            )} */}
-            
-            {isLoggedIn ? (
-              <div className="relative ml-4">
-                <div 
-                  className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-white cursor-pointer"
-                  onClick={() => setIsMenuOpen(prev => !prev)}
-                >
-                  <User className="h-5 w-5" />
-                </div>
-                {isMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
-                    <Link to="/my-info" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 정보</Link>
-                    <button 
-                      onClick={handleOpenMySpaces}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      내 스페이스
-                    </button>
-                    <button 
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      로그아웃
-                    </button>
-                  </div>
+                  <Button 
+                    onClick={handleLogin}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    로그인
+                  </Button>
                 )}
               </div>
-            ) : (
-              <Button 
-                onClick={handleLogin}
-                className="ml-4 bg-primary-300 hover:bg-primary-400 text-white"
-              >
-                로그인
-              </Button>
-            )}
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
           <button className="md:hidden p-2" onClick={toggleMenu}>
             {isMenuOpen ? (
-              <X className="h-6 w-6 text-text-200" />
+              <X className="h-6 w-6 text-gray-600" />
             ) : (
-              <Menu className="h-6 w-6 text-text-200" />
+              <Menu className="h-6 w-6 text-gray-600" />
             )}
           </button>
         </div>
 
-        {/* Search Bar (mobile) */}
-        <div className="md:hidden pb-4">
-          <div className="relative">
-            <input
-              type="text"
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-primary-200"
-              placeholder="피어몰, 피어스페이스, 콘텐츠 검색..."
-            />
-            <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-          </div>
-        </div>
+        {/* Navigation Menu */}
+        <nav className="hidden md:flex items-center justify-center space-x-8 py-4 border-t border-gray-100">
+          <Link to="/peermalls" className="text-gray-700 hover:text-blue-600 font-medium">피어몰 보러가기</Link>
+          <Link to="/products" className="text-gray-700 hover:text-blue-600 font-medium">제품 보러가기</Link>
+          <Link to="/create-qrcode" className="text-gray-700 hover:text-blue-600 font-medium">QR코드 만들기</Link>
+          <CreatePeermall onCreatePeermall={handleCreatePeermall} />
+        </nav>
       </div>
 
       {/* Mobile Menu */}
@@ -398,130 +302,21 @@ const Header = () => {
         <div className="md:hidden bg-white border-t border-gray-100">
           <div className="container mx-auto px-4 py-3">
             <nav className="flex flex-col space-y-3">
-              <Link to="/shopping" className="py-2 text-text-200 hover:text-primary-300">쇼핑</Link>
-              <Link to="/curation-links" className="py-2 text-text-200 hover:text-primary-300">큐레이션</Link>
-              <Link to="/community" className="py-2 text-text-200 hover:text-primary-300">커뮤니티</Link>
-              {isLoggedIn && (
-                <button 
-                  onClick={handleOpenMySpaces}
-                  className="py-2 text-left text-accent-200 hover:text-accent-100"
-                >
-                  내 스페이스
-                </button>
-              )}
+              <Link to="/peermalls" className="py-2 text-gray-700 hover:text-blue-600">피어몰 보러가기</Link>
+              <Link to="/products" className="py-2 text-gray-700 hover:text-blue-600">제품 보러가기</Link>
+              <Link to="/create-qrcode" className="py-2 text-gray-700 hover:text-blue-600">QR코드 만들기</Link>
               <button 
                 onClick={handleCreateModalOpen}
-                className="py-2 text-left text-accent-200 hover:text-accent-100"
+                className="py-2 text-left text-blue-600 hover:text-blue-700"
               >
                 피어몰 만들기
               </button>
-              <div className="flex items-center justify-between py-2">
-                <div className="flex items-center">
-                  {/* 모바일 알림 아이콘 - 데스크탑과 동일한 Popover 사용 가능하나, UI/UX 고려하여 별도 처리 또는 버튼만 제공 */}
-                  <Popover open={isNotificationsOpen && isMenuOpen} onOpenChange={(open) => { if (isMenuOpen) setIsNotificationsOpen(open); }}>
-                    <PopoverTrigger asChild>
-                      <button onClick={toggleNotifications} className="flex items-center justify-between py-2 w-full">
-                        <div className="flex items-center">
-                          <Bell className="h-5 w-5 text-text-200" />
-                          <span className="ml-2 text-text-200">알림</span>
-                        </div>
-                        {unreadNotificationsCount > 0 && (
-                          <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                            {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
-                          </span>
-                        )}
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      ref={notificationRef}
-                      className="w-full p-0 shadow-xl rounded-lg border mt-1" // 모바일에서는 화면 너비에 맞게
-                      align="start" // 모바일에서는 시작점에 맞춤
-                    >
-                      <div className="p-4 border-b">
-                        <div className="flex justify-between items-center">
-                          <h3 className="text-lg font-semibold text-gray-800">알림</h3>
-                          {notifications.length > 0 && (
-                          <Button variant="link" size="sm" onClick={handleMarkAllAsRead} className="text-sm text-blue-600 hover:text-blue-800">
-                            모두 읽음
-                          </Button>
-                          )}
-                        </div>
-                      </div>
-                      {notifications.length === 0 ? (
-                        <div className="p-6 text-center text-gray-500">
-                          새로운 알림이 없습니다.
-                        </div>
-                      ) : (
-                        <div className="max-h-[40vh] overflow-y-auto"> {/* 모바일 높이 조절 */}
-                          {notifications.map((notification) => (
-                            <div
-                              key={notification.id}
-                              className={`p-3 border-b hover:bg-gray-50 ${!notification.read ? 'bg-blue-50' : 'bg-white'}`}
-                            >
-                              <Link
-                                to={notification.link || '#'}
-                                onClick={() => {
-                                  handleMarkAsRead(notification.id);
-                                  setIsNotificationsOpen(false);
-                                  setIsMenuOpen(false); // 모바일 메뉴도 닫기
-                                }}
-                                className="block"
-                              >
-                                <div className="flex items-start space-x-3">
-                                  <div className="flex-shrink-0 pt-1">
-                                    {getNotificationIcon(notification.type)}
-                                  </div>
-                                  <div className="flex-1">
-                                    <p className={`text-sm ${!notification.read ? 'font-semibold text-gray-800' : 'text-gray-700'}`}>
-                                      {notification.relatedUser && <span className="font-bold">{notification.relatedUser}</span>}
-                                      {notification.relatedUser ? '님이 ' : ''}
-                                      {notification.message}
-                                    </p>
-                                    <p className="text-xs text-gray-500 mt-0.5">
-                                      {formatTimeAgo(notification.timestamp)}
-                                    </p>
-                                  </div>
-                                  {!notification.read && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        handleMarkAsRead(notification.id);
-                                      }}
-                                      className="p-1 rounded-full hover:bg-gray-200"
-                                      title="읽음으로 표시"
-                                    >
-                                      <CheckCircle className="h-4 w-4 text-gray-400 hover:text-green-500" />
-                                    </button>
-                                  )}
-                                </div>
-                              </Link>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                       <div className="p-2 text-center border-t">
-                        <Link
-                          to="/my-info/notifications"
-                          onClick={() => {
-                            setIsNotificationsOpen(false);
-                            setIsMenuOpen(false); // 모바일 메뉴도 닫기
-                          }}
-                          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                        >
-                          모든 알림 보기
-                        </Link>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-</div>
               {isLoggedIn ? (
                 <>
-                  <Link to="/my-info" className="py-2 text-text-200 hover:text-primary-300" onClick={() => setIsMenuOpen(false)}>내 정보</Link>
+                  <Link to="/my-info" className="py-2 text-gray-700 hover:text-blue-600" onClick={() => setIsMenuOpen(false)}>내 정보</Link>
                   <button
                     onClick={() => { handleLogout(); setIsMenuOpen(false); }}
-                    className="py-2 text-left text-text-200 hover:text-primary-300"
+                    className="py-2 text-left text-gray-700 hover:text-blue-600"
                   >
                     로그아웃
                   </button>
@@ -529,7 +324,7 @@ const Header = () => {
               ) : (
                 <Button
                   onClick={() => { handleLogin(); setIsMenuOpen(false); }}
-                  className="mt-2 w-full bg-primary-300 hover:bg-primary-400 text-white"
+                  className="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   로그인
                 </Button>

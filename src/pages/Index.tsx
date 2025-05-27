@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { BookmarkItem } from '@/components/navigation/SearchAndFilterBar';
 import PeermallGrid from '@/components/peermall-features/PeermallGrid';
 import HashtagFilter, { HashtagFilterOption, PeermallType } from '@/components/navigation/HashtagFilter';
 import FavoriteServicesSection from '@/components/feature-sections/FavoriteServicesSection';
@@ -16,6 +17,7 @@ import { peermallStorage, Peermall } from '@/services/storage/peermallStorage';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import SearchAndFilterBar from '@/components/navigation/SearchAndFilterBar';
 
 interface Location {
   lat: number;
@@ -118,6 +120,38 @@ const Index = () => {
   const [qrModalTitle, setQrModalTitle] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [selectedHashtags, setSelectedHashtags] = useState<string[]>(['전체']);
+  const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearchChange = useCallback((query: string) => {
+    setSearchQuery(query);
+    // 여기에 검색 로직 추가
+    console.log('검색어 변경:', query);
+  }, []);
+
+  const handleBookmarkToggle = useCallback((itemId: string) => {
+    setBookmarks(prev => {
+      const isBookmarked = prev.some(bookmark => bookmark.id === itemId);
+      if (isBookmarked) {
+        return prev.filter(bookmark => bookmark.id !== itemId);
+      } else {
+        // 여기서는 예시로 북마크 아이템을 생성합니다. 실제로는 해당 아이템의 정보를 가져와야 합니다.
+        const newBookmark: BookmarkItem = {
+          id: itemId,
+          title: `북마크 ${itemId}`,
+          description: '설명이 들어갑니다.',
+          addedAt: new Date()
+        };
+        return [...prev, newBookmark];
+      }
+    });
+  }, []);
+
+  const handleBookmarkRemove = useCallback((id: string) => {
+    setBookmarks(prev => prev.filter(bookmark => bookmark.id !== id));
+    console.log('북마크 제거:', id);
+  }, []);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [refreshing, setRefreshing] = useState(false);
@@ -224,6 +258,13 @@ const Index = () => {
     { label: '#라이프', value: '#라이프' },
     { label: '#취미', value: '#취미' },
     { label: '#여행', value: '#여행' },
+  ];
+
+  const peermallTypeOptions: { label: string; value: PeermallType }[] = [
+    { label: '모두', value: 'all' },
+    { label: '인기', value: 'trending' },
+    { label: '최신', value: 'recent' },
+    { label: '추천', value: 'recommended' },
   ];
 
   const handleFilterChange = useCallback((selectedHashtags: string[], selectedTypes: PeermallType[]) => {
@@ -406,24 +447,15 @@ const Index = () => {
           className="mb-8"
           {...designTokens.animations.fadeIn}
         >
-          {/* 필터 섹션 */}
-          <Card className={designTokens.elevation.card}>
-            <CardContent className="p-4">
-              <HashtagFilter
-                hashtags={hashtagOptions}
-                onFilterChange={handleFilterChange}
-              />
-            </CardContent>
-          </Card>
-        </motion.section>
-
-        {/* ✨ 피어몰 생성 CTA */}
-        <motion.section 
-          className={designTokens.spacing.section}
-          {...designTokens.animations.fadeIn}
-          transition={{ delay: 0.1 }}
-        >
-          <CreatePeermall onCreatePeermall={handleCreatePeermall} />
+          <SearchAndFilterBar
+            hashtags={hashtagOptions}
+            peermallTypeOptions={peermallTypeOptions}
+            bookmarks={bookmarks}
+            onSearchChange={handleSearchChange}
+            onFilterChange={handleFilterChange}
+            onBookmarkToggle={handleBookmarkToggle}
+            onBookmarkRemove={handleBookmarkRemove}
+          />
         </motion.section>
 
         {/* 📊 메인 콘텐츠 그리드 */}
@@ -611,10 +643,6 @@ const Index = () => {
                   <div className="h-full overflow-hidden rounded-b-lg">
                     <EcosystemMap 
                       onLocationSelect={handleLocationSelect}
-                      onFullscreenChange={(isFullscreen) => {
-                        // 전체화면 상태 변경 시 필요한 로직 추가 가능
-                        console.log('맵 전체화면 상태:', isFullscreen);
-                      }}
                     />
                   </div>
                 </CardContent>

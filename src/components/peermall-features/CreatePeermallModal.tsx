@@ -61,7 +61,7 @@ import { CreatePeermallModalProps, CreatePeermallSuccessData, FamilyMember, Peer
 const step1Schema = z.object({
   address: z.string()
     .min(1, { message: '피어몰 주소를 입력해주세요' })
-    .regex(/^[a-z0-9-]+$/, { message: '소문자, 숫자, 하이픈(-)만 사용 가능합니다' }),
+    .regex(/^[a-zA-Z0-9-가-힣]+$/, { message: '한글, 영문 대소문자, 숫자, 하이픈(-)만 사용 가능합니다' }),
   name: z.string().min(2, { message: '피어몰 이름은 2자 이상이어야 합니다' }),
   description: z.string().min(10, { message: '설명은 10자 이상이어야 합니다' }),
   representativeName: z.string().min(1, { message: '대표자 이름을 입력해주세요' }),

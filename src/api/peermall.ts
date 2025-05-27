@@ -8,7 +8,7 @@ import type { Peermall } from '@/types/peermall';
 export const getPeermallByAddress = async (address: string): Promise<Peermall> => {
   try {
     // TODO: 실제 API 엔드포인트로 대체
-    // const response = await fetch(`/api/peermall/${address}`);
+    // const response = await fetch(`/api/space/${address}`);
     // if (!response.ok) throw new Error('Failed to fetch peermall');
     // return await response.json();
     
@@ -50,7 +50,7 @@ export const getPeermallByAddress = async (address: string): Promise<Peermall> =
 export const updatePeermall = async (address: string, data: Partial<Peermall>): Promise<Peermall> => {
   try {
     // TODO: 실제 API 엔드포인트로 대체
-    // const response = await fetch(`/api/peermall/${address}`, {
+    // const response = await fetch(`/api/space/${address}`, {
     //   method: 'PATCH',
     //   headers: { 'Content-Type': 'application/json' },
     //   body: JSON.stringify(data),

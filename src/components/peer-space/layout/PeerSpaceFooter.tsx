@@ -11,12 +11,12 @@ interface PeerSpaceFooterProps {
 
 const PeerSpaceFooter: React.FC<PeerSpaceFooterProps> = ({ config }) => {
   const quickLinks = [
-    { label: '소개', url: `/peermall/${config.id}/about` },
-    { label: '콘텐츠', url: `/peermall/${config.id}/content` },
-    { label: '커뮤니티', url: `/peermall/${config.id}/community` },
-    { label: '이벤트', url: `/peermall/${config.id}/events` },
-    { label: '리뷰', url: `/peermall/${config.id}/reviews` },
-    { label: '문의하기', url: `/peermall/${config.id}/contact` },
+    { label: '소개', url: `/space/${config.id}/about` },
+    { label: '콘텐츠', url: `/space/${config.id}/content` },
+    { label: '커뮤니티', url: `/space/${config.id}/community` },
+    { label: '이벤트', url: `/space/${config.id}/events` },
+    { label: '리뷰', url: `/space/${config.id}/reviews` },
+    { label: '문의하기', url: `/space/${config.id}/contact` },
   ];
   
   const socialIcons = {
