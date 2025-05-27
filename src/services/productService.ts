@@ -1,6 +1,14 @@
 import axios from 'axios';
+import userService from './userService';
+import { Content } from '@/components/peer-space/content/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = 'http://localhost:9393/v1/products';
+const accessToken = userService.getAccessToken();
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+});
 
 interface PurchaseResponse {
   success: boolean;
@@ -9,6 +17,34 @@ interface PurchaseResponse {
 }
 
 export const productService = {
+  async registerProduct(productData: any, peerMallName: string, peerMallKey: string ): Promise<any> {
+    try {
+      const response = await api.post(`/register`, { productData, peerMallName, peerMallKey }, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      throw error.response.data;
+    }
+  },
+
+  async getProductList(peerMallName: string, peerMallKey: string): Promise<any> {
+    try {
+      const response = await api.get('/productList', {
+        params: { peerMallName, peerMallKey }
+      });
+      if (response.status === 200 && response.data.success) {
+        return response.data;
+      }
+      return { success: false };
+    } catch (error) {
+      console.error('Error sending verification code:', error);
+      return { success: false };
+    }
+  },
+
   // Add product to wishlist
   async addToWishlist(productId: string | number): Promise<boolean> {
     try {
