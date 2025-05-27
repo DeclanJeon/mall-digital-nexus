@@ -158,11 +158,29 @@ export interface Content {
   attributes?: Record<string, unknown>;
   badges?: string[];
   isFeatured?: boolean;
+  viewCount?: number;
+  likeCount?: number;
+  commentCount?: number;
+  downloadCount?: number;
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  estimatedTime?: string;
+  fileUrl?: string;
+  fileSize?: string;
+  fileType?: string;
+  previewUrl?: string;
+  sourceUrl?: string;
 }
 
-export interface Event {
+export interface UserLevel {
+  level: number;
+  name: string;
+  color: string;
+  privileges: string[];
+}
+
+export interface Badge {
   id: string;
-  title: string;
+  name: string;
   description: string;
   startDate: string;
   endDate: string;
@@ -264,7 +282,7 @@ export interface User {
   };
 }
 
-export interface PeerSpaceData {
+export interface Event {
   id: string;
   address: string;
   name: string;
