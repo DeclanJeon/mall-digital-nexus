@@ -121,8 +121,8 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         
         if (loginRes.success) {
           // 로컬 스토리지에 로그인 정보 저장
-          localStorage.setItem('userLoggedIn', 'true');
-          localStorage.setItem('userEmail', email);
+          //localStorage.setItem('userLoggedIn', 'true');
+          //localStorage.setItem('userEmail', email);
           
           // 일반 사용자만 토큰 저장
           if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
