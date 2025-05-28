@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Content, ContentType, PeerMallConfig, SectionType } from '@/types/space';
+import { Product, isProduct } from '@/types/product';
 import { Peermall } from '@/types/peermall';
 import { 
   Heart, 
@@ -75,8 +76,9 @@ interface PeerSpaceHomeProps {
   config: PeerMallConfig;
   peermall: Peermall | null;
   onUpdateConfig: (updatedConfig: PeerMallConfig) => void;
-  activeSection: 'home' | 'content' | 'community' | 'following' | 'guestbook' | 'settings';
-  onNavigateToSection: (section: 'home' | 'content' | 'community' | 'following' | 'guestbook' | 'settings') => void;
+  activeSection: SectionType;
+  onNavigateToSection: (section: SectionType) => void;
+  onDetailView?: (productId: string | number) => void;
 }
 
 const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ 
@@ -86,12 +88,13 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   peermall,
   onUpdateConfig,
   activeSection,
-  onNavigateToSection
+  onNavigateToSection,
+  onDetailView
 }) => {
   const location = useLocation();
   const [showQRModal, setShowQRModal] = useState(false);
   const [contents, setContents] = useState<Content[]>([]);
-  const [products, setProducts] = useState<Content[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [posts, setPosts] = useState<Content[]>([]);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -208,7 +211,11 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       
       // 타입에 따라 제품 또는 게시물 업데이트
       if (newFullContent.type === 'product') {
-        setProducts([...products, newFullContent]);
+        if (isProduct(newFullContent)) {
+          setProducts([...products, newFullContent]);
+        } else {
+          console.warn("Product 타입이지만 필수 속성이 누락되었습니다.", newFullContent);
+        }
       } else if (newFullContent.type === 'post' || newFullContent.type === 'article') {
         setPosts([...posts, newFullContent]);
       }

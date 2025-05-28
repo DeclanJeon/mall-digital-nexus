@@ -7,7 +7,7 @@ import {
   Calendar, Heart, BookmarkPlus, ShoppingBag, MessageSquare, 
   FileText, ExternalLink, Star
 } from "lucide-react";
-import { Content } from "../types";
+import { Content } from "@/types/space";
 
 interface ContentDetailModalProps {
   content: Content;

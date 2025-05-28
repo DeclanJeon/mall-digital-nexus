@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { Peermall } from './peermall';
 
 export enum ContentType {
   Article = 'article',
@@ -298,6 +299,16 @@ export interface CommunityPost {
   category?: string;
 }
 
+export interface PeerSpaceHomeProps {
+  isOwner: boolean;
+  address: string;
+  config: PeerMallConfig;
+  peermall: Peermall | null;
+  onUpdateConfig: (updatedConfig: PeerMallConfig) => void;
+  activeSection: 'home' | 'content' | 'community' | 'following' | 'guestbook' | 'settings';
+  onNavigateToSection: (section: 'home' | 'content' | 'community' | 'following' | 'guestbook' | 'settings') => void;
+}
+
 export type SectionType =
   | 'hero'
   | 'content'
@@ -321,4 +332,5 @@ export type SectionType =
   | 'liveCollaboration'
   | 'livestream'
   | 'home'
-  | 'following';
+  | 'following'
+  | 'settings';

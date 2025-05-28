@@ -7,7 +7,8 @@ export const STORAGE_KEYS = {
   COMMUNITY_COMMENTS: 'community_comments_storage',
   COMMUNITIES: 'communities_storage',
   CHANNELS: 'channels_storage',
-  FAVORITE_PEERMALLS: 'favorite_peermalls_storage'
+  FAVORITE_PEERMALLS: 'favorite_peermalls_storage',
+  PRODUCTS: 'products_storage'
 } as const;
 
 // 실제 스토리지 키 값들의 타입

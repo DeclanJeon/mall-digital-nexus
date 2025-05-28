@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
-import { PeerMallConfig } from '@/types/space';
+import { PeerMallConfig, SectionType } from '@/types/space';
 import { Peermall } from '@/types/peermall';
+import { Product } from '@/types/product';
 import PeerSpaceHome from '@/components/peer-space/PeerSpaceHome';
 import { Loader2 } from 'lucide-react';
 import { peermallStorage } from '@/services/storage/peermallStorage';
 import { storage } from '@/utils/storage/storage';
 import { STORAGE_KEYS } from '@/utils/storage/constants';
+import ProductDetailPage from '@/components/peer-space/products/ProductDetailPage';
+import { getProductById } from '@/services/storage/productStorage';
 
 // Peermall 타입을 다시 export하여 컴포넌트 전체에서 일관되게 사용
 export type { Peermall } from '@/types/peermall';
@@ -54,7 +57,22 @@ const PeerSpace = () => {
   const [isOwner, setIsOwner] = useState(true); // In reality, this would be based on authentication
   const [config, setConfig] = useState<PeerMallConfig | null>(null);
   const [peermall, setPeermall] = useState<Peermall | null>(null);
-  const [activeSection, setActiveSection] = useState<'home' | 'content' | 'community' | 'following' | 'guestbook' | 'settings'>('home');
+  const [activeSection, setActiveSection] = useState<SectionType>('home');
+
+  // 모달 관련 상태
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<string | number | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  // selectedProductId가 변경될 때마다 제품 데이터 로드
+  useEffect(() => {
+    if (selectedProductId) {
+      const product = getProductById(selectedProductId.toString()); // id가 string이므로 toString() 사용
+      setSelectedProduct(product || null);
+    } else {
+      setSelectedProduct(null);
+    }
+  }, [selectedProductId]);
 
   useEffect(() => {
     const loadPeermallData = async () => {
@@ -90,7 +108,7 @@ const PeerSpace = () => {
           followers: peermallData.followers || 0,
           recommendations: peermallData.likes || 0,
           badges: [],
-          sections: ['home', 'content', 'community', 'following', 'guestbook'],
+          sections: ['home', 'products', 'community', 'following', 'guestbook'],
           createdAt: peermallData.createdAt,
         };
 
@@ -124,7 +142,7 @@ const PeerSpace = () => {
             setPeermall(updatedPeermall);
           }
         };
-        
+
         // Subscribe to storage updates
         const unsubscribe = peermallStorage.addEventListener(handlePeermallUpdate);
 
@@ -155,8 +173,8 @@ const PeerSpace = () => {
   useEffect(() => {
     // Determine active section from URL
     const path = location.pathname;
-    if (path.includes('/content')) {
-      setActiveSection('content');
+    if (path.includes('/product')) {
+      setActiveSection('products');
     } else if (path.includes('/community')) {
       setActiveSection('community');
     } else if (path.includes('/following')) {
@@ -179,17 +197,30 @@ const PeerSpace = () => {
       });
     }
   };
-  
+
   // Handle section navigation
-  const handleNavigateToSection = (section: 'home' | 'content' | 'community' | 'following' | 'guestbook' | 'settings') => {
+  const handleNavigateToSection = (section: SectionType) => {
     setActiveSection(section);
-    
+
     // Update URL but don't reload the page
     let path = `/space/${address}`;
     if (section !== 'home') {
       path += `/${section}`;
     }
     navigate(path, { replace: true });
+  };
+
+  // ProductCard의 onDetailView prop으로 전달될 함수
+  const handleDetailView = (productId: string | number) => {
+    setSelectedProductId(productId);
+    setShowDetailModal(true);
+  };
+
+  // 모달 닫기 함수
+  const handleCloseDetailModal = () => {
+    setShowDetailModal(false);
+    setSelectedProductId(null);
+    setSelectedProduct(null);
   };
 
   if (isLoading) {
@@ -214,19 +245,22 @@ const PeerSpace = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      {/* PeerSpaceHeader 등 공통 레이아웃 요소가 있다면 여기에 위치 */}
-      
-      <main className="mx-auto px-4 py-8">
-        <PeerSpaceHome 
-            isOwner={isOwner}
-            address={address}
-            config={config}
-            peermall={peermall}
-            onUpdateConfig={handleUpdateConfig}
-            activeSection={activeSection}
-            onNavigateToSection={handleNavigateToSection}
-          />
-      </main>
+      {/* PeerSpaceHome 컴포넌트에 onDetailView prop 전달 필요 */}
+      <PeerSpaceHome
+        isOwner={isOwner}
+        address={address}
+        config={config}
+        peermall={peermall}
+        activeSection={activeSection}
+        onUpdateConfig={handleUpdateConfig}
+        onNavigateToSection={handleNavigateToSection}
+        onDetailView={handleDetailView} // ProductCard에 전달될 onDetailView prop
+      />
+
+      {/* ProductDetailPage 모달 */}
+      {showDetailModal && selectedProduct && (
+        <ProductDetailPage product={selectedProduct} onClose={handleCloseDetailModal} />
+      )}
     </div>
   );
 };

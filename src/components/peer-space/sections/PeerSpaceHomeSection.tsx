@@ -21,6 +21,7 @@ interface PeerSpaceHomeSectionProps {
   setSearchQuery: (query: string) => void;
   setCurrentView: (view: 'list' | 'blog' | 'grid-small' | 'grid-medium' | 'grid-large' | 'masonry') => void;
   handleShowProductForm: () => void;
+  onDetailView?: (productId: string | number) => void;
 }
 
 const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
@@ -36,6 +37,7 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
   setSearchQuery,
   setCurrentView,
   handleShowProductForm,
+  onDetailView,
 }) => {
   const filteredProducts = useMemo(() => 
     products.filter(product => 
@@ -67,6 +69,7 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
                 setCurrentView={setCurrentView}
                 handleShowProductForm={handleShowProductForm}
                 onNavigateToSection={onNavigateToSection}
+                onDetailView={onDetailView}
               />
 
               {/* <CommunitySection
@@ -91,6 +94,7 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
               setCurrentView={setCurrentView}
               handleShowProductForm={handleShowProductForm}
               showAll={true}
+              onDetailView={onDetailView}
             />
           )}
 

@@ -11,29 +11,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
-interface ProductCardProps {
-  id: string | number;
-  title: string;
-  description: string;
-  price: number;
-  discountPrice?: number | null;
-  imageUrl: string;
-  rating: number;
-  reviewCount: number;
-  peermallName?: string;
-  peermallId?: string;
-  category?: string;
-  tags?: string[];
-  viewMode: 'grid' | 'list';
-  cardSize?: 'small' | 'medium' | 'large';
-  seller?: {
-    id: string;
-    name: string;
-    image?: string;
-  };
-  onAddFriend?: (sellerId: string, sellerName: string, sellerImage?: string) => void;
-}
+import { ProductCardProps } from "@/types/product";
+import { useNavigate, useParams } from 'react-router-dom';
 
 const ProductCard: React.FC<ProductCardProps> = ({
   id,
@@ -51,7 +30,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   viewMode,
   cardSize = 'medium',
   seller,
-  onAddFriend
+  onAddFriend,
+  onDetailView
 }) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
@@ -59,6 +39,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const [isFriend, setIsFriend] = useState(false);
   const [friendStatus, setFriendStatus] = useState<'idle' | 'adding' | 'added'>('idle');
   const [isHovered, setIsHovered] = useState(false);
+
+  const { address } = useParams();
+
+  const navigate = useNavigate();
 
   const getCardClasses = () => {
     if (viewMode === 'list') {
@@ -121,6 +105,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }, 1000);
   };
 
+  const handleDetailView = () => {
+    onDetailView?.(id);
+  };
+
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.02 }}
@@ -156,7 +144,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     animate={{ scale: 1 }}
                     className="flex gap-2"
                   >
-                    <Button size="sm" variant="secondary" className="rounded-full bg-white/90 hover:bg-white">
+                    <Button size="sm" variant="secondary" className="rounded-full bg-white/90 hover:bg-white" onClick={handleDetailView}>
                       <Eye className="w-4 h-4" />
                     </Button>
                     <Button size="sm" variant="secondary" className="rounded-full bg-white/90 hover:bg-white">
@@ -273,7 +261,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <CardFooter className={cn("pt-0", viewMode === 'list' ? 'p-4' : 'p-4')}>
           {viewMode === 'list' ? (
             <div className="flex gap-2 w-full">
-              <Button variant="outline" className="flex-1" size="sm">
+              <Button variant="outline" className="flex-1" size="sm" onClick={handleDetailView}>
                 상세보기
               </Button>
               <Button className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500" size="sm">
@@ -290,7 +278,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </Button>
           ) : (
             <div className="grid grid-cols-2 gap-2 w-full">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleDetailView}>
                 상세보기
               </Button>
               <Button 

@@ -31,7 +31,7 @@ const PeermallGrid = ({
 
       // 실제 스토리지에서 피어몰 데이터 가져오기
       const peermalls = peermallStorage.getAll();
-      // console.log('📦 스토리지에서 로드된 피어몰:', peermalls);
+      console.log('📦 스토리지에서 로드된 피어몰:', peermalls);
 
       // initialMalls와 스토리지 데이터 중복 제거
       const uniquePeermalls = peermalls && peermalls.length > 0 

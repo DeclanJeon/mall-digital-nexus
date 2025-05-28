@@ -61,7 +61,6 @@ const AppContent = () => {
         */}
         
         <Route path="/space/:address/settings" element={<PeerSpaceSettings />} /> {/* PeerSpace 레이아웃 공유 여부 확인 필요 */}
-        <Route path="/space/:address/content/:contentId" element={<ContentDetailPage />} /> {/* PeerSpace 레이아웃 공유 여부 확인 필요 */}
 
         {/* 아래 /space/:address/community 관련 라우트들 제거 */}
         {/* 
