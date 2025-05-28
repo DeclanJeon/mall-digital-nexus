@@ -47,7 +47,7 @@ const AppContent = () => {
         <Route path="/community/planet/:planetId" element={<Community />} /> 
         <Route path="/community/planet/:planetId/post/:postId" element={<Community />} /> */}
 
-        {/* <Route path="/space/:address/community" element={<CommunityPage />} /> */}
+        <Route path="/space/:address/community" element={<CommunityPage />} />
         <Route path="/space/:address/community/:communityId" element={<CommunityDetailPage />} />
         <Route path="/space/:address/community/:communityId/post/:postId" element={<PostDetailPage />} />
         <Route path="/space/:address/community/:communityId/post/by-slug/:slug" element={<PostDetailPage />} />
