@@ -152,7 +152,7 @@ const Index = () => {
       peerMall.peerMallName.includes(query)
     );
     setNewPeerMalls(searchedNewPeerMalls);
-  }, []);
+  }, [hotPeerMalls, newPeerMalls, originHotPeerMalls, originNewPeerMalls]);
 
   const handleBookmarkToggle = useCallback((itemId: string) => {
     setBookmarks(prev => {
