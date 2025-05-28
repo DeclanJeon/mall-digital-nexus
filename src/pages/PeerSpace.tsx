@@ -195,7 +195,7 @@ const PeerSpace = () => {
     // Update URL but don't reload the page
     let path = `/space/${address}`;
     if (section !== 'home') {
-      path += `/${section}`;
+      path += `/${section}?mk=${peerMallKey}`;
     }
     navigate(path, { replace: true });
   };
