@@ -20,7 +20,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection }) =>
   const navigate = useNavigate();
 
   const handleBackToMyMall = () => {
-    navigate('/peer-space');
+    // navigate('/peer-space');
+    window.history.back();
   };
 
   return (
@@ -32,23 +33,23 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection }) =>
       <div className="overflow-y-auto h-[calc(100vh-120px)]">
         <SidebarCategory title="기본 관리">
           <SidebarItem icon={User} label="기본 정보" active={activeSection === 'basic-info'} onClick={() => setActiveSection('basic-info')} />
-          <SidebarItem icon={Paintbrush} label="디자인 설정" active={activeSection === 'design'} onClick={() => setActiveSection('design')} />
+          {/* <SidebarItem icon={Paintbrush} label="디자인 설정" active={activeSection === 'design'} onClick={() => setActiveSection('design')} /> */}
         </SidebarCategory>
         
-        <SidebarCategory title="콘텐츠 & 제품">
+        {/* <SidebarCategory title="콘텐츠 & 제품">
           <SidebarItem icon={FileText} label="콘텐츠 관리" active={activeSection === 'content'} onClick={() => setActiveSection('content')} />
           <SidebarItem icon={ShoppingBag} label="제품 관리" active={activeSection === 'products'} onClick={() => setActiveSection('products')} />
           <SidebarItem icon={MessageSquare} label="커뮤니티 관리" active={activeSection === 'community'} onClick={() => setActiveSection('community')} />
           <SidebarItem icon={Star} label="리뷰 관리" active={activeSection === 'reviews'} onClick={() => setActiveSection('reviews')} />
-          {/* <SidebarItem icon={Package} label="제품 생태계" active={activeSection === 'product-ecosystem'} onClick={() => setActiveSection('product-ecosystem')} /> */}
-        </SidebarCategory>
+          <SidebarItem icon={Package} label="제품 생태계" active={activeSection === 'product-ecosystem'} onClick={() => setActiveSection('product-ecosystem')} />
+        </SidebarCategory> */}
         
-        <SidebarCategory title="마케팅 & 광고">
-          {/* <SidebarItem icon={Percent} label="마케팅 및 홍보" active={activeSection === 'marketing'} onClick={() => setActiveSection('marketing')} /> */}
+        {/* <SidebarCategory title="마케팅 & 광고">
+          <SidebarItem icon={Percent} label="마케팅 및 홍보" active={activeSection === 'marketing'} onClick={() => setActiveSection('marketing')} />
           <SidebarItem icon={Target} label="광고 관리" active={activeSection === 'advertisement'} onClick={() => setActiveSection('advertisement')} />
           <SidebarItem icon={MapPin} label="위치 기반 서비스" active={activeSection === 'location'} onClick={() => setActiveSection('location')} />
           <SidebarItem icon={QrCode} label="QR 코드 관리" active={activeSection === 'qr-codes'} onClick={() => setActiveSection('qr-codes')} />
-        </SidebarCategory>
+        </SidebarCategory> */}
         
         {/* <SidebarCategory title="사용자 참여">
           <SidebarItem icon={Trophy} label="게임화 요소" active={activeSection === 'gamification'} onClick={() => setActiveSection('gamification')} />

@@ -305,7 +305,7 @@ export interface PeerSpaceHomeProps {
   config: PeerMallConfig;
   peermall: Peermall | null;
   onUpdateConfig: (updatedConfig: PeerMallConfig) => void;
-  activeSection: 'home' | 'content' | 'community' | 'following' | 'guestbook' | 'settings';
+  activeSection: 'home' | 'products' | 'community' | 'following' | 'guestbook' | 'settings';
   onNavigateToSection: (section: 'home' | 'content' | 'community' | 'following' | 'guestbook' | 'settings') => void;
 }
 
@@ -315,6 +315,7 @@ export type SectionType =
   | 'community'
   | 'about'
   | 'products'
+  | 'productDetail'
   | 'services'
   | 'events'
   | 'reviews'

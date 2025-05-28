@@ -374,7 +374,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
               </li>
               <li>
                 <button 
-                  onClick={() => onNavigateToSection('content')}
+                  onClick={() => onNavigateToSection('products')}
                   className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'content' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
                 >
                   <FileText className="w-5 h-5 mr-3" />
@@ -493,7 +493,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
               activeSection={activeSection}
             />
             )}
-            {activeSection === 'content' && (
+            {activeSection === 'products' && (
               <PeerSpaceContentSection
                 isOwner={isOwner}
                 address={address}

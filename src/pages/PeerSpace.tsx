@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useParams, useNavigate } from 'react-router-dom';
+import { useLocation, useParams, useNavigate, Routes, Route, Outlet } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { PeerMallConfig, SectionType } from '@/types/space';
 import { Peermall } from '@/types/peermall';
@@ -63,16 +63,6 @@ const PeerSpace = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | number | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
-  // selectedProductId가 변경될 때마다 제품 데이터 로드
-  useEffect(() => {
-    if (selectedProductId) {
-      const product = getProductById(selectedProductId.toString()); // id가 string이므로 toString() 사용
-      setSelectedProduct(product || null);
-    } else {
-      setSelectedProduct(null);
-    }
-  }, [selectedProductId]);
 
   useEffect(() => {
     const loadPeermallData = async () => {
@@ -245,22 +235,27 @@ const PeerSpace = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      {/* PeerSpaceHome 컴포넌트에 onDetailView prop 전달 필요 */}
-      <PeerSpaceHome
-        isOwner={isOwner}
-        address={address}
-        config={config}
-        peermall={peermall}
-        activeSection={activeSection}
-        onUpdateConfig={handleUpdateConfig}
-        onNavigateToSection={handleNavigateToSection}
-        onDetailView={handleDetailView} // ProductCard에 전달될 onDetailView prop
-      />
-
-      {/* ProductDetailPage 모달 */}
-      {showDetailModal && selectedProduct && (
-        <ProductDetailPage product={selectedProduct} onClose={handleCloseDetailModal} />
-      )}
+      <main className="flex-1 p-4 lg:p-8">
+        <Routes>
+          <Route path="/" element={<PeerSpaceHome
+            isOwner={isOwner}
+            address={address}
+            config={config}
+            peermall={peermall}
+            activeSection={activeSection}
+            onUpdateConfig={handleUpdateConfig}
+            onNavigateToSection={handleNavigateToSection}
+            onDetailView={handleDetailView} // ProductCard에 전달될 onDetailView prop
+          />} />
+          <Route path="products" element={<div>Products</div>} />
+          <Route path="product/:productId" element={<ProductDetailPage />} />
+          <Route path="community" element={<div>Community</div>} />
+          <Route path="following" element={<div>Following</div>} />
+          <Route path="guestbook" element={<div>Guestbook</div>} />
+          <Route path="*" element={<div>섹션을 찾을 수 없습니다.</div>} />
+        </Routes>
+        <Outlet />
+      </main>
     </div>
   );
 };

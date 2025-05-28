@@ -108,7 +108,7 @@ const ProductContentSection: React.FC<ProductContentSectionProps> = ({
         
         {!showAll && products.length > 8 && onNavigateToSection && (
           <div className="mt-6 text-center">
-            <Button variant="outline" onClick={() => onNavigateToSection('content')}>
+            <Button variant="outline" onClick={() => onNavigateToSection('products')}>
               더 보기 <ChevronRight className="ml-1 w-4 h-4" />
             </Button>
           </div>

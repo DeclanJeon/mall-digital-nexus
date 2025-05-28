@@ -40,9 +40,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const [friendStatus, setFriendStatus] = useState<'idle' | 'adding' | 'added'>('idle');
   const [isHovered, setIsHovered] = useState(false);
 
-  const { address } = useParams();
-
   const navigate = useNavigate();
+  const { address } = useParams();
 
   const getCardClasses = () => {
     if (viewMode === 'list') {
@@ -106,7 +105,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   const handleDetailView = () => {
-    onDetailView?.(id);
+    onDetailView && onDetailView(id);
+    navigate(`/space/${address}/product/${id}`);
   };
 
   return (
@@ -261,7 +261,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <CardFooter className={cn("pt-0", viewMode === 'list' ? 'p-4' : 'p-4')}>
           {viewMode === 'list' ? (
             <div className="flex gap-2 w-full">
-              <Button variant="outline" className="flex-1" size="sm" onClick={handleDetailView}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full"
+                onClick={() => onDetailView && onDetailView(id)}
+              >
                 상세보기
               </Button>
               <Button className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500" size="sm">
@@ -278,7 +283,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </Button>
           ) : (
             <div className="grid grid-cols-2 gap-2 w-full">
-              <Button variant="outline" size="sm" onClick={handleDetailView}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full"
+                onClick={() => onDetailView && onDetailView(id)}
+              >
                 상세보기
               </Button>
               <Button 

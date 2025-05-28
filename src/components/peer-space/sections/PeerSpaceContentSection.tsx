@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ProductCard from '@/components/shopping/products/ProductCard';
@@ -17,6 +17,7 @@ interface PeerSpaceContentSectionProps {
   setCurrentView: (view: 'grid-small' | 'grid-medium' | 'grid-large' | 'list' | 'masonry' | 'blog') => void;
   handleShowProductForm: () => void;
   filteredProducts: Product[];
+  onDetailView: (productId: string | number) => void;
 }
 
 const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
@@ -27,7 +28,8 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
   currentView,
   setCurrentView,
   handleShowProductForm,
-  filteredProducts
+  filteredProducts,
+  onDetailView
 }) => {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('전체');
@@ -41,7 +43,8 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
 
   const categories = ['전체', '전자제품', '패션', '생활용품', '도서', '음식', '취미', '뷰티', '스포츠'];
 
-  const filteredAndSortedProducts = allProducts
+  const filteredAndSortedProducts = useMemo(() => {
+    return allProducts
     .filter(product => selectedCategory === '전체' || product.category === selectedCategory)
     .sort((a, b) => {
       if (sortBy === 'latest') {
@@ -58,6 +61,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
       }
       return 0;
     });
+  }, [allProducts, selectedCategory, sortBy]);
 
   const viewOptions = [
     { key: 'grid-large', icon: Grid2X2, label: '큰 카드', cols: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' },
@@ -165,7 +169,13 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
               key={option.key}
               variant={currentView === option.key ? 'default' : 'outline'}
               size="icon"
-              onClick={() => setCurrentView(option.key as any)}
+              onClick={() => {
+                if (option.key === 'grid-small' || option.key === 'grid-medium' || 
+                    option.key === 'grid-large' || option.key === 'list' || 
+                    option.key === 'masonry' || option.key === 'blog') {
+                  setCurrentView(option.key);
+                }
+              }}
             >
               <option.icon className="h-4 w-4" />
             </Button>
@@ -203,6 +213,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                     tags={[]}
                     viewMode={currentView === 'list' ? 'list' : 'grid'}
                     cardSize={currentView.includes('grid') ? currentView.split('-')[1] as 'small' | 'medium' | 'large' : 'medium'}
+                    onDetailView={onDetailView}
                   />
                 </motion.div>
               ))}
