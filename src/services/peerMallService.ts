@@ -131,6 +131,19 @@ export const getPeerMallData = async (peerMallName: string, peerMallKey: string)
   }
 };
 
+export const getAllPeerMallList = async (): Promise<Object> => {
+  try {
+    const response = await api.get('/getAllPeerMallList');
+    if (response.status === 200 && response.data.success) {
+      return response.data.allPeerMallList;
+    }
+    return { success: false };
+  } catch (error) {
+    console.error('Error sending verification code:', error);
+    return { success: false };
+  }
+};
+
 // 사용자가 소유한 피어스페이스 목록 조회
 export const getUserPeerSpaces = async (
   ownerPeerId: string
