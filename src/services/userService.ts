@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // API 기본 URL
-const API_BASE_URL = 'http://localhost:9393/v1';
+const API_BASE_URL = 'http://localhost:9393/v1/users';
 
 // API 호출을 위한 axios 인스턴스 생성
 const api = axios.create({
@@ -14,7 +14,7 @@ const sendNumber = async (
   email: string
 ): Promise<{ success: boolean; otp?: string }> => {
   try {
-    const response = await api.post('/users/authentication-number', { email });
+    const response = await api.post('/authenticationNumber', { email });
     if (response.status === 200 && response.data.success) {
       // OTP 값이 문자열인지 확인
       const otp = String(response.data.otp || '');
@@ -36,7 +36,7 @@ const login = async (
   refreshToken?: string;
 }> => {
   try {
-    const response = await api.post('/users/login', { email });
+    const response = await api.post('/login', { email });
     if (response.status === 200 && response.data.success) {
       const { accessToken, refreshToken } = response.data;
       return { success: true, accessToken, refreshToken };
@@ -48,9 +48,12 @@ const login = async (
   }
 };
 
+const getAccessToken = (): string | null => localStorage.getItem('accessToken');
+
 const userService = {
   sendNumber,
   login,
+  getAccessToken
 };
 
 export default userService;
