@@ -59,6 +59,8 @@ const PeermallCard: React.FC<PeermallCardProps> = ({
   imageUrl,
   category,
   phone,
+  peerMallKey,
+  peerMallName = '',
   tags = [],
   rating = 0,
   reviewCount = 0,
@@ -164,12 +166,41 @@ const PeermallCard: React.FC<PeermallCardProps> = ({
     }
   }, [onOpenMap, rest.location, title, toast]);
 
+  const handleShare = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const shareData = {
+      title: peerMallName,
+      text: `✨ ${peerMallName} - ${owner}의 프리미엄 피어몰을 확인해보세요!`,
+      url: `${window.location.origin}/space/${peerMallKey}`
+    };
+
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      navigator.share(shareData).catch(err => console.log('Share failed:', err));
+    } else {
+      navigator.clipboard.writeText(shareData.url)
+        .then(() => toast({
+          title: "🔗 프리미엄 링크 복사 완료",
+          description: "친구들과 공유해보세요!",
+        }))
+        .catch(() => toast({
+          variant: "destructive",
+          title: "복사 실패",
+          description: "링크 복사에 실패했습니다."
+        }));
+    }
+  }, [id, peerMallName, owner, toast]);
+
   // 통화하기
   const handleQuickCall = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsCallModalOpen(true);
-  }, []);
+
+    const url = `https://peerterra.com/one/channel/${owner}?mk=${peerMallKey}`;
+    window.open(url, '_blank');
+  }, [owner, peerMallKey, toast]);
 
   // 메시지 보내기
   const handleQuickMessage = useCallback((e: React.MouseEvent) => {

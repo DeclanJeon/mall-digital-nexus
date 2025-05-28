@@ -33,6 +33,11 @@ export interface Peermall {
   
   // 추가 필드
   [key: string]: any;
+
+  peerMallKey: string;
+  peerMallName: string;
+  peerMallAddress: string;
+  ownerName: string;
 }
 
 export interface PeermallCardProps extends Peermall {

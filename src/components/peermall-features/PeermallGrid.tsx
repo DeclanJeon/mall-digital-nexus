@@ -1,11 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { ChevronRight, Loader2, AlertCircle } from 'lucide-react';
-import PeerMallCard from '@/components/peermall-features/PeermallCard';
+import PeerMallCard from './PeermallCard';
 import { peermallStorage, Peermall } from '@/services/storage/peermallStorage';
 import { useToast } from '@/hooks/use-toast';
 import { PeermallGridProps } from '@/types/peermall';
-
-let uniqueKeys = {};
 
 const PeermallGrid = ({ 
   title, 
@@ -29,55 +27,37 @@ const PeermallGrid = ({
       
       console.log('🔄 피어몰 데이터 로드 시작...');
 
-      // 실제 스토리지에서 피어몰 데이터 가져오기
-      const peermalls = peermallStorage.getAll();
-      console.log('📦 스토리지에서 로드된 피어몰:', peermalls);
-
-      // initialMalls와 스토리지 데이터 중복 제거
-      const uniquePeermalls = peermalls && peermalls.length > 0 
-        ? peermalls 
-        : initialMalls;
-      
-      // 중복 제거 로직 추가
-      const deduplicatedPeermalls = uniquePeermalls.reduce((acc, current) => {
-        const isDuplicate = acc.find(item => item.id === current.id);
-        if (!isDuplicate) {
-          acc.push(current);
-        }
-        return acc;
-      }, []);
-
-      let filteredPeermalls = [...deduplicatedPeermalls];
-
-      
-      if (peermalls && peermalls.length > 0) {
-        // 인기 섹션인 경우 특별 필터링 
+      if (initialMalls.length > 0) {
+        // 인기 섹션인 경우 특별 필터링
+        let filteredPeermalls;
+        
         if (isPopularSection) {
           // 인기 피어몰 필터링 (좋아요 수, 평점 기준)
-          filteredPeermalls = peermalls
-            .filter(p => p.likes >= 10 || p.rating >= 4.0 || p.featured)
-            .sort((a, b) => {
-              // 인기도 점수 계산 (좋아요 * 2 + 평점 * 10 + 팔로워)
-              const scoreA = (a.likes || 0) * 2 + (a.rating || 0) * 10 + (a.followers || 0);
-              const scoreB = (b.likes || 0) * 2 + (b.rating || 0) * 10 + (b.followers || 0);
-              return scoreB - scoreA;
-            });
+          // filteredPeermalls = initialMalls
+          //   .filter(p => p.likes >= 10 || p.rating >= 4.0 || p.featured)
+          //   .sort((a, b) => {
+          //     // 인기도 점수 계산 (좋아요 * 2 + 평점 * 10 + 팔로워)
+          //     const scoreA = (a.likes || 0) * 2 + (a.rating || 0) * 10 + (a.followers || 0);
+          //     const scoreB = (b.likes || 0) * 2 + (b.rating || 0) * 10 + (b.followers || 0);
+          //     return scoreB - scoreA;
+          //   });
         } else {
           // 일반 섹션은 최신순 정렬
-          filteredPeermalls = filteredPeermalls.sort((a, b) => {
-            const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 
-                        a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 
-                        b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            return dateB - dateA;
-          });
+          // filteredPeermalls = filteredPeermalls.sort((a, b) => {
+          //   const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 
+          //               a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          //   const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 
+          //               b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          //   return dateB - dateA;
+          // });
         }
         
-        setMalls(filteredPeermalls);
-        console.log('✅ 피어몰 데이터 설정 완료:', filteredPeermalls.length, '개');
+        setMalls(initialMalls);
+        console.log('✅ 피어몰 데이터 설정 완료:', initialMalls.length, '개');
       } else {
         // 스토리지가 비어있으면 initialMalls 사용
         console.log('📝 스토리지가 비어있음, initialMalls 사용:', initialMalls.length, '개');
+        setMalls(initialMalls);
       }
       
     } catch (error) {
@@ -106,43 +86,9 @@ const PeermallGrid = ({
       loadPeermalls();
     }
 
-    // 스토리지 변경 이벤트 리스너
-    const removeListener = peermallStorage.addEventListener((updatedPeermalls) => {
-      if (!isMounted) return;
-      
-      console.log('🔔 스토리지 업데이트 감지:', updatedPeermalls?.length || 0, '개');
-      
-      if (updatedPeermalls) {
-        let filteredPeermalls = [...updatedPeermalls];
-        
-        if (isPopularSection) {
-          // 인기 섹션 필터링
-          filteredPeermalls = updatedPeermalls
-            .filter(p => p.likes >= 10 || p.rating >= 4.0 || p.featured)
-            .sort((a, b) => {
-              const scoreA = (a.likes || 0) * 2 + (a.rating || 0) * 10 + (a.followers || 0);
-              const scoreB = (b.likes || 0) * 2 + (b.rating || 0) * 10 + (b.followers || 0);
-              return scoreB - scoreA;
-            });
-        } else {
-          // 최신순 정렬
-          filteredPeermalls = filteredPeermalls.sort((a, b) => {
-            const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 
-                        a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 
-                        b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            return dateB - dateA;
-          });
-        }
-        
-        setMalls(filteredPeermalls);
-      }
-    });
-
     // 클린업
     return () => {
       isMounted = false;
-      removeListener?.();
     };
   }, [loadPeermalls, isPopularSection]);
 
@@ -220,30 +166,24 @@ const PeermallGrid = ({
         renderSkeleton()
       ) : malls.length > 0 ? (
         <div className={viewMode === 'grid' ? gridLayoutClasses : listLayoutClasses}>
-          {malls.map((peermall, index) => {
-            const uniqueKey = peermall.id 
-              ? `peermall-${peermall.id}` 
-              : `peermall-fallback-${index}-${peermall.title?.slice(0, 10) || 'unknown'}`;
-            
-            return (
-              <div key={uniqueKey} className="w-full">
-                <PeerMallCard
-                  {...peermall}
-                  isPopular={isPopularSection || peermall.featured || false}
-                  isFamilyCertified={peermall.certified || false}
-                  isRecommended={peermall.recommended || false}
-                  className={viewMode === 'grid' ? 'h-full' : 'h-32'}
-                  onShowQrCode={onShowQrCode ? () => onShowQrCode(peermall.id || '', peermall.title) : undefined}
-                  onOpenMap={onOpenMap && peermall.location ? () => onOpenMap({
-                    lat: peermall.location?.lat || 37.5665,
-                    lng: peermall.location?.lng || 126.9780,
-                    address: peermall.location?.address || '주소 없음',
-                    title: peermall.title
-                  }) : undefined}
-                />
-              </div>
-            );
-          })}
+          {malls.map((peermall, index) => (
+            <div key={peermall.id || `peermall-${index}`} className="w-full">
+              <PeerMallCard
+                {...peermall}
+                isPopular={isPopularSection || peermall.featured || false}
+                isFamilyCertified={peermall.certified || false}
+                isRecommended={peermall.recommended || false}
+                className={viewMode === 'grid' ? 'h-full' : 'h-32'}
+                onShowQrCode={onShowQrCode ? () => onShowQrCode(peermall.id || '', peermall.title) : undefined}
+                onOpenMap={onOpenMap && peermall.location ? () => onOpenMap({
+                  lat: peermall.location?.lat || 37.5665,
+                  lng: peermall.location?.lng || 126.9780,
+                  address: peermall.location?.address || '주소 없음',
+                  title: peermall.title
+                }) : undefined}
+              />
+            </div>
+          ))}
         </div>
       ) : (
         <div className="p-12 text-center bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-200">

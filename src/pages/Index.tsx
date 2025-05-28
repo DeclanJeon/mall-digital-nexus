@@ -123,7 +123,6 @@ const Index = () => {
   const [selectedHashtags, setSelectedHashtags] = useState<string[]>(['전체']);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-
   const [hotPeerMalls, setHotPeerMalls] = useState<Peermall[]>([]);
   const [originHotPeerMalls, setOriginHotPeerMalls] = useState<Peermall[]>([]);
   const [newPeerMalls, setNewPeerMalls] = useState<Peermall[]>([]);
@@ -153,6 +152,8 @@ const Index = () => {
     );
     setNewPeerMalls(searchedNewPeerMalls);
   }, [hotPeerMalls, newPeerMalls, originHotPeerMalls, originNewPeerMalls]);
+
+  
 
   const handleBookmarkToggle = useCallback((itemId: string) => {
     setBookmarks(prev => {
@@ -195,6 +196,13 @@ const Index = () => {
         // 스토리지에서 피어몰 데이터 가져오기
         const storedPeermalls = peermallStorage.getAll();
         console.log('📦 스토리지에서 로드된 피어몰:', storedPeermalls.length, '개');
+
+        const storedPeerMallLists = await getPeerMallList();
+
+        if(storedPeerMallLists['success']) {
+          setHotPeerMalls(storedPeerMallLists['hostPeerMallList']);
+          setNewPeerMalls(storedPeerMallLists['newPeerMallList']);
+        }
         
         setPeermalls(storedPeermalls);
         setFilteredMalls(storedPeermalls);

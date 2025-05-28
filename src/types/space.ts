@@ -26,6 +26,10 @@ export enum ContentType {
 export const CONTENT_TYPES = Object.values(ContentType);
 
 export interface PeerMallConfig {
+  peerMallKey: string;
+  peerMallName: string;
+  peerMallAddress: string;
+  ownerName: string;
   id: string;
   name: string;
   description: string;
