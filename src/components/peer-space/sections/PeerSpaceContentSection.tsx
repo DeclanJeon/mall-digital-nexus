@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ProductCard from '@/components/shopping/products/ProductCard';
+import { useNavigate } from 'react-router-dom';
+
 import { Grid2X2, List, Grid3X3, LayoutGrid, Rows3, Eye, Filter, SlidersHorizontal } from 'lucide-react';
 import { Content, PeerMallConfig } from '@/types/space';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,8 +31,8 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
   setCurrentView,
   handleShowProductForm,
   filteredProducts,
-  onDetailView
 }) => {
+  const navigate = useNavigate();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [showFilters, setShowFilters] = useState(false);
@@ -45,22 +47,22 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
 
   const filteredAndSortedProducts = useMemo(() => {
     return allProducts
-    .filter(product => selectedCategory === '전체' || product.category === selectedCategory)
-    .sort((a, b) => {
-      if (sortBy === 'latest') {
-        if (typeof a.id === 'string' && typeof b.id === 'string') {
-          return b.id.localeCompare(a.id);
+      .filter(product => selectedCategory === '전체' || product.category === selectedCategory)
+      .sort((a, b) => {
+        if (sortBy === 'latest') {
+          if (typeof a.id === 'string' && typeof b.id === 'string') {
+            return b.id.localeCompare(a.id);
+          }
+          return (Number(b.id) || 0) - (Number(a.id) || 0);
+        } else if (sortBy === 'popular') {
+          return (b.reviewCount * b.rating) - (a.reviewCount * a.rating);
+        } else if (sortBy === 'price-asc') {
+          return (a.price || 0) - (b.price || 0);
+        } else if (sortBy === 'price-desc') {
+          return (b.price || 0) - (a.price || 0);
         }
-        return (Number(b.id) || 0) - (Number(a.id) || 0);
-      } else if (sortBy === 'popular') {
-        return (b.reviewCount * b.rating) - (a.reviewCount * a.rating);
-      } else if (sortBy === 'price-asc') {
-        return (a.price || 0) - (b.price || 0);
-      } else if (sortBy === 'price-desc') {
-        return (b.price || 0) - (a.price || 0);
-      }
-      return 0;
-    });
+        return 0;
+      });
   }, [allProducts, selectedCategory, sortBy]);
 
   const viewOptions = [
@@ -78,10 +80,15 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
     { value: 'price-desc', label: '가격 높은순' },
   ];
 
+  const handleProductDetailView = (productId: string | number) => {
+    navigate(`/space/${address}/product/${productId}`);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5 }}
       className="p-4 md:p-6 lg:p-8"
     >
@@ -213,7 +220,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                     tags={[]}
                     viewMode={currentView === 'list' ? 'list' : 'grid'}
                     cardSize={currentView.includes('grid') ? currentView.split('-')[1] as 'small' | 'medium' | 'large' : 'medium'}
-                    onDetailView={onDetailView}
+                    onDetailView={handleProductDetailView}
                   />
                 </motion.div>
               ))}

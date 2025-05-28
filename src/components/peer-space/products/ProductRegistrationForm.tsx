@@ -1,9 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { saveProduct } from '@/services/storage/productStorage';
 import { useForm } from 'react-hook-form';
 import { toast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import debounce from 'lodash.debounce';
+import { useNavigate } from 'react-router-dom';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -127,15 +129,17 @@ const productSchema = z.object({
 
 export type ProductFormValues = z.infer<typeof productSchema>;
 
+const LOCAL_STORAGE_KEY = 'productRegistrationForm'; // localStorage 키 정의
+
 interface ProductRegistrationFormProps {
-  onProductSave: (newProduct: Product) => void;
-  address: string;
-  onClose: () => void;
+  address: string; // 피어몰 address prop 추가
+  onProductSave: (newProduct: Product) => void; // 기존 유지
+  onClose: () => void; // 기존 유지
 }
 
 const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
-  onProductSave,
   address,
+  onProductSave,
   onClose,
 }) => {
   const [previewImage, setPreviewImage] = useState<string>("");
@@ -150,6 +154,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
   const [activeTab, setActiveTab] = useState<string>("basic");
   const qrRef = useRef<HTMLDivElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   // Initialize form
   const form = useForm<ProductFormValues>({
@@ -177,7 +182,47 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
   // Watch form fields for preview
   const watchImageUrl = form.watch("imageUrl");
   const watchSaleUrl = form.watch("saleUrl");
-  
+  const watchAllFields = form.watch(); // 모든 폼 필드 변화 감지
+
+  // localStorage에서 데이터 로드
+  React.useEffect(() => {
+    try {
+      const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        // price가 string으로 저장될 수 있으므로 number로 변환
+        if (parsedData.price !== undefined) {
+          parsedData.price = Number(parsedData.price);
+        }
+        form.reset(parsedData); // 폼 데이터 로드
+        // useState로 관리되는 상태들도 로드
+        if (parsedData.productTags) setProductTags(parsedData.productTags);
+        if (parsedData.options) setOptions(parsedData.options);
+      }
+    } catch (error) {
+      console.error("Failed to load form data from localStorage", error);
+      localStorage.removeItem(LOCAL_STORAGE_KEY); // 오류 발생 시 데이터 삭제
+    }
+  }, []);
+
+  // 폼 데이터 변화 시 localStorage에 저장 (디바운싱 적용)
+  React.useEffect(() => {
+    const saveData = debounce(() => {
+      const dataToSave = {
+        ...form.getValues(),
+        productTags: productTags,
+        options: options,
+      };
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dataToSave));
+    }, 500); // 500ms 디바운스
+
+    saveData();
+
+    return () => {
+      saveData.cancel(); // 컴포넌트 언마운트 시 디바운스 취소
+    };
+  }, [watchAllFields, productTags, options]); // 모든 폼 필드와 useState 상태 변화 감지
+
   React.useEffect(() => {
     if (watchImageUrl) {
       setPreviewImage(watchImageUrl);
@@ -263,7 +308,6 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
     setIsPreviewMode(!isPreviewMode);
   };
 
-  // Handle form submission
   // Helper function to convert form values to Product type
   const convertToContent = (formValues: ProductFormValues): Product => {
     const now = new Date().toISOString();
@@ -284,7 +328,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       rating: 0, // 기본값 설정
       reviewCount: 0, // 기본값 설정
       peermallName: 'Default Peermall', // 기본값 설정
-      peerSpaceAddress: 'default-address', // 기본값 설정
+      peerSpaceAddress: address, // 피어몰 주소 추가
       type: ContentType.Product, // ContentType.Product로 고정
       date: now, // 현재 시간으로 설정
       likes: 0, // 기본값 설정
@@ -315,8 +359,44 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
     setIsSubmitting(true);
     
     try {
-      const productData = convertToContent(formValues);
-      await saveProduct(productData);
+      const newProduct: Product = {
+        id: crypto.randomUUID(),
+        title: formValues.name,
+        description: "새로 등록된 상품 페이지로 이동합니다.",
+        price: Number(formValues.price) || 0,
+        currency: formValues.currency || 'KRW',
+        imageUrl: formValues.imageUrl || '',
+        isExternal: !!formValues.saleUrl,
+        externalUrl: formValues.saleUrl || '',
+        source: formValues.manufacturer || 'Unknown',
+        tags: formValues.tags || [],
+        category: formValues.categoryId ?
+          PRODUCT_CATEGORIES.find(c => c.id.toString() === formValues.categoryId)?.name || '' : '',
+        attributes: {},
+        rating: 0, // 기본값 설정
+        reviewCount: 0, // 기본값 설정
+        peermallName: 'Default Peermall', // 기본값 설정
+        peerSpaceAddress: address, // 피어몰 주소 추가
+        type: ContentType.Product, // ContentType.Product로 고정
+        date: new Date().toISOString(), // 현재 시간으로 설정
+        likes: 0, // 기본값 설정
+        comments: 0, // 기본값 설정
+        views: 0, // 기본값 설정
+        saves: 0, // 기본값 설정
+        badges: [], // 기본값 설정
+        isFeatured: false, // 기본값 설정
+        status: 'active',
+        author: '',
+        authorId: '',
+        media: [],
+        completion: 0,
+        maxParticipants: 0,
+        participants: [],
+        htmlContent: '',
+        relatedBadges: [],
+        location: '',
+      };
+      await saveProduct(newProduct);
       await handleFormSubmit(formValues);
       
       toast({
@@ -324,6 +404,8 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
         description: "상품 목록에 추가되었습니다.",
       });
       
+      localStorage.removeItem(LOCAL_STORAGE_KEY); // 상품 등록 성공 시 localStorage 데이터 삭제
+
       // Reset form and state
       form.reset();
       setPreviewImage("");
@@ -331,6 +413,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       setProductTags([]);
       setOptions([]);
       setActiveTab("basic");
+      navigate(`/space/${address}/product/${newProduct.id}`); // 피어몰 주소 추가
     } catch(err) {
       console.error('상품 등록 실패:', err);
       toast({
@@ -344,7 +427,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-100 z-[500]">
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-semibold text-gray-800">상품 등록</h2>
@@ -645,7 +728,6 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                               <FormLabel>가격</FormLabel>
                               <FormControl>
                                 <div className="relative">
-                                  <DollarSign className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
                                   <Input 
                                     placeholder="예: ₩30,000" 
                                     {...field} 
@@ -658,10 +740,10 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                           )}
                         />
 
-                        <FormField
-                          control={form.control}
-                          name="currency"
-                          render={({ field }) => (
+                          {/* <FormField
+                            control={form.control}
+                            name="currency"
+                            render={({ field }) => (
                             <FormItem>
                               <FormLabel>화폐 단위</FormLabel>
                               <FormControl>
@@ -681,7 +763,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                               <FormMessage />
                             </FormItem>
                           )}
-                        />
+                        /> */}
 
                         <FormField
                           control={form.control}
@@ -764,7 +846,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                         )}
                       />
 
-                      <FormField
+                      {/* <FormField
                         control={form.control}
                         name="categoryId"
                         render={({ field }) => (
@@ -790,7 +872,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                             <FormMessage />
                           </FormItem>
                         )}
-                      />
+                      /> */}
 
                       <div>
                         <FormLabel htmlFor="tags">태그</FormLabel>

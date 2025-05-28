@@ -18,6 +18,7 @@ export interface Product extends Content {
   isNew?: boolean;
   isRecommended?: boolean;
   isCertified?: boolean;
+  saleUrl?: string;
 
   // ContentType.Product로 고정
   type: ContentType.Product;
@@ -42,6 +43,7 @@ export interface ProductCardProps {
   peermallId?: string;
   category?: string;
   tags?: string[];
+  saleUrl?: string;
   viewMode: 'grid' | 'list';
   cardSize?: 'small' | 'medium' | 'large';
   seller?: {

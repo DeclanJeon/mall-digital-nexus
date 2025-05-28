@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, memo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { peermallStorage, Peermall } from "@/services/storage/peermallStorage";
 import { 
@@ -51,7 +51,7 @@ const premiumTokens = {
   }
 };
 
-const PeermallCard: React.FC<PeermallCardProps> = ({
+const PeermallCard: React.FC<PeermallCardProps> = memo(({
   id,
   title,
   description,
@@ -428,6 +428,6 @@ const PeermallCard: React.FC<PeermallCardProps> = ({
       />
     </>
   );
-};
+});
 
 export default PeermallCard;

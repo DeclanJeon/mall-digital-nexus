@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Content, PeerMallConfig, ContentType } from '@/types/space';
 import { Product } from '@/types/product';
 import { heroSlides, guestbookData, followingPeermalls } from '../data/homeMockData';
@@ -9,7 +9,7 @@ import CommunitySection from './CommunitySection';
 import GuestbookSection from './GuestbookSection';
 import FollowingSection from './FollowingSection';
 import PeerSpaceContentSection from './PeerSpaceContentSection';
-import ProductDetailPage from '../products/ProductDetailPage';
+import { useNavigate } from 'react-router-dom';
 
 interface PeerSpaceHomeSectionProps {
   isOwner: boolean;
@@ -40,17 +40,10 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
   setCurrentView,
   handleShowProductForm,
 }) => {
-  const [showProductDetail, setShowProductDetail] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState<string | number | null>(null);
+  const navigate = useNavigate();
 
   const handleProductDetailView = (productId: string | number) => {
-    setSelectedProductId(productId);
-    setShowProductDetail(true);
-  };
-
-  const handleBackToProductList = () => {
-    setShowProductDetail(false);
-    setSelectedProductId(null);
+    navigate(`/space/${address}/product/${productId}`);
   };
 
   const filteredProducts = useMemo(() =>
@@ -83,82 +76,78 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
     <div className="min-h-screen bg-gray-50 text-gray-900 flex align-center justify-center">
       <div className="flex p-6">
         <div className="flex-1 pr-6">
-          {showProductDetail && selectedProductId ? (
-            <ProductDetailPage productId={selectedProductId} onBack={handleBackToProductList} />
-          ) : (
-            <>
-              {activeSection === 'home' && (
-                <>
-                  <HeroSection
-                    slides={heroSlides}
-                    badges={config.badges}
-                  />
+          <>
+            {activeSection === 'home' && (
+              <>
+                <HeroSection
+                  slides={heroSlides}
+                  badges={config.badges}
+                />
 
-                  <PeerSpaceContentSection
-                    isOwner={isOwner}
-                    address={address}
-                    config={config}
-                    products={filteredProducts}
-                    currentView={currentView}
-                    setCurrentView={setCurrentView}
-                    handleShowProductForm={handleShowProductForm}
-                    filteredProducts={filteredProducts}
-                    onDetailView={handleProductDetailView}
-                  />
-
-                  {/* <CommunitySection
-                    posts={filteredPosts}
-                    isOwner={isOwner}
-                    onNavigateToSection={onNavigateToSection}
-                    owner={config.owner}
-                  /> */}
-
-                  {/* <GuestbookSection
-                    entries={guestbookData}
-                    onNavigateToSection={onNavigateToSection}
-                  /> */}
-                </>
-              )}
-
-              {activeSection === 'content' && (
-                <ProductContentSection
+                <PeerSpaceContentSection
                   isOwner={isOwner}
+                  address={address}
+                  config={config}
                   products={filteredProducts}
                   currentView={currentView}
                   setCurrentView={setCurrentView}
                   handleShowProductForm={handleShowProductForm}
-                  showAll={true}
+                  filteredProducts={filteredProducts}
                   onDetailView={handleProductDetailView}
                 />
-              )}
 
-              {activeSection === 'community' && (
-                <CommunitySection
+                {/* <CommunitySection
                   posts={filteredPosts}
                   isOwner={isOwner}
-                  showAll={true}
+                  onNavigateToSection={onNavigateToSection}
                   owner={config.owner}
-                />
-              )}
+                /> */}
 
-              {activeSection === 'following' && (
-                <FollowingSection
-                  following={followingPeermalls}
-                />
-              )}
-
-              {activeSection === 'guestbook' && (
-                <GuestbookSection
+                {/* <GuestbookSection
                   entries={guestbookData}
-                  showAll={true}
-                />
-              )}
+                  onNavigateToSection={onNavigateToSection}
+                /> */}
+              </>
+            )}
 
-              {activeSection === 'settings' && (
-                <BasicInfoSection config={config} />
-              )}
-            </>
-          )}
+            {activeSection === 'content' && (
+              <ProductContentSection
+                isOwner={isOwner}
+                products={filteredProducts}
+                currentView={currentView}
+                setCurrentView={setCurrentView}
+                handleShowProductForm={handleShowProductForm}
+                showAll={true}
+                onDetailView={handleProductDetailView}
+              />
+            )}
+
+            {activeSection === 'community' && (
+              <CommunitySection
+                posts={filteredPosts}
+                isOwner={isOwner}
+                showAll={true}
+                owner={config.owner}
+              />
+            )}
+
+            {activeSection === 'following' && (
+              <FollowingSection
+                following={followingPeermalls}
+              />
+            )}
+
+            {activeSection === 'guestbook' && (
+              <GuestbookSection
+                entries={guestbookData}
+                showAll={true}
+              />
+            )}
+
+            {activeSection === 'settings' && (
+              <BasicInfoSection config={config} />
+            )}
+          </>
         </div>
       </div>
     </div>

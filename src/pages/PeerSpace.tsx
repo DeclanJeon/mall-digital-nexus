@@ -110,6 +110,10 @@ const PeerSpace = () => {
           badges: [],
           sections: ['home', 'products', 'community', 'following', 'guestbook'],
           createdAt: peermallData.createdAt,
+          peerMallKey: peermallData.peerMallKey,
+          peerMallName: peermallData.peerMallName,
+          peerMallAddress: peermallData.peerMallAddress,
+          ownerName: peermallData.ownerName,
         };
 
         // 2. Load peer space configuration using storage utility
@@ -212,15 +216,7 @@ const PeerSpace = () => {
 
   // ProductCard의 onDetailView prop으로 전달될 함수
   const handleDetailView = (productId: string | number) => {
-    setSelectedProductId(productId);
-    setShowDetailModal(true);
-  };
-
-  // 모달 닫기 함수
-  const handleCloseDetailModal = () => {
-    setShowDetailModal(false);
-    setSelectedProductId(null);
-    setSelectedProduct(null);
+    navigate(`/space/${address}/product/${productId}`);
   };
 
   if (isLoading) {

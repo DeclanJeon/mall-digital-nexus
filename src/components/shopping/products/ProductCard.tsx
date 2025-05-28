@@ -31,7 +31,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   cardSize = 'medium',
   seller,
   onAddFriend,
-  onDetailView
+  onDetailView,
+  saleUrl
 }) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
@@ -74,7 +75,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   const handlePurchase = () => {
-    console.log('Purchase product:', id);
+    if (saleUrl) {
+      window.open(saleUrl, '_blank');
+    } else {
+      console.log('판매 링크가 없습니다.');
+    }
   };
 
   const toggleWishlist = (e: React.MouseEvent) => {
@@ -106,7 +111,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleDetailView = () => {
     onDetailView && onDetailView(id);
-    navigate(`/space/${address}/product/${id}`);
   };
 
   return (
@@ -131,7 +135,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             />
             
             {/* 호버 오버레이 */}
-            <AnimatePresence>
+            {/* <AnimatePresence>
               {isHovered && (
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -153,7 +157,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   </motion.div>
                 </motion.div>
               )}
-            </AnimatePresence>
+            </AnimatePresence> */}
             
             {/* 찜하기 버튼 */}
             <motion.button 
@@ -265,21 +269,27 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 variant="ghost"
                 size="sm"
                 className="w-full"
-                onClick={() => onDetailView && onDetailView(id)}
+                onClick={handleDetailView}
               >
                 상세보기
               </Button>
-              <Button className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500" size="sm">
-                구매하기
+              <Button 
+                size="sm" 
+                className="w-full text-sm font-semibold py-2 rounded-lg transition-all duration-300"
+                onClick={handlePurchase}
+                disabled={!saleUrl}
+              >
+                <ShoppingCart className="w-4 h-4 mr-2" /> 구매하기
               </Button>
             </div>
           ) : cardSize === 'small' ? (
             <Button 
-              className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white" 
-              size="sm"
+              size="sm" 
+              className="w-full text-sm font-semibold py-2 rounded-lg transition-all duration-300"
               onClick={handlePurchase}
+              disabled={!saleUrl}
             >
-              구매
+              <ShoppingCart className="w-4 h-4 mr-2" /> 구매
             </Button>
           ) : (
             <div className="grid grid-cols-2 gap-2 w-full">
@@ -287,16 +297,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 variant="ghost"
                 size="sm"
                 className="w-full"
-                onClick={() => onDetailView && onDetailView(id)}
+                onClick={handleDetailView}
               >
                 상세보기
               </Button>
               <Button 
-                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white" 
-                size="sm"
+                size="sm" 
+                className="w-full text-sm font-semibold py-2 rounded-lg transition-all duration-300"
                 onClick={handlePurchase}
+                disabled={!saleUrl}
               >
-                구매하기
+                <ShoppingCart className="w-4 h-4 mr-2" /> 구매하기
               </Button>
             </div>
           )}

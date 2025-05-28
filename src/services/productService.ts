@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { getProducts, saveProduct } from '@/services/storage/productStorage';
+import { Product } from '@/types/product';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
@@ -95,6 +97,16 @@ export const productService = {
       console.error('Error converting currency:', error);
       return amount;
     }
+  },
+
+  // 로컬 스토리지에서 제품 목록 가져오기
+  getProductsFromLocalStorage(): Product[] {
+    return getProducts();
+  },
+
+  // 로컬 스토리지에 제품 목록 저장 (목업 데이터 초기화용)
+  saveProductsToLocalStorage(products: Product[]): void {
+    products.forEach(product => saveProduct(product));
   },
 };
 

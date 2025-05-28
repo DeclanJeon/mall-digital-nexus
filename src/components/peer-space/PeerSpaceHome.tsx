@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
@@ -92,6 +92,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   onDetailView
 }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [showQRModal, setShowQRModal] = useState(false);
   const [contents, setContents] = useState<Content[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -427,18 +428,10 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
 
           {/* 하단 프로필 */}
           <div className="border-t p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gray-200">
-                  <img src="https://api.dicebear.com/7.x/personas/svg?seed=current-user" alt="User" className="w-full h-full rounded-full" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">{isOwner ? '내 계정' : '게스트'}</p>
-                  <p className="text-xs text-gray-500">{isOwner ? '관리자' : '방문자'}</p>
-                </div>
-              </div>
-              <button onClick={handleLogout} className="text-gray-500 hover:text-gray-700">
-                {isOwner ? <LogOut className="w-4 h-4" /> : <User className="w-4 h-4" />}
+            <div className="flex items-center justify-center"> 
+              <button onClick={() => navigate('/')} className="text-gray-500 hover:text-gray-700 flex items-center gap-2">
+                <Home className="w-4 h-4" />
+                <span>홈으로 가기</span>
               </button>
             </div>
           </div>

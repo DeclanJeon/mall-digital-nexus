@@ -198,7 +198,7 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
           </AccordionContent>
         </AccordionItem>
         
-        <AccordionItem value="price">
+        {/* <AccordionItem value="price">
           <AccordionTrigger>가격</AccordionTrigger>
           <AccordionContent>
             <div className="space-y-4">
@@ -215,9 +215,9 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
               </div>
             </div>
           </AccordionContent>
-        </AccordionItem>
+        </AccordionItem> */}
         
-        <AccordionItem value="rating">
+        {/* <AccordionItem value="rating">
           <AccordionTrigger>평점</AccordionTrigger>
           <AccordionContent>
             <div className="space-y-2">
@@ -233,9 +233,9 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
               ))}
             </div>
           </AccordionContent>
-        </AccordionItem>
+        </AccordionItem> */}
         
-        <AccordionItem value="status">
+        {/* <AccordionItem value="status">
           <AccordionTrigger>상태</AccordionTrigger>
           <AccordionContent>
             <div className="space-y-2">
@@ -251,7 +251,7 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
               ))}
             </div>
           </AccordionContent>
-        </AccordionItem>
+        </AccordionItem> */}
       </Accordion>
       
       <Button className="w-full mt-4" onClick={applyFilters}>적용</Button>

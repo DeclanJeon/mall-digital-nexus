@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
+import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Star, Heart, Share2, ShoppingCart, Plus, Minus, 
   MessageCircle, Loader2, Send, Phone, Video, ThumbsUp, 
@@ -43,12 +44,41 @@ interface ChatMessage {
   isRead: boolean;
 }
 
-interface ProductDetailPageProps {
+interface Inquiry {
+  id: string;
   productId: string | number;
-  onBack: () => void;
+  author: string;
+  content: string;
+  timestamp: string;
 }
 
-const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId, onBack }) => { 
+const INQUIRIES_STORAGE_KEY = 'product_inquiries';
+
+const loadInquiries = (productId: string | number): Inquiry[] => {
+  try {
+    const storedInquiries = localStorage.getItem(INQUIRIES_STORAGE_KEY);
+    if (storedInquiries) {
+      const allInquiries: Inquiry[] = JSON.parse(storedInquiries);
+      return allInquiries.filter(inquiry => inquiry.productId === productId);
+    }
+  } catch (error) {
+    console.error("Failed to load inquiries from local storage", error);
+  }
+  return [];
+};
+
+const saveInquiries = (allInquiries: Inquiry[]) => {
+  try {
+    localStorage.setItem(INQUIRIES_STORAGE_KEY, JSON.stringify(allInquiries));
+  } catch (error) {
+    console.error("Failed to save inquiries to local storage", error);
+  }
+};
+
+const ProductDetailPage: React.FC = () => { 
+  const { address, productId } = useParams<{ address: string; productId: string }>();
+  const navigate = useNavigate();
+
   // 기존 상태들
   const [product, setProduct] = useState<Product | null>(null); 
   const [isLoading, setIsLoading] = useState(true); 
@@ -67,11 +97,12 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId, onBack
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
   const [isOnline, setIsOnline] = useState(true); // 판매자 온라인 상태
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
 
   useEffect(() => {
     if (productId) {
       setIsLoading(true);
-      const fetchedProduct = getProductById(productId.toString()); 
+      const fetchedProduct = getProductById(productId); 
       setProduct(fetchedProduct || null);
       
       // 가짜 리뷰 데이터 로드
@@ -80,6 +111,19 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId, onBack
       setIsLoading(false);
     }
   }, [productId]);
+
+  useEffect(() => {
+    const loadedInquiries = loadInquiries(productId);
+    setInquiries(loadedInquiries);
+  }, [productId]);
+
+  useEffect(() => {
+    if (inquiries.length > 0 || loadInquiries(productId).length > 0) {
+      const allInquiries = JSON.parse(localStorage.getItem(INQUIRIES_STORAGE_KEY) || '[]');
+      const otherProductInquiries = allInquiries.filter((inq: Inquiry) => inq.productId !== productId);
+      saveInquiries([...otherProductInquiries, ...inquiries]);
+    }
+  }, [inquiries, productId]);
 
   const loadMockReviews = () => {
     const mockReviews: Review[] = [
@@ -219,6 +263,25 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId, onBack
     });
   };
 
+  const handleSubmitInquiry = (content: string) => {
+    if (!content.trim()) return;
+
+    const inquiry: Inquiry = {
+      id: Date.now().toString(),
+      productId: productId,
+      author: '나',
+      content,
+      timestamp: new Date().toLocaleString()
+    };
+
+    setInquiries(prev => [...prev, inquiry]);
+    setNewMessage('');
+  };
+
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
@@ -237,7 +300,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId, onBack
           <AlertCircle className="h-16 w-16 text-red-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-800 mb-4">앗! 상품을 찾을 수 없어요 😅</h2>
           <p className="text-gray-600 mb-6">요청하신 상품 정보를 불러올 수 없습니다. 링크를 다시 확인해주세요.</p>
-          <Button onClick={onBack} className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600">
+          <Button onClick={handleBack} className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600">
             <ArrowLeft className="h-5 w-5" />
             뒤로 가기
           </Button>
@@ -278,7 +341,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId, onBack
             variant="ghost"
             size="icon"
             className="rounded-full hover:bg-purple-100 transition-colors"
-            onClick={onBack}
+            onClick={handleBack}
           >
             <ArrowLeft className="h-6 w-6" />
           </Button>
@@ -343,37 +406,8 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId, onBack
                     {product.title}
                   </h1>
 
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="flex items-center gap-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-5 h-5 ${
-                            i < Math.floor(averageRating) 
-                              ? 'text-yellow-400 fill-current' 
-                              : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-gray-600 font-medium">
-                      {averageRating.toFixed(1)} ({reviews.length}개 후기)
-                    </span>
-                  </div>
-
                   <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
                     {formatPrice(Number(product.price) || 0)}원
-                  </div>
-
-                  <div className="flex items-center gap-4 text-sm">
-                    <div className="flex items-center text-green-600">
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      무료배송
-                    </div>
-                    <div className="flex items-center text-blue-600">
-                      <Clock className="h-4 w-4 mr-1" />
-                      모레(금) 5/30 도착
-                    </div>
                   </div>
                 </div>
 
@@ -454,16 +488,6 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId, onBack
                   >
                     바로구매 💳
                   </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="w-full py-4 border-2 border-purple-200 hover:border-purple-300 hover:bg-purple-50 font-bold rounded-xl transition-all duration-200" 
-                    onClick={handleAddToCart}
-                    size="lg"
-                  >
-                    <ShoppingCart className="h-5 w-5 mr-2" /> 
-                    장바구니 담기
-                  </Button>
                 </div>
 
                 <Separator className="my-6" />
@@ -471,72 +495,10 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId, onBack
                 {/* 상담 및 소통 기능 */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-gray-800">판매자와 소통하기</h3>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-400' : 'bg-gray-400'}`}></div>
-                      <span className="text-xs text-gray-600">
-                        {isOnline ? '온라인' : '오프라인'}
-                      </span>
-                    </div>
+                    <h3 className="font-semibold text-gray-800">상담하기</h3>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2">
-                    <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="flex flex-col items-center gap-1 h-auto py-3 hover:bg-blue-50 border-blue-200">
-                          <MessageCircle className="h-4 w-4 text-blue-500" />
-                          <span className="text-xs">채팅</span>
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-md">
-                        <DialogHeader>
-                          <DialogTitle className="flex items-center gap-2">
-                            <MessageCircle className="h-5 w-5" />
-                            판매자와 채팅
-                          </DialogTitle>
-                        </DialogHeader>
-                        
-                        <div className="space-y-4">
-                          <ScrollArea className="h-64 border rounded-lg p-3">
-                            <div className="space-y-3">
-                              {chatMessages.map((message) => (
-                                <div
-                                  key={message.id}
-                                  className={`flex ${message.senderId === 'current-user' ? 'justify-end' : 'justify-start'}`}
-                                >
-                                  <div
-                                    className={`max-w-xs px-3 py-2 rounded-lg ${
-                                      message.senderId === 'current-user'
-                                        ? 'bg-purple-500 text-white'
-                                        : 'bg-gray-100 text-gray-800'
-                                    }`}
-                                  >
-                                    <p className="text-sm">{message.content}</p>
-                                    <p className="text-xs opacity-70 mt-1">
-                                      {new Date(message.timestamp).toLocaleTimeString()}
-                                    </p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </ScrollArea>
-                          
-                          <div className="flex gap-2">
-                            <Input
-                              placeholder="메시지를 입력하세요..."
-                              value={newMessage}
-                              onChange={(e) => setNewMessage(e.target.value)}
-                              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                              className="flex-1"
-                            />
-                            <Button onClick={handleSendMessage} size="icon">
-                              <Send className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-
+                  <div className="grid grid-cols-1 gap-2">
                     <Button 
                       variant="outline" 
                       size="sm" 
@@ -544,17 +506,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId, onBack
                       onClick={handleVoiceCall}
                     >
                       <Phone className="h-4 w-4 text-green-500" />
-                      <span className="text-xs">음성</span>
-                    </Button>
-
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex flex-col items-center gap-1 h-auto py-3 hover:bg-red-50 border-red-200"
-                      onClick={handleVideoCall}
-                    >
-                      <Video className="h-4 w-4 text-red-500" />
-                      <span className="text-xs">영상</span>
+                      <span className="text-xm">음성</span>
                     </Button>
                   </div>
                 </div>
@@ -567,309 +519,159 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId, onBack
         <div className="mt-8">
           <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
             <CardContent className="p-0">
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="w-full grid grid-cols-3 bg-gray-50 rounded-none">
-                  <TabsTrigger value="details" className="data-[state=active]:bg-white">
-                    상품 상세
-                  </TabsTrigger>
-                  <TabsTrigger value="reviews" className="data-[state=active]:bg-white">
-                    후기 ({reviews.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="qna" className="data-[state=active]:bg-white">
-                    문의사항
-                  </TabsTrigger>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="details">상품 상세</TabsTrigger>
+                  <TabsTrigger value="reviews">후기 ({reviews.length})</TabsTrigger>
+                  <TabsTrigger value="inquiries">문의 ({inquiries.length})</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="details" className="p-6">
-                  <div className="prose max-w-none">
-                    <h3 className="text-lg font-semibold mb-4">상품 설명</h3>
-                    <p className="text-gray-600 leading-relaxed whitespace-pre-line">
-                      {product.description || "상품에 대한 자세한 설명이 준비 중입니다."}
-                    </p>
-                    
-                    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h4 className="font-semibold mb-2">배송 정보</h4>
-                        <ul className="text-sm text-gray-600 space-y-1">
-                          <li>• 무료배송 (제주도 및 도서산간 지역 제외)</li>
-                          <li>• 평일 오후 2시 이전 주문 시 당일 발송</li>
-                          <li>• 일반적으로 1-2일 내 배송</li>
-                        </ul>
+                {/* 상품 상세 탭 */} 
+                <TabsContent value="details" className="mt-6">
+                  <Card className="shadow-none border-0">
+                    <CardContent className="p-0">
+                      <h3 className="text-xl font-bold mb-4 text-gray-800">상품 설명</h3>
+                      <div className="prose max-w-none text-gray-700 leading-relaxed">
+                        {product?.description ? (
+                          <p>{product.description}</p>
+                        ) : (
+                          <p className="text-gray-500">등록된 상품 설명이 없습니다.</p>
+                        )}
                       </div>
-                      
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h4 className="font-semibold mb-2">교환/반품 정보</h4>
-                        <ul className="text-sm text-gray-600 space-y-1">
-                          <li>• 수령 후 7일 이내 교환/반품 가능</li>
-                          <li>• 단순 변심 시 왕복 배송비 고객 부담</li>
-                          <li>• 상품 하자 시 무료 교환/반품</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 </TabsContent>
 
-                <TabsContent value="reviews" className="p-6">
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold">상품 후기</h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className="flex items-center">
-                            {[...Array(5)].map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`w-4 h-4 ${
-                                  i < Math.floor(averageRating) 
-                                    ? 'text-yellow-400 fill-current' 
-                                    : 'text-gray-300'
-                                }`}
-                              />
-                            ))}
-                          </div>
-                          <span className="text-sm text-gray-600">
-                            {averageRating.toFixed(1)} / 5.0 ({reviews.length}개 후기)
-                          </span>
+                {/* 후기 탭 */} 
+                <TabsContent value="reviews" className="mt-6">
+                  <Card className="shadow-none border-0">
+                    <CardContent className="p-0">
+                      <h3 className="text-xl font-bold mb-4 text-gray-800">상품 후기</h3>
+                      <div className="mb-6 p-4 border rounded-lg bg-gray-50">
+                        <h4 className="font-semibold mb-2">리뷰 작성</h4>
+                        <div className="flex items-center gap-1 mb-3">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`w-6 h-6 cursor-pointer ${newReview.rating >= star ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+                              onClick={() => setNewReview({ ...newReview, rating: star })}
+                            />
+                          ))}
+                        </div>
+                        <Textarea
+                          placeholder="상품에 대한 솔직한 후기를 남겨주세요... (최소 10자)"
+                          value={newReview.content}
+                          onChange={(e) => setNewReview({ ...newReview, content: e.target.value })}
+                          className="mb-3 min-h-[80px]"
+                        />
+                        <div className="flex justify-end">
+                          <Button onClick={handleSubmitReview} disabled={newReview.content.length < 10}>리뷰 제출</Button>
                         </div>
                       </div>
-                      
-                      <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen}>
-                        <DialogTrigger asChild>
-                          <Button className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600">
-                            <Star className="h-4 w-4 mr-2" />
-                            후기 작성
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-lg">
-                          <DialogHeader>
-                            <DialogTitle>상품 후기 작성</DialogTitle>
-                          </DialogHeader>
-                          
-                          <div className="space-y-4">
-                            <div>
-                              <label className="block text-sm font-medium mb-2">평점</label>
-                              <div className="flex gap-1">
-                                {[1, 2, 3, 4, 5].map((rating) => (
-                                  <button
-                                    key={rating}
-                                    onClick={() => setNewReview(prev => ({ ...prev, rating }))}
-                                    className="transition-transform hover:scale-110"
-                                  >
-                                    <Star
-                                      className={`w-8 h-8 ${
-                                        rating <= newReview.rating
-                                          ? 'text-yellow-400 fill-current'
-                                          : 'text-gray-300'
-                                      }`}
-                                    />
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium mb-2">후기 내용</label>
-                              <Textarea
-                                placeholder="상품에 대한 솔직한 후기를 남겨주세요..."
-                                value={newReview.content}
-                                onChange={(e) => setNewReview(prev => ({ ...prev, content: e.target.value }))}
-                                className="min-h-32 resize-none"
-                              />
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium mb-2">사진 첨부 (선택)</label>
-                              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-purple-400 transition-colors cursor-pointer">
-                                <Camera className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                                <p className="text-sm text-gray-500">사진을 드래그하거나 클릭해서 업로드</p>
-                              </div>
-                            </div>
-                            
-                            <div className="flex gap-2 pt-4">
-                              <Button 
-                                variant="outline" 
-                                onClick={() => setIsReviewModalOpen(false)}
-                                className="flex-1"
-                              >
-                                취소
-                              </Button>
-                              <Button 
-                                onClick={handleSubmitReview}
-                                className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
-                              >
-                                후기 등록
-                              </Button>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
 
-                    <Separator />
-
-                    <div className="space-y-4">
-                      {reviews.length > 0 ? (
-                        reviews.map((review) => (
-                          <Card key={review.id} className="border border-gray-100 hover:shadow-md transition-shadow">
-                            <CardContent className="p-4">
-                              <div className="flex items-start gap-3">
-                                <Avatar className="w-10 h-10">
-                                  <AvatarImage src={review.userAvatar} />
-                                  <AvatarFallback>
-                                    {review.userName.charAt(0)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="font-medium">{review.userName}</span>
-                                    {review.verified && (
-                                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-                                        <CheckCircle className="h-3 w-3 mr-1" />
-                                        구매확정
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <div className="flex">
+                      <div className="space-y-6">
+                        {reviews.length > 0 ? (
+                          reviews.map((review) => (
+                            <div key={review.id} className="border-b pb-6 last:border-b-0 last:pb-0">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-10 w-10">
+                                    <AvatarImage src={review.userAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${review.userName}`} />
+                                    <AvatarFallback>{review.userName.charAt(0)}</AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-semibold text-gray-900">{review.userName}</p>
+                                    <div className="flex items-center gap-1 text-sm text-gray-600">
                                       {[...Array(5)].map((_, i) => (
                                         <Star
                                           key={i}
-                                          className={`w-4 h-4 ${
-                                            i < review.rating 
-                                              ? 'text-yellow-400 fill-current' 
-                                              : 'text-gray-300'
-                                          }`}
+                                          className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
                                         />
                                       ))}
+                                      <span>{review.date}</span>
                                     </div>
-                                    <span className="text-sm text-gray-500">{review.date}</span>
-                                  </div>
-                                  
-                                  <p className="text-gray-700 mb-3 leading-relaxed">{review.content}</p>
-                                  
-                                  {review.images && review.images.length > 0 && (
-                                    <div className="flex gap-2 mb-3">
-                                      {review.images.map((image, index) => (
-                                        <img
-                                          key={index}
-                                          src={image}
-                                          alt={`Review image ${index + 1}`}
-                                          className="w-16 h-16 object-cover rounded-lg border border-gray-200"
-                                        />
-                                      ))}
-                                    </div>
-                                  )}
-                                  
-                                  <div className="flex items-center gap-4 text-sm">
-                                    <button className="flex items-center gap-1 text-gray-500 hover:text-purple-600 transition-colors">
-                                      <ThumbsUp className="h-4 w-4" />
-                                      도움돼요 ({review.helpful})
-                                    </button>
-                                    <button className="flex items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors">
-                                      <MessageCircle className="h-4 w-4" />
-                                      댓글
-                                    </button>
-                                    <button className="flex items-center gap-1 text-gray-500 hover:text-red-500 transition-colors">
-                                      <Flag className="h-4 w-4" />
-                                      신고
-                                    </button>
                                   </div>
                                 </div>
+                                {review.verified && (
+                                  <Badge variant="secondary" className="bg-green-100 text-green-700">
+                                    <CheckCircle className="h-3 w-3 mr-1" /> 구매확정
+                                  </Badge>
+                                )}
                               </div>
-                            </CardContent>
-                          </Card>
-                        ))
-                      ) : (
-                        <div className="text-center py-12 text-gray-500">
-                          <Star className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                          <p className="text-lg font-medium mb-2">아직 작성된 후기가 없어요</p>
-                          <p className="text-sm">첫 번째 후기를 작성해보세요! 🌟</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                              <p className="text-gray-800 mb-3 leading-relaxed">{review.content}</p>
+                              {review.images && review.images.length > 0 && (
+                                <div className="flex gap-2 mb-3">
+                                  {review.images.map((img, idx) => (
+                                    <img key={idx} src={img} alt="Review Image" className="w-20 h-20 object-cover rounded-md" />
+                                  ))}
+                                </div>
+                              )}
+                              <div className="flex items-center gap-4 text-sm text-gray-600">
+                                <Button variant="ghost" size="sm" className="hover:bg-gray-100">
+                                  <ThumbsUp className="h-4 w-4 mr-1" /> 도움돼요 ({review.helpful})
+                                </Button>
+                                <Button variant="ghost" size="sm" className="hover:bg-gray-100">
+                                  <ThumbsDown className="h-4 w-4 mr-1" />
+                                </Button>
+                                <Button variant="ghost" size="sm" className="hover:bg-gray-100">
+                                  <Flag className="h-4 w-4 mr-1" /> 신고
+                                </Button>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-center text-gray-500 py-10">아직 등록된 후기가 없습니다. 첫 후기를 남겨주세요!</p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </TabsContent>
 
-                <TabsContent value="qna" className="p-6">
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold">상품 문의</h3>
-                      <Button variant="outline" className="border-purple-200 hover:bg-purple-50">
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        문의하기
-                      </Button>
-                    </div>
-
-                    <Separator />
-
-                    <div className="space-y-4">
-                      <Card className="border border-gray-100">
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
-                            <Avatar className="w-8 h-8">
-                              <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
-                                Q
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="font-medium">김**</span>
-                                <span className="text-sm text-gray-500">2025-05-27</span>
-                                <Badge variant="outline" className="text-xs">답변완료</Badge>
-                              </div>
-                              <p className="text-gray-700 mb-3">사이즈 280이 품절인데 언제쯤 재입고 예정인가요?</p>
-                              
-                              <div className="bg-gray-50 rounded-lg p-3 ml-4 border-l-4 border-purple-200">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Avatar className="w-6 h-6">
-                                    <AvatarFallback className="bg-purple-100 text-purple-600 text-xs">
-                                      A
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <span className="text-sm font-medium">판매자</span>
-                                  <span className="text-xs text-gray-500">2025-05-27</span>
-                                </div>
-                                <p className="text-sm text-gray-700">
-                                  안녕하세요! 280 사이즈는 다음 주 화요일(6/3) 재입고 예정입니다. 
-                                  재입고 알림 설정해두시면 입고 즉시 알려드릴게요! 😊
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="border border-gray-100">
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
-                            <Avatar className="w-8 h-8">
-                              <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
-                                Q
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="font-medium">이**</span>
-                                <span className="text-sm text-gray-500">2025-05-26</span>
-                                <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-600">답변대기</Badge>
-                              </div>
-                              <p className="text-gray-700">실제 색상이 사진과 많이 다른가요? 그레이 색상 구매 고민 중입니다.</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <div className="text-center py-8">
-                        <MessageCircle className="h-8 w-8 mx-auto mb-3 text-gray-300" />
-                        <p className="text-gray-500 mb-4">궁금한 점이 있으시면 언제든 문의해주세요!</p>
-                        <Button className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600">
-                          문의 작성하기
-                        </Button>
+                {/* 문의 탭 */} 
+                <TabsContent value="inquiries" className="mt-6">
+                  <Card className="shadow-none border-0">
+                    <CardContent className="p-0">
+                      <h3 className="text-xl font-bold mb-4 text-gray-800">상품 문의</h3>
+                      <div className="mb-6 p-4 border rounded-lg bg-gray-50">
+                        <h4 className="font-semibold mb-2">문의 작성</h4>
+                        <Textarea
+                          placeholder="상품에 대해 궁금한 점을 문의해주세요..."
+                          className="mb-3 min-h-[80px]"
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                        />
+                        <div className="flex justify-end">
+                          <Button onClick={() => handleSubmitInquiry(newMessage)} disabled={newMessage.length < 1}>문의 제출</Button>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+
+                      <div className="space-y-4">
+                        {inquiries.length > 0 ? (
+                          inquiries.map((inquiry) => (
+                            <div key={inquiry.id} className="border-b pb-6 last:border-b-0 last:pb-0">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-10 w-10">
+                                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${inquiry.author}`} />
+                                    <AvatarFallback>{inquiry.author.charAt(0)}</AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-semibold text-gray-900">{inquiry.author}</p>
+                                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                                      <span>{inquiry.timestamp}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <p className="text-gray-800 mb-3 leading-relaxed">{inquiry.content}</p>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-center text-gray-500 py-10">아직 등록된 문의가 없습니다.</p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </TabsContent>
               </Tabs>
             </CardContent>

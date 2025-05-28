@@ -48,6 +48,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { CreatePeermallModalProps, Peermall, FamilyMember, PeermallFormData } from '@/types/peermall';
 
+import { createPeerMall } from '@/services/peerMallService';
+
 
 // 스키마들 (기존과 동일)
 const step1Schema = z.object({

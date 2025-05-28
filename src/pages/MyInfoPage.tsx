@@ -36,17 +36,17 @@ interface PeerMall {
 const MyInfoPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [userProfile, setUserProfile] = useState({
-    name: '김민지',
-    nickname: '디자인마스터',
-    peerNumber: 'PN7829354',
-    email: 'example@peermall.com',
-    phone: '010-1234-5678',
-    profileImage: 'https://api.dicebear.com/7.x/personas/svg?seed=currentUser',
-    bio: '디자인과 UX에 관심이 많은 디자이너입니다. 다양한 디자인 아이디어를 공유하고 싶어요!',
-    badges: ['디자인', '푸드', '테크', '아트'],
-    recommenders: 5,
+    name: '',
+    nickname: '',
+    peerNumber: '',
+    email: '',
+    phone: '',
+    profileImage: '',
+    bio: '',
+    badges: [],
+    recommenders: 0,
     socialAccounts: [
-      { type: 'Instagram', username: 'design_master', connected: true },
+      { type: 'Instagram', username: '', connected: false },
       { type: 'Twitter', username: 'k_designr', connected: false }
     ]
   });

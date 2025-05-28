@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { BookmarkItem } from '@/components/navigation/SearchAndFilterBar';
 import PeermallGrid from '@/components/peermall-features/PeermallGrid';
@@ -123,37 +124,12 @@ const Index = () => {
   const [selectedHashtags, setSelectedHashtags] = useState<string[]>(['전체']);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [hotPeerMalls, setHotPeerMalls] = useState<Peermall[]>([]);
-  const [originHotPeerMalls, setOriginHotPeerMalls] = useState<Peermall[]>([]);
-  const [newPeerMalls, setNewPeerMalls] = useState<Peermall[]>([]);
-  const [originNewPeerMalls, setOriginNewPeerMalls] = useState<Peermall[]>([]);
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
-
-    if(query === '') {
-      setHotPeerMalls(originHotPeerMalls);
-      setNewPeerMalls(originNewPeerMalls);
-      return;
-    }
-    
-    // 원본 데이터 저장
-    setOriginHotPeerMalls(hotPeerMalls);
-    setOriginNewPeerMalls(newPeerMalls);
-
-    // 검색 필터링
-    const searchedHotPeerMalls = hotPeerMalls.filter(peerMall => 
-      peerMall.peerMallName.includes(query)
-    );
-    setHotPeerMalls(searchedHotPeerMalls);
-
-    const searchedNewPeerMalls = newPeerMalls.filter(peerMall => 
-      peerMall.peerMallName.includes(query)
-    );
-    setNewPeerMalls(searchedNewPeerMalls);
-  }, [hotPeerMalls, newPeerMalls, originHotPeerMalls, originNewPeerMalls]);
-
-  
+    // 여기에 검색 로직 추가
+    console.log('검색어 변경:', query);
+  }, []);
 
   const handleBookmarkToggle = useCallback((itemId: string) => {
     setBookmarks(prev => {
@@ -196,13 +172,6 @@ const Index = () => {
         // 스토리지에서 피어몰 데이터 가져오기
         const storedPeermalls = peermallStorage.getAll();
         console.log('📦 스토리지에서 로드된 피어몰:', storedPeermalls.length, '개');
-
-        const storedPeerMallLists = await getPeerMallList();
-
-        if(storedPeerMallLists['success']) {
-          setHotPeerMalls(storedPeerMallLists['hostPeerMallList']);
-          setNewPeerMalls(storedPeerMallLists['newPeerMallList']);
-        }
         
         setPeermalls(storedPeermalls);
         setFilteredMalls(storedPeermalls);
@@ -497,7 +466,7 @@ const Index = () => {
           <div className="lg:col-span-3 space-y-8">
             
             {/* 🔥 인기 피어몰 섹션 */}
-            <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.2 }}>
+            {/* <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.2 }}>
               <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-orange-50 to-red-50`}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -556,7 +525,7 @@ const Index = () => {
                   )}
                 </CardContent>
               </Card>
-            </motion.div>
+            </motion.div> */}
 
             {/* ✨ 신규 피어몰 섹션 */}
             <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.3 }}>
@@ -704,4 +673,3 @@ function setSelectedPeermall(peermall: Peermall) {
 function setIsDetailViewOpen(arg0: boolean) {
   throw new Error('Function not implemented.');
 }
-

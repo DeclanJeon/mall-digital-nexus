@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, memo } from 'react';
 import { ChevronRight, Loader2, AlertCircle } from 'lucide-react';
 import PeerMallCard from './PeermallCard';
 import { peermallStorage, Peermall } from '@/services/storage/peermallStorage';
 import { useToast } from '@/hooks/use-toast';
 import { PeermallGridProps } from '@/types/peermall';
 
-const PeermallGrid = ({ 
+const PeermallGrid = memo(({
   title, 
   malls: initialMalls = [], 
   viewMore = true, 
@@ -18,6 +18,8 @@ const PeermallGrid = ({
   const [isLoading, setIsLoading] = useState(true);
   const [malls, setMalls] = useState<Peermall[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+
 
   // ✅ 스토리지에서 데이터 로드 (최적화된 버전)
   const loadPeermalls = useCallback(async () => {
@@ -53,6 +55,7 @@ const PeermallGrid = ({
         }
         
         setMalls(initialMalls);
+
         console.log('✅ 피어몰 데이터 설정 완료:', initialMalls.length, '개');
       } else {
         // 스토리지가 비어있으면 initialMalls 사용
@@ -166,7 +169,7 @@ const PeermallGrid = ({
         renderSkeleton()
       ) : malls.length > 0 ? (
         <div className={viewMode === 'grid' ? gridLayoutClasses : listLayoutClasses}>
-          {malls.map((peermall, index) => (
+            {malls.map((peermall, index) => (
             <div key={peermall.id || `peermall-${index}`} className="w-full">
               <PeerMallCard
                 {...peermall}
@@ -196,22 +199,19 @@ const PeermallGrid = ({
           <p className="text-gray-500 mb-4">
             {isPopularSection 
               ? '첫 번째 피어몰을 만들어 인기 순위에 도전해보세요! 🚀' 
-              : '새로운 피어몰을 만들어 커뮤니티를 시작해보세요! ✨'
-            }
+              : '새로운 피어몰을 생성하거나, 필터를 조정해보세요.'}
           </p>
         </div>
       )}
-
       {viewMore && malls.length > 0 && (
-        <div className="flex items-center justify-end mt-6">
-          <button className="flex items-center text-blue-600 hover:text-blue-700 transition-colors font-medium group">
-            더보기 
-            <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+        <div className="flex justify-center mt-8">
+          <button className="flex items-center text-blue-600 hover:text-blue-700 font-semibold">
+            더보기 <ChevronRight className="ml-1 w-4 h-4" />
           </button>
         </div>
       )}
     </section>
   );
-};
+});
 
 export default PeermallGrid;

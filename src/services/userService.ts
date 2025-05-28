@@ -56,17 +56,4 @@ const userService = {
   getAccessToken
 };
 
-export const getPeerMallList = async (): Promise<Object> => {
-  try {
-    const response = await api.get('/peerMallList');
-    if (response.status === 200 && response.data.success) {
-      return response.data;
-    }
-    return { success: false };
-  } catch (error) {
-    console.error('Error sending verification code:', error);
-    return { success: false };
-  }
-};
-
 export default userService;

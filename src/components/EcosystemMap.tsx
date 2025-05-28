@@ -84,7 +84,7 @@ interface EcosystemMapProps {
   isFullscreen?: boolean;
 }
 
-const EcosystemMap: React.FC<EcosystemMapProps> = ({ 
+const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({ 
   onLocationSelect, 
   isFullscreen = false 
 }) => {
@@ -109,7 +109,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
   const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLocation | null>(null);
 
   // 프리미엄 마커 아이콘 생성 함수
-  const createPremiumMarkerIcon = (location: MapLocation) => {
+  const createPremiumMarkerIcon = useCallback((location: MapLocation) => {
     const getMarkerStyle = () => {
       let backgroundColor = '#3B82F6'; // 기본 파란색
       let borderColor = '#1E40AF';
@@ -177,10 +177,10 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
       iconAnchor: [style.size/2, style.size],
       popupAnchor: [0, -style.size]
     });
-  };
+  }, []);
 
   // 팝업 생성 함수
-  const createPremiumPopup = (location: MapLocation) => {
+  const createPremiumPopup = useCallback((location: MapLocation) => {
     const trustScore = location.trustScore || Math.floor((location.rating || 4.0) * 20);
     const responseTime = location.responseTime || '5';
     
@@ -267,7 +267,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
         </div>
       </div>
     `;
-  };
+  }, []);
 
   // 피어몰 데이터 로드 함수
   const loadPeermalls = useCallback(() => {
@@ -426,15 +426,11 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
       return typeMatch && hashtagMatch;
     });
 
-    console.log('필터링된 위치:', filteredLocations);
-
     // 마커 추가
     filteredLocations.forEach((loc, index) => {
       try {
         const lat = Number(loc.lat);
         const lng = Number(loc.lng);
-        
-        console.log(`마커 ${index + 1} 추가 중:`, { title: loc.title, lat, lng });
         
         const marker = L.marker([lat, lng], { 
           icon: createPremiumMarkerIcon(loc) 
@@ -453,8 +449,6 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
             onLocationSelect(loc);
           }
         });
-
-        console.log(`마커 ${index + 1} 추가 완료`);
       } catch (error) {
         console.error(`마커 추가 실패 (${loc.title}):`, error);
       }
@@ -1067,7 +1061,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
                       window.open(`/space/${selectedLocation.id}`, '_blank');
                     }
                   }}
-                >u
+                >
                   <ExternalLink className="w-4 h-4 mr-1 text-purple-600" />
                   방문하기
                 </Button>
@@ -1138,6 +1132,6 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
       )}
     </div>
   );
-};
+});
 
-export default EcosystemMap;
+export default React.memo(EcosystemMap);

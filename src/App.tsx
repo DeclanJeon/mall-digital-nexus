@@ -21,6 +21,7 @@ import CommunityDetailPage from "./pages/ContentDetailPage";
 import PostDetailPage from "./pages/PostDetailPage";
 import QRCodeGenerator from "@/components/feature-sections/QRCodeGenerator";
 import PeermallsPage from "./pages/PeermallsPage"; // PeermallsPage import 추가
+import ProductDetailPage from './components/peer-space/products/ProductDetailPage';
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const AppContent = () => {
         {/* <Route path="/products" element={< />} /> */}
         {/* <Route path="/curation-links" element={<CurationLinks />} /> */}
         <Route path="/create-qrcode" element={<QRCodeGenerator />} />
+        <Route path="/space/:address/product/:productId" element={<ProductDetailPage />} />
         {/* <Route path="/community" element={<Community />} /> 
         <Route path="/community/planet/:planetId" element={<Community />} /> 
         <Route path="/community/planet/:planetId/post/:postId" element={<Community />} /> */}

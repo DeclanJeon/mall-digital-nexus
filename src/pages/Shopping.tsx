@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductGrid from '@/components/shopping/products/ProductGrid';
 import PeermallGrid from '@/components/peermall-features/PeermallGrid';
@@ -17,25 +17,10 @@ import {
   CarouselPrevious,
   CarouselNext
 } from '@/components/ui/carousel';
-
-interface Product {
-  id: number | string;
-  title: string;
-  description: string;
-  price: number;
-  discountPrice?: number | null;
-  imageUrl: string;
-  rating: number;
-  reviewCount: number;
-  peermallName: string; 
-  peermallId?: string; 
-  category: string;
-  tags: string[];
-  isBestSeller?: boolean;
-  isNew?: boolean;
-  isRecommended?: boolean;
-  isCertified?: boolean;
-}
+import { ContentType } from '@/types/space';
+import { getProducts, saveProduct } from '@/services/storage/productStorage';
+import { STORAGE_KEYS } from '@/utils/storage/constants';
+import { Product } from '@/types/product';
 
 interface ShoppingFilters {
   categories: string[];
@@ -53,7 +38,7 @@ const Shopping = () => {
   const [filters, setFilters] = useState<ShoppingFilters>({
     categories: [],
     priceRange: [0, 100000],
-    rating: null,
+    rating: 0,
     status: [],
   });
 
@@ -71,7 +56,10 @@ const Shopping = () => {
   const [qrModalTitle, setQrModalTitle] = useState('');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  const heroSlides = [
+  // 메모이제이션된 데이터들
+  const memoizedFilters = useMemo(() => filters, [filters]);
+
+  const heroSlides = useMemo(() => [
     {
       id: 1,
       title: "봄맞이 신상품 컬렉션",
@@ -85,7 +73,7 @@ const Shopping = () => {
       id: 2,
       title: "친환경 제품 특별 할인",
       description: "지구를 생각하는 친환경 제품을 20% 할인된 가격으로 만나보세요.",
-      imageUrl: "https://images.unsplash.com/photo-1605000797499-95a51c5269ae?auto=format&fit=crop&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1605000797499-b4d3fb778b09?auto=format&fit=crop&q=80",
       color: "from-green-600 to-teal-500",
       buttonText: "할인 상품 보기",
       buttonLink: "/shopping?tag=eco"
@@ -99,9 +87,9 @@ const Shopping = () => {
       buttonText: "베스트셀러 보기",
       buttonLink: "/shopping?category=popular"
     }
-  ];
+  ], []);
 
-  const categories = [
+  const categories = useMemo(() => [
     { id: 'all', name: '전체', url: '/shopping' },
     { id: 'tech', name: '테크', url: '/shopping?category=tech' },
     { id: 'fashion', name: '패션', url: '/shopping?category=fashion' },
@@ -109,74 +97,56 @@ const Shopping = () => {
     { id: 'food', name: '푸드', url: '/shopping?category=food' },
     { id: 'design', name: '디자인', url: '/shopping?category=design' },
     { id: 'hobby', name: '취미', url: '/shopping?category=hobby' },
-  ];
+  ], []);
 
-  const popularTags = [
+  const popularTags = useMemo(() => [
     { value: '베스트셀러', label: '베스트셀러' },
     { value: '신규', label: '신규 상품' },
     { value: '할인', label: '할인중' },
     { value: '친환경', label: '친환경' },
     { value: '수제품', label: '수제품' },
-  ];
+  ], []);
 
-  useEffect(() => {
-    try {
-      const storedPeermalls = localStorage.getItem('peermalls');
-      const allPeermalls = storedPeermalls ? JSON.parse(storedPeermalls) : [
-        { id: 'pm1', title: "디자인 스튜디오", description: "고품질 디자인", owner: "김민지", imageUrl: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&q=80", category: "디자인", tags: ["#디자인"], rating: 4.9, reviewCount: 124, featured: true, location: { lat: 37.5665, lng: 126.9780, address: "서울시 중구" }},
-        { id: 'pm2', title: "친환경 생활용품", description: "제로웨이스트", owner: "에코라이프", imageUrl: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80", category: "리빙", tags: ["#친환경"], rating: 4.7, reviewCount: 89, featured: false},
-        // 추가 목업 데이터
-        { id: 'pm3', title: "수제 베이커리", description: "매일 신선한 빵", owner: "빵순이", imageUrl: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&q=80", category: "푸드", tags: ["#베이커리"], rating: 4.8, reviewCount: 200},
-        { id: 'pm4', title: "핸드메이드 액세서리", description: "세상에 하나뿐인 디자인", owner: "공예가", imageUrl: "https://images.unsplash.com/photo-1588444650733-100091305961?auto=format&fit=crop&q=80", category: "패션", tags: ["#수공예"], rating: 4.9, reviewCount: 150},
-      ];
-      setPeermallsData(allPeermalls);
-      setDisplayedPeermalls(allPeermalls.slice(0, ITEMS_PER_PAGE));
-      setHasMorePeermalls(allPeermalls.length > ITEMS_PER_PAGE);
-    } catch (error) {
-      console.error('Error loading peermalls from localStorage:', error);
-      setPeermallsData([]);
-    }
-
-    try {
-      const storedProducts = localStorage.getItem('products');
-      const allProducts = storedProducts ? JSON.parse(storedProducts) : [
-        { id: 'prod1', title: "디자인 템플릿 세트", description: "소셜 미디어용", price: 29000, imageUrl: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&q=80", rating: 4.9, reviewCount: 120, peermallName: "디자인 스튜디오", peermallId: "pm1", category: "디자인", tags: ["#템플릿"], isBestSeller: true, isRecommended: true},
-        { id: 'prod2', title: "친환경 대나무 칫솔", description: "생분해성", price: 12000, discountPrice: 9600, imageUrl: "https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?auto=format&fit=crop&q=80", rating: 4.7, reviewCount: 85, peermallName: "친환경 생활용품", peermallId: "pm2", category: "리빙", tags: ["#친환경"], isCertified: true},
-        // 추가 목업 데이터
-        { id: 'prod3', title: "유기농 통밀빵", description: "건강한 아침", price: 8000, imageUrl: "https://images.unsplash.com/photo-1565181017631-8a8ebac7357f?auto=format&fit=crop&q=80", rating: 4.8, reviewCount: 92, peermallName: "수제 베이커리", peermallId: "pm3", category: "푸드", tags: ["#유기농"], isNew: true},
-        { id: 'prod4', title: "은하수 귀걸이", description: "수제 은 귀걸이", price: 25000, discountPrice: 19000, imageUrl: "https://images.unsplash.com/photo-1611081588019-8de899071033?auto=format&fit=crop&q=80", rating: 4.9, reviewCount: 70, peermallName: "핸드메이드 액세서리", peermallId: "pm4", category: "패션", tags: ["#액세서리"], isRecommended: true},
-        { id: 'prod5', title: "프리미엄 레더 지갑", description: "수제 가죽 제품", price: 45000, imageUrl: "https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&q=80", rating: 4.6, reviewCount: 45, peermallName: "핸드메이드 액세서리", peermallId: "pm4", category: "패션", tags: ["#가죽"], isBestSeller: true},
-        { id: 'prod6', title: "홈메이드 그래놀라", description: "건강한 아침 식사", price: 15000, imageUrl: "https://images.unsplash.com/photo-1565181017631-8a8ebac7357f?auto=format&fit=crop&q=80", rating: 4.5, reviewCount: 38, peermallName: "수제 베이커리", peermallId: "pm3", category: "푸드", tags: ["#건강식"], isCertified: true},
-      ];
-      setProductsData(allProducts);
-      setDisplayedProducts(allProducts.slice(0, ITEMS_PER_PAGE));
-      setHasMoreProducts(allProducts.length > ITEMS_PER_PAGE);
-    } catch (error) {
-      console.error('Error loading products from localStorage:', error);
-      setProductsData([]);
-    }
+  // 최적화된 핸들러 함수들
+  const handleFilterChange = useCallback((newFilters: ShoppingFilters) => {
+    setFilters(newFilters);
+    console.log("Filters updated:", newFilters);
   }, []);
 
-  const loadMorePeermalls = () => {
+  const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
+    setViewMode(mode);
+  }, []);
+
+  const handleQuickFilter = useCallback((tag: string) => {
+    setFilters(prevFilters => {
+      switch (tag) {
+        case "베스트셀러":
+          return {...prevFilters, status: [...prevFilters.status, "베스트셀러"]};
+        case "신규":
+          return {...prevFilters, status: [...prevFilters.status, "신규"]};
+        case "할인":
+          return {...prevFilters, status: [...prevFilters.status, "할인"]};
+        default:
+          return {...prevFilters, categories: [...prevFilters.categories, tag]};
+      }
+    });
+  }, []);
+
+  const loadMorePeermalls = useCallback(() => {
     const nextPage = peermallsPage + 1;
     const newPeermalls = peermallsData.slice(0, nextPage * ITEMS_PER_PAGE);
     setDisplayedPeermalls(newPeermalls);
     setPeermallsPage(nextPage);
     setHasMorePeermalls(newPeermalls.length < peermallsData.length);
-  };
+  }, [peermallsPage, peermallsData]);
 
-  const loadMoreProducts = () => {
+  const loadMoreProducts = useCallback(() => {
     const nextPage = productsPage + 1;
     const newProducts = productsData.slice(0, nextPage * ITEMS_PER_PAGE);
     setDisplayedProducts(newProducts);
     setProductsPage(nextPage);
     setHasMoreProducts(newProducts.length < productsData.length);
-  };
-
-  const handleFilterChange = (newFilters: ShoppingFilters) => {
-    setFilters(newFilters);
-    console.log("Filters updated:", newFilters);
-  };
+  }, [productsPage, productsData]);
 
   const handleOpenMap = useCallback((location: { lat: number; lng: number; address: string; title: string }) => {
     console.log("Open map for:", location);
@@ -188,43 +158,92 @@ const Shopping = () => {
     setQrModalOpen(true);
   }, []);
 
-  const handleQuickFilter = (tag: string) => {
-    // Apply quick filters based on tag clicked
-    switch (tag) {
-      case "베스트셀러":
-        setFilters({...filters, status: [...filters.status, "베스트셀러"]});
-        break;
-      case "신규 상품":
-        setFilters({...filters, status: [...filters.status, "신규"]});
-        break;
-      case "할인중":
-        setFilters({...filters, status: [...filters.status, "할인중"]});
-        break;
-      default:
-        // For other tags like '친환경', '수제품' we could add them to categories or custom tags
-        setFilters({...filters, categories: [...filters.categories, tag]});
+  const handleMobileFilterClose = useCallback((newFilters?: ShoppingFilters) => {
+    if (newFilters) {
+      handleFilterChange(newFilters);
     }
-  };
+    setShowMobileFilters(false);
+  }, [handleFilterChange]);
+
+  useEffect(() => {
+    const loadPeermalls = () => {
+      try {
+        const storedPeermalls = localStorage.getItem('peermalls');
+        const allPeermalls = storedPeermalls ? JSON.parse(storedPeermalls) : [
+          { id: 'pm1', title: "디자인 스튜디오", description: "고품질 디자인", owner: "김민지", imageUrl: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&q=80", category: "디자인", tags: ["#디자인"], rating: 4.9, reviewCount: 124, featured: true, location: { lat: 37.5665, lng: 126.9780, address: "서울시 중구" }},
+          { id: 'pm2', title: "친환경 생활용품", description: "제로웨이스트", owner: "에코라이프", imageUrl: "https://images.unsplash.com/photo-1542601906990-a29f7bb81c04?auto=format&fit=crop&q=80", category: "리빙", tags: ["#친환경"], rating: 4.7, reviewCount: 89, featured: false},
+          { id: 'pm3', title: "수제 베이커리", description: "매일 신선한 빵", owner: "빵순이", imageUrl: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&q=80", category: "푸드", tags: ["#베이커리"], rating: 4.8, reviewCount: 200},
+          { id: 'pm4', title: "핸드메이드 액세서리", description: "세상에 하나뿐인 디자인", owner: "공예가", imageUrl: "https://images.unsplash.com/photo-1588444650733-100091305961?auto=format&fit=crop&q=80", category: "패션", tags: ["#수공예"], rating: 4.9, reviewCount: 150},
+        ];
+        setPeermallsData(allPeermalls);
+        setDisplayedPeermalls(allPeermalls.slice(0, ITEMS_PER_PAGE));
+        setHasMorePeermalls(allPeermalls.length > ITEMS_PER_PAGE);
+      } catch (error) {
+        console.error('Error loading peermalls from localStorage:', error);
+        setPeermallsData([]);
+      }
+    };
+
+    const loadProducts = () => {
+      try {
+        let allProducts = getProducts();
+
+        if (allProducts.length === 0) {
+          allProducts = [
+            { id: 'prod1', title: "디자인 템플릿 세트", description: "소셜 미디어용", price: 29000, currency: "KRW", type: ContentType.Product, imageUrl: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&q=80", rating: 4.9, reviewCount: 120, peermallName: "디자인 스튜디오", peermallId: "pm1", category: "디자인", tags: ["#템플릿"], isBestSeller: true, isRecommended: true, peerSpaceAddress: "ps1", date: "2023-01-01", likes: 10, comments: 5, views: 100, saves: 20},
+            { id: 'prod2', title: "친환경 대나무 칫솔", description: "생분해성", price: 12000, currency: "KRW", type: ContentType.Product, discountPrice: 9600, imageUrl: "https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?auto=format&fit=crop&q=80", rating: 4.7, reviewCount: 85, peermallName: "친환경 생활용품", peermallId: "pm2", category: "리빙", tags: ["#친환경"], isCertified: true, peerSpaceAddress: "ps2", date: "2023-02-01", likes: 8, comments: 3, views: 80, saves: 15},
+            { id: 'prod3', title: "유기농 통밀빵", description: "건강한 아침", price: 8000, currency: "KRW", type: ContentType.Product, imageUrl: "https://images.unsplash.com/photo-1565181017631-8a8ebac7357f?auto=format&fit=crop&q=80", rating: 4.8, reviewCount: 92, peermallName: "수제 베이커리", peermallId: "pm3", category: "푸드", tags: ["#유기농"], isNew: true, peerSpaceAddress: "ps3", date: "2023-03-01", likes: 12, comments: 7, views: 120, saves: 25},
+            { id: 'prod4', title: "은하수 귀걸이", description: "수제 은 귀걸이", price: 25000, currency: "KRW", type: ContentType.Product, discountPrice: 19000, imageUrl: "https://images.unsplash.com/photo-1611081588019-8de899071033?auto=format&fit=crop&q=80", rating: 4.9, reviewCount: 70, peermallName: "핸드메이드 액세서리", peermallId: "pm4", category: "패션", tags: ["#액세서리"], isRecommended: true, peerSpaceAddress: "ps4", date: "2023-04-01", likes: 9, comments: 4, views: 90, saves: 18},
+            { id: 'prod5', title: "프리미엄 레더 지갑", description: "수제 가죽 제품", price: 45000, currency: "KRW", type: ContentType.Product, imageUrl: "https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&q=80", rating: 4.6, reviewCount: 45, peermallName: "핸드메이드 액세서리", peermallId: "pm4", category: "패션", tags: ["#가죽"], isBestSeller: true, peerSpaceAddress: "ps5", date: "2023-05-01", likes: 7, comments: 2, views: 70, saves: 10},
+            { id: 'prod6', title: "홈메이드 그래놀라", description: "건강한 아침 식사", price: 15000, currency: "KRW", type: ContentType.Product, imageUrl: "https://images.unsplash.com/photo-1565181017631-8a8ebac7357f?auto=format&fit=crop&q=80", rating: 4.5, reviewCount: 38, peermallName: "수제 베이커리", peermallId: "pm3", category: "푸드", tags: ["#건강식"], isCertified: true, peerSpaceAddress: "ps6", date: "2023-06-01", likes: 6, comments: 1, views: 60, saves: 8},
+          ];
+          allProducts.forEach(product => saveProduct(product));
+        }
+
+        setProductsData(allProducts);
+        setDisplayedProducts(allProducts.slice(0, ITEMS_PER_PAGE));
+        setHasMoreProducts(allProducts.length > ITEMS_PER_PAGE);
+      } catch (error) {
+        console.error('Error loading products:', error);
+        setProductsData([]);
+      }
+    };
+
+    loadPeermalls();
+    loadProducts();
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === STORAGE_KEYS.PRODUCTS) {
+        loadProducts();
+      }
+      if (event.key === STORAGE_KEYS.PEERMALLS) {
+        loadPeermalls();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-bg-100">
       <main className="flex-grow">
-        {/* Hero Carousel Section - Improved Layout */}
+        {/* Hero Carousel Section */}
         <Carousel className="relative" opts={{ loop: true }}>
           <CarouselContent>
             {heroSlides.map((slide) => (
               <CarouselItem key={slide.id}>
                 <div className="relative h-[350px] md:h-[400px] lg:h-[450px] w-full overflow-hidden">
-                  {/* Background Image */}
                   <div 
                     className="absolute inset-0 w-full h-full bg-cover bg-center"
                     style={{ backgroundImage: `url(${slide.imageUrl})` }}
                   >
-                    {/* Gradient Overlay */}
                     <div className={`absolute inset-0 bg-gradient-to-r ${slide.color} opacity-60`}></div>
                   </div>
                   
-                  {/* Content */}
                   <div className="container mx-auto h-full relative z-10">
                     <div className="flex items-center h-full px-4">
                       <div className="max-w-xl text-white">
@@ -254,7 +273,6 @@ const Shopping = () => {
             <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-md z-10" />
           </div>
           
-          {/* Carousel Indicators */}
           <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
             {heroSlides.map((_, index) => (
               <div 
@@ -279,7 +297,7 @@ const Shopping = () => {
             <div className="hidden lg:block">
               <ShoppingFilter 
                 onFilterChange={handleFilterChange}
-                initialFilters={filters}
+                initialFilters={memoizedFilters}
               />
             </div>
             
@@ -294,11 +312,8 @@ const Shopping = () => {
                     </Button>
                   </div>
                   <ShoppingFilter 
-                    onFilterChange={(newFilters) => {
-                      handleFilterChange(newFilters);
-                      setShowMobileFilters(false);
-                    }}
-                    initialFilters={filters}
+                    onFilterChange={handleMobileFilterClose}
+                    initialFilters={memoizedFilters}
                   />
                 </div>
               </div>
@@ -308,22 +323,11 @@ const Shopping = () => {
             <div className="lg:col-span-3">
               <Tabs defaultValue="products" className="w-full">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                  <TabsList className="mb-4 sm:mb-0 bg-bg-200 p-1">
-                    <TabsTrigger value="products" className="data-[state=active]:bg-white data-[state=active]:text-primary-100">
-                      <ShoppingBag className="h-4 w-4 mr-2" />
-                      제품
-                    </TabsTrigger>
-                    <TabsTrigger value="peermalls" className="data-[state=active]:bg-white data-[state=active]:text-primary-100">
-                      <ShoppingBag className="h-4 w-4 mr-2" />
-                      피어몰
-                    </TabsTrigger>
-                  </TabsList>
-                  
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setViewMode('grid')}
+                      onClick={() => handleViewModeChange('grid')}
                       className={viewMode === 'grid' ? 'bg-bg-200 text-primary-300 border-accent-100' : 'text-text-200'}
                     >
                       <Grid className="h-4 w-4" />
@@ -332,13 +336,12 @@ const Shopping = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setViewMode('list')}
+                      onClick={() => handleViewModeChange('list')}
                       className={viewMode === 'list' ? 'bg-bg-200 text-primary-300 border-accent-100' : 'text-text-200'}
                     >
                       <LayoutGrid className="h-4 w-4" />
                     </Button>
                     
-                    {/* Mobile Filter Button */}
                     <Button 
                       variant="outline" 
                       size="sm" 
@@ -375,7 +378,7 @@ const Shopping = () => {
                       id="shopping-products"
                       products={displayedProducts} 
                       viewMode={viewMode} 
-                      filters={filters}
+                      filters={memoizedFilters}
                     />
                     {hasMoreProducts && (
                       <div className="mt-8 text-center">
