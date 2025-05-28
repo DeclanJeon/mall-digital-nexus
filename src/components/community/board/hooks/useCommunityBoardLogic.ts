@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import {
   loadPostsFromLocalStorage,
@@ -12,6 +12,7 @@ import {
 } from '@/utils/storageUtils';
 import { Post, Channel } from '@/types/post';
 import { CommunityZone } from '@/types/community';
+import { registerCommunityBoard } from '@/services/communityService';
 
 const DEFAULT_CHANNELS: Channel[] = [
   {
@@ -47,6 +48,8 @@ const useCommunityBoardLogic = ({
 }: UseCommunityBoardLogicProps) => {
   const navigate = useNavigate();
   const { address } = useParams<{ address: string }>(); // 🔥 현재 PeerSpace 주소 확인
+  const [ searchParams ] = useSearchParams();
+  const peerMallKey = searchParams.get('mk');
   const { toast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -172,7 +175,7 @@ const useCommunityBoardLogic = ({
     }
   };
 
-  const handleSubmitNewPost = (
+  const handleSubmitNewPost = async (
     newPostData: Omit<
       Post,
       'id' | 'author' | 'date' | 'likes' | 'comments' | 'viewCount'
@@ -187,10 +190,12 @@ const useCommunityBoardLogic = ({
       viewCount: 0,
       ...newPostData,
       communityId,
+      peerMallName: address,
+      peerMallKey,
     };
-
-    savePostToLocalStorage(newPost);
-    setPosts((prevPosts) => [newPost, ...prevPosts]);
+    debugger;
+    //setPosts((prevPosts) => [newPost, ...prevPosts]);
+    await registerCommunityBoard(newPost);
     toast({
       title: '게시글이 작성되었습니다',
       description: '게시판에 새 글이 등록되었습니다.',

@@ -23,7 +23,7 @@ const Community = () => {
   useEffect(() => {
     // Load statistics from local storage
     const stats = getCommunityStatistics();
-    
+
     // If we have real data, use it; otherwise use some default values
     if (stats.totalCommunities > 0) {
       setStatistics(stats);

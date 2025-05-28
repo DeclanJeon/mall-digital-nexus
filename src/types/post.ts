@@ -17,6 +17,8 @@ export interface Post {
   viewCount?: number; // Track number of views
   isEdited?: boolean; // Whether the post has been edited
   lastEditedAt?: string; // When the post was last edited
+  peerMallName: string;
+  peerMallKey: string;
 }
 
 export interface Channel {

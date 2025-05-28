@@ -100,7 +100,7 @@ const PostWriteDialog: React.FC<PostWriteDialogProps> = ({
       toast({ title: "에디터를 불러올 수 없습니다", variant: "destructive" });
       return;
     }
-    
+    debugger;
     const editorInstance = editorRef.current.getInstance();
     const richContent = editorInstance.getHTML();
     const plainContent = editorInstance.getMarkdown();
