@@ -40,19 +40,6 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
   setCurrentView,
   handleShowProductForm,
 }) => {
-<<<<<<< HEAD
-  const filteredProducts = useMemo(() => 
-    products.length > 0 ? products.filter(product => 
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase())
-    ) : [], [products, searchQuery]);
-
-  const filteredPosts = useMemo(() => 
-    posts.length > 0 ? posts.filter(post => 
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.description.toLowerCase().includes(searchQuery.toLowerCase())
-    ) : [], [posts, searchQuery]);
-=======
   const [showProductDetail, setShowProductDetail] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | number | null>(null);
 
@@ -68,20 +55,20 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
 
   const filteredProducts = useMemo(() =>
     products.filter(product =>
-      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.description.toLowerCase().includes(searchQuery.toLowerCase())
     ).map(content => ({
       ...content,
       currency: content.price ? 'ETH' : 'ETH',
       reviewCount: content.rating ? content.rating : 0,
-      peermallName: config.name,
+      peermallName: config.peerMallName,
       type: ContentType.Product,
       price: Number(content.price || 0),
       imageUrl: content.imageUrl || '',
       category: content.category || '기타',
       tags: content.tags || [],
     }) as Product),
-    [products, searchQuery, config.name]
+    [products, searchQuery, config.peerMallName]
   );
 
   const filteredPosts = useMemo(() =>
@@ -91,7 +78,6 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
     ),
     [posts, searchQuery]
   );
->>>>>>> feature
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 flex align-center justify-center">
@@ -151,7 +137,7 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
                   posts={filteredPosts}
                   isOwner={isOwner}
                   showAll={true}
-                  owner={config.owner}
+                  owner={config.ownerName}
                 />
               )}
 
@@ -173,46 +159,6 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
               )}
             </>
           )}
-<<<<<<< HEAD
-
-          {activeSection === 'content' && (
-            <ProductContentSection
-              isOwner={isOwner}
-              products={filteredProducts}
-              currentView={currentView}
-              setCurrentView={setCurrentView}
-              handleShowProductForm={handleShowProductForm}
-              showAll={true}
-            />
-          )}
-
-          {activeSection === 'community' && (
-            <CommunitySection
-              posts={filteredPosts}
-              isOwner={isOwner}
-              showAll={true}
-              owner={config.ownerName}
-            />
-          )}
-
-          {activeSection === 'following' && (
-            <FollowingSection 
-              following={followingPeermalls}
-            />
-          )}
-
-          {activeSection === 'guestbook' && (
-            <GuestbookSection
-              entries={guestbookData}
-              showAll={true}
-            />
-          )}
-
-          {activeSection === 'settings' && (
-            <BasicInfoSection config={config} />
-          )}
-=======
->>>>>>> feature
         </div>
       </div>
     </div>

@@ -22,5 +22,4 @@ const PeerSpaceQRModal: React.FC<PeerSpaceQRModalProps> = ({ showQRModal, setSho
     </Dialog>
   );
 };
-
 export default PeerSpaceQRModal;

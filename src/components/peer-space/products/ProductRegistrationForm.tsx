@@ -268,13 +268,9 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
   const convertToContent = (formValues: ProductFormValues): Product => {
     const now = new Date().toISOString();
     return {
-<<<<<<< HEAD
-      name: formValues.name,
-      title: formValues.title || 'Untitled Product',
-=======
       id: formValues.id || crypto.randomUUID(),
+      name: formValues.name,
       title: formValues.name,
->>>>>>> feature
       description: formValues.description || '',
       price: Number(formValues.price) || 0,
       currency: formValues.currency || 'KRW',
@@ -321,22 +317,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
     
     try {
       const productData = convertToContent(formValues);
-<<<<<<< HEAD
-      const now = new Date().toISOString();
-      
-      const newProduct: Content = {
-        ...productData,
-        id: `product-${Date.now()}`,
-        peerSpaceAddress: address,
-        createdAt: now,
-        updatedAt: now
-      };
-      debugger;
-      //await addPeerSpaceContent(address, newProduct);
-      //await savePostToLocalStorage(newProduct as any);
-=======
       await saveProduct(productData);
->>>>>>> feature
       await handleFormSubmit(formValues);
       
       toast({

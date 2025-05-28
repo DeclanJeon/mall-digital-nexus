@@ -9,12 +9,9 @@ import { Loader2 } from 'lucide-react';
 import { peermallStorage } from '@/services/storage/peermallStorage';
 import { storage } from '@/utils/storage/storage';
 import { STORAGE_KEYS } from '@/utils/storage/constants';
-<<<<<<< HEAD
 import { getPeerMallData } from "@/services/peerMallService.ts";
-=======
 import ProductDetailPage from '@/components/peer-space/products/ProductDetailPage';
 import { getProductById } from '@/services/storage/productStorage';
->>>>>>> feature
 
 // Peermall 타입을 다시 export하여 컴포넌트 전체에서 일관되게 사용
 export type { Peermall } from '@/types/peermall';

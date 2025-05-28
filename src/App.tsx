@@ -21,6 +21,7 @@ import CommunityDetailPage from "./pages/ContentDetailPage";
 import PostDetailPage from "./pages/PostDetailPage";
 import QRCodeGenerator from "@/components/feature-sections/QRCodeGenerator";
 import PeermallsPage from "./pages/PeermallsPage"; // PeermallsPage import 추가
+import CommunityPage from "./pages/CommunityPage"; // CommunityPage import 추가
 
 const queryClient = new QueryClient();
 

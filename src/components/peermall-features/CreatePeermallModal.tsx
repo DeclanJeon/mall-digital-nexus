@@ -46,14 +46,8 @@ import { Separator } from '@/components/ui/separator';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-<<<<<<< HEAD
-import { CreatePeermallModalProps, CreatePeermallSuccessData, FamilyMember, PeermallFormData } from '@/types/peermall';
+import { CreatePeermallModalProps, CreatePeermallSuccessData, FamilyMember, Peermall, PeermallFormData } from '@/types/peermall';
 import { createPeerMall } from '@/services/peerMallService';
-
-=======
-import { CreatePeermallModalProps, Peermall, FamilyMember, PeermallFormData } from '@/types/peermall';
->>>>>>> feature
-
 
 // 스키마들 (기존과 동일)
 const step1Schema = z.object({
@@ -485,7 +479,6 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       createdAt: new Date().toISOString(),
     };
 
-<<<<<<< HEAD
     // onSuccess에 전달할 데이터 (CreatePeermallSuccessData 타입에 맞춤)
     const successData: CreatePeermallSuccessData = {
       // PeermallFormData 필수 필드들
@@ -536,14 +529,8 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       }
       const { success, peerMallKey } = await createPeerMall(formData);
       successData['peerMallKey'] = peerMallKey;
-=======
-    try {
-      // peermallStorage를 사용하여 데이터 저장
-      const savedPeermall = peermallStorage.save({
-        ...dataForStorage,
-      });
       
-      console.log('피어몰 저장 완료:', savedPeermall);
+      console.log('피어몰 저장 완료:', successData);
 
         // 초기화
       form.reset();
@@ -554,9 +541,8 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       setIsLoading(false);
 
       if (onSuccess) {
-        onSuccess(savedPeermall);
+        onSuccess(successData);
       }
->>>>>>> feature
       
       // 성공 토스트 메시지
       toast({

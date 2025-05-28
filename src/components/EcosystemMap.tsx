@@ -50,6 +50,7 @@ import { cn } from '@/lib/utils';
 import CallModal from '@/components/features/CallModal';
 import MessageModal from '@/components/features/MessageModal';
 import EnhancedMessageModal from './features/EnhancedMessageModal';
+import { useAuth } from '@/hooks/useAuth';
 
 const DEFAULT_CENTER: [number, number] = [37.5665, 126.9780];
 
@@ -57,8 +58,8 @@ interface MapLocation {
   isFamilyCertified: unknown;
   certified: unknown;
   premiumStats: unknown;
-  lat: string;
-  lng: string;
+  lat: number;
+  lng: number;
   title: string;
   address: string;
   phone: string;
@@ -298,7 +299,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
             trustScore: Math.floor(Math.random() * 20) + 80,
             responseTime: ['즉시', '5분 이내', '10분 이내', '30분 이내'][Math.floor(Math.random() * 4)],
             isOnline: Math.random() > 0.3,
-            owner: (peermall as any).owner || `${peermall.title} 운영자`, // 🎯 이거 추가,
+            owner: (peermall as any).owner || `${peermall.title} 운영자`, // 
             isFamilyCertified: false, // 기본값 설정
             certified: false,         // 기본값 설정
             premiumStats: null         // 기본값 설정
@@ -465,11 +466,11 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
   // 지도 뷰 조정
   if (filteredLocations.length === 1) {
     const loc = filteredLocations[0];
-    mapInstance.current.setView([Number(loc.lat), Number(loc.lng)], 15);
+    mapInstance.current.setView([loc.lat, loc.lng], 15);
   } else if (filteredLocations.length > 1) {
     try {
       const bounds = L.latLngBounds(
-        filteredLocations.map(loc => [Number(loc.lat), Number(loc.lng)])
+        filteredLocations.map(loc => [loc.lat, loc.lng])
       );
       mapInstance.current.fitBounds(bounds, { padding: [50, 50] });
     } catch (error) {

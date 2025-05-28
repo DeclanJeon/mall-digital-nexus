@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Content, ContentType, PeerMallConfig, SectionType } from '@/types/space';
 import { Product, isProduct } from '@/types/product';
@@ -39,10 +38,8 @@ import {
   Map
 } from 'lucide-react';
 import { createContent, getPeerSpaceContents } from '@/services/contentService';
-// import { getPeerSpaceContents } from '@/utils/peerSpaceStorage';
 import { ContentFormValues } from './forms/AddContentForm';
 import { usePeerSpaceTabs } from '@/hooks/usePeerSpaceTabs';
-// import { add } from '@/utils/indexedDBService';
 import EmptyState from './ui/EmptyState';
 import ProductCard from '@/components/shopping/products/ProductCard';
 import BadgeSelector from './ui/BadgeSelector';
@@ -70,6 +67,13 @@ import {
 import { saveSectionOrder, getSectionOrder, getSectionDisplayName } from './utils/peerSpaceUtils';
 import { peermallStorage } from '@/services/storage/peermallStorage';
 import productService from '@/services/productService';
+
+// 🎯 타입 정의 강화
+interface LocationInfo {
+  address: string;
+  lat: number;
+  lng: number;
+}
 
 interface PeerSpaceHomeProps {
   isOwner: boolean;
@@ -100,97 +104,125 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   const [showProductForm, setShowProductForm] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [currentView, setCurrentView] = useState<'list' | 'blog' | 'grid-small' | 'grid-medium' | 'grid-large' | 'masonry'>('list');
-  const [sections, setSections] = useState<SectionType[]>(
-    getSectionOrder(address, config.sections)
-  );
-  const [hiddenSections, setHiddenSections] = useState<SectionType[]>(
-    JSON.parse(localStorage.getItem(`peer_space_${address}_hidden_sections`) || '[]')
-  );
+  const [sections, setSections] = useState<SectionType[]>([]);
+  const [hiddenSections, setHiddenSections] = useState<SectionType[]>([]);
   const { activeTab, handleTabChange } = usePeerSpaceTabs('product');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
   const [showWidgets, setShowWidgets] = useState(true);
   const [showMapModal, setShowMapModal] = useState(false);
-  const [ searchParams ] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const peerMallKey = searchParams.get('mk');
 
+  // 🛡️ 안전한 localStorage 접근
+  useEffect(() => {
+    if (typeof window !== 'undefined' && address) {
+      try {
+        const storedHiddenSections = localStorage.getItem(`peer_space_${address}_hidden_sections`);
+        if (storedHiddenSections) {
+          setHiddenSections(JSON.parse(storedHiddenSections));
+        }
+        
+        const storedSections = getSectionOrder(address, config.sections);
+        setSections(storedSections);
+      } catch (error) {
+        console.error('🚨 localStorage 접근 에러:', error);
+      }
+    }
+  }, [address, config.sections]);
+
+  // 🔄 향상된 콘텐츠 로딩
   useEffect(() => {
     const loadContents = async () => {
-      if (address) {
-        try {
-          if (peermall && config) {
-            // 설정이 피어몰 데이터와 다르면 업데이트
-            if (config.peerMallName !== peermall.peerMallName || 
-                config.ownerName !== peermall.ownerName ||
-                config.profileImage !== peermall.imageUrl) {
-              
-              const updatedConfig = {
-                ...config,
-                peerMallName: peermall.peerMallName,
-                ownerName: peermall.ownerName,
-                profileImage: peermall.imageUrl,
-                followers: peermall.followers || config.followers,
-                recommendations: peermall.likes || config.recommendations
-              };
-              
-              onUpdateConfig(updatedConfig);
-              console.log('🔄 피어스페이스 설정이 피어몰 데이터와 동기화되었습니다');
-            }
-          }
-          // 실제 데이터 로딩
-          let loadedContents = await getPeerSpaceContents(address);
-          
-          // 데이터가 없으면 더미 데이터로 대체
-          if (!loadedContents || loadedContents.length === 0) {
-            const mockProducts = generateMockProducts(8);
-            const mockPosts = generateMockPosts(12);
-            loadedContents = [...mockProducts, ...mockPosts];
+      if (!address) {
+        console.warn('⚠️ 주소가 제공되지 않았습니다');
+        return;
+      }
+
+      try {
+        // 피어몰 데이터와 설정 동기화
+        if (peermall && config) {
+          const configNeedsUpdate = 
+            config.peerMallName !== peermall.peerMallName || 
+            config.ownerName !== peermall.ownerName ||
+            config.profileImage !== peermall.imageUrl;
             
-            // 더미 데이터 저장 (IndexedDB 사용 중지로 주석 처리)
-            // for (const content of loadedContents) {
-            //   await add('contents', content);
-            // }
+          if (configNeedsUpdate) {
+            const updatedConfig: PeerMallConfig = {
+              ...config,
+              peerMallName: peermall.peerMallName,
+              ownerName: peermall.ownerName,
+              profileImage: peermall.imageUrl,
+              followers: peermall.followers ?? config.followers,
+              recommendations: peermall.likes ?? config.recommendations
+            };
+            
+            onUpdateConfig(updatedConfig);
+            console.log('🔄 피어스페이스 설정이 피어몰 데이터와 동기화되었습니다');
           }
-          
-          setContents(loadedContents);
-          
-          // 제품과 게시물 분류
-          const productsData = loadedContents.filter(item => item.type === 'product');
-          const postsData = loadedContents.filter(item => item.type === 'post' || item.type === 'article');
-          
-          setProducts(productsData);
-          setPosts(postsData);
-          
-          // const storedSections = getSectionOrder(address, config.sections);
-          // setSections(storedSections);
-          
-          // const storedHiddenSections = localStorage.getItem(`peer_space_${address}_hidden_sections`);
-          // if (storedHiddenSections) {
-          //   setHiddenSections(JSON.parse(storedHiddenSections));
-          // }
-        } catch (error) {
-          console.error("Error loading contents:", error);
         }
+
+        // 실제 데이터 로딩
+        let loadedContents = await getPeerSpaceContents(address);
+        
+        // 데이터가 없으면 더미 데이터로 대체
+        if (!loadedContents?.length) {
+          const mockProducts = generateMockProducts(8);
+          const mockPosts = generateMockPosts(12);
+          loadedContents = [...mockProducts, ...mockPosts];
+        }
+        
+        setContents(loadedContents);
+        
+        // 제품과 게시물 분류 (타입 안전성 확보)
+        const productsData = loadedContents.filter((item): item is Product => item.type === 'product');
+        const postsData = loadedContents.filter(item => item.type === 'post' || item.type === 'article');
+        
+        setProducts(productsData);
+        setPosts(postsData);
+        
+      } catch (error) {
+        console.error("💥 콘텐츠 로딩 실패:", error);
+        toast({
+          title: "로딩 에러",
+          description: "콘텐츠를 불러오는 중 문제가 발생했습니다.",
+          variant: "destructive",
+        });
       }
     };
+
     loadContents();
     
     // 히어로 슬라이드 자동 전환
     const slideInterval = setInterval(() => {
-      setCurrentHeroSlide(prev => (prev + 1) % heroSlides.length);
+      setCurrentHeroSlide(prev => (prev + 1) % Math.max(heroSlides.length, 1));
     }, 5000);
     
     return () => clearInterval(slideInterval);
-  }, [address, config.sections]);
+  }, [address, config, peermall, onUpdateConfig]);
 
+  // 🔄 hiddenSections 저장
   useEffect(() => {
-    if (address) {
-      localStorage.setItem(`peer_space_${address}_hidden_sections`, JSON.stringify(hiddenSections));
+    if (typeof window !== 'undefined' && address) {
+      try {
+        localStorage.setItem(`peer_space_${address}_hidden_sections`, JSON.stringify(hiddenSections));
+      } catch (error) {
+        console.error('🚨 localStorage 저장 에러:', error);
+      }
     }
   }, [hiddenSections, address]);
 
+  // 📝 안전한 콘텐츠 추가 핸들러
   const handleAddContent = async (formValues: ContentFormValues) => {
-    if (!address) return;
+    if (!address) {
+      toast({
+        title: "에러",
+        description: "유효하지 않은 주소입니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const now = new Date().toISOString();
     const newContentData: Omit<Content, 'id' | 'createdAt' | 'updatedAt'> = {
       peerSpaceAddress: address,
@@ -210,7 +242,9 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       badges: [],
       ecosystem: {},
       attributes: {},
+      name: ''
     };
+
     try {
       const contentId = await createContent(newContentData);
       const newFullContent: Content = {
@@ -226,35 +260,43 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       
       // 타입에 따라 제품 또는 게시물 업데이트
       if (newFullContent.type === 'product') {
-        setProducts([...products, newFullContent]);
+        setProducts(prev => [...prev, newFullContent as Product]);
       } else if (newFullContent.type === 'post' || newFullContent.type === 'article') {
-        setPosts([...posts, newFullContent]);
+        setPosts(prev => [...prev, newFullContent]);
       }
       
       toast({
-        title: "콘텐츠 추가 완료",
+        title: "콘텐츠 추가 완료 🎉",
         description: "새로운 콘텐츠가 성공적으로 등록되었습니다.",
       });
     } catch (error) {
       console.error("콘텐츠 생성 오류:", error);
       toast({
-        title: "콘텐츠 추가 실패",
+        title: "콘텐츠 추가 실패 😢",
         description: "콘텐츠 등록 중 오류가 발생했습니다.",
         variant: "destructive",
       });
     }
   };
 
+  // 🎛️ 섹션 가시성 토글
   const handleToggleSectionVisibility = (section: SectionType) => {
     if (hiddenSections.includes(section)) {
-      setHiddenSections(hiddenSections.filter(s => s !== section));
-      toast({ title: "섹션 표시", description: `${getSectionDisplayName(section)} 섹션이 표시됩니다.` });
+      setHiddenSections(prev => prev.filter(s => s !== section));
+      toast({ 
+        title: "섹션 표시 ✅", 
+        description: `${getSectionDisplayName(section)} 섹션이 표시됩니다.` 
+      });
     } else {
-      setHiddenSections([...hiddenSections, section]);
-      toast({ title: "섹션 숨김", description: `${getSectionDisplayName(section)} 섹션이 숨겨졌습니다.` });
+      setHiddenSections(prev => [...prev, section]);
+      toast({ 
+        title: "섹션 숨김 🙈", 
+        description: `${getSectionDisplayName(section)} 섹션이 숨겨졌습니다.` 
+      });
     }
   };
 
+  // 🔄 섹션 순서 변경
   const handleMoveSectionUp = (index: number) => {
     if (index <= 0) return;
     const newSections = [...sections];
@@ -271,52 +313,91 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
     saveSectionOrder(address, newSections);
   };
 
+  // 🔗 공유 핸들러
   const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast({ title: "공유하기", description: "링크가 클립보드에 복사되었습니다." });
+    if (typeof window !== 'undefined') {
+      navigator.clipboard.writeText(window.location.href);
+      toast({ title: "공유하기 📤", description: "링크가 클립보드에 복사되었습니다." });
+    }
   };
 
+  // 💬 메시지 핸들러
   const handleMessage = () => {
-    toast({ title: "메시지 보내기", description: "메시지 창이 열렸습니다." });
+    toast({ title: "메시지 보내기 💌", description: "메시지 창이 열렸습니다." });
   };
 
+  // 📞 통화 핸들러
   const handleCall = () => {
-    toast({ title: "통화 연결", description: "통화 연결을 시도합니다." });
+    toast({ title: "통화 연결 📱", description: "통화 연결을 시도합니다." });
   };
   
+  // 🗺️ 지도 열기
   const handleOpenMap = () => {
     setShowMapModal(true);
   };
 
+  // 🎯 QR 코드 생성
   const handleQRGenerate = () => setShowQRModal(true);
+  
+  // 📦 제품 폼 표시
   const handleShowProductForm = () => setShowProductForm(true);
+  
+  // ⚙️ 설정 표시
   const handleShowSettings = () => setShowSettingsModal(true);
   
+  // 👆 콘텐츠 클릭 핸들러
   const handleContentClick = (contentItem: Content) => {
     console.log('Content clicked:', contentItem);
-    // 상세 페이지로 이동 로직 (나중에 구현)
   };
 
-  // 새 UI를 위한 필터된 콘텐츠
-  const filteredProducts = products.length > 0 ? products.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.description.toLowerCase().includes(searchQuery.toLowerCase())
-  ) : [];
+  // 🔍 안전한 제품 상세보기 핸들러
+  const handleDetailView = (productId: string | number) => {
+    onDetailView?.(productId);
+  };
 
-  const filteredPosts = posts.length > 0 ? posts.filter(post => 
-    post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.description.toLowerCase().includes(searchQuery.toLowerCase())
-  ) : [];
+  // 🏠 위치 정보 표시 함수
+  const getLocationDisplay = (): string => {
+    if (!config.location) return '위치 정보 없음';
+    if (typeof config.location === 'string') return config.location;
+    return (config.location as LocationInfo).address;
+  };
 
-  // 위젯 토글 함수
+  const getLocationCoordinates = (): string | null => {
+    if (!config.location || typeof config.location === 'string') return null;
+    const location = config.location as LocationInfo;
+    return `좌표: ${location.lat}, ${location.lng}`;
+  };
+
+  // 🔍 필터된 콘텐츠
+  const filteredProducts = products.filter(product =>
+    product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredPosts = posts.filter(post => 
+    post.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    post.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // 🎛️ 위젯 토글 함수
   const toggleWidgets = () => setShowWidgets(!showWidgets);
 
-  if (!address) {
-    return <div className="container mx-auto p-6"><EmptyState title="404 - 피어스페이스를 찾을 수 없습니다" description="올바른 피어스페이스 주소인지 확인해주세요." /></div>;
-  }
+  // 🚪 로그아웃 핸들러
+  const handleLogout = (event: React.MouseEvent<HTMLButtonElement>): void => {
+    event.preventDefault();
+    window.location.href = "/";
+  };
 
-   function handleLogout(event: React.MouseEvent<HTMLButtonElement>): void {
-     window.location.href = "/";
+  // 🚫 주소가 없으면 404 표시
+  if (!address) {
+    return (
+      <div className="container mx-auto p-6">
+        <EmptyState 
+          title="404 - 피어스페이스를 찾을 수 없습니다 😢" 
+          description="올바른 피어스페이스 주소인지 확인해주세요." 
+        />
+      </div>
+    );
   }
 
   return (
@@ -331,12 +412,12 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                 {config.profileImage ? (
                   <img src={config.profileImage} alt="Space logo" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="font-bold text-blue-500">{config.peerMallName.charAt(0)}</span>
+                  <span className="font-bold text-blue-500">{config.peerMallName?.charAt(0) || 'P'}</span>
                 )}
               </div>
               <div className="flex flex-col">
-                <h3 className="font-bold text-sm truncate max-w-[180px]">{config.peerMallName}</h3>
-                <span className="text-xs text-gray-500">{config.peerNumber}</span>
+                <h3 className="font-bold text-sm truncate max-w-[180px]">{config.peerMallName || '피어스페이스'}</h3>
+                <span className="text-xs text-gray-500">{config.peerNumber || ''}</span>
               </div>
             </Link>
           </div>
@@ -347,7 +428,9 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
               <li>
                 <button 
                   onClick={() => onNavigateToSection('home')}
-                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'home' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                  className={`w-full flex items-center p-2 rounded-lg transition-colors ${
+                    activeSection === 'home' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'
+                  }`}
                 >
                   <Home className="w-5 h-5 mr-3" />
                   <span>홈</span>
@@ -356,7 +439,9 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
               <li>
                 <button 
                   onClick={() => onNavigateToSection('products')}
-                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'content' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                  className={`w-full flex items-center p-2 rounded-lg transition-colors ${
+                    activeSection === 'products' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'
+                  }`}
                 >
                   <FileText className="w-5 h-5 mr-3" />
                   <span>제품</span>
@@ -365,39 +450,23 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
               <li>
                 <button 
                   onClick={() => onNavigateToSection('community')}
-                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'community' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                  className={`w-full flex items-center p-2 rounded-lg transition-colors ${
+                    activeSection === 'community' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'
+                  }`}
                 >
                   <MessageSquare className="w-5 h-5 mr-3" />
                   <span>커뮤니티</span>
                 </button>
               </li>
-              {/* <li>
-                <button 
-                  onClick={() => onNavigateToSection('following')}
-                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'following' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
-                >
-                  <Users className="w-5 h-5 mr-3" />
-                  <span>팔로잉 피어몰</span>
-                </button>
-              </li> */}
-              {/* <li>
-                <button 
-                  onClick={() => onNavigateToSection('guestbook')}
-                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'guestbook' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
-                >
-                  <Mail className="w-5 h-5 mr-3" />
-                  <span>방명록</span>
-                </button>
-              </li> */}
               
               <li className="pt-4 mt-4 border-t">
                 {isOwner ? (
-                  <Link to={`/space/${address}/settings`} className="flex items-center p-2 rounded-lg hover:bg-gray-100">
+                  <Link to={`/space/${address}/settings`} className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors">
                     <Settings className="w-5 h-5 mr-3" />
                     <span>스페이스 관리</span>
                   </Link>
                 ) : (
-                  <button onClick={handleMessage} className="w-full flex items-center p-2 rounded-lg hover:bg-gray-100">
+                  <button onClick={handleMessage} className="w-full flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors">
                     <MessageSquare className="w-5 h-5 mr-3" />
                     <span>메시지 보내기</span>
                   </button>
@@ -418,7 +487,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                   <p className="text-xs text-gray-500">{isOwner ? '관리자' : '방문자'}</p>
                 </div>
               </div>
-              <button onClick={handleLogout} className="text-gray-500 hover:text-gray-700">
+              <button onClick={handleLogout} className="text-gray-500 hover:text-gray-700 transition-colors">
                 {isOwner ? <LogOut className="w-4 h-4" /> : <User className="w-4 h-4" />}
               </button>
             </div>
@@ -435,7 +504,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             <input 
               type="text" 
               placeholder="제품, 콘텐츠, 게시물 검색..." 
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -444,14 +513,6 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             <Button variant="ghost" size="sm" onClick={handleQRGenerate}>
               <QrCode className="w-5 h-5" />
             </Button>
-            {/* <Button variant="ghost" size="sm" onClick={handleShare}>
-              <Share2 className="w-5 h-5" />
-            </Button> */}
-            {/* {isOwner && (
-              <Button variant="ghost" size="sm" onClick={handleShowSettings}>
-                <Settings className="w-5 h-5" />
-              </Button>
-            )} */}
           </div>
         </div>
 
@@ -459,20 +520,20 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
           {/* 메인 콘텐츠 영역 */}
           <div className="flex-1 pr-6">
             {activeSection === 'home' && (
-            <PeerSpaceHomeSection
-              isOwner={isOwner}
-              address={address}
-              config={config}
-              onNavigateToSection={onNavigateToSection}
-              products={products}
-              posts={posts}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              currentView={currentView}
-              setCurrentView={setCurrentView}
-              handleShowProductForm={handleShowProductForm}
-              activeSection={activeSection}
-            />
+              <PeerSpaceHomeSection
+                isOwner={isOwner}
+                address={address}
+                config={config}
+                onNavigateToSection={onNavigateToSection}
+                products={products}
+                posts={posts}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                currentView={currentView}
+                setCurrentView={setCurrentView}
+                handleShowProductForm={handleShowProductForm}
+                activeSection={activeSection}
+              />
             )}
             {activeSection === 'products' && (
               <PeerSpaceContentSection
@@ -484,7 +545,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                 setCurrentView={setCurrentView}
                 handleShowProductForm={handleShowProductForm}
                 filteredProducts={filteredProducts}
-                onDetailView={onDetailView}
+                onDetailView={handleDetailView}
               />
             )}
             {activeSection === 'community' && (
@@ -511,101 +572,30 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
 
           {/* 오른쪽 사이드바 */}
           <div className="w-80 flex-shrink-0">
-            {/* 공지사항 섹션 */}
-            {/* <div className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4 border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                <h3 className="font-bold text-lg">공지사항</h3>
-              </div>
-              <div className="p-4">
-                {notificationsData.slice(0, 3).map(notice => (
-                  <div 
-                    key={notice.id} 
-                    className={`p-3 mb-2 last:mb-0 rounded-lg cursor-pointer ${
-                      notice.important ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-gray-50 hover:bg-gray-100'
-                    }`}
-                  >
-                    <h4 className="font-medium text-sm">{notice.title}</h4>
-                    <p className="text-xs text-gray-500 mt-1">{notice.date}</p>
-                  </div>
-                ))}
-                
-                <Button variant="link" className="w-full mt-2 text-blue-600">
-                  모든 공지 보기
-                </Button>
-              </div>
-            </div> */}
-            
-            {/* 알림 섹션 */}
-            {/* <div className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4 border-b flex justify-between items-center">
-                <h3 className="font-bold text-lg">최근 알림</h3>
-                <Badge variant="outline">{alertsData.filter(a => !a.read).length}</Badge>
-              </div>
-              <div className="p-4">
-                <div className="space-y-3">
-                  {alertsData.slice(0, 3).map(alert => (
-                    <div 
-                      key={alert.id} 
-                      className={`p-3 bg-gray-50 rounded-lg border-l-4 ${
-                        alert.read ? 'border-gray-300' : 'border-blue-500'
-                      }`}
-                    >
-                      <div className="flex justify-between">
-                        <h4 className="font-medium text-sm">{alert.title}</h4>
-                        {!alert.read && <div className="w-2 h-2 bg-blue-500 rounded-full"></div>}
-                      </div>
-                      <p className="text-xs text-gray-600 mt-1">{alert.message}</p>
-                      <p className="text-xs text-gray-400 mt-1">{alert.time}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div> */}
-            
-            {/* 광고 섹션 */}
-            {/* <div className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4 border-b">
-                <h3 className="font-bold text-lg">스폰서</h3>
-              </div>
-              <div className="p-4">
-                {sponsorsData.map(sponsor => (
-                  <div key={sponsor.id} className="mb-4 last:mb-0 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                    <div className="h-32 overflow-hidden">
-                      <img src={sponsor.imageUrl} alt={sponsor.title} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="p-3">
-                      <h4 className="font-bold text-sm">{sponsor.title}</h4>
-                      <p className="text-xs text-gray-500 mt-1">{sponsor.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div> */}
-            
             {/* 피어맵 섹션 */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="p-4 border-b flex justify-between items-center">
-                <h3 className="font-bold text-lg">위치</h3>
+                <h3 className="font-bold text-lg">위치 📍</h3>
               </div>
               <div className="p-4">
                 <div className="bg-gray-100 rounded-lg overflow-hidden h-48 relative mb-3">
                   <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <Button onClick={handleOpenMap} className="bg-white text-blue-600">
+                    <Button onClick={handleOpenMap} className="bg-white text-blue-600 hover:bg-gray-50 transition-colors">
                       <Map className="w-4 h-4 mr-2" />
                       지도 보기
                     </Button>
                   </div>
-                  <div className="absolute inset-0 opacity-60" onClick={handleOpenMap}>
-                    {/* EcosystemMap 컴포넌트가 PeerSpaceHome.tsx에서 직접 사용되지 않으므로 제거 */}
+                  <div className="absolute inset-0 opacity-60 cursor-pointer" onClick={handleOpenMap}>
+                    {/* 지도 미리보기 영역 */}
                   </div>
                 </div>
                 <div className="bg-white rounded-lg p-3 shadow-sm">
                   <div className="flex items-start gap-2">
                     <MapPin className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-medium text-sm">{config.location && typeof config.location !== 'string' ? config.location.address : '위치 정보 없음'}</p>
-                      {config.location && typeof config.location !== 'string' && (
-                        <p className="text-xs text-gray-500 mt-1">좌표: {config.location.lat}, {config.location.lng}</p>
+                      <p className="font-medium text-sm">{getLocationDisplay()}</p>
+                      {getLocationCoordinates() && (
+                        <p className="text-xs text-gray-500 mt-1">{getLocationCoordinates()}</p>
                       )}
                     </div>
                   </div>
@@ -617,7 +607,11 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       </div>
       
       {/* 모달 렌더링 */}
-      <PeerSpaceQRModal showQRModal={showQRModal} setShowQRModal={setShowQRModal} address={address} />
+      <PeerSpaceQRModal 
+        showQRModal={showQRModal} 
+        setShowQRModal={setShowQRModal} 
+        address={address} 
+      />
       <PeerSpaceProductFormModal 
         showProductForm={showProductForm} 
         setShowProductForm={setShowProductForm} 
@@ -638,7 +632,10 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
           setHiddenSections={setHiddenSections} 
         />
       )}
-      <PeerSpaceMapModal showMapModal={showMapModal} setShowMapModal={setShowMapModal} />
+      <PeerSpaceMapModal 
+        showMapModal={showMapModal} 
+        setShowMapModal={setShowMapModal} 
+      />
     </div>
   );
 };

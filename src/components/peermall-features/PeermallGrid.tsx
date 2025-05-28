@@ -29,12 +29,6 @@ const PeermallGrid = ({
       
       console.log('🔄 피어몰 데이터 로드 시작...');
 
-<<<<<<< HEAD
-      if (initialMalls.length > 0) {
-        // 인기 섹션인 경우 특별 필터링
-        let filteredPeermalls;
-        
-=======
       // 실제 스토리지에서 피어몰 데이터 가져오기
       const peermalls = peermallStorage.getAll();
       console.log('📦 스토리지에서 로드된 피어몰:', peermalls);
@@ -55,10 +49,8 @@ const PeermallGrid = ({
 
       let filteredPeermalls = [...deduplicatedPeermalls];
 
-      
       if (peermalls && peermalls.length > 0) {
         // 인기 섹션인 경우 특별 필터링 
->>>>>>> feature
         if (isPopularSection) {
           // 인기 피어몰 필터링 (좋아요 수, 평점 기준)
           // filteredPeermalls = initialMalls
