@@ -251,9 +251,19 @@ const Header = () => {
           <Link to="/peermalls" className="text-gray-700 hover:text-blue-600 font-medium">피어몰 보러가기</Link>
           <Link to="/products" className="text-gray-700 hover:text-blue-600 font-medium">제품 보러가기</Link>
           <Link to="/create-qrcode" className="text-gray-700 hover:text-blue-600 font-medium">QR코드 만들기</Link>
-          {isAuthenticated && (
-            <CreatePeermall onCreatePeermall={handleCreatePeermall} />
-          )}
+          <Button
+            onClick={() => {
+              if (isAuthenticated) {
+                handleCreateModalOpen();
+              } else {
+                handleLogin();
+              }
+            }}
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200"
+          >
+            <Store className="mr-2 h-4 w-4" />
+            피어몰 만들기 ✨
+          </Button>
         </nav>
       </div>
 
@@ -265,14 +275,18 @@ const Header = () => {
               <Link to="/peermalls" className="py-2 text-gray-700 hover:text-blue-600">피어몰 보러가기</Link>
               <Link to="/products" className="py-2 text-gray-700 hover:text-blue-600">제품 보러가기</Link>
               <Link to="/create-qrcode" className="py-2 text-gray-700 hover:text-blue-600">QR코드 만들기</Link>
-              {isAuthenticated ? (
-                <button 
-                  onClick={handleCreateModalOpen}
-                  className="py-2 text-left text-blue-600 hover:text-blue-700"
-                >
-                  피어몰 만들기
-                </button>
-              ) : null}
+              <button
+                onClick={() => {
+                  if (isAuthenticated) {
+                    handleCreateModalOpen();
+                  } else {
+                    handleLogin();
+                  }
+                }}
+                className="py-2 text-left text-blue-600 hover:text-blue-700"
+              >
+                피어몰 만들기
+              </button>
 
               {isLoggedIn ? (
                 <>
