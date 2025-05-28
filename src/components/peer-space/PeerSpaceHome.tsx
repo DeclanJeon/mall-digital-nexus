@@ -463,14 +463,14 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             <Button variant="ghost" size="sm" onClick={handleQRGenerate}>
               <QrCode className="w-5 h-5" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleShare}>
+            {/* <Button variant="ghost" size="sm" onClick={handleShare}>
               <Share2 className="w-5 h-5" />
-            </Button>
-            {isOwner && (
+            </Button> */}
+            {/* {isOwner && (
               <Button variant="ghost" size="sm" onClick={handleShowSettings}>
                 <Settings className="w-5 h-5" />
               </Button>
-            )}
+            )} */}
           </div>
         </div>
 
@@ -503,6 +503,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                 setCurrentView={setCurrentView}
                 handleShowProductForm={handleShowProductForm}
                 filteredProducts={filteredProducts}
+                onDetailView={onDetailView}
               />
             )}
             {activeSection === 'community' && (
