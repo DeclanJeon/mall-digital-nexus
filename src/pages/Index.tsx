@@ -125,12 +125,33 @@ const Index = () => {
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [hotPeerMalls, setHotPeerMalls] = useState<Peermall[]>([]);
+  const [originHotPeerMalls, setOriginHotPeerMalls] = useState<Peermall[]>([]);
   const [newPeerMalls, setNewPeerMalls] = useState<Peermall[]>([]);
+  const [originNewPeerMalls, setOriginNewPeerMalls] = useState<Peermall[]>([]);
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
-    // 여기에 검색 로직 추가
-    console.log('검색어 변경:', query);
+
+    if(query === '') {
+      setHotPeerMalls(originHotPeerMalls);
+      setNewPeerMalls(originNewPeerMalls);
+      return;
+    }
+    
+    // 원본 데이터 저장
+    setOriginHotPeerMalls(hotPeerMalls);
+    setOriginNewPeerMalls(newPeerMalls);
+
+    // 검색 필터링
+    const searchedHotPeerMalls = hotPeerMalls.filter(peerMall => 
+      peerMall.peerMallName.includes(query)
+    );
+    setHotPeerMalls(searchedHotPeerMalls);
+
+    const searchedNewPeerMalls = newPeerMalls.filter(peerMall => 
+      peerMall.peerMallName.includes(query)
+    );
+    setNewPeerMalls(searchedNewPeerMalls);
   }, []);
 
   const handleBookmarkToggle = useCallback((itemId: string) => {
