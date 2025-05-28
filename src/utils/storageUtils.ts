@@ -1,5 +1,5 @@
 import { CommunityZone, CommunityMapEvent } from '@/types/community';
-import { Post, Channel, Member } from '@/types/post';
+import { Post, Channel, Member, Comment } from '@/types/post';
 
 // Community storage functions
 export const loadCommunitiesFromLocalStorage = (): CommunityZone[] => {
@@ -194,16 +194,42 @@ export const loadPostsFromLocalStorage = (communityId?: string): Post[] => {
     const postsJSON = localStorage.getItem('posts');
     let posts: Post[] = postsJSON ? JSON.parse(postsJSON) : [];
 
-    // Ensure all posts have a communityId (for backward compatibility)
-    posts = posts.map((post) => ({
-      ...post,
-      communityId: post.communityId || 'global',
-    }));
+    // Data cleansing and backward compatibility
+    posts = posts.map((post) => {
+      let content = post.content;
+      if (typeof post.content !== 'string') {
+        if (typeof post.richContent === 'string') {
+          content = post.richContent; // richContent가 있으면 사용
+        } else if (post.content !== null && post.content !== undefined) {
+          // content가 객체일 수 있으므로, 안전하게 문자열로 변환 시도 또는 기본값 사용
+          // 여기서는 간단히 빈 문자열로 처리하거나, 혹은 String(post.content) 시도 가능
+          console.warn(`Post ID ${post.id} has non-string content. Defaulting to empty string.`);
+          content = ''; // 또는 String(post.content) 또는 JSON.stringify(post.content)
+        } else {
+          content = ''; // null 또는 undefined인 경우
+        }
+      }
+
+      const comments = typeof post.comments === 'number' ? post.comments : 0;
+      const likes = typeof post.likes === 'number' ? post.likes : 0;
+      const viewCount = typeof post.viewCount === 'number' ? post.viewCount : 0;
+      const tags = Array.isArray(post.tags) ? post.tags : [];
+      const communityIdResolved = post.communityId || 'global';
+
+      return {
+        ...post,
+        content,
+        comments,
+        likes,
+        viewCount,
+        tags,
+        communityId: communityIdResolved,
+      };
+    });
 
     if (communityId) {
       return posts.filter((post) => post.communityId === communityId);
     }
-
     return posts;
   } catch (error) {
     console.error('Error loading posts from localStorage:', error);
@@ -470,7 +496,7 @@ const getDefaultChannels = (): Channel[] => {
     {
       id: 'channel-3',
       name: '질문과 답변',
-      description: '질문하고 답변는 공간',
+      description: '질문하고 답변하는 공간',
       icon: '❓',
       communityId: 'global',
     },
@@ -521,8 +547,55 @@ export const removeChannelFromLocalStorage = (
   try {
     let channels = loadChannelsFromLocalStorage(communityId);
     channels = channels.filter((channel) => channel.id !== channelId);
-    saveChannelsToLocalStorage(channels);
+    if (communityId) {
+      const allChannels = loadChannelsFromLocalStorage(); // 모든 채널 로드
+      const otherCommunityChannels = allChannels.filter(ch => ch.communityId !== communityId);
+      saveChannelsToLocalStorage([...otherCommunityChannels, ...channels]);
+    } else {
+      saveChannelsToLocalStorage(channels);
+    }
   } catch (error) {
     console.error('Error removing channel from localStorage:', error);
+  }
+};
+
+// Comment storage functions
+const COMMENTS_STORAGE_KEY = 'comments';
+
+export const generateCommentId = (): string => {
+  return `comment_${new Date().getTime()}_${Math.random().toString(36).substring(2, 9)}`;
+};
+
+export const loadCommentsFromLocalStorage = (postId?: string): Comment[] => {
+  try {
+    const commentsJSON = localStorage.getItem(COMMENTS_STORAGE_KEY);
+    let allComments: Comment[] = commentsJSON ? JSON.parse(commentsJSON) : [];
+    if (postId) {
+      return allComments.filter(comment => comment.postId === postId).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    }
+    return allComments.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  } catch (error) {
+    console.error('Error loading comments from localStorage:', error);
+    return [];
+  }
+};
+
+export const saveCommentToLocalStorage = (comment: Comment): void => {
+  try {
+    const existingComments = loadCommentsFromLocalStorage(); // postId 필터 없이 모든 댓글 로드
+    const updatedComments = [...existingComments, comment];
+    localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(updatedComments));
+  } catch (error) {
+    console.error('Error saving comment to localStorage:', error);
+  }
+};
+
+export const deleteCommentFromLocalStorage = (commentId: string): void => {
+  try {
+    let allComments = loadCommentsFromLocalStorage();
+    allComments = allComments.filter(comment => comment.id !== commentId);
+    localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(allComments));
+  } catch (error) {
+    console.error('Error deleting comment from localStorage:', error);
   }
 };

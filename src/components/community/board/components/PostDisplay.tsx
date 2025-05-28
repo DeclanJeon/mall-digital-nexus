@@ -371,8 +371,8 @@ const PostDisplay: React.FC<PostDisplayProps> = ({
 
   // 🔥 각 게시글의 미디어 콘텐츠 추출
   const getPostMedia = (post: Post) => {
-    const contentMedia = extractMediaFromContent(post.content);
-    const richContentMedia = post.richContent ? extractMediaFromContent(post.richContent) : [];
+    const contentMedia = extractMediaFromContent(typeof post.content === 'object' ? JSON.stringify(post.content) : post.content) || [];
+    const richContentMedia = post.richContent ? (extractMediaFromContent(typeof post.richContent === 'object' ? JSON.stringify(post.richContent) : post.richContent) || []) : [];
     
     // 중복 제거
     const allMedia = [...contentMedia, ...richContentMedia];
@@ -555,7 +555,9 @@ const PostDisplay: React.FC<PostDisplayProps> = ({
                     
                     <h3 className="font-bold text-gray-800 mb-2 line-clamp-2">{post.title}</h3>
                     
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{post.content}</p>
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                      {post.content || ''}
+                    </p>
                     
                     {/* 🔥 미디어 통계 표시 */}
                     {(mediaStats.imageCount > 0 || mediaStats.videoCount > 0 || mediaStats.linkCount > 0) && (
@@ -581,7 +583,7 @@ const PostDisplay: React.FC<PostDisplayProps> = ({
                       </div>
                     )}
                     
-                    <div className="flex flex-wrap gap-1 mb-3 mt-auto">
+                    <div className="flex flex-wrap gap-1 mb-3">
                       {post.tags.map((tag, index) => (
                         <Badge key={index} variant="secondary" className="bg-indigo-50 text-indigo-600 text-xs">
                           {tag}
@@ -762,7 +764,9 @@ const PostDisplay: React.FC<PostDisplayProps> = ({
                         </div>
                       </div>
                       
-                      <p className="text-gray-600 mb-4 line-clamp-2">{post.content}</p>
+                      <p className="text-gray-600 mb-4 line-clamp-2">
+                        {post.content || ''}
+                      </p>
                       
                       {/* 🔥 리스트 모드에서는 대표 이미지가 왼쪽에 있으므로 상세 미디어는 표시하지 않음 */}
                       {!representativeImage && <MediaContent media={media} />}

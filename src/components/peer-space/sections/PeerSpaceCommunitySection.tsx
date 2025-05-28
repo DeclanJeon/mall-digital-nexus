@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Heart, MessageSquare, User, Eye, Share2, QrCode, Pencil, Trash2 } from 'lucide-react';
-import { Post } from '@/types/post';
+import { ArrowLeft, Heart, MessageSquare, User, Eye, Share2, QrCode, Pencil, Trash2, Send } from 'lucide-react'; 
+import { Post, Comment } from '@/types/post'; 
 import { processContentWithMediaEmbeds } from '@/utils/mediaUtils';
 import { useToast } from "@/hooks/use-toast";
-import { getCommunityStatistics } from "@/utils/storageUtils";
+import { getCommunityStatistics, loadCommentsFromLocalStorage, saveCommentToLocalStorage, generateCommentId, deleteCommentFromLocalStorage } from "@/utils/storageUtils"; 
 import CommunityBoard from '@/components/community/CommunityBoard';
 import { CommunityStats, PeerSpaceCommunitySectionProps } from '@/types/community';
+import { Input } from '@/components/ui/input'; 
+import { Textarea } from '@/components/ui/textarea'; 
+
+// 임시 사용자 정보 (실제 앱에서는 인증 컨텍스트 등을 사용)
+const TEMP_IS_LOGGED_IN = true; // 예시: 사용자가 로그인했다고 가정
+const TEMP_CURRENT_USER_EMAIL = "user@example.com"; // 예시: 로그인한 사용자 이메일
 
 const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
   isOwner,
@@ -22,6 +28,24 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
     todayPosts: 0
   });
   const { toast } = useToast();
+
+  // 댓글 관련 상태
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [editableNickname, setEditableNickname] = useState(""); // 닉네임 입력 상태
+
+  // 임시 로그인 상태 및 사용자 정보
+  const [isLoggedIn, setIsLoggedIn] = useState(TEMP_IS_LOGGED_IN);
+  const [currentUserEmail, setCurrentUserEmail] = useState(TEMP_CURRENT_USER_EMAIL);
+
+  // 로그인 상태 또는 사용자 이메일 변경 시 editableNickname 초기화
+  useEffect(() => {
+    if (isLoggedIn && currentUserEmail) {
+      setEditableNickname(currentUserEmail.split('@')[0]);
+    } else {
+      setEditableNickname("");
+    }
+  }, [isLoggedIn, currentUserEmail]);
 
   // Load community statistics
   useEffect(() => {
@@ -39,19 +63,26 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
     }
   }, []);
 
-  // 게시글 클릭 핸들러 - 페이지 전환 없이 상세보기만 렌더링
+  // 게시글 선택 시 댓글 로드
+  useEffect(() => {
+    if (selectedPost && selectedPost.id) {
+      const loadedComments = loadCommentsFromLocalStorage(selectedPost.id);
+      setComments(loadedComments);
+    } else {
+      setComments([]); 
+    }
+  }, [selectedPost]);
+
   const handlePostClick = (post: Post) => {
     setSelectedPost(post);
     setIsDetailView(true);
   };
 
-  // 목록으로 돌아가기
   const handleBackToList = () => {
     setIsDetailView(false);
     setSelectedPost(null);
   };
 
-  // 게시글 액션 핸들러들
   const handleLikePost = () => {
     if (!selectedPost) return;
     toast({
@@ -97,23 +128,80 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
     });
   };
 
+  const handleAddComment = () => {
+    if (!selectedPost || !newComment.trim()) {
+      toast({
+        title: "댓글 작성 실패",
+        description: "댓글 내용을 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    let authorName = editableNickname.trim();
+    const currentIsAnonymous = !isLoggedIn;
+
+    if (!authorName) { // 사용자가 닉네임을 비웠거나, 비로그인 시 초기 상태
+      if (isLoggedIn && currentUserEmail) {
+        authorName = currentUserEmail.split('@')[0]; // 로그인 사용자는 기본값(이메일 아이디) 사용
+      } else {
+        toast({
+          title: "닉네임 필요",
+          description: "댓글을 작성하려면 닉네임을 입력해야 합니다.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    const commentToAdd: Comment = {
+      id: generateCommentId(),
+      postId: selectedPost.id,
+      author: authorName,
+      content: newComment.trim(),
+      createdAt: new Date().toISOString(),
+      isAnonymous: currentIsAnonymous, // 로그인 여부에 따라 익명성 결정
+    };
+
+    saveCommentToLocalStorage(commentToAdd);
+    setComments(prevComments => [...prevComments, commentToAdd].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()));
+    setNewComment("");
+    // 닉네임 필드는 현재 값 유지 (로그인 사용자는 기본값으로, 비로그인 사용자는 입력값으로)
+    // 비로그인 후 댓글 작성 시 닉네임 필드를 비우고 싶다면 아래 주석 해제
+    // if (!isLoggedIn) {
+    //   setEditableNickname(""); 
+    // }
+
+    toast({
+      title: "댓글이 작성되었습니다.",
+    });
+  };
+
+  const handleDeleteComment = (commentId: string) => {
+    if (window.confirm("정말로 이 댓글을 삭제하시겠습니까?")) {
+      deleteCommentFromLocalStorage(commentId);
+      setComments(prevComments => prevComments.filter(comment => comment.id !== commentId));
+      toast({
+        title: "댓글이 삭제되었습니다.",
+      });
+    }
+  };
+
+
   return (
     <div className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
       {!isDetailView ? (
-        // 커뮤니티 게시판 목록
         <div className="min-h-[calc(100vh-4rem)]">
           <div className="container mx-auto py-6">
             <CommunityBoard 
               zoneName={config.title} 
               communityId={config.id}
-              onPostClick={handlePostClick} // 🔥 게시글 클릭 시 상세보기로 전환
+              onPostClick={handlePostClick} 
             />
           </div>
         </div>
       ) : (
-        // 게시글 상세보기 섹션
         <div className="min-h-screen bg-gray-50">
-          {/* 상단 네비게이션 */}
           <div className="bg-white border-b sticky top-0 z-10">
             <div className="max-w-4xl mx-auto px-6 py-4">
               <div className="flex items-center justify-between">
@@ -132,11 +220,9 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
             </div>
           </div>
 
-          {/* 게시글 상세 내용 */}
           {selectedPost && (
             <div className="max-w-4xl mx-auto px-6 py-8">
               <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                {/* 게시글 헤더 */}
                 <div className="p-8 border-b">
                   <div className="mb-6">
                     <h1 className="text-3xl font-bold text-gray-900 mb-4 leading-tight">
@@ -178,7 +264,6 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
                       </div>
                     </div>
                     
-                    {/* 태그 */}
                     {selectedPost.tags && selectedPost.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-6">
                         {selectedPost.tags.map((tag, i) => (
@@ -189,7 +274,6 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
                       </div>
                     )}
 
-                    {/* 공지사항 표시 */}
                     {selectedPost.isNotice && (
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
                         <div className="flex items-center gap-2">
@@ -203,7 +287,6 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
                   </div>
                 </div>
 
-                {/* 게시글 내용 */}
                 <div className="p-8">
                   <div className="prose max-w-none">
                     {selectedPost.richContent ? (
@@ -221,7 +304,6 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
                   </div>
                 </div>
 
-                {/* 게시글 액션 버튼 */}
                 <div className="px-8 py-6 bg-gray-50 border-t">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -262,7 +344,6 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
                       </Button>
                     </div>
                     
-                    {/* 관리자/작성자 전용 버튼 */}
                     {(isOwner || selectedPost.author === "현재 사용자") && (
                       <div className="flex items-center gap-2">
                         <Button 
@@ -288,41 +369,69 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
                   </div>
                 </div>
 
-                {/* 댓글 섹션 */}
-                <div className="px-8 py-6 border-t">
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      댓글 {selectedPost.comments || 0}개
-                    </h3>
-                    
-                    {/* 댓글 입력 폼 */}
-                    <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                      <textarea 
-                        placeholder="댓글을 작성해주세요..."
-                        className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        rows={3}
+                <div className="p-8">
+                  <h2 className="text-2xl font-semibold text-gray-800 mb-6">댓글 ({comments.length})</h2>
+                  
+                  <div className="space-y-6 mb-8">
+                    {comments.length > 0 ? (
+                      comments.map((comment) => (
+                        <div key={comment.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                          <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white font-semibold">
+                            {comment.author.substring(0, 1).toUpperCase()}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-semibold text-gray-800">
+                                {comment.author}
+                                {comment.isAnonymous && <span className="text-xs text-gray-500 ml-2">(익명)</span>}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {new Date(comment.createdAt).toLocaleString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'})}
+                              </span>
+                            </div>
+                            <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p>
+                            <Button 
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-500 hover:text-red-700 mt-2 p-0 h-auto"
+                              onClick={() => handleDeleteComment(comment.id)}
+                            >
+                              삭제
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500">아직 댓글이 없습니다. 첫 댓글을 작성해보세요!</p>
+                    )}
+                  </div>
+
+                  <div className="border-t pt-6">
+                    <h3 className="text-lg font-semibold text-gray-700 mb-3">댓글 작성하기</h3>
+                    <div className="mb-4">
+                      <label htmlFor="editableNickname" className="block text-sm font-medium text-gray-700 mb-1">
+                        닉네임 {isLoggedIn ? `(기본: ${currentUserEmail?.split('@')[0]}, 수정 가능)` : "(익명으로 작성됩니다)"}
+                      </label>
+                      <Input 
+                        type="text" 
+                        id="editableNickname" 
+                        value={editableNickname} 
+                        onChange={(e) => setEditableNickname(e.target.value)} 
+                        placeholder={isLoggedIn ? "닉네임 수정 가능" : "닉네임을 입력하세요"}
+                        className="w-full md:w-1/2"
                       />
-                      <div className="flex justify-end mt-3">
-                        <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                          댓글 작성
-                        </Button>
-                      </div>
                     </div>
-                    
-                    {/* 댓글 목록 */}
-                    <div className="space-y-4">
-                      {selectedPost.comments && selectedPost.comments > 0 ? (
-                        <div className="text-center text-gray-500 py-8">
-                          <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                          <p>댓글을 불러오는 중입니다...</p>
-                        </div>
-                      ) : (
-                        <div className="text-center text-gray-500 py-8">
-                          <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                          <p>첫 번째 댓글을 작성해보세요!</p>
-                        </div>
-                      )}
-                    </div>
+                    <Textarea 
+                      value={newComment} 
+                      onChange={(e) => setNewComment(e.target.value)} 
+                      placeholder="따뜻한 댓글을 남겨주세요."
+                      rows={4}
+                      className="mb-4"
+                    />
+                    <Button onClick={handleAddComment} className="flex items-center gap-2">
+                      <Send className="h-4 w-4" />
+                      댓글 등록
+                    </Button>
                   </div>
                 </div>
               </div>

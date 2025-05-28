@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Post } from '@/types/post';
 
-import useCommunityBoardLogic from './board/hooks/useCommunityBoardLogic';
+import useCommunityBoardLogic from '@/hooks/useCommunityBoardLogic';
 import PostWriteDialog from './board/dialogs/PostWriteDialog';
 import QRCodeDialog from './board/dialogs/QRCodeDialog';
 import ChannelManagementDialog from './board/dialogs/ChannelManagementDialog';

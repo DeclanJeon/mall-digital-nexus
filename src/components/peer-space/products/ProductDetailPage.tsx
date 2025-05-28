@@ -121,31 +121,13 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId, onBack
 
   // 기존 함수들은 그대로 유지...
   const handleAddToCart = () => {
-    if (!selectedSize) {
-      toast({
-        title: "사이즈를 선택해주세요",
-        description: "제품을 장바구니에 추가하기 전에 사이즈를 선택해주세요.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     toast({
-      title: "장바구니 담기 완료! 🛒",
+      title: "장바구니 담기 완료! 🛒 (기능 준비중)",
       description: `${product?.title}이(가) 장바구니에 담겼습니다.`
     });
   };
 
   const handleBuyNow = () => {
-    if (!selectedSize) {
-      toast({
-        title: "사이즈를 선택해주세요",
-        description: "구매하기 전에 사이즈를 선택해주세요.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     toast({
       title: "바로구매 진행중! 💳",
       description: "주문 페이지로 이동합니다."

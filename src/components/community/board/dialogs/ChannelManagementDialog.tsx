@@ -143,7 +143,7 @@ const ChannelManagementDialog: React.FC<ChannelManagementDialogProps> = ({
     e.preventDefault();
     
     if (!newChannelName.trim()) {
-      toast({ title: "채널 이름을 입력해주세요", variant: "destructive" });
+      toast({ title: "카테고리 이름을 입력해주세요", variant: "destructive" });
       return;
     }
     
@@ -152,7 +152,7 @@ const ChannelManagementDialog: React.FC<ChannelManagementDialogProps> = ({
     
     if (duplicate) {
       toast({ 
-        title: "이미 존재하는 채널명입니다", 
+        title: "이미 존재하는 카테고리명입니다", 
         description: "다른 이름을 입력해주세요.",
         variant: "destructive" 
       });
@@ -194,14 +194,14 @@ const ChannelManagementDialog: React.FC<ChannelManagementDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>채널 관리</DialogTitle>
+          <DialogTitle>카테고리 관리</DialogTitle>
           <DialogDescription>
-            다양한 주제의 채널을 생성하고, 편집하거나 삭제할 수 있습니다.
+            다양한 주제의 카테고리을 생성하고, 편집하거나 삭제할 수 있습니다.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2 max-h-72 overflow-y-auto pr-2">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">현재 채널 ({channels.length})</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">현재 카테고리 ({channels.length})</h3>
             
             <AnimatePresence>
               {channels.map(channel => (
@@ -243,7 +243,7 @@ const ChannelManagementDialog: React.FC<ChannelManagementDialogProps> = ({
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>채널 편집</p>
+                          <p>카테고리 편집</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -256,13 +256,13 @@ const ChannelManagementDialog: React.FC<ChannelManagementDialogProps> = ({
                             variant="ghost"
                             className="h-8 w-8 text-red-500 hover:bg-red-50"
                             onClick={() => onChannelDelete(channel.id)}
-                            disabled={channel.id === 'channel-1'} // 공지사항 채널 삭제 방지
+                            disabled={channel.id === 'channel-1'} // 공지사항 카테고리 삭제 방지
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>{channel.id === 'channel-1' ? '기본 채널은 삭제할 수 없습니다' : '채널 삭제'}</p>
+                          <p>{channel.id === 'channel-1' ? '기본 카테고리은 삭제할 수 없습니다' : '카테고리 삭제'}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -273,14 +273,14 @@ const ChannelManagementDialog: React.FC<ChannelManagementDialogProps> = ({
           </div>
           
           <form onSubmit={handleSubmit} className="border rounded-lg p-4 space-y-4">
-            <h3 className="font-semibold">{editChannelId ? "채널 수정" : "새 채널 추가"}</h3>
+            <h3 className="font-semibold">{editChannelId ? "카테고리 수정" : "새 카테고리 추가"}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">채널 이름 <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium">카테고리 이름 <span className="text-red-500">*</span></label>
                 <Input
                   value={newChannelName}
                   onChange={e => setNewChannelName(e.target.value)}
-                  placeholder="채널 이름 (필수)"
+                  placeholder="카테고리 이름 (필수)"
                   className="mt-1"
                   required
                 />
@@ -371,7 +371,7 @@ const ChannelManagementDialog: React.FC<ChannelManagementDialogProps> = ({
                 <Input
                   value={newChannelDesc}
                   onChange={e => setNewChannelDesc(e.target.value)}
-                  placeholder="채널에 대한 간단한 설명"
+                  placeholder="카테고리에 대한 간단한 설명"
                   className="mt-1"
                 />
               </div>
@@ -392,7 +392,7 @@ const ChannelManagementDialog: React.FC<ChannelManagementDialogProps> = ({
                     backgroundColor: newChannelColor,
                     color: hasGoodContrast(newChannelColor) ? '#000' : '#fff'
                   }}>
-                    {newChannelIcon} {newChannelName || '채널 이름'}
+                    {newChannelIcon} {newChannelName || '카테고리 이름'}
                   </div>
                 </div>
               </div>
@@ -405,7 +405,7 @@ const ChannelManagementDialog: React.FC<ChannelManagementDialogProps> = ({
                 type="submit" 
                 className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white"
               >
-                {editChannelId ? "수정" : "채널 추가"}
+                {editChannelId ? "수정" : "카테고리 추가"}
               </Button>
             </div>
           </form>
