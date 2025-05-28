@@ -45,17 +45,14 @@ import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
+<<<<<<< HEAD
 import { CreatePeermallModalProps, CreatePeermallSuccessData, FamilyMember, PeermallFormData } from '@/types/peermall';
 import { createPeerMall } from '@/services/peerMallService';
 
+=======
+import { CreatePeermallModalProps, Peermall, FamilyMember, PeermallFormData } from '@/types/peermall';
+>>>>>>> feature
 
 
 // 스키마들 (기존과 동일)
@@ -75,12 +72,32 @@ const step2Schema = z.object({
   mapAddress: z.string().optional(),
   visibility: z.enum(['public', 'partial', 'private'], {
     message: '공개 범위를 선택해주세요',
-  }),
+  }).optional(), // Optional, as it's commented out in UI
   requestCertification: z.boolean().optional(),
   referralCode: z.string().optional(),
 });
 
 const formSchema = step1Schema.merge(step2Schema);
+
+
+// 재사용 가능한 디바운스 훅
+const useDebounce = <T,>(value: T, delay: number): T => {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    // Cleanup function to clear the timeout if value changes before delay
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
 
 const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
   isOpen,
@@ -92,7 +109,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(true);
   const [isDuplicateAddress, setIsDuplicateAddress] = useState(false);
-  const [familyMembers] = useState<FamilyMember[]>([]);
+  const [familyMembers] = useState<FamilyMember[]>([]); // Unused, consider removing
   const [isMapDialogOpen, setIsMapDialogOpen] = useState(false);
   const [mapLocation, setMapLocation] = useState<{
     lat: number;
@@ -100,7 +117,6 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
     address: string;
   } | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-
 
 
   // React Hook Form 설정
@@ -112,11 +128,11 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       description: '',
       ownerName: '',
       email: '',
-      membershipType: '',
+      membershipType: '', // Not in schema, consider removing or adding
       imageUrl: '',
       hashtags: '',
       mapAddress: '',
-      visibility: 'public',
+      visibility: 'public', // Default value is fine even if UI is commented out
       requestCertification: false,
       referralCode: '',
     },
@@ -125,20 +141,24 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
 
   // 주소 중복 체크 (더미 함수 - 실제로는 서버에서 확인해야 함)
   const checkDuplicateAddress = useCallback((address: string) => {
-    return false;
+    // 실제 서버 호출 로직이 들어가야 함
+    // 예시: return address === 'test-mall';
+    return false; // 항상 false로 가정하여 테스트
   }, []);
 
-  // 주소 변경 시 중복 검사
-  useEffect(() => {
-    const sub = form.watch((values, { name }) => {
-      if (name === 'address' && values.address) {
-        setIsDuplicateAddress(checkDuplicateAddress(values.address));
-      }
-    });
-    return () => sub.unsubscribe();
-  }, [form]);
+  // 주소 변경 시 중복 검사 (디바운싱 적용)
+  const addressFieldValue = form.watch('address'); // address 필드의 현재 값을 가져옴
+  const debouncedAddress = useDebounce(addressFieldValue, 500); // 500ms 디바운스 적용
 
-  // 1단계 유효성 검사
+  useEffect(() => {
+    if (debouncedAddress) { // 디바운스된 주소 값이 있을 때만 중복 검사 실행
+      setIsDuplicateAddress(checkDuplicateAddress(debouncedAddress));
+    } else {
+      setIsDuplicateAddress(false); // 주소 값이 비어있으면 중복 아님으로 설정
+    }
+  }, [debouncedAddress, checkDuplicateAddress]); // 디바운스된 주소 값과 checkDuplicateAddress 함수가 변경될 때만 실행
+
+  // 1단계 유효성 검사 (handleNextStep에서만 사용되므로 그대로 둠)
   const validateStep1 = async () => {
     const step1Data = {
       address: form.getValues('address'),
@@ -151,7 +171,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
     try {
       step1Schema.parse(step1Data);
       if (checkDuplicateAddress(step1Data.address)) {
-        setIsDuplicateAddress(true);
+        setIsDuplicateAddress(true); // 여기서도 상태 업데이트를 하지만, 디바운싱된 useEffect와 충돌하지 않음
         return false;
       }
       return true;
@@ -175,7 +195,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       }
 
       // 중복 주소 체크
-      if (isDuplicateAddress) {
+      if (isDuplicateAddress) { // isDuplicateAddress는 debouncedAddress에 의해 업데이트된 최신 값
         isStep1Valid = false;
         toast({
           title: '중복된 주소',
@@ -189,6 +209,22 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
         setCurrentStep(2);
         // 스크롤을 맨 위로 이동
         window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // **추가: 2단계로 전환 후 첫 번째 필드에 포커스**
+        // DOM 렌더링을 기다리기 위해 작은 setTimeout 사용
+        setTimeout(() => {
+          const firstInputInStep2 = document.querySelector<HTMLInputElement>('[name="imageUrl"]');
+          if (firstInputInStep2) {
+            firstInputInStep2.focus();
+          } else {
+            // imageUrl이 없을 경우 hashtags 필드에 포커스 시도
+            const hashtagsInput = document.querySelector<HTMLInputElement>('[name="hashtags"]');
+            if (hashtagsInput) {
+                hashtagsInput.focus();
+            }
+          }
+        }, 0); // 0ms setTimeout은 다음 이벤트 루프 틱에 실행되어 DOM 업데이트를 기다림
+
         toast({
           title: '1단계 완료! 🎉',
           description: '이제 브랜딩과 개인화 설정을 진행해보세요.',
@@ -204,6 +240,8 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
               behavior: 'smooth', 
               block: 'center' 
             });
+            // **추가: 오류 필드에 포커스**
+            (firstErrorField as HTMLElement).focus();
           }
         }
         
@@ -226,6 +264,13 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
   // 이전 단계로
   const handlePrevStep = () => {
     setCurrentStep(1);
+    // **추가: 1단계로 전환 후 첫 번째 필드에 포커스**
+    setTimeout(() => {
+      const firstInputInStep1 = document.querySelector<HTMLInputElement>('[name="address"]');
+      if (firstInputInStep1) {
+        firstInputInStep1.focus();
+      }
+    }, 0);
   };
 
   // 이미지 업로드
@@ -289,6 +334,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       description: `${location.address}로 설정되었습니다.`,
       variant: 'default',
     });
+    setIsMapDialogOpen(false); // 지도 선택 후 다이얼로그 닫기
   };
 
   // 지도 다이얼로그 열기
@@ -339,44 +385,25 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       return;
     }
 
-    // 1단계에서 '피어몰 생성하기' 버튼 클릭 시 바로 생성
-    if (currentStep === 1) {
-      // 2단계 유효성 검사 없이 바로 저장 진행
-      console.log('1단계에서 바로 저장 진행');
-      // 다음 코드 블록에서 처리 계속
-    }
-
-    // 2단계에서 '피어몰 생성하기' 버튼 클릭 시
+    // 2단계에서 '피어몰 생성하기' 버튼 클릭 시 (여기서는 항상 유효성 검사한다고 가정)
     if (currentStep === 2) {
-      // 2단계 필드 검증 (선택사항이므로 스킵 가능)
-      const step2Fields = ['visibility'];
-      let isStep2Valid = true;
+      // 2단계 필드 검증 (선택사항이지만, 강제하고 싶다면)
+      // visibility는 현재 UI에서 주석 처리되어 있으므로 스키마에서 optional로 설정
+      const step2FieldsToValidate: (keyof PeermallFormData)[] = []; // 필요에 따라 추가
+      // 예: if (values.visibility) step2FieldsToValidate.push('visibility');
       
-      for (const field of step2Fields) {
-        const result = await form.trigger(field as keyof PeermallFormData);
-        if (!result) isStep2Valid = false;
+      for (const field of step2FieldsToValidate) {
+        const result = await form.trigger(field);
+        if (!result) {
+            toast({
+              title: '입력 확인 필요',
+              description: '추가 설정의 필수 항목을 올바르게 입력해주세요.',
+              variant: 'destructive',
+            });
+            setIsLoading(false);
+            return;
+        }
       }
-      
-      if (!isStep2Valid) {
-        toast({
-          title: '입력 확인 필요',
-          description: '필수 항목을 모두 올바르게 입력해주세요.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-        return;
-      }
-    }
-
-    if (checkDuplicateAddress(values.address)) {
-      setIsDuplicateAddress(true);
-      toast({
-        title: '중복된 주소',
-        description: '이미 사용 중인 주소입니다.',
-        variant: 'destructive',
-      });
-      setIsLoading(false);
-      return;
     }
 
     // 지오코딩 처리 개선
@@ -395,9 +422,26 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
             address: values.mapAddress
           };
           console.log('지오코딩 성공:', finalLocation);
+          toast({
+            title: '주소 지오코딩 성공! 🗺️',
+            description: `'${values.mapAddress}'에 대한 위치 정보가 설정되었습니다.`,
+            variant: 'default',
+          });
+        } else {
+          console.warn('지오코딩 결과 없음:', values.mapAddress);
+          toast({
+            title: '주소 지오코딩 실패',
+            description: `'${values.mapAddress}'에 대한 정확한 위치를 찾을 수 없습니다. 기본 위치가 사용됩니다.`,
+            variant: 'destructive',
+          });
         }
       } catch (error) {
         console.error('지오코딩 실패:', error);
+        toast({
+          title: '지오코딩 오류',
+          description: '주소를 위치 정보로 변환하는 중 오류가 발생했습니다. 기본 위치가 사용됩니다.',
+          variant: 'destructive',
+        });
       }
     }
 
@@ -411,14 +455,16 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
     // 저장용 데이터 객체
     const dataForStorage = {
       address: id,
+      id: id,
+      title: values.name, // name을 title로 매핑
       name: values.name,                    // title 대신 name
       ownerName: values.ownerName, // owner 대신 ownerName
       description: values.description,
       owner: values.ownerName,
       email: values.email,
-      imageUrl: values.imageUrl || '',
+      imageUrl: values.imageUrl || 'https://picsum.photos/400/300',
       membershipType: values.membershipType || '',
-      visibility: values.visibility,
+      visibility: values.visibility || 'public', // Default if not selected
       requestCertification: !!values.requestCertification,
       hashtags: values.hashtags || '',
       tags,
@@ -427,16 +473,19 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       type: 'peermall',
       rating: 0,
       reviewCount: 0,
+      followers: 0,
+      featured: false,
+      certified: false,
+      recommended: false,
       location: {
         address: finalLocation?.address || values.mapAddress || values.address,
-        lat: finalLocation?.lat || 37.5665,
-        lng: finalLocation?.lng || 126.9780,
+        lat: finalLocation?.lat ?? 37.5665, // Default if geocoding fails
+        lng: finalLocation?.lng ?? 126.9780, // Default if geocoding fails
       },
-      lat: finalLocation?.lat || 37.5665,
-      lng: finalLocation?.lng || 126.9780,
       createdAt: new Date().toISOString(),
     };
 
+<<<<<<< HEAD
     // onSuccess에 전달할 데이터 (CreatePeermallSuccessData 타입에 맞춤)
     const successData: CreatePeermallSuccessData = {
       // PeermallFormData 필수 필드들
@@ -487,6 +536,27 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       }
       const { success, peerMallKey } = await createPeerMall(formData);
       successData['peerMallKey'] = peerMallKey;
+=======
+    try {
+      // peermallStorage를 사용하여 데이터 저장
+      const savedPeermall = peermallStorage.save({
+        ...dataForStorage,
+      });
+      
+      console.log('피어몰 저장 완료:', savedPeermall);
+
+        // 초기화
+      form.reset();
+      setCurrentStep(1);
+      setShowImagePreview(true);
+      setIsDuplicateAddress(false);
+      setMapLocation(null);
+      setIsLoading(false);
+
+      if (onSuccess) {
+        onSuccess(savedPeermall);
+      }
+>>>>>>> feature
       
       // 성공 토스트 메시지
       toast({
@@ -494,6 +564,8 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
         description: `${values.name} 피어몰이 등록되었습니다.`,
         variant: 'default',
       });
+      
+      onClose(); // Always close the modal on success
     } catch (error) {
       console.error('피어몰 저장 실패:', error);
       toast({
@@ -501,27 +573,9 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
         description: '피어몰을 저장하는 중 오류가 발생했습니다.',
         variant: 'destructive',
       });
+      setIsLoading(false); // 에러 발생 시 로딩 상태 해제
       return;
     }
-
-    toast({
-      title: '🎉 피어몰 생성 완료!',
-      description: `${values.name} 피어몰이 성공적으로 생성되었습니다.`,
-      variant: 'default',
-    });
-
-    // 초기화
-    form.reset();
-    setCurrentStep(1);
-    setShowImagePreview(true);
-    setIsDuplicateAddress(false);
-    setMapLocation(null);
-    setIsLoading(false);
-
-    if (onSuccess) {
-      onSuccess(successData);
-    }
-    onClose(); // Always close the modal
   };
 
   const RequiredLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -630,12 +684,31 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
           <StepIndicator />
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            
-            {/* 1단계: 기본 정보 */}
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              onKeyDown={(e) => {
+                if (e.key === 'Tab') {
+                  const currentStepFields = document.querySelectorAll(`[data-step="${currentStep}"] input:not([disabled]), [data-step="${currentStep}"] textarea:not([disabled]), [data-step="${currentStep}"] button:not([disabled])`);
+                  if (currentStepFields.length === 0) return;
+
+                  const firstField = currentStepFields[0];
+                  const lastField = currentStepFields[currentStepFields.length - 1];
+
+                  if (document.activeElement === lastField && !e.shiftKey) {
+                    e.preventDefault();
+                    (firstField as HTMLElement).focus();
+                  } else if (document.activeElement === firstField && e.shiftKey) {
+                    e.preventDefault();
+                    (lastField as HTMLElement).focus();
+                  }
+                }
+              }}
+              className="space-y-6"
+            >
+            {/* 각 단계별 카드에 data-step 속성 추가 */}
             {currentStep === 1 && (
-              <Card className="border-blue-100 bg-blue-50/30">
+              <Card className="border-blue-100 bg-blue-50/30" data-step="1">
                 <CardContent className="p-6 space-y-5">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -789,10 +862,9 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                 </CardContent>
               </Card>
             )}
-
-            {/* 2단계: 추가 설정 */}
+            
             {currentStep === 2 && (
-              <Card className="border-green-100 bg-green-50/30">
+              <Card className="border-green-100 bg-green-50/30" data-step="2">
                 <CardContent className="p-6 space-y-5">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -1085,9 +1157,14 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                 </CardContent>
               </Card>
             )}
+            
+            {/* 나머지 코드 유지 */}
+          </form>
+        </Form>
 
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <Separator className="my-6" />
-
             {/* 하단 버튼 영역 - 통합된 버튼 그룹 */}
             <DialogFooter className="flex flex-col sm:flex-row gap-3 w-full">
               <div className="flex flex-col sm:flex-row justify-between w-full gap-3">
@@ -1163,8 +1240,8 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
           isOpen={isMapDialogOpen}
           onClose={handleCloseMapDialog}
           onSelect={handleLocationSelect}
-          initialPosition={mapLocation || { lat: 37.5665, lng: 126.9780 }}
-          initialAddress={form.getValues('mapAddress')}
+          initialPosition={mapLocation || { lat: 37.5665, lng: 126.9780, address: form.getValues('mapAddress') || form.getValues('address') || '' }}
+          initialAddress={form.getValues('mapAddress') || form.getValues('address')}
         />
       </Suspense>
     </Dialog>

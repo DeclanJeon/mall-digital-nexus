@@ -3,15 +3,16 @@ export interface Post {
   title: string;
   author: string;
   date: string;
-  content: string;
+  content: string; // Markdown 요약본 또는 일반 텍스트 내용 (렌더링 시 주의)
   likes: number;
   comments: number;
   tags: string[];
   channelId?: string;
   communityId?: string;
   isNotice?: boolean;
+  isPinned?: boolean;
   imageUrl?: string;
-  richContent?: string; // For Toast UI Editor content
+  richContent?: string; // HTML 전체 내용 (상세 보기용)
   processedContent?: string; // For content with embedded media
   slug?: string; // URL-friendly identifier for the post
   viewCount?: number; // Track number of views
@@ -33,10 +34,10 @@ export interface Channel {
 export interface Comment {
   id: string;
   postId: string;
-  author: string;
+  author: string; // 닉네임 또는 이메일 아이디
   content: string;
-  date: string;
-  likes: number;
+  createdAt: string; // ISO 8601 형식의 날짜 문자열
+  isAnonymous: boolean; // 익명 여부
 }
 
 export interface Member {

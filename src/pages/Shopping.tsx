@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import ProductGrid from '@/components/shopping/ProductGrid';
+import ProductGrid from '@/components/shopping/products/ProductGrid';
 import PeermallGrid from '@/components/peermall-features/PeermallGrid';
 import { Filter, Grid, LayoutGrid, ShoppingBag, ArrowRight, ArrowLeft, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Peermall } from './Index';
+import { Peermall } from './PeerSpace';
 import { QRCodeModal } from '@/components/peer-space/modals/QRCodeModal';
-import ShoppingFilter from '@/components/shopping/ShoppingFilter';
+import ShoppingFilter from '@/components/shopping/products/ShoppingFilter';
 import CategoryNav from '@/components/CategoryNav';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';

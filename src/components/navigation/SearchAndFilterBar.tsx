@@ -147,7 +147,7 @@ const SearchAndFilterBar = ({
           </Button>
 
           {/* 북마크 버튼 */}
-          <Button
+          {/* <Button
             variant="outline"
             onClick={toggleBookmarks}
             className="px-4 py-2 border-2 rounded-lg transition-all duration-200 hover:shadow-md relative"
@@ -157,7 +157,7 @@ const SearchAndFilterBar = ({
               color: showBookmarks ? 'white' : 'var(--text-200)'
             }}
           >
-            <Bookmark className="h-4 w-4 mr-2" />
+          <Bookmark className="h-4 w-4 mr-2" />
             북마크
             {bookmarks.length > 0 && (
               <span 
@@ -166,7 +166,7 @@ const SearchAndFilterBar = ({
                 {bookmarks.length}
               </span>
             )}
-          </Button>
+          </Button> */}
         </div>
       </div>
       {showFilters && (

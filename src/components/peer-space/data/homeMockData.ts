@@ -1,4 +1,5 @@
-import { Content, ContentType } from '../types';
+import { Content, ContentType } from '../../../types/space';
+import { Product } from '../../../types/product';
 
 // Mock data generator utilities
 export const generateRandomDate = () => {
@@ -14,7 +15,7 @@ export const generateRandomNumber = (min: number, max: number) => {
 };
 
 // Mock data for products
-export const generateMockProducts = (count: number): Content[] => {
+export const generateMockProducts = (count: number): Product[] => {
   const categories = ['전자제품', '패션', '생활용품', '도서', '음식', '취미'];
   const titles = [
     '최신 스마트폰',
@@ -42,7 +43,7 @@ export const generateMockProducts = (count: number): Content[] => {
         title: titles[idx % titles.length],
         description: `고품질 제품으로 여러분의 일상을 더욱 편리하게 만들어드립니다. 다양한 기능과 세련된 디자인으로 많은 사랑을 받고 있는 제품입니다.`,
         imageUrl: `https://source.unsplash.com/random/300x300/?product&sig=${idx}`,
-        type: 'product',
+        type: ContentType.Product,
         date: now,
         createdAt: now,
         updatedAt: now,
@@ -59,6 +60,9 @@ export const generateMockProducts = (count: number): Content[] => {
         source: '',
         externalUrl: '',
         isExternal: false,
+        rating: generateRandomNumber(1, 5),
+        reviewCount: generateRandomNumber(0, 500),
+        peermallName: 'Mock Peermall',
       };
     });
 };

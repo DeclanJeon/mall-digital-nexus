@@ -38,6 +38,24 @@ interface MapMarkerSelectorProps {
   initialAddress?: string;
 }
 
+// 지도 클릭 이벤트 핸들러
+const MapClickHandler: React.FC<{ onMapClick: (latlng: L.LatLng) => void }> = ({ onMapClick }) => {
+  const map = useMap();
+
+  const handleClick = useCallback((e: L.LeafletMouseEvent) => {
+    onMapClick(e.latlng);
+  }, [onMapClick]);
+
+  useEffect(() => {
+    map.on('click', handleClick);
+    return () => {
+      map.off('click', handleClick);
+    };
+  }, [map, handleClick]);
+
+  return null;
+};
+
 // 드래그 가능한 마커 컴포넌트
 const DraggableMarker: React.FC<{
   initialPosition: { lat: number; lng: number };
@@ -290,6 +308,26 @@ export const MapMarkerSelector: React.FC<MapMarkerSelectorProps> = ({
     }
   }, [onLocationSelect]);
 
+  // 지도 클릭 이벤트 핸들러
+  const handleMapClick = useCallback(async (latlng: L.LatLng) => {
+    const newPos = { lat: latlng.lat, lng: latlng.lng };
+    setPosition(newPos);
+    
+    try {
+      const newAddress = await fetchAddress(latlng.lat, latlng.lng);
+      setAddress(newAddress);
+      
+      onLocationSelect({
+        lat: newPos.lat,
+        lng: newPos.lng,
+        address: newAddress
+      });
+    } catch (error) {
+      console.error('주소 조회 실패:', error);
+      setError('주소 조회 실패');
+    }
+  }, [onLocationSelect]);
+
   return (
     <div className="space-y-4">
       <form onSubmit={handleSearch} className="flex gap-2">
@@ -340,6 +378,8 @@ export const MapMarkerSelector: React.FC<MapMarkerSelectorProps> = ({
             onPositionChange={handlePositionChange}
             onAddressChange={handleAddressChange}
           />
+          {/* MapClickHandler 추가 */}
+          <MapClickHandler onMapClick={handleMapClick} />
         </MapContainer>
         
         {/* 커스텀 줌 컨트롤 */}
@@ -399,10 +439,10 @@ export const MapMarkerSelector: React.FC<MapMarkerSelectorProps> = ({
         <div>
           <p className="font-medium">위치 선택 팁 💡</p>
           <ul className="list-disc pl-5 mt-1 space-y-1">
-            <li>주소 검색 후 마커를 정확한 위치로 드래그하세요</li>
-            <li>마커를 클릭하면 상세 주소를 확인할 수 있습니다</li>
-            <li>오른쪽 하단 버튼으로 지도 확대/축소가 가능합니다</li>
-            <li>왼쪽 하단 버튼으로 현재 위치로 이동할 수 있습니다</li>
+            <li>지도를 클릭하면 해당 위치로 마커가 이동하고 주소가 자동 입력됩니다.</li>
+            <li>마커를 드래그하여 원하는 위치로 미세 조정할 수 있습니다.</li>
+            <li>상단의 검색창에 주소를 입력하여 원하는 위치를 찾을 수 있습니다.</li>
+            <li>'현재 위치로 이동' 버튼을 클릭하여 현재 위치를 찾을 수 있습니다.</li>
           </ul>
         </div>
       </div>

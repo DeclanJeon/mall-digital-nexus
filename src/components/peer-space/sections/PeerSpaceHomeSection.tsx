@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
-import { Content, PeerMallConfig } from '../types';
+import React, { useMemo, useState } from 'react';
+import { Content, PeerMallConfig, ContentType } from '@/types/space';
+import { Product } from '@/types/product';
 import { heroSlides, guestbookData, followingPeermalls } from '../data/homeMockData';
 import BasicInfoSection from './BasicInfoSection';
 import HeroSection from './HeroSection';
@@ -7,6 +8,8 @@ import ProductContentSection from './ProductContentSection';
 import CommunitySection from './CommunitySection';
 import GuestbookSection from './GuestbookSection';
 import FollowingSection from './FollowingSection';
+import PeerSpaceContentSection from './PeerSpaceContentSection';
+import ProductDetailPage from '../products/ProductDetailPage';
 
 interface PeerSpaceHomeSectionProps {
   isOwner: boolean;
@@ -37,6 +40,7 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
   setCurrentView,
   handleShowProductForm,
 }) => {
+<<<<<<< HEAD
   const filteredProducts = useMemo(() => 
     products.length > 0 ? products.filter(product => 
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -48,40 +52,128 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       post.description.toLowerCase().includes(searchQuery.toLowerCase())
     ) : [], [posts, searchQuery]);
+=======
+  const [showProductDetail, setShowProductDetail] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<string | number | null>(null);
+
+  const handleProductDetailView = (productId: string | number) => {
+    setSelectedProductId(productId);
+    setShowProductDetail(true);
+  };
+
+  const handleBackToProductList = () => {
+    setShowProductDetail(false);
+    setSelectedProductId(null);
+  };
+
+  const filteredProducts = useMemo(() =>
+    products.filter(product =>
+      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchQuery.toLowerCase())
+    ).map(content => ({
+      ...content,
+      currency: content.price ? 'ETH' : 'ETH',
+      reviewCount: content.rating ? content.rating : 0,
+      peermallName: config.name,
+      type: ContentType.Product,
+      price: Number(content.price || 0),
+      imageUrl: content.imageUrl || '',
+      category: content.category || '기타',
+      tags: content.tags || [],
+    }) as Product),
+    [products, searchQuery, config.name]
+  );
+
+  const filteredPosts = useMemo(() =>
+    posts.filter(post =>
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.description.toLowerCase().includes(searchQuery.toLowerCase())
+    ),
+    [posts, searchQuery]
+  );
+>>>>>>> feature
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 flex">
+    <div className="min-h-screen bg-gray-50 text-gray-900 flex align-center justify-center">
       <div className="flex p-6">
         <div className="flex-1 pr-6">
-          {activeSection === 'home' && (
+          {showProductDetail && selectedProductId ? (
+            <ProductDetailPage productId={selectedProductId} onBack={handleBackToProductList} />
+          ) : (
             <>
-              <HeroSection 
-                slides={heroSlides}
-                badges={config.badges}
-              />
-              
-              <ProductContentSection
-                isOwner={isOwner}
-                products={filteredProducts}
-                currentView={currentView}
-                setCurrentView={setCurrentView}
-                handleShowProductForm={handleShowProductForm}
-                onNavigateToSection={onNavigateToSection}
-              />
+              {activeSection === 'home' && (
+                <>
+                  <HeroSection
+                    slides={heroSlides}
+                    badges={config.badges}
+                  />
 
-              {/* <CommunitySection
-                posts={filteredPosts}
-                isOwner={isOwner}
-                onNavigateToSection={onNavigateToSection}
-                owner={config.owner}
-              /> */}
+                  <PeerSpaceContentSection
+                    isOwner={isOwner}
+                    address={address}
+                    config={config}
+                    products={filteredProducts}
+                    currentView={currentView}
+                    setCurrentView={setCurrentView}
+                    handleShowProductForm={handleShowProductForm}
+                    filteredProducts={filteredProducts}
+                    onDetailView={handleProductDetailView}
+                  />
 
-              {/* <GuestbookSection
-                entries={guestbookData}
-                onNavigateToSection={onNavigateToSection}
-              /> */}
+                  {/* <CommunitySection
+                    posts={filteredPosts}
+                    isOwner={isOwner}
+                    onNavigateToSection={onNavigateToSection}
+                    owner={config.owner}
+                  /> */}
+
+                  {/* <GuestbookSection
+                    entries={guestbookData}
+                    onNavigateToSection={onNavigateToSection}
+                  /> */}
+                </>
+              )}
+
+              {activeSection === 'content' && (
+                <ProductContentSection
+                  isOwner={isOwner}
+                  products={filteredProducts}
+                  currentView={currentView}
+                  setCurrentView={setCurrentView}
+                  handleShowProductForm={handleShowProductForm}
+                  showAll={true}
+                  onDetailView={handleProductDetailView}
+                />
+              )}
+
+              {activeSection === 'community' && (
+                <CommunitySection
+                  posts={filteredPosts}
+                  isOwner={isOwner}
+                  showAll={true}
+                  owner={config.owner}
+                />
+              )}
+
+              {activeSection === 'following' && (
+                <FollowingSection
+                  following={followingPeermalls}
+                />
+              )}
+
+              {activeSection === 'guestbook' && (
+                <GuestbookSection
+                  entries={guestbookData}
+                  showAll={true}
+                />
+              )}
+
+              {activeSection === 'settings' && (
+                <BasicInfoSection config={config} />
+              )}
             </>
           )}
+<<<<<<< HEAD
 
           {activeSection === 'content' && (
             <ProductContentSection
@@ -119,6 +211,8 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
           {activeSection === 'settings' && (
             <BasicInfoSection config={config} />
           )}
+=======
+>>>>>>> feature
         </div>
       </div>
     </div>

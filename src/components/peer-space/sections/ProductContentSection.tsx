@@ -1,17 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Content } from '../types';
-import ProductCard from '@/components/shopping/ProductCard';
+import { Product } from '@/types/product';
+import ProductCard from '@/components/shopping/products/ProductCard';
 import { Grid2X2, List, ChevronRight } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 interface ProductContentSectionProps {
   isOwner: boolean;
-  products: Content[];
+  products: Product[];
   currentView: 'list' | 'blog' | 'grid-small' | 'grid-medium' | 'grid-large' | 'masonry';
   setCurrentView: (view: 'list' | 'blog' | 'grid-small' | 'grid-medium' | 'grid-large' | 'masonry') => void;
   handleShowProductForm: () => void;
   onNavigateToSection?: (section: string) => void;
   showAll?: boolean;
+  onDetailView?: (productId: string | number) => void;
 }
 
 const ProductContentSection: React.FC<ProductContentSectionProps> = ({
@@ -21,9 +23,17 @@ const ProductContentSection: React.FC<ProductContentSectionProps> = ({
   setCurrentView,
   handleShowProductForm,
   onNavigateToSection,
-  showAll = false
+  showAll = false,
+  onDetailView
 }) => {
+  const navigate = useNavigate();
+  const { address } = useParams<{ address: string }>();
+
   const displayedProducts = showAll ? products : products.slice(0, 8);
+
+  const handleProductClick = (productId: string) => {
+    onDetailView?.(productId);
+  };
 
   return (
     <section className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
@@ -65,17 +75,22 @@ const ProductContentSection: React.FC<ProductContentSectionProps> = ({
             : "space-y-4"
           }>
             {displayedProducts.map((product) => (
-              <div key={product.id}>
+              <div key={product.id} onClick={() => handleProductClick(product.id)} className="cursor-pointer">
                 <ProductCard
                   id={product.id}
                   title={product.title}
                   description={product.description}
                   price={Number(product.price || 0)}
-                  discountPrice={null}
+                  discountPrice={product.discountPrice || null}
                   imageUrl={product.imageUrl}
-                  rating={4.5}
-                  reviewCount={10}
+                  rating={product.rating || 0}
+                  reviewCount={product.reviewCount || 0}
                   viewMode={currentView === 'blog' ? 'grid' : 'list'}
+                  peermallName={product.peermallName}
+                  peermallId={product.peermallId}
+                  category={product.category}
+                  tags={product.tags}
+                  onDetailView={onDetailView}
                 />
               </div>
             ))}
@@ -93,7 +108,7 @@ const ProductContentSection: React.FC<ProductContentSectionProps> = ({
         
         {!showAll && products.length > 8 && onNavigateToSection && (
           <div className="mt-6 text-center">
-            <Button variant="outline" onClick={() => onNavigateToSection('content')}>
+            <Button variant="outline" onClick={() => onNavigateToSection('products')}>
               더 보기 <ChevronRight className="ml-1 w-4 h-4" />
             </Button>
           </div>

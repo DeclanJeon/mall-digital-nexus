@@ -50,7 +50,6 @@ import { cn } from '@/lib/utils';
 import CallModal from '@/components/features/CallModal';
 import MessageModal from '@/components/features/MessageModal';
 import EnhancedMessageModal from './features/EnhancedMessageModal';
-import { getAllPeerMallList } from  "@/services/peerMallService";
 
 const DEFAULT_CENTER: [number, number] = [37.5665, 126.9780];
 
@@ -76,7 +75,7 @@ interface MapLocation {
   trustScore?: number;
   responseTime?: string;
   isOnline?: boolean;
-  owner?: string; // 🎯 이거 추가
+  owner?: string; // 
 }
 
 interface EcosystemMapProps {
@@ -90,6 +89,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
+  const { isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [mapType, setMapType] = useState('street');
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -103,57 +103,85 @@ const EcosystemMap: React.FC<EcosystemMapProps> = ({
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-const [callModalOpen, setCallModalOpen] = useState(false);
-const [messageModalOpen, setMessageModalOpen] = useState(false);
-const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLocation | null>(null);
+  const [callModalOpen, setCallModalOpen] = useState(false);
+  const [messageModalOpen, setMessageModalOpen] = useState(false);
+  const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLocation | null>(null);
 
-  // 🎯 프리미엄 마커 아이콘 생성 함수
+  // 프리미엄 마커 아이콘 생성 함수
   const createPremiumMarkerIcon = (location: MapLocation) => {
-    const getMarkerClasses = () => {
-      if (location.isFeatured) return 'premium-marker-featured';
-      if (location.isPopular) return 'premium-marker-popular';
-      if (location.isVerified) return 'premium-marker-verified';
-      if ((location.rating || 0) >= 4.5) return 'premium-marker-excellent';
-      return 'premium-marker-default';
+    const getMarkerStyle = () => {
+      let backgroundColor = '#3B82F6'; // 기본 파란색
+      let borderColor = '#1E40AF';
+      let emoji = '🏪';
+      let size = 36;
+
+      if (location.isFeatured) {
+        backgroundColor = '#F59E0B';
+        borderColor = '#D97706';
+        emoji = '⭐';
+        size = 48;
+      } else if (location.isPopular) {
+        backgroundColor = '#EF4444';
+        borderColor = '#DC2626';
+        emoji = '🔥';
+        size = 42;
+      } else if (location.isVerified) {
+        backgroundColor = '#10B981';
+        borderColor = '#059669';
+        emoji = '✅';
+        size = 40;
+      }
+
+      return { backgroundColor, borderColor, emoji, size };
     };
 
-    const getMarkerEmoji = () => {
-      if (location.isFeatured) return '👑';
-      if (location.isPopular) return '🔥';
-      if (location.isVerified) return '✓';
-      return '🏪';
-    };
-
-    const size = location.isFeatured ? 48 : location.isPopular ? 42 : 36;
-    const markerClass = getMarkerClasses();
+    const style = getMarkerStyle();
     
     return L.divIcon({
       className: 'premium-marker-container',
       html: `
-        <div class="relative">
-          <div class="w-${size/4} h-${size/4} rounded-full ${markerClass} 
-                      shadow-2xl border-4 border-white flex items-center justify-center
-                      transform hover:scale-110 transition-all duration-300 cursor-pointer
-                      animate-pulse">
-            <div class="text-white font-bold text-xs">
-              ${getMarkerEmoji()}
-            </div>
+        <div style="position: relative;">
+          <div style="
+            width: ${style.size}px;
+            height: ${style.size}px;
+            background: linear-gradient(135deg, ${style.backgroundColor}, ${style.borderColor});
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: ${style.size * 0.4}px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+          " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+            ${style.emoji}
           </div>
           ${location.isOnline ? `
-            <div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
+            <div style="
+              position: absolute;
+              top: -2px;
+              right: -2px;
+              width: 12px;
+              height: 12px;
+              background: #10B981;
+              border-radius: 50%;
+              border: 2px solid white;
+              animation: pulse 2s infinite;
+            "></div>
           ` : ''}
         </div>
       `,
-      iconSize: [size, size],
-      iconAnchor: [size/2, size],
-      popupAnchor: [0, -size]
+      iconSize: [style.size, style.size],
+      iconAnchor: [style.size/2, style.size],
+      popupAnchor: [0, -style.size]
     });
   };
 
-  // 🎨 팝업 생성 함수
+  // 팝업 생성 함수
   const createPremiumPopup = (location: MapLocation) => {
     const trustScore = location.trustScore || Math.floor((location.rating || 4.0) * 20);
-    const responseTime = location.responseTime || '평균 5분';
+    const responseTime = location.responseTime || '5';
     
     return `
       <div class="premium-popup-content w-80 h-[500px] p-0 overflow-hidden rounded-2xl shadow-2xl bg-white">
@@ -241,48 +269,52 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
   };
 
   // 피어몰 데이터 로드 함수
-  const loadPeermalls = useCallback(async () => {
+  const loadPeermalls = useCallback(() => {
     setIsLoading(true);
+    
     try {
-      const peermalls = await getAllPeerMallList();
+      const peermalls = peermallStorage.getAll();
+      
       const mappedLocations = peermalls
-        .filter(peermall => peermall.latitude && peermall.longitude)
+        .filter(peermall => peermall.lat && peermall.lng)
         .map(peermall => {
-          //const tags = peermall.tags || ['쇼핑', '서비스', '로컬'];
+          const tags = peermall.tags || ['쇼핑', '서비스', '로컬'];
           return {
-            id: peermall.peerMallKey,
-            lat: peermall.latitude,
-            lng: peermall.longitude,
-            title: peermall.peerMallName || '피어몰',
-            address: peermall.peerMallAddress ?? '주소 정보 없음',
-            phone: (peermall as any).contact || '전화번호 없음',
-            //reviews: (peermall as any).reviews || [],
-            imageUrl: peermall.imageLocation || `https://picsum.photos/400/300?random=${peermall.peerMallKey}`,
-            //rating: peermall.rating || (Math.random() * 2 + 3),
-            //followers: peermall.followers || Math.floor(Math.random() * 1000) + 50,
-            //isPopular: peermall.featured || Math.random() > 0.7,
-            //isFeatured: peermall.recommended || Math.random() > 0.8,
-            //isVerified: peermall.certified || Math.random() > 0.6,
+            id: peermall.id,
+            lat: peermall.location?.lat ?? peermall.lat,
+            lng: peermall.location?.lng ?? peermall.lng,
+            title: peermall.title || '피어몰',
+            address: peermall.location?.address ?? peermall.address ?? '주소 정보 없음',
+            phone: (peermall as any).phone || '전화번호 없음',
+            reviews: (peermall as any).reviews || [],
+            imageUrl: peermall.imageUrl || `https://picsum.photos/400/300?random=${peermall.id}`,
+            rating: peermall.rating || (Math.random() * 2 + 3),
+            followers: peermall.followers || Math.floor(Math.random() * 1000) + 50,
+            isPopular: peermall.featured || Math.random() > 0.7,
+            isFeatured: peermall.recommended || Math.random() > 0.8,
+            isVerified: peermall.certified || Math.random() > 0.6,
             description: peermall.description || '멋진 피어몰입니다. 다양한 제품과 서비스를 만나보세요!',
-            //tags: tags,
-            //trustScore: Math.floor(Math.random() * 20) + 80,
-            //responseTime: ['즉시', '5분 이내', '10분 이내', '30분 이내'][Math.floor(Math.random() * 4)],
-            //isOnline: Math.random() > 0.3,
-            owner: (peermall as any).ownerName || `${peermall.peerMallName} 운영자`, // 🎯 이거 추가,
-            //isFamilyCertified: false, 
-            //certified: false,
-            //premiumStats: null
+            tags: tags,
+            trustScore: Math.floor(Math.random() * 20) + 80,
+            responseTime: ['즉시', '5분 이내', '10분 이내', '30분 이내'][Math.floor(Math.random() * 4)],
+            isOnline: Math.random() > 0.3,
+            owner: (peermall as any).owner || `${peermall.title} 운영자`, // 🎯 이거 추가,
+            isFamilyCertified: false, // 기본값 설정
+            certified: false,         // 기본값 설정
+            premiumStats: null         // 기본값 설정
           };
         });
       
-      setLocations(mappedLocations);
+      console.log('매핑된 위치 데이터:', mappedLocations);
+      setLocations(mappedLocations as MapLocation[]);
       
       // Extract all unique hashtags from all locations
       const allTags = new Set<string>();
       mappedLocations.forEach(location => {
-        location.tags?.forEach(tag => allTags.add(tag));
+        location?.tags?.forEach(tag => allTags.add(tag));
       });
       setAvailableHashtags(allTags);
+      
     } catch (error) {
       console.error('피어몰 데이터 로드 중 오류 발생:', error);
     } finally {
@@ -326,15 +358,25 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
 
   // 프리미엄 마커 업데이트
   useEffect(() => {
-    if (!mapInstance.current) return;
+    if (!mapInstance.current || locations.length === 0) {
+      console.log('지도 인스턴스 또는 위치 데이터 없음:', { 
+        hasMap: !!mapInstance.current, 
+        locationCount: locations.length 
+      });
+      return;
+    }
     
+    console.log('마커 업데이트 시작:', locations);
+    
+    // 기존 마커 제거
     mapInstance.current.eachLayer(layer => {
-      if (layer instanceof L.Marker) {
+      if (layer instanceof L.Marker && !(layer.options as any).isUserLocation) {
         mapInstance.current?.removeLayer(layer);
       }
     });
 
     const filteredLocations = locations.filter(loc => {
+      // Apply filter type
       const typeMatch = filterType === 'all' || 
         (filterType === 'popular' && loc.isPopular) ||
         (filterType === 'verified' && loc.isVerified) ||
@@ -387,7 +429,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         visitBtn?.addEventListener('click', () => {
           console.log('방문하기:', loc.title);
           if (loc.id) {
-            window.open(`/space/${loc.title}?mk=${loc.id}`, '_blank');
+            window.open(`/space/${loc.id}`, '_blank');
           }
         });
 
@@ -419,15 +461,22 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         }
       });
     });
-    
-    if (filteredLocations.length === 1) {
-      const loc = filteredLocations[0];
-      mapInstance.current.setView([loc.lat, loc.lng], 15);
-    } else if (filteredLocations.length > 1) {
-      const bounds = L.latLngBounds(filteredLocations.map(loc => [loc.lat, loc.lng]));
+  
+  // 지도 뷰 조정
+  if (filteredLocations.length === 1) {
+    const loc = filteredLocations[0];
+    mapInstance.current.setView([Number(loc.lat), Number(loc.lng)], 15);
+  } else if (filteredLocations.length > 1) {
+    try {
+      const bounds = L.latLngBounds(
+        filteredLocations.map(loc => [Number(loc.lat), Number(loc.lng)])
+      );
       mapInstance.current.fitBounds(bounds, { padding: [50, 50] });
+    } catch (error) {
+      console.error('지도 경계 설정 실패:', error);
     }
-  }, [locations, filterType, onLocationSelect]);
+  }
+}, [locations, filterType, selectedHashtag, onLocationSelect]);
 
   // 맵 타입 변경
   useEffect(() => {
@@ -523,13 +572,13 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
     }
   }, [searchQuery, locations]);
 
-  // 🎯 통화 모달 열기 함수
+  // 통화 모달 열기 함수
   const handleOpenCallModal = useCallback((location: MapLocation) => {
     setSelectedLocationForAction(location);
     setCallModalOpen(true);
   }, []);
 
-  // 🎯 메시지 모달 열기 함수
+  // 메시지 모달 열기 함수
   const handleOpenMessageModal = useCallback((location: MapLocation) => {
     setSelectedLocationForAction(location);
     setMessageModalOpen(true);
@@ -547,8 +596,8 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
   return (
     <div className={cn(
       "relative rounded-2xl overflow-hidden shadow-2xl",
-      mapFullscreen ? "fixed inset-0 z-50" : "w-full",
-      // 🎯 반응형 높이 클래스 추가
+      mapFullscreen ? "fixed inset-0 z-[9999] w-screen" : "w-full",
+      // 반응형 높이 클래스 추가
       mapFullscreen ? "h-screen" : "h-full min-h-[250px]"
     )}>
       
@@ -557,7 +606,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         className="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-100"
       />
       
-      {/* 🎯 프리미엄 컨트롤 패널 */}
+      {/* 프리미엄 컨트롤 패널 */}
       <motion.div 
         className="absolute top-6 left-6 z-[1000] backdrop-blur-xl bg-white/90 border border-white/20 rounded-2xl p-4 shadow-xl hover:shadow-2xl transition-all duration-500"
         initial={{ opacity: 0, x: -50 }}
@@ -598,10 +647,10 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         {/* 필터 버튼들 */}
         {/* <div className="grid grid-cols-2 gap-2 mb-4">
           {[
-            { key: 'all', label: '전체', icon: '🌟', count: locations.length },
-            { key: 'featured', label: '추천', icon: '👑', count: locations.filter(l => l.isFeatured).length },
-            { key: 'popular', label: '인기', icon: '🔥', count: locations.filter(l => l.isPopular).length },
-            { key: 'verified', label: '인증', icon: '✅', count: locations.filter(l => l.isVerified).length }
+            { key: 'all', label: '전체', icon: '', count: locations.length },
+            { key: 'featured', label: '추천', icon: '', count: locations.filter(l => l.isFeatured).length },
+            { key: 'popular', label: '인기', icon: '', count: locations.filter(l => l.isPopular).length },
+            { key: 'verified', label: '인증', icon: '', count: locations.filter(l => l.isVerified).length }
           ].map(filter => (
             <Button
               key={filter.key}
@@ -667,7 +716,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         </div>
       </motion.div>
 
-      {/* 🎮 우측 상단 컨트롤 */}
+      {/* 우측 상단 컨트롤 */}
       <motion.div 
         className="absolute top-6 right-6 z-[1000] backdrop-blur-xl bg-white/90 border border-white/20 rounded-2xl p-3 shadow-xl hover:shadow-2xl transition-all duration-500"
         initial={{ opacity: 0, x: 50 }}
@@ -708,7 +757,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         </div>
       </motion.div>
 
-      {/* 📊 하단 통계 패널 */}
+      {/* 하단 통계 패널 */}
       <motion.div 
         className="absolute bottom-6 left-6 z-[1000] backdrop-blur-xl bg-white/90 border border-white/20 rounded-2xl p-4 shadow-xl hover:shadow-2xl transition-all duration-500"
         initial={{ opacity: 0, y: 50 }}
@@ -755,7 +804,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         </div>
       </motion.div>
 
-      {/* 🎨 고급 필터 패널 */}
+      {/* 고급 필터 패널 */}
       <AnimatePresence>
         {showFilters && (
           <motion.div
@@ -841,9 +890,9 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
                   <label className="text-xs font-medium text-gray-700 mb-2 block">운영 상태</label>
                   <div className="space-y-2">
                     {[
-                      { key: 'online', label: '현재 온라인', icon: '🟢' },
-                      { key: 'quick', label: '빠른 응답', icon: '⚡' },
-                      { key: 'verified', label: '인증된 업체', icon: '✅' }
+                      { key: 'online', label: '현재 온라인', icon: '' },
+                      { key: 'quick', label: '빠른 응답', icon: '' },
+                      { key: 'verified', label: '인증된 업체', icon: '' }
                     ].map(option => (
                       <Button
                         key={option.key}
@@ -863,7 +912,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         )}
       </AnimatePresence>
 
-       {/* 🎯 선택된 위치 상세 패널 */}
+       {/* 선택된 위치 상세 패널 */}
       <AnimatePresence>
         {selectedLocation && (
           <motion.div
@@ -893,12 +942,12 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
                     {/* <div className="flex gap-1">
                       {selectedLocation.isFeatured && (
                         <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs">
-                          👑 추천
+                          추천
                         </Badge>
                       )}
                       {selectedLocation.isVerified && (
                         <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs">
-                          ✅ 인증
+                          인증
                         </Badge>
                       )}
                     </div> */}
@@ -989,22 +1038,28 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
 
               {/* 액션 버튼들 */}
               <div className="grid grid-cols-2 gap-2 pt-2">
-                <Button
-                  size="sm"
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg"
-                  onClick={() => handleOpenCallModal(selectedLocation)} // 🎯 수정
-                >
-                  <Phone className="w-4 h-4 mr-1" />
-                  통화
-                </Button>
-                <Button
-                  size="sm"
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg"
-                  onClick={() => handleOpenMessageModal(selectedLocation)}
-                >
-                  <MessageSquare className="w-4 h-4 mr-1" />
-                  메시지
-                </Button>
+
+                {isAuthenticated && (
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg"
+                    onClick={() => handleOpenCallModal(selectedLocation)} // 
+                  >
+                    <Phone className="w-4 h-4 mr-1" />
+                    통화
+                  </Button>
+
+                )}
+                {isAuthenticated && (
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg"
+                    onClick={() => handleOpenMessageModal(selectedLocation)}
+                  >
+                    <MessageSquare className="w-4 h-4 mr-1" />
+                    메시지
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="outline"
@@ -1014,7 +1069,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
                       window.open(`/space/${selectedLocation.title}?mk=${selectedLocation.id}`, '_blank');
                     }
                   }}
-                >
+                >u
                   <ExternalLink className="w-4 h-4 mr-1 text-purple-600" />
                   방문하기
                 </Button>
@@ -1036,7 +1091,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         )}
       </AnimatePresence>
 
-      {/* 🎨 로딩 오버레이 */}
+      {/* 로딩 오버레이 */}
       <AnimatePresence>
         {isLoading && (
           <motion.div
@@ -1057,7 +1112,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         )}
       </AnimatePresence>
 
-      {/* 🎯 통화 모달 */}
+      {/* 통화 모달 */}
       <CallModal
         open={callModalOpen}
         onOpenChange={setCallModalOpen}
@@ -1072,7 +1127,7 @@ const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLo
         }}
       />
 
-      {/* 🎯 메시지 모달 */}
+      {/* 메시지 모달 */}
       {selectedLocationForAction && (
         <EnhancedMessageModal 
           messageModalOpen={messageModalOpen}

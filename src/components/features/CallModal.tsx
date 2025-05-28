@@ -86,7 +86,7 @@ const CallModal: React.FC<CallModalProps> = ({
               </div>
               <div>
                 <span className="bg-gradient-to-r from-green-600 to-emerald-700 bg-clip-text text-transparent font-bold text-lg">
-                  통화하기
+                  피어Tie 통화하기
                 </span>
                 <p className="text-sm text-gray-500 font-normal">
                   {location.title}

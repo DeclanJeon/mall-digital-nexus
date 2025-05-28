@@ -3,7 +3,8 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { Content, ContentType, PeerMallConfig, SectionType } from './types';
+import { Content, ContentType, PeerMallConfig, SectionType } from '@/types/space';
+import { Product, isProduct } from '@/types/product';
 import { Peermall } from '@/types/peermall';
 import { 
   Heart, 
@@ -43,7 +44,7 @@ import { ContentFormValues } from './forms/AddContentForm';
 import { usePeerSpaceTabs } from '@/hooks/usePeerSpaceTabs';
 // import { add } from '@/utils/indexedDBService';
 import EmptyState from './ui/EmptyState';
-import ProductCard from '../shopping/ProductCard';
+import ProductCard from '@/components/shopping/products/ProductCard';
 import BadgeSelector from './ui/BadgeSelector';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import BasicInfoSection from './sections/BasicInfoSection';
@@ -76,8 +77,9 @@ interface PeerSpaceHomeProps {
   config: PeerMallConfig;
   peermall: Peermall | null;
   onUpdateConfig: (updatedConfig: PeerMallConfig) => void;
-  activeSection: 'home' | 'content' | 'community' | 'following' | 'guestbook' | 'settings';
-  onNavigateToSection: (section: 'home' | 'content' | 'community' | 'following' | 'guestbook' | 'settings') => void;
+  activeSection: SectionType;
+  onNavigateToSection: (section: SectionType) => void;
+  onDetailView?: (productId: string | number) => void;
 }
 
 const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ 
@@ -87,12 +89,13 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   peermall,
   onUpdateConfig,
   activeSection,
-  onNavigateToSection
+  onNavigateToSection,
+  onDetailView
 }) => {
   const location = useLocation();
   const [showQRModal, setShowQRModal] = useState(false);
   const [contents, setContents] = useState<Content[]>([]);
-  const [products, setProducts] = useState<Content[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [posts, setPosts] = useState<Content[]>([]);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -135,14 +138,28 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             }
           }
           // 실제 데이터 로딩
-          //let loadedContents = await getPeerSpaceContents(address);
-          let loadedProducts = await productService.getProductList(address, peerMallKey);
+          let loadedContents = await getPeerSpaceContents(address);
+          
+          // 데이터가 없으면 더미 데이터로 대체
+          if (!loadedContents || loadedContents.length === 0) {
+            const mockProducts = generateMockProducts(8);
+            const mockPosts = generateMockPosts(12);
+            loadedContents = [...mockProducts, ...mockPosts];
+            
+            // 더미 데이터 저장 (IndexedDB 사용 중지로 주석 처리)
+            // for (const content of loadedContents) {
+            //   await add('contents', content);
+            // }
+          }
+          
+          setContents(loadedContents);
           
           // 제품과 게시물 분류
-          //const productsData = loadedProducts.filter(item => item.type === 'product');
-          //const postsData = loadedProducts.filter(item => item.type === 'post' || item.type === 'article');
-          setProducts(loadedProducts['productList']);
-          //setPosts(postsData);
+          const productsData = loadedContents.filter(item => item.type === 'product');
+          const postsData = loadedContents.filter(item => item.type === 'post' || item.type === 'article');
+          
+          setProducts(productsData);
+          setPosts(postsData);
           
           // const storedSections = getSectionOrder(address, config.sections);
           // setSections(storedSections);
@@ -166,11 +183,93 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
     return () => clearInterval(slideInterval);
   }, [address, config.sections]);
 
-  // useEffect(() => {
-  //   if (address) {
-  //     localStorage.setItem(`peer_space_${address}_hidden_sections`, JSON.stringify(hiddenSections));
-  //   }
-  // }, [hiddenSections, address]);
+  useEffect(() => {
+    if (address) {
+      localStorage.setItem(`peer_space_${address}_hidden_sections`, JSON.stringify(hiddenSections));
+    }
+  }, [hiddenSections, address]);
+
+  const handleAddContent = async (formValues: ContentFormValues) => {
+    if (!address) return;
+    const now = new Date().toISOString();
+    const newContentData: Omit<Content, 'id' | 'createdAt' | 'updatedAt'> = {
+      peerSpaceAddress: address,
+      title: formValues.title,
+      description: formValues.description,
+      imageUrl: formValues.imageUrl || '',
+      type: formValues.type as ContentType,
+      date: now,
+      price: formValues.price ? Number(formValues.price) : 0,
+      likes: 0,
+      comments: 0,
+      views: 0,
+      saves: 0,
+      externalUrl: formValues.externalUrl || '',
+      tags: formValues.tags ? formValues.tags.split(',').map(tag => tag.trim()) : [],
+      category: formValues.category || '',
+      badges: [],
+      ecosystem: {},
+      attributes: {},
+    };
+    try {
+      const contentId = await createContent(newContentData);
+      const newFullContent: Content = {
+        ...newContentData,
+        id: contentId,
+        createdAt: now,
+        updatedAt: now,
+      };
+      
+      // 컨텐츠 업데이트
+      const updatedContents = [...contents, newFullContent];
+      setContents(updatedContents);
+      
+      // 타입에 따라 제품 또는 게시물 업데이트
+      if (newFullContent.type === 'product') {
+        setProducts([...products, newFullContent]);
+      } else if (newFullContent.type === 'post' || newFullContent.type === 'article') {
+        setPosts([...posts, newFullContent]);
+      }
+      
+      toast({
+        title: "콘텐츠 추가 완료",
+        description: "새로운 콘텐츠가 성공적으로 등록되었습니다.",
+      });
+    } catch (error) {
+      console.error("콘텐츠 생성 오류:", error);
+      toast({
+        title: "콘텐츠 추가 실패",
+        description: "콘텐츠 등록 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleToggleSectionVisibility = (section: SectionType) => {
+    if (hiddenSections.includes(section)) {
+      setHiddenSections(hiddenSections.filter(s => s !== section));
+      toast({ title: "섹션 표시", description: `${getSectionDisplayName(section)} 섹션이 표시됩니다.` });
+    } else {
+      setHiddenSections([...hiddenSections, section]);
+      toast({ title: "섹션 숨김", description: `${getSectionDisplayName(section)} 섹션이 숨겨졌습니다.` });
+    }
+  };
+
+  const handleMoveSectionUp = (index: number) => {
+    if (index <= 0) return;
+    const newSections = [...sections];
+    [newSections[index - 1], newSections[index]] = [newSections[index], newSections[index - 1]];
+    setSections(newSections);
+    saveSectionOrder(address, newSections);
+  };
+  
+  const handleMoveSectionDown = (index: number) => {
+    if (index >= sections.length - 1) return;
+    const newSections = [...sections];
+    [newSections[index + 1], newSections[index]] = [newSections[index], newSections[index + 1]];
+    setSections(newSections);
+    saveSectionOrder(address, newSections);
+  };
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -216,6 +315,10 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
     return <div className="container mx-auto p-6"><EmptyState title="404 - 피어스페이스를 찾을 수 없습니다" description="올바른 피어스페이스 주소인지 확인해주세요." /></div>;
   }
 
+   function handleLogout(event: React.MouseEvent<HTMLButtonElement>): void {
+     window.location.href = "/";
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 flex">
       {/* 왼쪽 사이드바 */}
@@ -252,7 +355,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
               </li>
               <li>
                 <button 
-                  onClick={() => onNavigateToSection('content')}
+                  onClick={() => onNavigateToSection('products')}
                   className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'content' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
                 >
                   <FileText className="w-5 h-5 mr-3" />
@@ -315,7 +418,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                   <p className="text-xs text-gray-500">{isOwner ? '관리자' : '방문자'}</p>
                 </div>
               </div>
-              <button className="text-gray-500 hover:text-gray-700">
+              <button onClick={handleLogout} className="text-gray-500 hover:text-gray-700">
                 {isOwner ? <LogOut className="w-4 h-4" /> : <User className="w-4 h-4" />}
               </button>
             </div>
@@ -341,14 +444,14 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             <Button variant="ghost" size="sm" onClick={handleQRGenerate}>
               <QrCode className="w-5 h-5" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleShare}>
+            {/* <Button variant="ghost" size="sm" onClick={handleShare}>
               <Share2 className="w-5 h-5" />
-            </Button>
-            {isOwner && (
+            </Button> */}
+            {/* {isOwner && (
               <Button variant="ghost" size="sm" onClick={handleShowSettings}>
                 <Settings className="w-5 h-5" />
               </Button>
-            )}
+            )} */}
           </div>
         </div>
 
@@ -371,7 +474,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
               activeSection={activeSection}
             />
             )}
-            {activeSection === 'content' && (
+            {activeSection === 'products' && (
               <PeerSpaceContentSection
                 isOwner={isOwner}
                 address={address}
@@ -381,6 +484,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                 setCurrentView={setCurrentView}
                 handleShowProductForm={handleShowProductForm}
                 filteredProducts={filteredProducts}
+                onDetailView={onDetailView}
               />
             )}
             {activeSection === 'community' && (

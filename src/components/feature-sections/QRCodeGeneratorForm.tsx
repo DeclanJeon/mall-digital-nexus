@@ -9,9 +9,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   QrCode, Link, Store, User, Text, Mail, Phone, MessageSquare,
   Wifi, FileText, Image as ImageIcon, Video, Users, Calendar,
-  Smartphone, Shield, Bell
+  Smartphone, Shield, Bell, AlertCircle // AlertCircle 아이콘 추가
 } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
+import { useAuth } from '@/hooks/useAuth';
 
 // --- QR Code Types Definition ---
 
@@ -29,39 +30,42 @@ interface QrTypeDefinition {
     value?: string;
     readOnly?: boolean;
   }[];
+  isStaticOnly?: boolean; // 동적 QR 코드 지원 여부 (true면 정적만 지원)
 }
 
 // Main services that should be shown by default
 const MAIN_SERVICES: QrTypeDefinition[] = [
-  { 
-    value: 'peermall', 
-    label: '피어몰 생성', 
-    icon: Store, 
+  {
+    value: 'peermall',
+    label: '피어몰 생성',
+    icon: Store,
     fields: [
-      { 
-        id: 'url', 
-        label: '피어몰 생성 URL', 
-        type: 'url', 
-        value: typeof window !== 'undefined' ? `${window.location.origin}/create-qrcode?create-peermall=true&step=1` : '', 
-        readOnly: true, 
-        required: true 
+      {
+        id: 'url',
+        label: '피어몰 생성 URL',
+        type: 'url',
+        value: typeof window !== 'undefined' ? `${window.location.origin}/create-qrcode?create-peermall=true&step=1` : '',
+        readOnly: true,
+        required: true
       }
-    ]
+    ],
+    isStaticOnly: true, // 피어몰 생성은 항상 정적
   },
-  { 
-    value: 'peernumber', 
-    label: '피어넘버', 
-    icon: Shield, 
+  {
+    value: 'peernumber',
+    label: '피어넘버',
+    icon: Shield,
     fields: [
       { id: 'peerNumber', label: '피어넘버', placeholder: 'PEER-XXXX-XXXX-XXXX', required: true },
       { id: 'email', label: '내 이메일 (알림 수신용)', type: 'email', placeholder: 'your@email.com', required: true },
       { id: 'displayName', label: '표시 이름', placeholder: '홍길동' },
       { id: 'message', label: '환영 메시지', type: 'textarea', placeholder: '안녕하세요! 피어테라에서 연결해요.' }
-    ]
+    ],
+    isStaticOnly: true, // 피어넘버는 항상 정적
   },
-  { 
-    value: 'product', 
-    label: '제품 QR코드', 
+  {
+    value: 'product',
+    label: '제품 QR코드',
     icon: QrCode,
     fields: [
       { id: 'productName', label: '제품명', required: true },
@@ -69,9 +73,9 @@ const MAIN_SERVICES: QrTypeDefinition[] = [
       { id: 'description', label: '제품 설명', type: 'textarea' }
     ]
   },
-  { 
-    value: 'community', 
-    label: '커뮤니티 QR코드', 
+  {
+    value: 'community',
+    label: '커뮤니티 QR코드',
     icon: Users,
     fields: [
       { id: 'communityName', label: '커뮤니티명', required: true },
@@ -79,17 +83,6 @@ const MAIN_SERVICES: QrTypeDefinition[] = [
       { id: 'description', label: '커뮤니티 소개', type: 'textarea' }
     ]
   },
-  { 
-    value: 'peermall', 
-    label: '피어몰 만들기', 
-    icon: Store,
-    fields: [
-      { id: 'storeName', label: '스토어 이름', required: true },
-      { id: 'ownerName', label: '대표자명', required: true },
-      { id: 'email', label: '이메일', type: 'email', required: true },
-      { id: 'phone', label: '전화번호', type: 'tel', required: true }
-    ]
-  }
 ];
 
 // Other services that will be in the dropdown
@@ -140,7 +133,6 @@ const formatQrContent = (type: string, data: Record<string, string>, isDynamic: 
     case 'sms': staticContent = `smsto:${data.phone || ''}:${encodeURIComponent(data.message || '')}`; break;
     case 'whatsapp': staticContent = `https://wa.me/${(data.phone || '').replace(/\D/g, '')}?text=${encodeURIComponent(data.message || '')}`; break;
     case 'peernumber':
-      // 피어넘버 QR 코드 포맷: peerterra.com/one/channel/{peerNumber}?email={email}&name={displayName}&message={message}
       const peerNumber = data.peerNumber || '';
       const email = data.email || '';
       const displayName = data.displayName || '';
@@ -154,13 +146,9 @@ const formatQrContent = (type: string, data: Record<string, string>, isDynamic: 
       let peerUrl = `https://peerterra.com/one/channel/${peerNumber}`;
       const params = new URLSearchParams();
       
-      // 이메일은 필수 (알림 전송용)
       params.append('email', email);
-      
       if (displayName) params.append('name', displayName);
       if (message) params.append('message', message);
-      
-      // 스캔 추적을 위한 고유 ID 추가 (선택적)
       params.append('scan_id', uuidv4().substring(0, 8));
       
       peerUrl += `?${params.toString()}`;
@@ -173,12 +161,14 @@ const formatQrContent = (type: string, data: Record<string, string>, isDynamic: 
     case 'event':
       staticContent = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${data.summary || ''}\nDTSTART:${data.dtstart || ''}\n${data.dtend ? `DTEND:${data.dtend}\n` : ''}${data.location ? `LOCATION:${data.location || ''}\n` : ''}${data.description ? `DESCRIPTION:${data.description || ''}\n` : ''}END:VEVENT\nEND:VCALENDAR`;
       break;
-    case 'store':
+    case 'store': // Assuming 'store' is similar to 'peermall' or a generic URL type for products/services
+    case 'product': // Explicitly handle product if it has a specific format, otherwise defaults to URL
+    case 'community': // Explicitly handle community if it has a specific format, otherwise defaults to URL
     case 'pdf':
     case 'images':
     case 'video':
     case 'social':
-      staticContent = data.url || '';
+      staticContent = data.url || data.productUrl || data.communityUrl || ''; // Prioritize specific fields if available
       break;
     case 'app':
       staticContent = data.iosUrl || data.androidUrl || '';
@@ -186,8 +176,11 @@ const formatQrContent = (type: string, data: Record<string, string>, isDynamic: 
     default: staticContent = data.default || '';
   }
 
-  if (isDynamic && type !== 'peernumber') {
+  if (isDynamic && type !== 'peernumber' && type !== 'peermall') { // peermall and peernumber are not typically dynamic in this context
     const uniqueId = uuidv4().substring(0, 8);
+    // This is where you would typically save the 'staticContent' to a database associated with 'uniqueId'
+    // For now, we just return the dynamic link structure.
+    // The actual resolution of this dynamic link to 'staticContent' would happen server-side.
     return `${dynamicBaseUrl}${uniqueId}`;
   }
   return staticContent;
@@ -203,546 +196,389 @@ interface SavedQRCode {
   type: string;
   isDynamic: boolean;
   createdAt: string;
+  // Optional: fields for dynamic QR codes if you store target URL directly
+  dynamicTarget?: string; 
 }
 
 const QRCodeGeneratorForm = () => {
+  const { isAuthenticated, user } = useAuth(); // isAuthenticated와 user 가져오기
   const [selectedType, setSelectedType] = useState<string>('url');
   const [isDynamic, setIsDynamic] = useState<boolean>(false);
   const [formData, setFormData] = useState<Record<string, string>>({ url: 'https://peermall.com' });
   const [qrName, setQrName] = useState<string>('');
-  const [qrImage, setQrImage] = useState<string>('');
-  const [generatedQrContent, setGeneratedQrContent] = useState<string>('');
+  const [qrImageUrl, setQrImageUrl] = useState<string>('');
+  const [generatedContent, setGeneratedContent] = useState<string>('');
+  const [showAllServices, setShowAllServices] = useState<boolean>(false);
   const [savedQRCodes, setSavedQRCodes] = useState<SavedQRCode[]>([]);
+  const [activeTab, setActiveTab] = useState<'create' | 'saved'>('create');
 
+  // 로그인 상태 변경 시 동적 QR 코드 상태 업데이트
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setIsDynamic(false); // 로그아웃 상태이면 강제로 정적 QR로 설정
+    }
+  }, [isAuthenticated]);
+
+  // Load saved QR codes from local storage on mount
   useEffect(() => {
     const storedQRCodes = localStorage.getItem('peermall-qrcodes-v2');
     if (storedQRCodes) {
       try {
-        setSavedQRCodes(JSON.parse(storedQRCodes));
-      } catch (e) {
-        console.error("Error parsing saved QR codes:", e);
-        localStorage.removeItem('peermall-qrcodes-v2');
+        const parsedQRCodes = JSON.parse(storedQRCodes);
+        // Date strings might need to be parsed back into Date objects if necessary
+        setSavedQRCodes(parsedQRCodes);
+      } catch (error) {
+        console.error("Failed to parse saved QR codes:", error);
+        localStorage.removeItem('peermall-qrcodes-v2'); // Clear corrupted data
       }
     }
   }, []);
 
-  const handleInputChange = (fieldId: string, value: string) => {
-    setFormData(prev => ({ ...prev, [fieldId]: value }));
-  };
-
-  useEffect(() => {
-    const currentTypeDefinition = QR_TYPES.find(t => t.value === selectedType);
-    const initialData: Record<string, string> = {};
-    if (currentTypeDefinition?.placeholder && !currentTypeDefinition.fields) {
-      initialData[currentTypeDefinition.value] = currentTypeDefinition.placeholder || '';
-    } else if (selectedType === 'url') {
-      initialData['url'] = 'https://peermall.com';
-    } else if (selectedType === 'peernumber') {
-      // 피어넘버 기본값 설정
-      initialData['peerNumber'] = 'PEER-1234-5678-9012';
-      initialData['email'] = '';
-      initialData['displayName'] = '내 피어테라';
-      initialData['message'] = '안녕하세요! 피어테라에서 연결해요.';
-    }
-    setFormData(initialData);
-    setQrName('');
-    setQrImage('');
-    setGeneratedQrContent('');
+  const currentQrType = useMemo(() => {
+    return QR_TYPES.find(type => type.value === selectedType);
   }, [selectedType]);
 
-  const generatePreview = () => {
-    const contentToEncode = formatQrContent(selectedType, formData, isDynamic);
-    if (!contentToEncode || !Object.values(formData).some(v => v.trim())) {
-      setQrImage('');
-      setGeneratedQrContent('');
-      return;
-    }
-    setQrImage(generateQrCodeImageUrl(contentToEncode));
-    setGeneratedQrContent(contentToEncode);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
   };
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      const currentType = QR_TYPES.find(t => t.value === selectedType);
-      const requiredFields = currentType?.fields?.filter(f => f.required) || [];
-      
-      // 필수 필드가 모두 채워졌는지 확인
-      const allRequiredFieldsFilled = requiredFields.every(field => 
-        formData[field.id] && formData[field.id].trim()
-      );
-      
-      if (requiredFields.length === 0 || allRequiredFieldsFilled) {
-        generatePreview();
-      } else {
-        setQrImage('');
-        setGeneratedQrContent('');
+  const handleTypeChange = (newType: string) => {
+    setSelectedType(newType);
+    const typeDefinition = QR_TYPES.find(t => t.value === newType);
+    const initialFormData: Record<string, string> = {};
+    if (typeDefinition?.fields) {
+      typeDefinition.fields.forEach(field => {
+        initialFormData[field.id] = field.value || ''; // Use pre-defined value if available
+      });
+    } else if (typeDefinition?.placeholder && newType !== 'peermall') {
+      // For types like 'url', 'text' etc., that have a direct placeholder
+      // Ensure the key for formData matches the 'value' of the type definition
+      initialFormData[newType] = ''; // Default to empty or could use placeholder if desired
+    }
+    setFormData(initialFormData);
+    setQrName(typeDefinition?.label ? `${typeDefinition.label} QR 코드` : '새 QR 코드');
+    setQrImageUrl(''); // Reset QR image on type change
+    setGeneratedContent('');
+  };
+
+  const generateQRCode = () => {
+    if (!currentQrType) {
+      toast({ title: "오류", description: "QR 코드 유형을 선택해주세요.", variant: "destructive" });
+      return;
+    }
+
+    let dataToFormat = { ...formData };
+
+    // 필수 필드 검증
+    if (currentQrType.fields) {
+      for (const field of currentQrType.fields) {
+        if (field.required && !dataToFormat[field.id]) {
+          toast({ title: "입력 필요", description: `${field.label} 필드를 입력해주세요.`, variant: "destructive" });
+          return;
+        }
+        // 필드에 고정값이 있고, 사용자가 입력하지 않았거나 기본값을 사용해야 하는 경우
+        if (field.value && field.readOnly && !dataToFormat[field.id]) {
+            dataToFormat[field.id] = field.value;
+        }
       }
-    }, 500);
+    } else if (!dataToFormat[currentQrType.value] && currentQrType.placeholder && currentQrType.value !== 'peermall') {
+      // 단일 입력 타입 (필드가 없고 placeholder만 있는 경우, peermall 제외)
+      toast({ title: "입력 필요", description: `${currentQrType.label} 내용을 입력해주세요.`, variant: "destructive" });
+      return;
+    }
 
-    return () => clearTimeout(handler);
-  }, [formData, selectedType, isDynamic]);
+    // 'peermall' 타입의 경우, formData에 고정 URL을 설정 (handleTypeChange에서 이미 처리되었을 수 있음)
+    if (selectedType === 'peermall' && currentQrType.fields) {
+        currentQrType.fields.forEach(field => {
+            if (field.value && field.readOnly) { // 고정된 값이 있는 경우
+                dataToFormat[field.id] = field.value;
+            }
+        });
+    }
+    
+    // 로그인하지 않은 사용자는 동적 QR 코드 생성 불가 (UI에서 비활성화되지만, 이중 방어)
+    // peermall 및 peernumber는 이 로직에서 동적 QR 대상이 아님
+    const canBeDynamic = selectedType !== 'peermall' && selectedType !== 'peernumber';
+    const effectiveIsDynamic = isAuthenticated && isDynamic && canBeDynamic;
 
-  const handleSaveQR = () => {
+    const content = formatQrContent(selectedType, dataToFormat, effectiveIsDynamic);
+    if (!content) {
+      toast({ title: "생성 실패", description: "QR 코드 내용을 생성할 수 없습니다. 입력값을 확인해주세요.", variant: "destructive" });
+      return;
+    }
+    setGeneratedContent(content);
+    setQrImageUrl(generateQrCodeImageUrl(content));
+    toast({ title: "QR 코드 생성됨", description: "아래에서 QR 코드를 확인하세요." });
+  };
+
+  const saveQRCode = () => {
+    if (!qrImageUrl || !generatedContent) {
+      toast({ title: "저장 실패", description: "먼저 QR 코드를 생성해주세요.", variant: "destructive" });
+      return;
+    }
     if (!qrName.trim()) {
-      toast({ title: "이름 필요", description: "QR 코드를 저장하려면 이름을 입력해야 합니다.", variant: "destructive" });
-      return;
-    }
-    if (!generatedQrContent) {
-      toast({ title: "QR 코드 필요", description: "먼저 QR 코드를 생성하거나 내용을 입력해야 합니다.", variant: "destructive" });
+      toast({ title: "저장 실패", description: "QR 코드 이름을 입력해주세요.", variant: "destructive" });
       return;
     }
 
-    // 피어넘버 QR 코드의 경우 백엔드에 알림 설정 정보 저장
-    if (selectedType === 'peernumber') {
-      console.log("Saving PeerNumber QR with email notification setup:", {
-        name: qrName,
-        peerNumber: formData.peerNumber,
-        email: formData.email,
-        displayName: formData.displayName,
-        message: formData.message,
-        qrUrl: generatedQrContent
-      });
-      toast({ 
-        title: "피어넘버 QR 생성 완료", 
-        description: `${formData.email}로 스캔 알림이 전송됩니다.`,
-        duration: 4000
-      });
-    }
-
-    if (isDynamic) {
-      console.log("Saving Dynamic QR Info (requires backend):", {
-        name: qrName,
-        type: selectedType,
-        targetData: formData,
-        generatedDynamicUrl: generatedQrContent
-      });
-      toast({ title: "동적 QR 정보 기록 (백엔드 필요)", description: "실제 저장은 백엔드 연동이 필요합니다." });
-    }
+    const canBeDynamic = selectedType !== 'peermall' && selectedType !== 'peernumber';
+    const effectiveIsDynamic = isAuthenticated && isDynamic && canBeDynamic;
 
     const newQRCode: SavedQRCode = {
       id: uuidv4(),
-      name: qrName,
+      name: qrName.trim(),
       originalData: { ...formData },
-      qrContent: generatedQrContent,
-      image: qrImage,
+      qrContent: generatedContent,
+      image: qrImageUrl,
       type: selectedType,
-      isDynamic,
-      createdAt: new Date().toISOString()
+      isDynamic: effectiveIsDynamic,
+      createdAt: new Date().toISOString(),
+      dynamicTarget: effectiveIsDynamic ? generatedContent : undefined // Store original content if dynamic for potential future editing
     };
 
-    const updatedQRCodes = [...savedQRCodes, newQRCode];
+    const updatedQRCodes = [newQRCode, ...savedQRCodes];
     setSavedQRCodes(updatedQRCodes);
     localStorage.setItem('peermall-qrcodes-v2', JSON.stringify(updatedQRCodes));
-    toast({ title: "QR 코드가 저장되었습니다", description: "저장된 QR 코드는 목록에서 확인할 수 있습니다." });
-    setQrName('');
+    toast({ title: "QR 코드 저장됨", description: `"${newQRCode.name}" 이름으로 저장되었습니다.` });
+    setActiveTab('saved');
   };
 
-  const handleDownloadQR = async () => {
-    if (!qrImage) {
-      toast({ title: "이미지 없음", description: "다운로드할 QR 코드 이미지가 없습니다.", variant: "destructive" });
-      return;
+  const loadSavedQRCodes = () => {
+    const storedQRCodes = localStorage.getItem('peermall-qrcodes-v2');
+    if (storedQRCodes) {
+      setSavedQRCodes(JSON.parse(storedQRCodes));
     }
+  };
+
+  const handleSelectSavedQRCode = (qrCode: SavedQRCode) => {
+    setSelectedType(qrCode.type);
+    setFormData(qrCode.originalData);
+    setQrName(qrCode.name);
+    setQrImageUrl(qrCode.image);
+    setGeneratedContent(qrCode.qrContent);
+    setIsDynamic(qrCode.isDynamic);
+    setActiveTab('create');
+    toast({ title: 'QR 코드 불러옴', description: `"${qrCode.name}" QR 코드를 수정합니다.` });
+  };
+
+  const deleteQRCode = (idToDelete: string) => {
+    const updatedQRCodes = savedQRCodes.filter(qr => qr.id !== idToDelete);
+    setSavedQRCodes(updatedQRCodes);
+    localStorage.setItem('peermall-qrcodes-v2', JSON.stringify(updatedQRCodes));
+    toast({ title: 'QR 코드 삭제됨', variant: 'destructive' });
+  };
+
+  const copyQRCodeImage = async () => {
+    if (!qrImageUrl) return;
     try {
-      const response = await fetch(qrImage);
-      if (!response.ok) throw new Error('QR 코드 이미지 다운로드 실패');
+      const response = await fetch(qrImageUrl);
       const blob = await response.blob();
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = qrName ? `${qrName}.png` : `peerterra-qrcode-${selectedType}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-      toast({ title: "QR 코드 다운로드 시작", description: "QR 코드 다운로드가 시작되었습니다." });
+      await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+      toast({ title: 'QR 코드 이미지 복사됨' });
     } catch (error) {
-      console.error("Error downloading QR code:", error);
-      toast({ title: "다운로드 오류", description: "QR 코드 이미지 다운로드 중 오류 발생.", variant: "destructive" });
+      toast({ title: '복사 실패', description: '이미지를 복사할 수 없습니다.', variant: 'destructive' });
     }
   };
 
-  const currentFormFields = useMemo(() => {
-    const typeDefinition = QR_TYPES.find(t => t.value === selectedType);
-    if (!typeDefinition) return null;
+  const downloadQRCodeImage = () => {
+    if (!qrImageUrl) return;
+    const link = document.createElement('a');
+    link.href = qrImageUrl;
+    link.download = `${qrName.trim().replace(/[^a-zA-Z0-9]/g, '_') || 'qrcode'}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({ title: 'QR 코드 이미지 다운로드 시작됨' });
+  };
 
-    if (typeDefinition.fields) {
-      return typeDefinition.fields.map(field => (
-        <div key={field.id} className="space-y-2">
-          <Label htmlFor={`${selectedType}-${field.id}`} className="text-sm font-medium text-gray-300">
-            {field.label} {field.required && <span className="text-red-400">*</span>}
-          </Label>
-          {field.type === 'textarea' ? (
-            <Textarea
-              id={`${selectedType}-${field.id}`}
-              value={formData[field.id] || ''}
-              onChange={(e) => handleInputChange(field.id, e.target.value)}
-              placeholder={field.placeholder}
-              rows={3}
-              className="w-full bg-gray-700 text-gray-200 border-gray-600 focus:border-blue-500"
-            />
-          ) : (
-            <Input
-              id={`${selectedType}-${field.id}`}
-              type={field.type || 'text'}
-              value={formData[field.id] || ''}
-              onChange={(e) => handleInputChange(field.id, e.target.value)}
-              placeholder={field.placeholder}
-              className="w-full bg-gray-700 text-gray-200 border-gray-600 focus:border-blue-500"
-            />
-          )}
-          {/* 피어넘버 필드에 대한 추가 설명 */}
-          {selectedType === 'peernumber' && field.id === 'peerNumber' && (
-            <p className="text-xs text-gray-400 mt-1">
-              피어테라 사용자 고유 식별번호입니다. 채널 연결에 사용됩니다.
-            </p>
-          )}
-          {selectedType === 'peernumber' && field.id === 'email' && (
-            <div className="flex items-start gap-2 mt-1">
-              <Bell className="h-3 w-3 text-yellow-400 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-yellow-200">
-                QR 코드가 스캔될 때마다 이 이메일로 알림이 전송됩니다.
-              </p>
-            </div>
-          )}
-        </div>
-      ));
-    } else {
-      const inputId = typeDefinition.value;
-      return (
-        <div className="space-y-2">
-          <Label htmlFor={`${selectedType}-${inputId}`} className="text-sm font-medium text-gray-300">
-            {typeDefinition.label} 내용 <span className="text-red-400">*</span>
-          </Label>
-          <Input
-            id={`${selectedType}-${inputId}`}
-            value={formData[inputId] || ''}
-            onChange={(e) => handleInputChange(inputId, e.target.value)}
-            placeholder={typeDefinition.placeholder}
-            className="w-full bg-gray-700 text-gray-200 border-gray-600 focus:border-blue-500"
-          />
-        </div>
-      );
-    }
-  }, [selectedType, formData]);
-
-  const [showOtherServices, setShowOtherServices] = useState(false);
+  const displayedServices = showAllServices ? QR_TYPES : MAIN_SERVICES;
 
   return (
-    <div className="max-w-6xl mx-auto text-gray-300 p-4 md:p-6 bg-gray-600 min-h-screen rounded-2xl">
-      <h2 className="text-2xl font-bold mb-8 text-center text-white">QR 코드 생성기</h2>
+    <div className="container mx-auto p-4 max-w-5xl">
+      <div className="flex justify-center mb-6">
+        <div className="inline-flex rounded-md shadow-sm">
+          <Button 
+            onClick={() => setActiveTab('create')} 
+            variant={activeTab === 'create' ? 'default' : 'outline'}
+            className="rounded-r-none"
+          >
+            QR 생성
+          </Button>
+          <Button 
+            onClick={() => setActiveTab('saved')} 
+            variant={activeTab === 'saved' ? 'default' : 'outline'}
+            className="rounded-l-none"
+          >
+            저장된 QR ({savedQRCodes.length})
+          </Button>
+        </div>
+      </div>
 
-      <div className="mb-8">
-        <Label className="text-lg font-semibold mb-4 block text-gray-200">1. QR 코드 타입 선택</Label>
-        <Card className="bg-gray-800 border-gray-700 p-4 md:p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {MAIN_SERVICES.map((type) => (
-              <Button
-                key={type.value}
-                variant={selectedType === type.value ? "default" : "outline"}
-                className={`flex flex-col items-center justify-center h-24 p-2 ${
-                  selectedType === type.value
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600'
-                }`}
-                onClick={() => setSelectedType(type.value)}
-              >
-                <type.icon className="h-8 w-8 mb-2" />
-                <span className="text-sm text-center">{type.label}</span>
+      {activeTab === 'create' && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Left Panel: QR Code Options */}
+          <div className="md:col-span-2 space-y-6 bg-card p-6 rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">1. QR 코드 유형 선택</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+              {displayedServices.map((type) => (
+                <Button
+                  key={type.value}
+                  variant={selectedType === type.value ? "secondary" : "outline"}
+                  onClick={() => handleTypeChange(type.value)}
+                  className="flex flex-col items-center justify-center h-24 p-2 text-center"
+                >
+                  <type.icon className="w-6 h-6 mb-1" />
+                  <span className="text-xs leading-tight">{type.label}</span>
+                </Button>
+              ))}
+            </div>
+            {!showAllServices && OTHER_SERVICES.length > 0 && (
+              <Button variant="link" onClick={() => setShowAllServices(true)} className="w-full">
+                더 많은 서비스 보기...
               </Button>
-            ))}
-            
-            {/* Other Services Dropdown */}
-            <Button
-              variant={showOtherServices ? "default" : "outline"}
-              className="flex flex-col items-center justify-center h-24 p-2 bg-gray-700 hover:bg-gray-600 border-gray-600"
-              onClick={() => setShowOtherServices(!showOtherServices)}
-            >
-              <div className="h-8 w-8 mb-2 flex items-center justify-center">
-                <div className="grid grid-cols-2 gap-1">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="w-3 h-3 bg-gray-400 rounded-sm"></div>
-                  ))}
-                </div>
+            )}
+            {showAllServices && (
+              <Button variant="link" onClick={() => setShowAllServices(false)} className="w-full">
+                간단히 보기
+              </Button>
+            )}
+
+            <h2 className="text-xl font-semibold mb-2 pt-4">2. 내용 입력</h2>
+            <Input
+              type="text"
+              placeholder="QR 코드 이름 (예: 내 웹사이트)"
+              value={qrName}
+              onChange={(e) => setQrName(e.target.value)}
+              className="w-full mb-4"
+            />
+
+            {currentQrType?.fields?.map(field => (
+              <div key={field.id} className="space-y-1">
+                <Label htmlFor={field.id}>{field.label} {field.required && <span className="text-destructive">*</span>}</Label>
+                {field.type === 'textarea' ? (
+                  <Textarea
+                    id={field.id}
+                    placeholder={field.placeholder || field.label}
+                    value={formData[field.id] || ''}
+                    onChange={handleInputChange}
+                    readOnly={field.readOnly}
+                    rows={3}
+                  />
+                ) : (
+                  <Input
+                    id={field.id}
+                    type={field.type || 'text'}
+                    placeholder={field.placeholder || field.label}
+                    value={formData[field.id] || ''}
+                    onChange={handleInputChange}
+                    readOnly={field.readOnly}
+                  />
+                )}
               </div>
-              <span className="text-sm text-center">기타 서비스</span>
+            ))}
+            {!currentQrType?.fields && currentQrType?.placeholder && currentQrType.value !== 'peermall' && (
+              <div className="space-y-1">
+                <Label htmlFor={currentQrType.value}>{currentQrType.label}</Label>
+                <Textarea
+                  id={currentQrType.value}
+                  placeholder={currentQrType.placeholder}
+                  value={formData[currentQrType.value] || ''}
+                  onChange={handleInputChange}
+                  rows={3}
+                />
+              </div>
+            )}
+            
+            {/* Dynamic QR Switch - peermall과 peernumber는 동적 QR 대상이 아님 */}
+            {selectedType !== 'peermall' && selectedType !== 'peernumber' && (
+              <div className="flex items-center space-x-2 pt-4">
+                <Switch
+                  id="dynamic-qr"
+                  checked={isDynamic}
+                  onCheckedChange={setIsDynamic}
+                  disabled={!isAuthenticated} // 로그인 상태에 따라 비활성화
+                  aria-readonly={!isAuthenticated}
+                />
+                <Label htmlFor="dynamic-qr" className="flex flex-col space-y-1">
+                  <span>동적 QR 코드 (로그인 필요)</span>
+                  <span className="font-normal leading-snug text-muted-foreground">
+                    생성 후에도 QR 코드의 내용을 변경할 수 있습니다.
+                  </span>
+                </Label>
+              </div>
+            )}
+            {isDynamic && !isAuthenticated && (
+              <p className="text-sm text-red-500 mt-1">
+                동적 QR 코드를 생성하려면 로그인이 필요합니다.
+              </p>
+            )}
+            {isDynamic && currentQrType?.isStaticOnly && (
+              <div className="mt-2 p-3 bg-yellow-100 border border-yellow-300 rounded-md text-yellow-700 text-sm">
+                이 QR 코드 유형은 정적 QR 코드만 지원합니다.
+              </div>
+            )}
+            <Button onClick={generateQRCode} className="w-full mt-6 py-3 text-lg">
+              <QrCode className="mr-2 h-5 w-5" /> QR 코드 생성
             </Button>
           </div>
 
-          {/* Other Services Grid */}
-          {showOtherServices && (
-            <div className="mt-4 pt-4 border-t border-gray-700">
-              <h4 className="text-sm font-medium text-gray-400 mb-3">기타 서비스</h4>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-8 gap-3">
-                {OTHER_SERVICES.map((type) => (
-                  <Button
-                    key={type.value}
-                    variant={selectedType === type.value ? "default" : "outline"}
-                    className={`flex flex-col items-center justify-center h-20 p-2 ${
-                      selectedType === type.value
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600'
-                    }`}
-                    onClick={() => {
-                      setSelectedType(type.value);
-                      setShowOtherServices(false);
-                    }}
-                  >
-                    <type.icon className="h-5 w-5 mb-1" />
-                    <span className="text-xs text-center">{type.label}</span>
-                  </Button>
-                ))}
-              </div>
+          {/* Right Panel: QR Code Preview & Actions */}
+          <div className="space-y-4 bg-card p-6 rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4 text-center">3. QR 코드 확인</h2>
+            <Card>
+              <CardContent className="p-4 flex flex-col items-center justify-center">
+                {qrImageUrl ? (
+                  <img src={qrImageUrl} alt="Generated QR Code" className="w-48 h-48 object-contain border rounded" />
+                ) : (
+                  <div className="w-48 h-48 bg-gray-100 flex items-center justify-center text-gray-400 rounded border">
+                    <QrCode className="w-16 h-16" />
+                  </div>
+                )}
+                {generatedContent && (
+                  <p className="text-xs text-muted-foreground mt-2 break-all max-w-xs text-center">
+                    내용: {generatedContent.length > 70 ? generatedContent.substring(0, 70) + '...' : generatedContent}
+                  </p>
+                )}
+                {qrImageUrl && (
+                    <div className="mt-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full">
+                        <Button onClick={copyQRCodeImage} variant="outline" className="flex-1">이미지 복사</Button>
+                        <Button onClick={downloadQRCodeImage} variant="outline" className="flex-1">다운로드</Button>
+                    </div>
+                )}
+                <Button onClick={saveQRCode} disabled={!qrImageUrl} className="w-full mt-2">QR 코드 저장</Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'saved' && (
+        <div className="bg-card p-6 rounded-lg shadow">
+          <h2 className="text-2xl font-semibold mb-6 text-center">저장된 QR 코드 목록</h2>
+          {savedQRCodes.length === 0 ? (
+            <p className="text-center text-muted-foreground">저장된 QR 코드가 없습니다.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {savedQRCodes.map(qr => (
+                <Card key={qr.id} className="overflow-hidden">
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold truncate mb-2" title={qr.name}>{qr.name}</h3>
+                    <img src={qr.image} alt={qr.name} className="w-full h-auto aspect-square object-contain rounded border mb-2" />
+                    <p className="text-xs text-muted-foreground truncate">종류: {QR_TYPES.find(t => t.value === qr.type)?.label || qr.type}</p>
+                    <p className="text-xs text-muted-foreground">상태: {qr.isDynamic ? '동적' : '정적'}</p>
+                    <p className="text-xs text-muted-foreground">생성일: {new Date(qr.createdAt).toLocaleDateString()}</p>
+                    <div className="mt-3 flex space-x-2">
+                      <Button onClick={() => handleSelectSavedQRCode(qr)} size="sm" variant="outline" className="flex-1">선택</Button>
+                      <Button onClick={() => deleteQRCode(qr.id)} size="sm" variant="destructive" className="flex-1">삭제</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
-        </Card>
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Label className="text-lg font-semibold mb-3 block text-gray-200">2. 내용 입력</Label>
-          <Card className="p-6 bg-gray-800 border-gray-700">
-            <div className="space-y-4">
-              {/* 피어넘버가 아닌 경우에만 동적 QR 옵션 표시 */}
-              {selectedType !== 'peernumber' && (
-                <div className="flex items-center justify-between p-3 bg-gray-700 rounded-md">
-                  <Label htmlFor="dynamic-switch" className="flex flex-col space-y-1">
-                    <span className="font-medium text-gray-200">{isDynamic ? '동적 QR 코드' : '정적 QR 코드'}</span>
-                    <span className="text-xs text-gray-400">
-                      {isDynamic ? '링크 수정 가능, 추적 가능 (백엔드 필요)' : '내용 직접 포함, 수정 불가'}
-                    </span>
-                  </Label>
-                  <Switch
-                    id="dynamic-switch"
-                    checked={isDynamic}
-                    onCheckedChange={setIsDynamic}
-                  />
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="qr-name" className="text-sm font-medium text-gray-300">
-                  QR 코드 이름 (저장용) <span className="text-red-400">*</span>
-                </Label>
-                <Input
-                  id="qr-name"
-                  value={qrName}
-                  onChange={(e) => setQrName(e.target.value)}
-                  placeholder="예: 내 피어테라 채널"
-                  className="w-full bg-gray-700 text-gray-200 border-gray-600 focus:border-blue-500"
-                />
-              </div>
-
-              <hr className="my-4 border-gray-700" />
-
-              {/* 피어넘버 선택시 특별 안내 */}
-              {selectedType === 'peernumber' && (
-                <div className="bg-green-900/20 border border-green-600 rounded-lg p-4 mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Shield className="h-5 w-5 text-green-400" />
-                    <h4 className="font-semibold text-green-300">피어넘버 QR 코드</h4>
-                  </div>
-                  <div className="space-y-2 text-sm text-green-200">
-                    <p>피어넘버를 통한 채널 연결을 위한 QR 코드입니다.</p>
-                    <div className="flex items-start gap-2">
-                      <Bell className="h-4 w-4 text-yellow-400 mt-0.5 flex-shrink-0" />
-                      <p>스캔될 때마다 등록된 이메일로 알림이 전송됩니다.</p>
-                    </div>
-                    <p className="text-xs">
-                      스캔 시 <code className="bg-green-800 px-1 rounded">peerterra.com/one/channel/{formData.peerNumber || '피어넘버'}</code>로 이동됩니다.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {currentFormFields}
-            </div>
-          </Card>
-        </div>
-
-        <div>
-          <Label className="text-lg font-semibold mb-3 block text-gray-200">3. 미리보기 및 저장</Label>
-          <Card className="p-6 bg-gray-800 border-gray-700 sticky top-6">
-            <div className="flex flex-col items-center justify-center">
-              <div className="bg-white border rounded-lg p-4 flex flex-col items-center mb-4 w-full">
-                <QrCode className="text-blue-600 mb-2 h-6 w-6" />
-                <h3 className="text-base font-medium mb-3 text-gray-600">QR 코드 미리보기</h3>
-                <div className="w-48 h-48 bg-gray-100 flex items-center justify-center rounded">
-                  {qrImage ? (
-                    <img src={qrImage} alt="QR 코드 미리보기" className="w-full h-full object-contain" />
-                  ) : (
-                    <span className="text-sm text-gray-400">내용 입력 시 표시</span>
-                  )}
-                </div>
-                <p className="text-xs text-gray-500 mt-3 text-center break-all px-2">
-                  {isDynamic ? `동적 링크: ${generatedQrContent}` : `내용: ${generatedQrContent.slice(0, 50)}${generatedQrContent.length > 50 ? '...' : ''}`}
-                </p>
-                {selectedType === 'peernumber' && generatedQrContent && (
-                  <div className="mt-2 p-2 bg-green-50 rounded text-xs text-green-700 text-center">
-                    <div className="flex items-center justify-center gap-1 mb-1">
-                      <Shield className="h-3 w-3" />
-                      <span>피어테라 채널 연결</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-1">
-                      <Bell className="h-3 w-3" />
-                      <span>스캔 알림 활성화</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="text-center w-full mb-4">
-                <h4 className="font-medium text-gray-200 truncate px-2">{qrName || '이름 없는 QR 코드'}</h4>
-              </div>
-              <div className="flex flex-col space-y-2 w-full">
-                <Button onClick={handleSaveQR} className="w-full bg-blue-600 hover:bg-blue-700">
-                  QR 코드 저장하기
-                </Button>
-                <Button onClick={handleDownloadQR} className="w-full bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600" variant="outline">
-                  이미지 다운로드
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      </div>
-
-      <div className="mt-10">
-        <h3 className="text-xl font-semibold mb-4 text-gray-200">저장된 QR 코드 목록</h3>
-        {savedQRCodes.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {savedQRCodes.slice().reverse().map((qrCode) => (
-              <Card key={qrCode.id} className="group cursor-pointer hover:shadow-lg transition-shadow overflow-hidden relative bg-gray-800 border-gray-700">
-                {qrCode.isDynamic && <span className="absolute top-1 right-1 bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">동적</span>}
-                {qrCode.type === 'peernumber' && (
-                  <div className="absolute top-1 left-1 bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
-                    <Shield className="h-2 w-2" />
-                    <span>피어</span>
-                  </div>
-                )}
-                <CardContent className="p-3 flex flex-col items-center">
-                  <div className="aspect-square w-24 h-24 flex items-center justify-center bg-gray-50 rounded-md mb-2 border">
-                    <img src={qrCode.image} alt={qrCode.name} className="w-full h-full object-contain" />
-                  </div>
-                  <p className="text-sm font-medium truncate w-full text-center text-gray-200">{qrCode.name}</p>
-                  <p className="text-xs text-gray-400">{new Date(qrCode.createdAt).toLocaleDateString()}</p>
-                  {qrCode.type === 'peernumber' && (
-                    <div className="text-xs text-green-400 flex items-center gap-1 mt-1">
-                      <Bell className="h-3 w-3" />
-                      <span>알림 활성</span>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <QrCode className="h-16 w-16 text-gray-500 mx-auto mb-4" />
-            <p className="text-gray-100 text-lg mb-2">저장된 QR 코드가 없습니다</p>
-            <p className="text-gray-400 text-sm">위에서 QR 코드를 생성하고 저장해보세요</p>
-          </div>
-        )}
-      </div>
-
-      {/* 피어넘버 사용법 안내 */}
-      {selectedType === 'peernumber' && (
-        <div className="mt-8">
-          <Card className="bg-gray-800 border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-gray-200 mb-4 flex items-center gap-2">
-              <Shield className="h-5 w-5 text-green-400" />
-              피어넘버 QR 코드 작동 방식
-            </h3>
-            <div className="space-y-4 text-sm text-gray-300">
-              <div className="bg-blue-900/20 border border-blue-600 rounded-lg p-4">
-                <h4 className="font-medium text-blue-300 mb-2 flex items-center gap-2">
-                  <QrCode className="h-4 w-4" />
-                  QR 코드 스캔 시 동작
-                </h4>
-                <ol className="list-decimal list-inside space-y-2 ml-2">
-                  <li>사용자가 QR 코드를 스캔합니다</li>
-                  <li className="flex items-start gap-2">
-                    <span>2.</span>
-                    <div>
-                      <span>자동으로 </span>
-                      <code className="bg-blue-800 px-2 py-1 rounded text-xs">
-                        peerterra.com/one/channel/{formData.peerNumber || '[피어넘버]'}
-                      </code>
-                      <span>로 이동됩니다</span>
-                    </div>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span>3.</span>
-                    <Bell className="h-4 w-4 text-yellow-400" />
-                    <span>동시에 <strong>{formData.email || '[등록된 이메일]'}</strong>로 스캔 알림이 전송됩니다</span>
-                  </li>
-                </ol>
-              </div>
-
-              <div className="bg-green-900/20 border border-green-600 rounded-lg p-4">
-                <h4 className="font-medium text-green-300 mb-2 flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  이메일 알림 내용
-                </h4>
-                <div className="bg-gray-700 p-3 rounded text-xs">
-                  <p className="font-medium mb-2">제목: 피어테라 QR 코드 스캔 알림</p>
-                  <div className="space-y-1 text-gray-300">
-                    <p>• 스캔 시간: [현재 시간]</p>
-                    <p>• 피어넘버: {formData.peerNumber || '[피어넘버]'}</p>
-                    <p>• 표시 이름: {formData.displayName || '[표시 이름]'}</p>
-                    <p>• 스캔 ID: [고유 식별자]</p>
-                    <p>• 접속 URL: peerterra.com/one/channel/{formData.peerNumber || '[피어넘버]'}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-yellow-900/20 border border-yellow-600 rounded-lg p-4">
-                <h4 className="font-medium text-yellow-300 mb-2 flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  URL 파라미터 정보
-                </h4>
-                <div className="space-y-2 text-xs">
-                  <p><code className="bg-gray-700 px-2 py-1 rounded">email</code>: 알림 수신 이메일</p>
-                  <p><code className="bg-gray-700 px-2 py-1 rounded">name</code>: 표시될 이름</p>
-                  <p><code className="bg-gray-700 px-2 py-1 rounded">message</code>: 환영 메시지</p>
-                  <p><code className="bg-gray-700 px-2 py-1 rounded">scan_id</code>: 스캔 추적용 고유 ID</p>
-                </div>
-              </div>
-
-              <div className="bg-purple-900/20 border border-purple-600 rounded-lg p-4">
-                <h4 className="font-medium text-purple-300 mb-2">💡 활용 팁</h4>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>명함에 QR 코드를 인쇄하여 네트워킹에 활용</li>
-                  <li>이벤트나 미팅에서 빠른 연락처 교환</li>
-                  <li>온라인 프로필이나 소셜미디어에 QR 코드 게시</li>
-                  <li>스캔 알림을 통해 누가 언제 접근했는지 실시간 확인</li>
-                </ul>
-              </div>
-            </div>
-          </Card>
         </div>
       )}
-
-      {/* 백엔드 연동 안내 */}
-      {selectedType === 'peernumber' && (
-        <div className="mt-6">
-          <Card className="bg-orange-900/20 border border-orange-600 p-4">
-            <h4 className="font-medium text-orange-300 mb-2 flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              개발자 노트: 백엔드 연동 필요사항
-            </h4>
-            <div className="text-xs text-orange-200 space-y-2">
-              <p>• <strong>이메일 알림 서비스</strong>: 스캔 시 이메일 전송 기능 구현 필요</p>
-              <p>• <strong>스캔 추적</strong>: scan_id를 통한 스캔 로그 저장 및 분석</p>
-              <p>• <strong>URL 파라미터 처리</strong>: peerterra.com에서 파라미터 파싱 및 알림 전송 로직</p>
-              <p>• <strong>보안</strong>: 이메일 주소 보호 및 스팸 방지 메커니즘</p>
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* 푸터 정보 */}
-      <div className="mt-12 text-center text-gray-500 text-sm border-t border-gray-700 pt-6">
-        <p>PeerTerra QR 코드 생성기 - 다양한 형태의 QR 코드를 생성하고 관리하세요</p>
-        <p className="mt-2">피어넘버 QR 코드로 실시간 알림과 함께 채널 연결을 시작해보세요</p>
-      </div>
     </div>
   );
 };

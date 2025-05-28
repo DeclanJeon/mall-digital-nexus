@@ -2,10 +2,16 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import ProductRegistrationForm from '../products/ProductRegistrationForm';
+<<<<<<< HEAD
 import { Content } from '../types';
 import { useSearchParams } from 'react-router-dom';
 import productService from '@/services/productService';
 // import { add } from '@/utils/indexedDBService';
+=======
+import { Content } from '@/types/space';
+import { Product } from '@/types/product';
+import { saveProduct } from '@/services/storage/productStorage';
+>>>>>>> feature
 
 interface PeerSpaceProductFormModalProps {
   showProductForm: boolean;
@@ -34,6 +40,7 @@ const PeerSpaceProductFormModal: React.FC<PeerSpaceProductFormModalProps> = ({
       <DialogContent className="max-w-5xl h-[90vh] overflow-y-auto z-[9999]">
         <DialogHeader><DialogTitle className="text-xl font-bold">제품 등록</DialogTitle></DialogHeader>
         <ProductRegistrationForm 
+<<<<<<< HEAD
           onSubmit={async (productData) => {
             const now = new Date().toISOString();
             const newProduct: Content = {
@@ -65,8 +72,14 @@ const PeerSpaceProductFormModal: React.FC<PeerSpaceProductFormModalProps> = ({
             await productService.registerProduct(newProduct, address, peerMallKey);
             // setProducts([...products, newProduct]);
             // setContents([...contents, newProduct]);
+=======
+          onProductSave={async (productData: Product) => {
+            await saveProduct(productData);
+            setProducts([...products, productData]);
+            setContents([...contents, productData]);
+>>>>>>> feature
             setShowProductForm(false);
-            toast({ title: "제품 등록 완료", description: `${newProduct.title} 제품이 등록되었습니다.` });
+            toast({ title: "제품 등록 완료", description: `${productData.title} 제품이 등록되었습니다.` });
           }}
           address={address}
           onClose={() => setShowProductForm(false)}

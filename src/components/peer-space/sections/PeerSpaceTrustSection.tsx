@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { PeerMallConfig } from '../types';
+import { PeerMallConfig } from '@/types/space';
 import { 
   Card, CardContent, CardHeader, CardTitle 
 } from '@/components/ui/card';

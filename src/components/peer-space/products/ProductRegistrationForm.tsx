@@ -1,4 +1,9 @@
 import React, { useState, useRef } from 'react';
+import { saveProduct } from '@/services/storage/productStorage';
+import { useForm } from 'react-hook-form';
+import { toast } from '@/hooks/use-toast';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,7 +46,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -67,14 +71,10 @@ import {
   Plus,
   X
 } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Content, ContentType } from '../types';
-import { addPeerSpaceContent } from "@/utils/peerSpaceStorage";
-import { savePostToLocalStorage } from "@/utils/storageUtils";
-import { QRCodeSVG } from 'qrcode.react';
+import QRCodeSVG from 'qrcode.react';
 import ProductRegistrationPreview from "./ProductRegistrationPreview";
+import { Product } from "@/types/product";
+import { ContentType } from '@/types/space';
 
 // Define categories for the dropdown
 const PRODUCT_CATEGORIES = [
@@ -86,16 +86,31 @@ const PRODUCT_CATEGORIES = [
   { id: 6, name: '뷰티/화장품' },
   { id: 7, name: '취미/문구' },
   { id: 8, name: '도서/음반' },
-  { id: 9, name: '기타' }
+  { id: 9, name: '여행/레저' },
+  { id: 10, name: '유아동/출산' },
+  { id: 11, name: '반려동물용품' },
+  { id: 12, name: '자동차용품' },
+  { id: 13, name: '공구/산업용품' },
+  { id: 14, name: '의료/건강용품' },
+  { id: 15, name: '농수축산물' },
+  { id: 16, name: '꽃/원예' },
+  { id: 17, name: '예술/공예' },
+  { id: 18, name: '서비스/티켓' },
+  { id: 19, name: '기타' }
 ];
 
 // Define form schema with enhanced validation
 const productSchema = z.object({
-  name: z.string().min(1, { message: "상품명은 필수입니다." }),
-  title: z.string().optional(),
-  price: z.string().min(1, { message: "가격은 필수입니다." }),
-  imageUrl: z.string().min(1, { message: "이미지 URL은 필수입니다." }),
-  saleUrl: z.string().url({ message: "유효한 URL을 입력해주세요." }),
+  id: z.string().optional(),
+  name: z.string().optional(),
+  price: z.preprocess(
+    (val) => Number(val), 
+    z.number().min(0, { message: "가격은 0 이상이어야 합니다." })
+  ).optional(),
+  currency: z.string().default('KRW'), // 화폐 단위 추가
+  imageUrl: z.string().url({ message: "유효한 이미지 URL을 입력해주세요." }).optional().or(z.literal('')), // 빈 문자열 허용
+  imageFile: z.any().optional(), // 이미지 파일 추가 (File 객체)
+  saleUrl: z.string().optional(),
   distributor: z.string().optional(),
   manufacturer: z.string().optional(),
   description: z.string().optional(),
@@ -113,20 +128,15 @@ const productSchema = z.object({
 export type ProductFormValues = z.infer<typeof productSchema>;
 
 interface ProductRegistrationFormProps {
-  onSubmit: (
-    productData: Omit<
-      Content,
-      'id' | 'createdAt' | 'updatedAt' | 'peerSpaceAddress'
-    >
-  ) => Promise<void>;
+  onProductSave: (newProduct: Product) => void;
   address: string;
-  onClose?: () => void;
+  onClose: () => void;
 }
 
 const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
-  onSubmit,
+  onProductSave,
   address,
-  onClose
+  onClose,
 }) => {
   const [previewImage, setPreviewImage] = useState<string>("");
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
@@ -145,10 +155,12 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
+      id: crypto.randomUUID(),
       name: "",
-      title: "",
-      price: "",
+      price: 0,
+      currency: 'KRW',
       imageUrl: "",
+      imageFile: null,
       saleUrl: "",
       distributor: "",
       manufacturer: "",
@@ -252,21 +264,21 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
   };
 
   // Handle form submission
-  // Helper function to convert form values to Content type
-  const convertToContent = (formValues: ProductFormValues): Omit<Content, 'id' | 'createdAt' | 'updatedAt' | 'peerSpaceAddress'> => {
+  // Helper function to convert form values to Product type
+  const convertToContent = (formValues: ProductFormValues): Product => {
     const now = new Date().toISOString();
     return {
+<<<<<<< HEAD
       name: formValues.name,
       title: formValues.title || 'Untitled Product',
+=======
+      id: formValues.id || crypto.randomUUID(),
+      title: formValues.name,
+>>>>>>> feature
       description: formValues.description || '',
-      type: 'product',
-      date: now,
-      likes: 0,
-      comments: 0,
-      views: 0,
-      saves: 0,
-      imageUrl: formValues.imageUrl || '',
       price: Number(formValues.price) || 0,
+      currency: formValues.currency || 'KRW',
+      imageUrl: formValues.imageUrl || '',
       isExternal: !!formValues.saleUrl,
       externalUrl: formValues.saleUrl || '',
       source: formValues.manufacturer || 'Unknown',
@@ -274,12 +286,21 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       category: formValues.categoryId ?
         PRODUCT_CATEGORIES.find(c => c.id.toString() === formValues.categoryId)?.name || '' : '',
       attributes: {},
-      badges: [],
-      ecosystem: {},
+      rating: 0, // 기본값 설정
+      reviewCount: 0, // 기본값 설정
+      peermallName: 'Default Peermall', // 기본값 설정
+      peerSpaceAddress: 'default-address', // 기본값 설정
+      type: ContentType.Product, // ContentType.Product로 고정
+      date: now, // 현재 시간으로 설정
+      likes: 0, // 기본값 설정
+      comments: 0, // 기본값 설정
+      views: 0, // 기본값 설정
+      saves: 0, // 기본값 설정
+      badges: [], // 기본값 설정
+      isFeatured: false, // 기본값 설정
       status: 'active',
       author: '',
       authorId: '',
-      rating: 0,
       media: [],
       completion: 0,
       maxParticipants: 0,
@@ -287,13 +308,12 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       htmlContent: '',
       relatedBadges: [],
       location: '',
-      isFeatured: false
     };
   };
 
   const handleFormSubmit = async (formValues: ProductFormValues) => {
     const productData = convertToContent(formValues);
-    await onSubmit(productData);
+    onProductSave(productData);
   };
 
   const handleSubmit = async (formValues: ProductFormValues) => {
@@ -301,6 +321,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
     
     try {
       const productData = convertToContent(formValues);
+<<<<<<< HEAD
       const now = new Date().toISOString();
       
       const newProduct: Content = {
@@ -313,11 +334,14 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       debugger;
       //await addPeerSpaceContent(address, newProduct);
       //await savePostToLocalStorage(newProduct as any);
+=======
+      await saveProduct(productData);
+>>>>>>> feature
       await handleFormSubmit(formValues);
       
       toast({
         title: "상품이 성공적으로 등록되었습니다",
-        description: "상품 목록과 QR 코드 목록에 추가되었습니다.",
+        description: "상품 목록에 추가되었습니다.",
       });
       
       // Reset form and state
@@ -327,11 +351,6 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       setProductTags([]);
       setOptions([]);
       setActiveTab("basic");
-      
-      // Close modal if provided
-      if (onClose) {
-        onClose();
-      }
     } catch(err) {
       console.error('상품 등록 실패:', err);
       toast({
@@ -404,13 +423,9 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                     )}
                   </div>
                   
-                  {form.watch("title") && (
-                    <p className="text-sm text-gray-500 mb-3">{form.watch("title")}</p>
-                  )}
-                  
                   <div className="flex justify-between items-center mb-4">
                     <p className="text-blue-600 font-bold text-xl">
-                      {form.watch("price") || "가격"}
+                      {form.watch("price") || "가격"} {form.watch("currency") || "KRW"}
                     </p>
                     {form.watch("stock") && (
                       <p className="text-sm text-gray-500">재고: {form.watch("stock")}</p>
@@ -548,16 +563,6 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                         </TooltipProvider>
                       </div>
                     </div>
-
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">피어몰 정보</h4>
-                      <div className="p-3 rounded-md bg-gray-50 text-sm">
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-600">피어몰 주소:</span>
-                          <span className="font-medium">{address || "-"}</span>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -583,7 +588,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="flex items-center">
-                              판매 URL <span className="text-red-500 ml-1">*</span>
+                              판매 URL 
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -642,23 +647,9 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                         name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>상품명 <span className="text-red-500">*</span></FormLabel>
+                            <FormLabel>상품명</FormLabel>
                             <FormControl>
                               <Input placeholder="상품명을 입력하세요" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="title"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>상품 제목 (선택)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="상품 제목을 입력하세요 (선택 사항)" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -671,7 +662,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                           name="price"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>가격 <span className="text-red-500">*</span></FormLabel>
+                              <FormLabel>가격</FormLabel>
                               <FormControl>
                                 <div className="relative">
                                   <DollarSign className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
@@ -681,6 +672,31 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                                     className="pl-10"
                                   />
                                 </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="currency"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>화폐 단위</FormLabel>
+                              <FormControl>
+                                <Select 
+                                  onValueChange={field.onChange} 
+                                  defaultValue={field.value}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="화폐 단위를 선택하세요" />
+                                  </SelectTrigger>
+                                  <SelectContent position="popper">
+                                    <SelectItem value="KRW">KRW (원)</SelectItem>
+                                    <SelectItem value="USD">USD (달러)</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -707,7 +723,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                         name="imageUrl"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>이미지 URL <span className="text-red-500">*</span></FormLabel>
+                            <FormLabel>이미지 URL</FormLabel>
                             <FormControl>
                               <div className="flex gap-2">
                                 <div className="relative flex-1">
@@ -748,27 +764,49 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
 
                       <FormField
                         control={form.control}
+                        name="imageFile"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>이미지 파일</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="file" 
+                                {...field} 
+                                onChange={(e) => {
+                                  if (e.target.files) {
+                                    field.onChange(e.target.files[0]);
+                                  }
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
                         name="categoryId"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>카테고리</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="카테고리 선택" />
+                            <FormControl>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="카테고리를 선택하세요" />
                                 </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {PRODUCT_CATEGORIES.map(category => (
-                                  <SelectItem key={category.id} value={category.id.toString()}>
-                                    {category.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                                <SelectContent position="popper">
+                                  {PRODUCT_CATEGORIES.map((category) => (
+                                    <SelectItem key={category.id} value={category.id.toString()}>
+                                      {category.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -1044,11 +1082,8 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                   <h3 className="font-medium text-lg mb-1 line-clamp-2">
                     {form.watch("name") || "상품명"}
                   </h3>
-                  {form.watch("title") && (
-                    <p className="text-sm text-gray-500 mb-2">{form.watch("title")}</p>
-                  )}
                   <p className="text-blue-600 font-bold mt-1 mb-3">
-                    {form.watch("price") || "가격"}
+                    {form.watch("price") || "가격"} {form.watch("currency") || "KRW"}
                   </p>
 
                   {productTags.length > 0 && (

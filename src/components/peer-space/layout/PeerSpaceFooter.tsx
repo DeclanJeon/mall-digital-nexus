@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Twitter, Youtube, Linkedin, MapPin, Mail, Phone } from 'lucide-react';
-import { PeerMallConfig } from '@/components/peer-space/types';
+import { PeerMallConfig } from '@/types/space';
 
 interface PeerSpaceFooterProps {
   config: PeerMallConfig;

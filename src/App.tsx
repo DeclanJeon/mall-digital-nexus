@@ -17,17 +17,10 @@ import PeerSpace from "./pages/PeerSpace";
 import PeerSpaceSettings from "./pages/PeerSpaceSettings";
 import ContentDetailPage from "./pages/ContentDetailPage";
 import CustomerSupport from "./pages/CustomerSupport";
-import CommunityPage from "./pages/Community";
 import CommunityDetailPage from "./pages/ContentDetailPage";
 import PostDetailPage from "./pages/PostDetailPage";
-import Community from "./components/community/Community";
 import QRCodeGenerator from "@/components/feature-sections/QRCodeGenerator";
-
-// Remove imports for non-existent pages
-// import Peers from "./pages/space/Peers";
-// import Achievements from "./pages/space/Achievements";
-// import Messages from "./pages/space/Messages";
-// import Space from "./pages/space/Space";
+import PeermallsPage from "./pages/PeermallsPage"; // PeermallsPage import 추가
 
 const queryClient = new QueryClient();
 
@@ -40,8 +33,10 @@ const AppContent = () => {
       {!isPeerSpacePage && <Header />}
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/shopping" element={<Shopping />} />
-        <Route path="/curation-links" element={<CurationLinks />} />
+        <Route path="/products" element={<Shopping />} />
+        <Route path="/peermalls" element={<PeermallsPage />} /> {/* 이 라인 수정 */}
+        {/* <Route path="/products" element={< />} /> */}
+        {/* <Route path="/curation-links" element={<CurationLinks />} /> */}
         <Route path="/create-qrcode" element={<QRCodeGenerator />} />
         {/* <Route path="/community" element={<Community />} /> 
         <Route path="/community/planet/:planetId" element={<Community />} /> 
@@ -56,7 +51,6 @@ const AppContent = () => {
         <Route path="/service" element={<ServicePage />} />
         <Route path="/my-info" element={<MyInfoPage />} />
         
-        {/* PeerSpace 관련 라우트는 PeerSpace 컴포넌트가 내부적으로 처리하도록 단일 라우트만 남깁니다. */}
         <Route path="/space/:address/*" element={<PeerSpace />} /> 
         {/* 
           기존 /space/:address 라우트 외에 /settings, /content/:contentId 등도 
@@ -67,7 +61,6 @@ const AppContent = () => {
         */}
         
         <Route path="/space/:address/settings" element={<PeerSpaceSettings />} /> {/* PeerSpace 레이아웃 공유 여부 확인 필요 */}
-        <Route path="/space/:address/content/:contentId" element={<ContentDetailPage />} /> {/* PeerSpace 레이아웃 공유 여부 확인 필요 */}
 
         {/* 아래 /space/:address/community 관련 라우트들 제거 */}
         {/* 
