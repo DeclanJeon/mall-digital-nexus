@@ -37,6 +37,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
   description,
   owner,
   ownerName,
+  email,
   imageUrl,
   imageLocation,
   category,
@@ -279,6 +280,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
         messageModalOpen={isMessageModalOpen}
         setMessageModalOpen={setIsMessageModalOpen}
         owner={owner}
+        email={email}
         title={title}
         displayImageUrl={displayImageUrl}
         imageError={imageError}

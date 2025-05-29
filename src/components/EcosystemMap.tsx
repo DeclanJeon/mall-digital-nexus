@@ -66,6 +66,7 @@ interface MapLocation {
   phone: string;
   reviews?: any[];
   id?: string;
+  email?: string;
   imageUrl?: string;
   rating?: number;
   followers?: number;
@@ -77,7 +78,7 @@ interface MapLocation {
   trustScore?: number;
   responseTime?: string;
   isOnline?: boolean;
-  owner?: string; // 
+  owner?: string;
 }
 
 interface EcosystemMapProps {
@@ -108,6 +109,37 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
   const [callModalOpen, setCallModalOpen] = useState(false);
   const [messageModalOpen, setMessageModalOpen] = useState(false);
   const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLocation | null>(null);
+
+  // 🚀 이메일 유효성 검증 함수
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // 🚀 스마트 이메일 추출 함수
+  const extractEmail = (peermall: any): string | undefined => {
+    const possibleEmails = [
+      peermall.email,
+      peermall.contactEmail,
+      peermall.ownerEmail,
+      peermall.businessEmail,
+      peermall.adminEmail
+    ];
+    
+    // contact 필드에서 이메일 패턴 찾기
+    if (peermall.contact && typeof peermall.contact === 'string' && peermall.contact.includes('@')) {
+      possibleEmails.push(peermall.contact);
+    }
+    
+    // 첫 번째 유효한 이메일 반환
+    for (const email of possibleEmails) {
+      if (email && typeof email === 'string' && isValidEmail(email.trim())) {
+        return email.trim();
+      }
+    }
+    
+    return undefined;
+  };
 
   // 프리미엄 마커 아이콘 생성 함수
   const createPremiumMarkerIcon = useCallback((location: MapLocation) => {
@@ -227,6 +259,12 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
                 <span class="text-gray-700">${location.phone}</span>
               </div>
             ` : ''}
+            ${location.email ? `
+              <div class="flex items-center gap-2 text-sm">
+                <span class="text-gray-500">📧</span>
+                <span class="text-gray-700">${location.email}</span>
+              </div>
+            ` : ''}
             ${location.description ? `
               <div class="text-sm text-gray-600 line-clamp-2 mt-2">
                 ${location.description}
@@ -280,8 +318,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
 
       const mappedLocations = peermalls
         .filter(peermall => {
-          // 위치 데이터가 있는지 확인
-          const hasLocation = (peermall.lat && peermall.lng);
+          const hasLocation = (peermall.latitude && peermall.longitude);
           
           if (!hasLocation) {
             console.warn('위치 정보 없는 피어몰:', peermall.peerMallName || peermall.peerMallKey);
@@ -290,13 +327,20 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
           return hasLocation;
         })
         .map(peermall => {
-          const lat = peermall.lat;
-          const lng = peermall.lng;
+          const lat = peermall.latitude;
+          const lng = peermall.longitude;
           
-          // 좌표 유효성 검사
           if (!lat || !lng || isNaN(Number(lat)) || isNaN(Number(lng))) {
             console.warn('잘못된 좌표:', { title: peermall.peerMallName, lat, lng });
             return null;
+          }
+
+          // 🚀 개선된 이메일 추출
+          const extractedEmail = extractEmail(peermall);
+          
+          // 🚀 이메일 정보 로깅
+          if (extractedEmail) {
+            console.log(`📧 ${peermall.peerMallName} 이메일:`, extractedEmail);
           }
 
           const tags = peermall.tags || ['쇼핑', '서비스', '로컬'];
@@ -307,28 +351,21 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
             lng: lng,
             peerMallName: peermall.peerMallName || '피어몰',
             address: peermall.address ?? '주소 정보 없음',
+            email: extractedEmail, // 🚀 개선된 이메일 추출 사용
             phone: (peermall as any).contact || '전화번호 없음',
-            //reviews: (peermall as any).reviews || [],
             imageUrl: peermall.imageLocation || `https://picsum.photos/400/300?random=${peermall.peerMallKey}`,
-            //rating: peermall.rating || (Math.random() * 2 + 3),
-            //followers: peermall.followers || Math.floor(Math.random() * 1000) + 50,
-            //isPopular: peermall.featured || Math.random() > 0.7,
-            //isFeatured: peermall.recommended || Math.random() > 0.8,
-            //isVerified: peermall.certified || Math.random() > 0.6,
             description: peermall.description || '멋진 피어몰입니다. 다양한 제품과 서비스를 만나보세요!',
-            //tags: tags,
-            //trustScore: Math.floor(Math.random() * 20) + 80,
-            //responseTime: ['즉시', '5분 이내', '10분 이내', '30분 이내'][Math.floor(Math.random() * 4)],
-            //isOnline: Math.random() > 0.3,
             owner: (peermall as any).ownerName || `${peermall.peerMallName} 운영자`,
-            //isFamilyCertified: false,
-            //certified: false,
-            //premiumStats: null
           };
         })
-        .filter(Boolean); // null 값 제거
+        .filter(Boolean);
       
       console.log('매핑된 위치 데이터:', mappedLocations);
+      
+      // 🚀 이메일 통계 로깅
+      const emailCount = mappedLocations.filter(loc => loc?.email).length;
+      console.log(`📊 이메일 정보가 있는 피어몰: ${emailCount}/${mappedLocations.length}개`);
+      
       setLocations(mappedLocations as MapLocation[]);
       
       // Extract all unique hashtags from all locations
@@ -437,7 +474,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
         
         // 클릭 이벤트 추가
         marker.on('click', () => {
-          console.log('마커 클릭됨:', loc.title);
+          console.log('마커 클릭됨:', loc.title, '이메일:', loc.email);
           mapInstance.current?.setView([lat, lng], 15);
           setSelectedLocation(loc);
           setSelectedLocationForAction(loc);
@@ -451,21 +488,21 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
       }
     });
   
-  // 지도 뷰 조정
-  if (filteredLocations.length === 1) {
-    const loc = filteredLocations[0];
-    mapInstance.current.setView([Number(loc.lat), Number(loc.lng)], 15);
-  } else if (filteredLocations.length > 1) {
-    try {
-      const bounds = L.latLngBounds(
-        filteredLocations.map(loc => [Number(loc.lat), Number(loc.lng)])
-      );
-      mapInstance.current.fitBounds(bounds, { padding: [50, 50] });
-    } catch (error) {
-      console.error('지도 경계 설정 실패:', error);
+    // 지도 뷰 조정
+    if (filteredLocations.length === 1) {
+      const loc = filteredLocations[0];
+      mapInstance.current.setView([Number(loc.lat), Number(loc.lng)], 15);
+    } else if (filteredLocations.length > 1) {
+      try {
+        const bounds = L.latLngBounds(
+          filteredLocations.map(loc => [Number(loc.lat), Number(loc.lng)])
+        );
+        mapInstance.current.fitBounds(bounds, { padding: [50, 50] });
+      } catch (error) {
+        console.error('지도 경계 설정 실패:', error);
+      }
     }
-  }
-}, [locations, filterType, selectedHashtag, onLocationSelect]);
+  }, [locations, filterType, selectedHashtag, onLocationSelect, createPremiumMarkerIcon]);
 
   // 맵 타입 변경
   useEffect(() => {
@@ -569,8 +606,15 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
     //setCallModalOpen(true);
   }, []);
 
-  // 메시지 모달 열기 함수
+  // 🚀 메시지 모달 열기 함수 (디버깅 강화)
   const handleOpenMessageModal = useCallback((location: MapLocation) => {
+    console.log('🚀 메시지 모달 열기:', {
+      title: location.title,
+      email: location.email,
+      owner: location.owner,
+      hasEmail: !!location.email
+    });
+    
     setSelectedLocationForAction(location);
     setMessageModalOpen(true);
   }, []);
@@ -588,7 +632,6 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
     <div className={cn(
       "relative rounded-2xl overflow-hidden shadow-2xl",
       mapFullscreen ? "fixed inset-0 z-[1000] w-full" : "w-100",
-      // 반응형 높이 클래스 추가
       mapFullscreen ? "h-screen" : "h-full min-h-[250px]"
     )}>
       
@@ -635,41 +678,12 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
           </Button>
         </div>
 
-        {/* 필터 버튼들 */}
-        {/* <div className="grid grid-cols-2 gap-2 mb-4">
-          {[
-            { key: 'all', label: '전체', icon: '', count: locations.length },
-            { key: 'featured', label: '추천', icon: '', count: locations.filter(l => l.isFeatured).length },
-            { key: 'popular', label: '인기', icon: '', count: locations.filter(l => l.isPopular).length },
-            { key: 'verified', label: '인증', icon: '', count: locations.filter(l => l.isVerified).length }
-          ].map(filter => (
-            <Button
-              key={filter.key}
-              variant={filterType === filter.key ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilterType(filter.key as any)}
-              className={cn(
-                "text-xs font-medium transition-all duration-300",
-                filterType === filter.key 
-                  ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg" 
-                  : "bg-white/80 hover:bg-white border-gray-200 hover:border-blue-300"
-              )}
-            >
-              <span className="mr-1">{filter.icon}</span>
-              {filter.label}
-              <Badge variant="secondary" className="ml-1 text-xs bg-white/20">
-                {filter.count}
-              </Badge>
-            </Button>
-          ))}
-        </div> */}
-
         {/* 지도 타입 및 도구 */}
         <div className="flex gap-2">
           <Button
             variant={mapType === 'street' ? 'default' : 'outline'}
             size="sm"
-                onClick={() => setMapType('street')}
+            onClick={() => setMapType('street')}
             className={cn(
               "flex-1 text-xs transition-all",
               mapType === 'street' 
@@ -775,23 +789,6 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
               )}
             </div>
           </div>
-          
-          {/* <div className="w-px h-4 bg-gray-300"></div> */}
-          
-          {/* <div className="flex items-center gap-3 text-xs text-gray-600">
-            <div className="flex items-center gap-1">
-              <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
-              <span>추천 {locations.filter(l => l.isFeatured).length}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-              <span>인기 {locations.filter(l => l.isPopular).length}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span>인증 {locations.filter(l => l.isVerified).length}</span>
-            </div>
-          </div> */}
         </div>
       </motion.div>
 
@@ -843,67 +840,13 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
                 </div>
                 
                 <div className="border-t border-gray-100 my-2"></div>
-                {/* <div>
-                  <label className="text-xs font-medium text-gray-700 mb-2 block">평점 기준</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {['전체', '4.0+', '4.5+', '5.0'].map(rating => (
-                      <Button
-                        key={rating}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs bg-white/80 hover:bg-white border-gray-200 hover:border-yellow-300"
-                      >
-                        <Star className="w-3 h-3 mr-1 text-yellow-500" />
-                        {rating}
-                      </Button>
-                    ))}
-                  </div>
-                </div> */}
-                
-                {/* <div>
-                  <label className="text-xs font-medium text-gray-700 mb-2 block">거리 기준</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {['전체', '1km', '3km', '5km'].map(distance => (
-                      <Button
-                        key={distance}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs bg-white/80 hover:bg-white border-gray-200 hover:border-blue-300"
-                      >
-                        <Navigation className="w-3 h-3 mr-1 text-blue-500" />
-                        {distance}
-                      </Button>
-                    ))}
-                  </div>
-                </div> */}
-                
-                {/* <div>
-                  <label className="text-xs font-medium text-gray-700 mb-2 block">운영 상태</label>
-                  <div className="space-y-2">
-                    {[
-                      { key: 'online', label: '현재 온라인', icon: '' },
-                      { key: 'quick', label: '빠른 응답', icon: '' },
-                      { key: 'verified', label: '인증된 업체', icon: '' }
-                    ].map(option => (
-                      <Button
-                        key={option.key}
-                        variant="outline"
-                        size="sm"
-                        className="w-full justify-start text-xs bg-white/80 hover:bg-white border-gray-200 hover:border-green-300"
-                      >
-                        <span className="mr-2">{option.icon}</span>
-                        {option.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div> */}
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-       {/* 선택된 위치 상세 패널 */}
+      {/* 🚀 개선된 선택된 위치 상세 패널 */}
       <AnimatePresence>
         {selectedLocation && (
           <motion.div
@@ -924,24 +867,12 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
                     )}
                   </div>
                   <div className="flex items-center gap-2 mb-2">
-                    {/* {selectedLocation.rating && (
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                        <span className="text-sm font-semibold">{selectedLocation.rating.toFixed(1)}</span>
-                      </div>
-                    )} */}
-                    {/* <div className="flex gap-1">
-                      {selectedLocation.isFeatured && (
-                        <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs">
-                          추천
-                        </Badge>
-                      )}
-                      {selectedLocation.isVerified && (
-                        <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs">
-                          인증
-                        </Badge>
-                      )}
-                    </div> */}
+                    {/* 🚀 이메일 연동 가능 여부 표시 */}
+                    {selectedLocation.email && (
+                      <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">
+                        📧 이메일 연동 가능
+                      </Badge>
+                    )}
                   </div>
                 </div>
                 <Button
@@ -966,46 +897,27 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
                 </div>
               )}
 
-              {/* 정보 */}
+              {/* 🚀 개선된 정보 섹션 */}
               <div className="space-y-2 text-sm">
                 <div className="flex items-start gap-2">
                   <MapPin className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-700">{selectedLocation.address}</span>
                 </div>
-                {/* {selectedLocation.phone && (
+                
+                {/* 🚀 이메일 정보 표시 */}
+                {selectedLocation.email && (
                   <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-gray-500" />
-                    <span className="text-gray-700">{selectedLocation.phone}</span>
+                    <span className="text-gray-500">📧</span>
+                    <span className="text-gray-700 text-xs">{selectedLocation.email}</span>
                   </div>
-                )} */}
+                )}
+                
                 {selectedLocation.description && (
                   <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">
                     {selectedLocation.description}
                   </p>
                 )}
               </div>
-
-              {/* 통계 */}
-              {/* <div className="grid grid-cols-3 gap-3 py-3 border-t border-gray-200">
-                <div className="text-center">
-                  <div className="text-blue-600 font-bold text-sm">
-                    {selectedLocation.trustScore}%
-                  </div>
-                  <div className="text-xs text-gray-500">신뢰도</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-green-600 font-bold text-sm">
-                    {selectedLocation.responseTime}
-                  </div>
-                  <div className="text-xs text-gray-500">응답시간</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-purple-600 font-bold text-sm">
-                    {selectedLocation.followers}
-                  </div>
-                  <div className="text-xs text-gray-500">팔로워</div>
-                </div>
-              </div> */}
 
               {/* 태그 */}
               {selectedLocation.tags && selectedLocation.tags.length > 0 && (
@@ -1029,7 +941,6 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
 
               {/* 액션 버튼들 */}
               <div className="grid grid-cols-2 gap-2 pt-2">
-
                 {isAuthenticated && (
                   <Button
                     size="sm"
@@ -1039,8 +950,8 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
                     <Phone className="w-4 h-4 mr-1" />
                     통화
                   </Button>
-
                 )}
+                
                 {isAuthenticated && (
                   <Button
                     size="sm"
@@ -1051,6 +962,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
                     메시지
                   </Button>
                 )}
+                
                 <Button
                   size="sm"
                   variant="outline"
@@ -1064,6 +976,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
                   <ExternalLink className="w-4 h-4 mr-1 text-purple-600" />
                   방문하기
                 </Button>
+                
                 <Button
                   size="sm"
                   variant="outline"
@@ -1115,15 +1028,19 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
           trustScore: 0,
           responseTime: '',
           isOnline: false
-        }} owner={''} peerMallKey={''}      />
+        }} 
+        owner={''} 
+        peerMallKey={''}      
+      />
 
-      {/* 메시지 모달 */}
+      {/* 🚀 개선된 메시지 모달 */}
       {selectedLocationForAction && (
         <EnhancedMessageModal 
           messageModalOpen={messageModalOpen}
           setMessageModalOpen={setMessageModalOpen}
           owner={selectedLocationForAction.owner || '운영자'}
           title={selectedLocationForAction.title}
+          email={selectedLocationForAction.email} // 🚀 이메일 정보 전달
           displayImageUrl={selectedLocationForAction.imageUrl}
           imageError={false}
         />
@@ -1133,3 +1050,4 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
 });
 
 export default React.memo(EcosystemMap);
+    

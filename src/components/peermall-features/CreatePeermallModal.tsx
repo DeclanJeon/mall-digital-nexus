@@ -492,8 +492,8 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       if (imageFile) {
         formData.append('image', imageFile);
       }
-      const { success, peerMallKey } = await createPeerMall(formData);
-      dataForStorage['peerMallKey'] = peerMallKey;
+
+      await createPeerMall(formData);
 
         // 초기화
       form.reset();

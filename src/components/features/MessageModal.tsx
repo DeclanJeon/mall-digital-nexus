@@ -72,7 +72,7 @@ const MessageModal: React.FC<EmailMessageModalProps> = ({
 ${messageText}
 
 ---
-이 메시지는 피어몰 플랫폼을 통해 전송되었습니다.
+이 메시지는 피어몰을 통해 전송되었습니다.
       `;
 
       // Gmail 작성 URL 생성
