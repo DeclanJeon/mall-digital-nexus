@@ -2,6 +2,8 @@ import axios from 'axios';
 import userService from './userService';
 import { Content } from '@/components/peer-space/content/types';
 
+
+//const API_BASE_URL = 'https://api.peermall.com/v1/products';
 const API_BASE_URL = 'http://localhost:9393/v1/products';
 const accessToken = userService.getAccessToken();
 
@@ -34,7 +36,7 @@ export const productService = {
     try {
       const response = await api.get('/allProductList');
       if (response.status === 200 && response.data.success) {
-        return response.data;
+        return response.data.allProductList;
       }
       return { success: false };
     } catch (error) {

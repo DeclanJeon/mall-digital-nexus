@@ -14,6 +14,7 @@ import axios from 'axios';
 import { Peermall } from '@/types/peermall';
 import userService from './userService';
 
+//const API_BASE_URL = 'https://api.peermall.com/v1/peerMalls';
 const API_BASE_URL = 'http://localhost:9393/v1/peerMalls';
 const accessToken = userService.getAccessToken();
 
@@ -130,7 +131,7 @@ export const getPeerMallData = async (peerMallName: string, peerMallKey: string)
   }
 };
 
-export const getAllPeerMallList = async (): Promise<Object> => {
+export const getAllPeerMallList = async (): Promise<any> => {
   try {
     const response = await api.get('/getAllPeerMallList');
     if (response.status === 200 && response.data.success) {

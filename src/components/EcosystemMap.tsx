@@ -51,6 +51,7 @@ import CallModal from '@/components/features/CallModal';
 import MessageModal from '@/components/features/MessageModal';
 import EnhancedMessageModal from './features/EnhancedMessageModal';
 import { useAuth } from '@/hooks/useAuth';
+import { getAllPeerMallList } from  "@/services/peerMallService";
 
 const DEFAULT_CENTER: [number, number] = [37.5665, 126.9780];
 
@@ -270,61 +271,59 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
   }, []);
 
   // 피어몰 데이터 로드 함수
-  const loadPeermalls = useCallback(() => {
-    console.log('피어몰 데이터 로드 시작');
+  const loadPeermalls = useCallback(async () => {
     setIsLoading(true);
     
     try {
-      const peermalls = peermallStorage.getAll();
+      const peermalls = await getAllPeerMallList();
       console.log('원본 피어몰 데이터:', peermalls);
 
       const mappedLocations = peermalls
         .filter(peermall => {
           // 위치 데이터가 있는지 확인
-          const hasLocation = (peermall.lat && peermall.lng) || 
-                            (peermall.location?.lat && peermall.location?.lng);
+          const hasLocation = (peermall.lat && peermall.lng);
           
           if (!hasLocation) {
-            console.warn('위치 정보 없는 피어몰:', peermall.title || peermall.id);
+            console.warn('위치 정보 없는 피어몰:', peermall.peerMallName || peermall.peerMallKey);
           }
           
           return hasLocation;
         })
         .map(peermall => {
-          const lat = peermall.location?.lat ?? peermall.lat;
-          const lng = peermall.location?.lng ?? peermall.lng;
+          const lat = peermall.lat;
+          const lng = peermall.lng;
           
           // 좌표 유효성 검사
           if (!lat || !lng || isNaN(Number(lat)) || isNaN(Number(lng))) {
-            console.warn('잘못된 좌표:', { title: peermall.title, lat, lng });
+            console.warn('잘못된 좌표:', { title: peermall.peerMallName, lat, lng });
             return null;
           }
 
           const tags = peermall.tags || ['쇼핑', '서비스', '로컬'];
           
           return {
-            id: peermall.id,
-            lat: Number(lat),
-            lng: Number(lng),
-            title: peermall.title || '피어몰',
-            address: peermall.location?.address ?? peermall.address ?? '주소 정보 없음',
-            phone: (peermall as any).phone || '전화번호 없음',
-            reviews: (peermall as any).reviews || [],
-            imageUrl: peermall.imageUrl || `https://picsum.photos/400/300?random=${peermall.id}`,
-            rating: peermall.rating || (Math.random() * 2 + 3),
-            followers: peermall.followers || Math.floor(Math.random() * 1000) + 50,
-            isPopular: peermall.featured || Math.random() > 0.7,
-            isFeatured: peermall.recommended || Math.random() > 0.8,
-            isVerified: peermall.certified || Math.random() > 0.6,
+            id: peermall.peerMallKey,
+            lat: lat,
+            lng: lng,
+            title: peermall.peerMallName || '피어몰',
+            address: peermall.address ?? '주소 정보 없음',
+            phone: (peermall as any).contact || '전화번호 없음',
+            //reviews: (peermall as any).reviews || [],
+            imageUrl: peermall.imageLocation || `https://picsum.photos/400/300?random=${peermall.peerMallKey}`,
+            //rating: peermall.rating || (Math.random() * 2 + 3),
+            //followers: peermall.followers || Math.floor(Math.random() * 1000) + 50,
+            //isPopular: peermall.featured || Math.random() > 0.7,
+            //isFeatured: peermall.recommended || Math.random() > 0.8,
+            //isVerified: peermall.certified || Math.random() > 0.6,
             description: peermall.description || '멋진 피어몰입니다. 다양한 제품과 서비스를 만나보세요!',
-            tags: tags,
-            trustScore: Math.floor(Math.random() * 20) + 80,
-            responseTime: ['즉시', '5분 이내', '10분 이내', '30분 이내'][Math.floor(Math.random() * 4)],
-            isOnline: Math.random() > 0.3,
-            owner: (peermall as any).owner || `${peermall.title} 운영자`,
-            isFamilyCertified: false,
-            certified: false,
-            premiumStats: null
+            //tags: tags,
+            //trustScore: Math.floor(Math.random() * 20) + 80,
+            //responseTime: ['즉시', '5분 이내', '10분 이내', '30분 이내'][Math.floor(Math.random() * 4)],
+            //isOnline: Math.random() > 0.3,
+            owner: (peermall as any).ownerName || `${peermall.peerMallName} 운영자`,
+            //isFamilyCertified: false,
+            //certified: false,
+            //premiumStats: null
           };
         })
         .filter(Boolean); // null 값 제거
@@ -349,8 +348,6 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
   // 초기 데이터 로드
   useEffect(() => {
     loadPeermalls();
-    const removeListener = peermallStorage.addEventListener(loadPeermalls);
-    return () => removeListener();
   }, [loadPeermalls]);
 
   // 지도 초기화
