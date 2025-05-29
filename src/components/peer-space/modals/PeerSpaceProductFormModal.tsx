@@ -39,7 +39,7 @@ const PeerSpaceProductFormModal: React.FC<PeerSpaceProductFormModalProps> = ({
             
             await productService.registerProduct(newProduct, address, peerMallKey);
 
-            //setProducts([...products, productData]);
+            setProducts([...products, newProduct]);
             //setContents([...contents, productData]);
             setShowProductForm(false);
             toast({ title: "제품 등록 완료", description: `${newProduct.title} 제품이 등록되었습니다.` });

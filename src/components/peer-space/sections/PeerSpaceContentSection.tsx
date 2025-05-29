@@ -36,7 +36,6 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
   filteredProducts,
   peerMallName
 }) => {
-  debugger;
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [allProducts, setAllProducts] = useState<Product[]>([]);

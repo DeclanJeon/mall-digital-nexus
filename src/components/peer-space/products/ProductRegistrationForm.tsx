@@ -325,7 +325,6 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
     //   throw new Error('Peermall not found');
     // }
     
-    
     return {
       id: "",
       title: formValues.name,
