@@ -14,8 +14,7 @@ import axios from 'axios';
 import { Peermall } from '@/types/peermall';
 import userService from './userService';
 
-//const API_BASE_URL = 'https://api.peermall.com/v1/peerMalls';
-const API_BASE_URL = 'http://localhost:9393/v1/peerMalls';
+const API_BASE_URL = 'https://api.peermall.com/v1/peerMalls';
 const accessToken = userService.getAccessToken();
 
 const api = axios.create({
