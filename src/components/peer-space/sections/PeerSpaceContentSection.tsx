@@ -193,13 +193,13 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
           >
             <Filter className="h-4 w-4" /> 필터
           </Button>
-          <Button
+          {/* <Button
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center gap-2"
           >
             <SlidersHorizontal className="h-4 w-4" /> 정렬
-          </Button>
+          </Button> */}
         </div>
       </div>
 
