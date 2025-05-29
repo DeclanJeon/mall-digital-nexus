@@ -10,7 +10,8 @@ const ProductGrid = ({
   viewMode, 
   filters, 
   onSearchChange,
-  searchQuery = ''
+  searchQuery = '',
+  onDetailView
 }: ProductGridProps) => {
   // Filter products based on selected filters
   const filteredProducts = products.filter(product => {
@@ -109,8 +110,22 @@ const ProductGrid = ({
         {filteredProducts.map((product) => (
           <motion.div key={product.id} variants={item} className="h-full">
             <ProductCard
-              {...product}
+              id={product.id}
+              title={product.title}
+              owner={product.owner}
+              description={product.description}
+              price={product.price}
+              discountPrice={product.discountPrice}
+              imageUrl={product.imageUrl}
+              rating={product.rating}
+              reviewCount={product.reviewCount}
+              peermallName={product.peermallName}
+              peermallId={product.peermallId}
+              category={product.category}
+              tags={product.tags}
               viewMode={viewMode}
+              saleUrl={product.saleUrl}
+              onDetailView={onDetailView}
             />
           </motion.div>
         ))}

@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import Sidebar from '@/components/peer-space/settings/Sidebar';
 import ContentSection from '@/components/peer-space/settings/ContentSection';
 import { getPeermallByAddress } from '@/api';
-import type { PeerMallConfig } from '@/components/peer-space/types';
+import { PeerMallConfig } from '@/types/space';
 
 const PeerSpaceSettings = () => {
   const { address } = useParams();
@@ -47,6 +47,10 @@ const PeerSpaceSettings = () => {
       'featured',
       'achievements'
     ],
+    peerMallKey: '',
+    peerMallName: '',
+    peerMallAddress: '',
+    ownerName: ''
   };
 
   useEffect(() => {

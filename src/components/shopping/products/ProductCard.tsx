@@ -17,6 +17,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 const ProductCard: React.FC<ProductCardProps> = ({
   id,
   title,
+  owner,
   description,
   price,
   discountPrice,
@@ -31,9 +32,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
   viewMode,
   cardSize = 'medium',
   seller,
-  onAddFriend,
-  onDetailView,
   saleUrl, // ✨ saleUrl prop 확실히 받기
+  onAddFriend,
+  onDetailView
 }) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);

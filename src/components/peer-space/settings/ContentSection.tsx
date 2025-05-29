@@ -25,7 +25,7 @@ import ContentManagementSection from '../content/ContentManagementSection';
 import DesignSettingsSection from '../sections/DesignSettingsSection';
 import BasicInfoSection from '../sections/BasicInfoSection';
 import AdminDashboardSection from '../sections/AdminDashboardSection';
-import type { PeerMallConfig } from '@/components/peer-space/types';
+import { PeerMallConfig } from '@/types/space';
 
 interface ContentSectionProps {
   activeSection: string;
