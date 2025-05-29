@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import SearchAndFilterBar from '@/components/navigation/SearchAndFilterBar';
+import PeermallCard from '@/components/peermall-features/PeermallCard';
 
 interface Location {
   lat: number;
@@ -131,7 +132,7 @@ const PeermallViewRenderer = ({
 }) => {
   const navigate = useNavigate();
 
-  // 🎯 그리드 뷰 (기본)
+  // 🎯 그리드 뷰 (기본) - PeermallCard 사용
   if (viewMode === 'grid') {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -141,61 +142,23 @@ const PeermallViewRenderer = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="group"
           >
-            <Card className={`${designTokens.elevation.interactive} overflow-hidden bg-white/80 backdrop-blur-sm`}>
-              <div className="relative overflow-hidden">
-                <img
-                  src={mall.imageUrl || '/placeholder-shop.jpg'} 
-                  alt={mall.title}
-                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.onerror = null; 
-                    target.src = '/placeholder-shop.jpg'; 
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="absolute top-3 right-3 flex space-x-2">
-                  {mall.tags?.slice(0, 2).map(tag => (
-                    <Badge key={tag} className="bg-white/90 text-gray-700 text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">{mall.title}</h3>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{mall.description}</p>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <div className="flex items-center space-x-4">
-                    <span className="flex items-center">
-                      <Star className="w-3 h-3 mr-1 text-yellow-500" />
-                      {mall.rating || 0}
-                    </span>
-                    <span className="flex items-center">
-                      <ThumbsUp className="w-3 h-3 mr-1" />
-                      {mall.likes || 0}
-                    </span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate(`/space/${mall.id}`)}
-                    className="text-blue-600 hover:text-blue-700 p-0 h-auto"
-                  >
-                    자세히 보기
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            {/* 👈 기존 Card 대신 PeermallCard 사용 */}
+            <PeermallCard
+              {...mall}
+              isPopular={mall.featured}
+              isFamilyCertified={mall.certified}
+              isRecommended={mall.recommended}
+              onShowQrCode={onShowQrCode}
+              onOpenMap={onOpenMap}
+            />
           </motion.div>
         ))}
       </div>
     );
   }
 
-  // 📋 리스트 뷰
+  // 📋 리스트 뷰도 동일하게 수정
   if (viewMode === 'list') {
     return (
       <div className="space-y-4">
@@ -206,74 +169,16 @@ const PeermallViewRenderer = ({
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
           >
-            <Card className={`${designTokens.elevation.card} overflow-hidden hover:shadow-lg transition-all duration-300`}>
-              <div className="flex">
-                <img
-                  src={mall.imageUrl || '/placeholder-shop.jpg'}
-                  alt={mall.title}
-                  className="w-48 h-32 object-cover flex-shrink-0"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.onerror = null; 
-                    target.src = '/placeholder-shop.jpg'; 
-                  }}
-                />
-                <div className="flex-1 p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 text-lg">{mall.title}</h3>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="outline" className="text-xs">
-                        {mall.category || '일반'}
-                      </Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onShowQrCode(mall.id, mall.title)}
-                        className="p-1 h-auto"
-                      >
-                        <Share2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <p className="text-gray-600 mb-3 line-clamp-2">{mall.description}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span className="flex items-center">
-                        <Star className="w-4 h-4 mr-1 text-yellow-500" />
-                        {mall.rating || 0} ({mall.reviewCount || 0}개 리뷰)
-                      </span>
-                      <span className="flex items-center">
-                        <ThumbsUp className="w-4 h-4 mr-1" />
-                        {mall.likes || 0}
-                      </span>
-                      <span className="flex items-center">
-                        <Users className="w-4 h-4 mr-1" />
-                        {mall.followers || 0}
-                      </span>
-                      {mall.location && (
-                        <span className="flex items-center">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {mall.location.address}
-                        </span>
-                      )}
-                    </div>
-                    <Button
-                      onClick={() => navigate(`/space/${mall.id}`)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      방문하기
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-1 mt-3">
-                    {mall.tags?.map(tag => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </Card>
+            {/* 👈 PeermallCard를 리스트 형태로 사용 */}
+            <PeermallCard
+              {...mall}
+              isPopular={mall.featured}
+              isFamilyCertified={mall.certified}
+              isRecommended={mall.recommended}
+              onShowQrCode={onShowQrCode}
+              onOpenMap={onOpenMap}
+              className="w-full" // 리스트 뷰용 스타일
+            />
           </motion.div>
         ))}
       </div>
@@ -290,53 +195,16 @@ const PeermallViewRenderer = ({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.05 }}
-            className="group cursor-pointer"
-            onClick={() => navigate(`/space/${mall.id}`)}
           >
-            <div className="relative overflow-hidden rounded-lg aspect-square">
-              <img
-                src={mall.imageUrl || '/placeholder-shop.jpg'}
-                alt={mall.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.onerror = null; 
-                  target.src = '/placeholder-shop.jpg'; 
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute inset-0 p-4 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <h3 className="text-white font-semibold mb-1 line-clamp-2">{mall.title}</h3>
-                <div className="flex items-center justify-between text-white/80 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <Star className="w-3 h-3" />
-                    <span>{mall.rating || 0}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <ThumbsUp className="w-3 h-3" />
-                    <span>{mall.likes || 0}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute top-3 left-3">
-                <Badge className="bg-white/90 text-gray-700 text-xs">
-                  {mall.category || '일반'}
-                </Badge>
-              </div>
-              <div className="absolute top-3 right-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onShowQrCode(mall.id, mall.title);
-                  }}
-                  className="p-1 h-auto bg-white/20 hover:bg-white/30 text-white"
-                >
-                  <Share2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
+            <PeermallCard
+              {...mall}
+              isPopular={mall.featured}
+              isFamilyCertified={mall.certified}
+              isRecommended={mall.recommended}
+              onShowQrCode={onShowQrCode}
+              onOpenMap={onOpenMap}
+              className="aspect-square" // 갤러리 뷰용 스타일
+            />
           </motion.div>
         ))}
       </div>
@@ -354,100 +222,15 @@ const PeermallViewRenderer = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Card className={`${designTokens.elevation.feature} overflow-hidden bg-white/90 backdrop-blur-sm`}>
-              <div className="relative">
-                <img
-                  src={mall.imageUrl || '/api/placeholder/800/400'}
-                  alt={mall.title}
-                  className="w-full h-64 sm:h-80 object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {mall.tags?.map(tag => (
-                      <Badge key={tag} className="bg-white/20 text-white border-white/30">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">{mall.title}</h2>
-                  <div className="flex items-center space-x-4 text-white/80 text-sm">
-                    <span className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      {mall.createdAt ? new Date(mall.createdAt).toLocaleDateString('ko-KR') : '최근'}
-                    </span>
-                    <span className="flex items-center">
-                      <Users className="w-4 h-4 mr-1" />
-                      {mall.owner || '익명'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <CardContent className="p-6">
-                <p className="text-gray-700 text-lg leading-relaxed mb-6 line-clamp-3">
-                  {mall.description}
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-6">
-                    <div className="flex items-center space-x-2 text-gray-600">
-                      <Star className="w-5 h-5 text-yellow-500" />
-                      <span className="font-medium">{mall.rating || 0}</span>
-                      <span className="text-sm">({mall.reviewCount || 0}개 리뷰)</span>
-                    </div>
-                    <div className="flex items-center space-x-4 text-gray-600">
-                      <span className="flex items-center">
-                        <ThumbsUp className="w-4 h-4 mr-1" />
-                        {mall.likes || 0}
-                      </span>
-                      <span className="flex items-center">
-                        <MessageCircle className="w-4 h-4 mr-1" />
-                        {mall.reviewCount || 0}
-                      </span>
-                      <span className="flex items-center">
-                        <Users className="w-4 h-4 mr-1" />
-                        {mall.followers || 0}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onShowQrCode(mall.id, mall.title)}
-                    >
-                      <Share2 className="w-4 h-4 mr-2" />
-                      공유
-                    </Button>
-                    <Button
-                      onClick={() => navigate(`/space/${mall.id}`)}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
-                    >
-                      자세히 보기
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
-                </div>
-                {mall.location && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg flex items-center">
-                    <MapPin className="w-4 h-4 text-gray-600 mr-2" />
-                    <span className="text-sm text-gray-600">{mall.location.address}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onOpenMap({
-                        title: mall.title,
-                        lat: mall.location.lat,
-                        lng: mall.location.lng,
-                        address: mall.location.address
-                      })}
-                      className="ml-auto text-blue-600 hover:text-blue-700"
-                    >
-                      지도에서 보기
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <PeermallCard
+              {...mall}
+              isPopular={mall.featured}
+              isFamilyCertified={mall.certified}
+              isRecommended={mall.recommended}
+              onShowQrCode={onShowQrCode}
+              onOpenMap={onOpenMap}
+              className="w-full max-w-4xl mx-auto" // 블로그 뷰용 스타일
+            />
           </motion.div>
         ))}
       </div>
