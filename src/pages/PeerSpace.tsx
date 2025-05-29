@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useParams, useNavigate } from 'react-router-dom';
+import { useLocation, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { PeerMallConfig, SectionType } from '@/types/space';
 import { Peermall } from '@/types/peermall';
@@ -11,6 +11,7 @@ import { storage } from '@/utils/storage/storage';
 import { STORAGE_KEYS } from '@/utils/storage/constants';
 import ProductDetailPage from '@/components/peer-space/products/ProductDetailPage';
 import { getProductById } from '@/services/storage/productStorage';
+import { getPeerMallData } from '@/services/peerMallService';
 
 // Peermall 타입을 다시 export하여 컴포넌트 전체에서 일관되게 사용
 export type { Peermall } from '@/types/peermall';
@@ -63,6 +64,8 @@ const PeerSpace = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | number | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [ searchParams ] = useSearchParams();
+  const peerMallKey = searchParams.get('mk');
 
   // selectedProductId가 변경될 때마다 제품 데이터 로드
   useEffect(() => {
@@ -80,18 +83,17 @@ const PeerSpace = () => {
 
       setIsLoading(true);
       try {
-        // 1. Load basic peermall details using peermallStorage
-        const peermallData = peermallStorage.getById(address);
+        const peermallData = await getPeerMallData(address, peerMallKey);
 
-        // if (!peermallData) {
-        //   toast({
-        //     title: '피어몰을 찾을 수 없습니다',
-        //     description: '요청하신 피어몰이 존재하지 않거나 삭제되었습니다.',
-        //     variant: 'destructive',
-        //   });
-        //   navigate('/');
-        //   return;
-        // }
+        if (!peermallData) {
+          toast({
+            title: '피어몰을 찾을 수 없습니다',
+            description: '요청하신 피어몰이 존재하지 않거나 삭제되었습니다.',
+            variant: 'destructive',
+          });
+          navigate('/');
+          return;
+        }
         setPeermall(peermallData);
 
         // 🔥 수정: 피어몰 데이터를 기반으로 PeerSpace 설정 생성
@@ -209,7 +211,7 @@ const PeerSpace = () => {
     // Update URL but don't reload the page
     let path = `/space/${address}`;
     if (section !== 'home') {
-      path += `/${section}`;
+      path += `/${section}?mk=${peerMallKey}`;
     }
     navigate(path, { replace: true });
   };

@@ -9,7 +9,7 @@ import CommunitySection from './CommunitySection';
 import GuestbookSection from './GuestbookSection';
 import FollowingSection from './FollowingSection';
 import PeerSpaceContentSection from './PeerSpaceContentSection';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 interface PeerSpaceHomeSectionProps {
   isOwner: boolean;
@@ -41,6 +41,8 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
   handleShowProductForm,
 }) => {
   const navigate = useNavigate();
+  const [ searchParams ] = useSearchParams();
+  const peerMallKey = searchParams.get('mk');
 
   const handleProductDetailView = (productId: string | number) => {
     navigate(`/space/${address}/product/${productId}`);
@@ -48,7 +50,7 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
 
   const filteredProducts = useMemo(() =>
     products.filter(product =>
-      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.description.toLowerCase().includes(searchQuery.toLowerCase())
     ).map(content => ({
       ...content,
@@ -94,6 +96,8 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
                   handleShowProductForm={handleShowProductForm}
                   filteredProducts={filteredProducts}
                   onDetailView={handleProductDetailView}
+                  peerMallName={address}
+                  peerMallKey={peerMallKey}
                 />
 
                 {/* <CommunitySection

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
@@ -69,6 +69,7 @@ import {
 } from './data/homeMockData';
 import { saveSectionOrder, getSectionOrder, getSectionDisplayName } from './utils/peerSpaceUtils';
 import { peermallStorage } from '@/services/storage/peermallStorage';
+import productService from '@/services/productService';
 
 interface PeerSpaceHomeProps {
   isOwner: boolean;
@@ -111,26 +112,26 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
   const [showWidgets, setShowWidgets] = useState(true);
   const [showMapModal, setShowMapModal] = useState(false);
+  const [ searchParams ] = useSearchParams();
+  const peerMallKey = searchParams.get('mk');
 
   useEffect(() => {
     const loadContents = async () => {
       if (address) {
         try {
-          // 🔥 추가: 피어몰 데이터와 설정 동기화 확인
-          const currentPeermall = peermallStorage.getById(address);
-          if (currentPeermall && config) {
-            // 설정이 피어몰 데이터와 다르면 업데이트
-            if (config.title !== currentPeermall.title || 
-                config.owner !== currentPeermall.owner ||
-                config.profileImage !== currentPeermall.imageUrl) {
+            if (peermall && config) {
+              // 설정이 피어몰 데이터와 다르면 업데이트
+              if (config.peerMallName !== peermall.peerMallName || 
+                config.ownerName !== peermall.ownerName ||
+                config.profileImage !== peermall.imageUrl) {
               
               const updatedConfig = {
                 ...config,
-                title: currentPeermall.title,
-                owner: currentPeermall.owner,
-                profileImage: currentPeermall.imageUrl,
-                followers: currentPeermall.followers || config.followers,
-                recommendations: currentPeermall.likes || config.recommendations
+                peerMallName: peermall.peerMallName,
+                ownerName: peermall.ownerName,
+                profileImage: peermall.imageUrl,
+                followers: peermall.followers || config.followers,
+                recommendations: peermall.likes || config.recommendations
               };
               
               onUpdateConfig(updatedConfig);
@@ -138,24 +139,10 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             }
           }
           
-          const storedSections = getSectionOrder(address, config.sections);
-          setSections(storedSections);
-          
-          const storedHiddenSections = localStorage.getItem(`peer_space_${address}_hidden_sections`);
-          if (storedHiddenSections) {
-            setHiddenSections(JSON.parse(storedHiddenSections));
-          }
+          let loadedProducts = await productService.getProductList(address, peerMallKey);
+          setProducts(loadedProducts['productList']);
         } catch (error) {
           console.error("Error loading contents:", error);
-          
-          // 오류 시 더미 데이터 사용
-          const mockProducts = generateMockProducts(8);
-          const mockPosts = generateMockPosts(12);
-          const dummyContents = [...mockProducts, ...mockPosts];
-          
-          setContents(dummyContents);
-          setProducts(mockProducts);
-          setPosts(mockPosts);
         }
       }
     };
@@ -169,139 +156,8 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
     return () => clearInterval(slideInterval);
   }, [address, config.sections]);
 
-  useEffect(() => {
-    if (address) {
-      localStorage.setItem(`peer_space_${address}_hidden_sections`, JSON.stringify(hiddenSections));
-    }
-  }, [hiddenSections, address]);
-
-  const handleAddContent = async (formValues: ContentFormValues) => {
-    if (!address) return;
-    const now = new Date().toISOString();
-    const newContentData: Omit<Content, 'id' | 'createdAt' | 'updatedAt'> = {
-      peerSpaceAddress: address,
-      title: formValues.title,
-      description: formValues.description,
-      imageUrl: formValues.imageUrl || '',
-      type: formValues.type as ContentType,
-      date: now,
-      price: formValues.price ? Number(formValues.price) : 0,
-      likes: 0,
-      comments: 0,
-      views: 0,
-      saves: 0,
-      externalUrl: formValues.externalUrl || '',
-      tags: formValues.tags ? formValues.tags.split(',').map(tag => tag.trim()) : [],
-      category: formValues.category || '',
-      badges: [],
-      ecosystem: {},
-      attributes: {},
-    };
-    try {
-      const contentId = await createContent(newContentData);
-      const newFullContent: Content = {
-        ...newContentData,
-        id: contentId,
-        createdAt: now,
-        updatedAt: now,
-      };
-      
-      // 컨텐츠 업데이트
-      const updatedContents = [...contents, newFullContent];
-      setContents(updatedContents);
-      
-      // 타입에 따라 제품 또는 게시물 업데이트
-      if (newFullContent.type === 'product') {
-        if (isProduct(newFullContent)) {
-          setProducts([...products, newFullContent]);
-        } else {
-          console.warn("Product 타입이지만 필수 속성이 누락되었습니다.", newFullContent);
-        }
-      } else if (newFullContent.type === 'post' || newFullContent.type === 'article') {
-        setPosts([...posts, newFullContent]);
-      }
-      
-      toast({
-        title: "콘텐츠 추가 완료",
-        description: "새로운 콘텐츠가 성공적으로 등록되었습니다.",
-      });
-    } catch (error) {
-      console.error("콘텐츠 생성 오류:", error);
-      toast({
-        title: "콘텐츠 추가 실패",
-        description: "콘텐츠 등록 중 오류가 발생했습니다.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleToggleSectionVisibility = (section: SectionType) => {
-    if (hiddenSections.includes(section)) {
-      setHiddenSections(hiddenSections.filter(s => s !== section));
-      toast({ title: "섹션 표시", description: `${getSectionDisplayName(section)} 섹션이 표시됩니다.` });
-    } else {
-      setHiddenSections([...hiddenSections, section]);
-      toast({ title: "섹션 숨김", description: `${getSectionDisplayName(section)} 섹션이 숨겨졌습니다.` });
-    }
-  };
-
-  const handleMoveSectionUp = (index: number) => {
-    if (index <= 0) return;
-    const newSections = [...sections];
-    [newSections[index - 1], newSections[index]] = [newSections[index], newSections[index - 1]];
-    setSections(newSections);
-    saveSectionOrder(address, newSections);
-  };
-  
-  const handleMoveSectionDown = (index: number) => {
-    if (index >= sections.length - 1) return;
-    const newSections = [...sections];
-    [newSections[index + 1], newSections[index]] = [newSections[index], newSections[index + 1]];
-    setSections(newSections);
-    saveSectionOrder(address, newSections);
-  };
-
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast({ title: "공유하기", description: "링크가 클립보드에 복사되었습니다." });
-  };
-
-  const handleFollow = () => {
-    const updatedConfig = { ...config, followers: (config.followers || 0) + 1 };
-    onUpdateConfig(updatedConfig);
-    toast({ title: "팔로우 완료", description: `${config.owner}님을 팔로우합니다.` });
-  };
-
-  const handleAddRecommendation = () => {
-    const updatedConfig = { ...config, recommendations: (config.recommendations || 0) + 1 };
-    onUpdateConfig(updatedConfig);
-    toast({ title: "추천 완료", description: "해당 피어스페이스를 추천하였습니다." });
-  };
-
-  const handleAddBadge = (badge: string) => {
-    if (config.badges.includes(badge)) {
-      toast({ title: "이미 추가된 뱃지", description: "이미 추가한 뱃지입니다.", variant: "destructive" });
-      return;
-    }
-    const updatedConfig = { ...config, badges: [...config.badges, badge] };
-    onUpdateConfig(updatedConfig);
-    toast({ title: "뱃지 추가 완료", description: "뱃지가 성공적으로 추가되었습니다." });
-  };
-
   const handleMessage = () => {
     toast({ title: "메시지 보내기", description: "메시지 창이 열렸습니다." });
-  };
-
-  const handleAddToFavorites = () => {
-    toast({ title: "찜하기 완료", description: "관심 목록에 추가되었습니다." });
-  };
-
-  const handleCall = () => {
-    toast({ title: "통화 연결", description: "통화 연결을 시도합니다." });
-  };
-
-  const handleAddFriend = () => {
-    toast({ title: "친구 추가", description: "친구 요청을 보냈습니다." });
   };
   
   const handleOpenMap = () => {
@@ -319,7 +175,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
 
   // 새 UI를 위한 필터된 콘텐츠
   const filteredProducts = products.filter(product => 
-    product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -351,11 +207,11 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                 {config.profileImage ? (
                   <img src={config.profileImage} alt="Space logo" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="font-bold text-blue-500">{config.title.charAt(0)}</span>
+                  <span className="font-bold text-blue-500">{config.peerMallName.charAt(0)}</span>
                 )}
               </div>
               <div className="flex flex-col">
-                <h3 className="font-bold text-sm truncate max-w-[180px]">{config.title}</h3>
+                <h3 className="font-bold text-sm truncate max-w-[180px]">{config.peerMallName}</h3>
                 <span className="text-xs text-gray-500">{config.peerNumber}</span>
               </div>
             </Link>

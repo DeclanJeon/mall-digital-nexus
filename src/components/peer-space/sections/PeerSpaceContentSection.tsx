@@ -20,6 +20,8 @@ interface PeerSpaceContentSectionProps {
   handleShowProductForm: () => void;
   filteredProducts: Product[];
   onDetailView: (productId: string | number) => void;
+  peerMallName: string;
+  peerMallKey: string;
 }
 
 const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
@@ -31,6 +33,8 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
   setCurrentView,
   handleShowProductForm,
   filteredProducts,
+  peerMallName,
+  peerMallKey
 }) => {
   const navigate = useNavigate();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -51,7 +55,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
         id: product.id,
         title: product.title,
         peerSpaceAddress: product.peerSpaceAddress,
-        peermallId: product.peermallId,
+        peermallId: product.peerMallKey,
         address_match: product.peerSpaceAddress === address
       });
     });
@@ -66,8 +70,8 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
         addressMatch = product.peerSpaceAddress === address;
       } 
       // peerSpaceAddress가 없으면 peermallId로 fallback
-      else if (product.peermallId) {
-        addressMatch = product.peermallId === address;
+      else if (product.peerMallKey) {
+        addressMatch = product.peerMallKey === address;
       }
       // 둘 다 없으면 모든 상품 포함 (임시 - 개발 중)
       else {
@@ -79,7 +83,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
         isValidProduct,
         addressMatch,
         productAddress: product.peerSpaceAddress,
-        productPeermallId: product.peermallId,
+        productPeermallId: product.peerMallKey,
         targetAddress: address
       });
       
@@ -147,8 +151,9 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
     { value: 'price-desc', label: '가격 높은순' },
   ];
 
-  const handleProductDetailView = (productId: string | number) => {
-    navigate(`/space/${address}/product/${productId}`);
+  const handleProductDetailView = (productKey: string | number) => {
+    debugger;
+    navigate(`/space/${peerMallName}/product?mk=${peerMallKey}&pk=${productKey}`);
   };
 
   return (
@@ -265,13 +270,13 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
       </div>
 
       <div>
-        {filteredAndSortedProducts.length > 0 ? (
+        {filteredProducts.length > 0 ? (
           <motion.div
             layout
             className={`gap-6 ${currentView === 'list' ? 'space-y-4' : `grid ${viewOptions.find(v => v.key === currentView)?.cols}`}`}
           >
             <AnimatePresence mode="popLayout">
-              {filteredAndSortedProducts.map((product, index) => (
+              {filteredProducts.map((product, index) => (
                 <motion.div
                   key={`product-${product.id}-${index}`} // 더 안전한 key 생성
                   initial={{ opacity: 0, y: 20 }}
@@ -304,6 +309,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                     viewMode={currentView === 'list' ? 'list' : 'grid'}
                     cardSize={currentView.includes('grid') ? currentView.split('-')[1] as 'small' | 'medium' | 'large' : 'medium'}
                     onDetailView={handleProductDetailView}
+                    productKey={product.productKey}
                   />
                 </motion.div>
               ))}
@@ -330,36 +336,6 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
           </motion.div>
         )}
       </div>
-
-      {/* 🔧 개발용 디버깅 패널 (배포시 제거) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-8 p-4 bg-gray-100 rounded-lg text-sm">
-          <h4 className="font-semibold mb-2">🔧 개발자 디버깅 정보</h4>
-          <div className="grid grid-cols-2 gap-4 text-xs">
-            <div>
-              <p><strong>현재 주소:</strong> {address}</p>
-              <p><strong>전체 상품:</strong> {validProducts.length}개</p>
-              <p><strong>필터링된 상품:</strong> {filteredAndSortedProducts.length}개</p>
-            </div>
-            <div>
-              <p><strong>선택된 카테고리:</strong> {selectedCategory}</p>
-              <p><strong>정렬 방식:</strong> {sortOptions.find(opt => opt.value === sortBy)?.label}</p>
-              <p><strong>보기 모드:</strong> {currentView}</p>
-            </div>
-          </div>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="mt-2"
-            onClick={() => {
-              console.log('🔍 현재 상품 데이터:', validProducts);
-              console.log('🔍 필터링된 상품:', filteredAndSortedProducts);
-            }}
-          >
-            콘솔에 데이터 출력
-          </Button>
-        </div>
-      )}
     </motion.div>
   );
 };
