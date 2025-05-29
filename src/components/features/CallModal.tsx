@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,10 +16,11 @@ import {
   MessageSquare,
   PhoneOff
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface CallModalProps {
   open: boolean;
+  owner: string;
+  peerMallKey: string;
   onOpenChange: (open: boolean) => void;
   location: {
     title: string;
@@ -35,6 +36,8 @@ interface CallModalProps {
 const CallModal: React.FC<CallModalProps> = ({
   open,
   onOpenChange,
+  owner,
+  peerMallKey,
   location
 }) => {
   const [callStatus, setCallStatus] = useState<'idle' | 'calling' | 'connected' | 'ended'>('idle');
@@ -45,18 +48,25 @@ const CallModal: React.FC<CallModalProps> = ({
     setCallStatus('calling');
     
     // 실제 통화 연결 시뮬레이션
-    setTimeout(() => {
+    const timerId = setTimeout(() => {
       setCallStatus('connected');
       
       // 통화 시간 카운터 시작
       const timer = setInterval(() => {
         setCallDuration(prev => prev + 1);
       }, 1000);
+
+      // 새 창에서 통화 페이지 열기
+      const url = `https://peerterra.com/one/channel/${owner}?mk=${peerMallKey}`;
+      window.open(url, '_blank');
       
       // 컴포넌트 언마운트 시 타이머 정리
       return () => clearInterval(timer);
     }, 2000);
-  }, []);
+
+    // 컴포넌트 언마운트 시 타이머 정리
+    return () => clearTimeout(timerId);
+  }, [owner, peerMallKey]);
 
   // 🎯 통화 종료 핸들러
   const handleEndCall = useCallback(() => {

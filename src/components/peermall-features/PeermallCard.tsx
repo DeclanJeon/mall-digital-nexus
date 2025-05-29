@@ -31,26 +31,6 @@ interface PeermallCardProps extends Peermall {
   onOpenMap?: (location: { lat: number; lng: number; address: string; title: string }) => void;
 }
 
-// 🎨 프리미엄 디자인 토큰
-const premiumTokens = {
-  gradients: {
-    primary: "from-blue-600 via-indigo-600 to-purple-700",
-    secondary: "from-amber-500 to-pink-500",
-    success: "from-green-500 to-emerald-600",
-    danger: "from-rose-500 to-pink-600",
-    premium: "from-amber-400 via-rose-500 to-fuchsia-600"
-  },
-  shadows: {
-    glow: "shadow-[0_0_30px_rgba(99,102,241,0.3)] dark:shadow-[0_0_30px_rgba(139,92,246,0.5)]",
-    luxury: "shadow-xl shadow-blue-500/10 dark:shadow-purple-500/20",
-    hover: "hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-300"
-  },
-  animations: {
-    float: "hover:-translate-y-1 transition-transform duration-300",
-    pulse: "animate-pulse"
-  }
-};
-
 const PeermallCard: React.FC<PeermallCardProps> = memo(({
   id,
   title,
@@ -89,7 +69,6 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
 
   // 이미지 에러 핸들링
@@ -114,25 +93,6 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
     // TODO: 서버에 좋아요 상태 저장
   }, [isLiked]);
 
-  // 팔로우 토글
-  const toggleFollow = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const newIsFollowing = !isFollowing;
-    setIsFollowing(newIsFollowing);
-    
-    // 팔로워 수 업데이트
-    setCurrentFollowers(prev => newIsFollowing ? prev + 1 : Math.max(0, prev - 1));
-    
-    toast({
-      title: newIsFollowing ? "팔로우했습니다" : "팔로우를 취소했습니다",
-      description: newIsFollowing 
-        ? `${owner}님의 새로운 소식을 받아볼 수 있습니다.` 
-        : `${owner}님의 소식을 더 이상 받아보지 않습니다.`,
-    });
-  }, [isFollowing, owner, toast]);
-
   // QR 코드 표시
   const showQrCode = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -148,51 +108,6 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
       });
     }
   }, [id, onShowQrCode, title, toast]);
-
-  // 지도에서 보기
-  const showOnMap = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (onOpenMap && rest.location) {
-      onOpenMap({
-        ...rest.location,
-        title,
-      });
-    } else {
-      toast({
-        title: "지도",
-        description: "이 상점의 위치 정보를 가져올 수 없습니다.",
-        variant: "destructive",
-      });
-    }
-  }, [onOpenMap, rest.location, title, toast]);
-
-  const handleShare = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const shareData = {
-      title: peerMallName,
-      text: `✨ ${peerMallName} - ${owner}의 프리미엄 피어몰을 확인해보세요!`,
-      url: `${window.location.origin}/space/${peerMallKey}`
-    };
-
-    if (navigator.share && navigator.canShare?.(shareData)) {
-      navigator.share(shareData).catch(err => console.log('Share failed:', err));
-    } else {
-      navigator.clipboard.writeText(shareData.url)
-        .then(() => toast({
-          title: "🔗 프리미엄 링크 복사 완료",
-          description: "친구들과 공유해보세요!",
-        }))
-        .catch(() => toast({
-          variant: "destructive",
-          title: "복사 실패",
-          description: "링크 복사에 실패했습니다."
-        }));
-    }
-  }, [id, peerMallName, owner, toast]);
 
   // 통화하기
   const handleQuickCall = useCallback((e: React.MouseEvent) => {
@@ -211,32 +126,6 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
     setIsMessageModalOpen(true);
   }, []);
 
-  // 메시지 전송
-  const handleSendMessage = useCallback(() => {
-    if (!message.trim()) {
-      toast({
-        variant: "destructive",
-        title: "메시지를 입력해주세요",
-        description: "메시지 내용이 비어있습니다.",
-      });
-      return;
-    }
-
-    setIsSending(true);
-    
-    // TODO: 메시지 전송 API 호출
-    setTimeout(() => {
-      setIsSending(false);
-      setIsMessageModalOpen(false);
-      setMessage("");
-      
-      toast({
-        title: "메시지 전송 성공",
-        description: `${owner}님에게 메시지를 보냈습니다.`
-      });
-    }, 1000);
-  }, [message, owner, toast]);
-
   useEffect(() => {
     if (initialLikes !== undefined) {
       setCurrentLikes(initialLikes);
@@ -250,80 +139,79 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
         className={cn("relative group", className)}
-        onHoverStart={() => setIsHovered(true)}
-        onHoverEnd={() => setIsHovered(false)}
       >
-        <Link to={`/space/${peerMallName}?mk=${peerMallKey}`} className="block h-full">
-          <Card className="h-full overflow-hidden transition-shadow duration-300 hover:shadow-lg">
-            {/* 이미지 영역 */}
-            <div className="relative aspect-video bg-gray-100 overflow-hidden">
+        <Card className="h-full overflow-hidden transition-shadow duration-300 hover:shadow-lg">
+          {/* 이미지 영역 */}
+          <div className="relative aspect-video bg-gray-100 overflow-hidden">
+            <Link to={`/space/${peerMallName}?mk=${peerMallKey}`} className="block h-full">
               <img
                 src={displayImageUrl}
                 alt={peerMallName}
                 className="w-full h-full object-cover"
                 onError={handleImageError}
               />
-              
-              {/* 배지들 */}
-              <div className="absolute top-2 left-2 flex flex-col items-start gap-1">
-                {isPopular && (
-                  <Badge variant="secondary" className="bg-amber-500 text-white">
-                    <Flame className="w-3 h-3 mr-1" /> 인기
-                  </Badge>
-                )}
-                {isFamilyCertified && (
-                  <Badge variant="secondary" className="bg-blue-500 text-white">
-                    <BadgeCheck className="w-3 h-3 mr-1" /> 패밀리 인증
-                  </Badge>
-                )}
-                {isRecommended && (
-                  <Badge variant="secondary" className="bg-green-500 text-white">
-                    <Award className="w-3 h-3 mr-1" /> 추천
-                  </Badge>
-                )}
-              </div>
-              
-              {/* 호버 시 액션 버튼들 */}
-              <div className={cn(
-                "absolute inset-0 bg-black/50 flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-                isHovered && "opacity-100"
-              )}>
+            </Link>
+            
+            {/* 배지들 */}
+            <div className="absolute top-2 left-2 flex flex-col items-start gap-1">
+              {isPopular && (
+                <Badge variant="secondary" className="bg-amber-500 text-white">
+                  <Flame className="w-3 h-3 mr-1" /> 인기
+                </Badge>
+              )}
+              {isFamilyCertified && (
+                <Badge variant="secondary" className="bg-blue-500 text-white">
+                  <BadgeCheck className="w-3 h-3 mr-1" /> 패밀리 인증
+                </Badge>
+              )}
+              {isRecommended && (
+                <Badge variant="secondary" className="bg-green-500 text-white">
+                  <Award className="w-3 h-3 mr-1" /> 추천
+                </Badge>
+              )}
+            </div>
+            
+            {/* 🎯 항상 보이는 액션 버튼들 - 우측 상단 */}
+            <div className="absolute top-2 right-2 flex flex-col gap-2">
+              {/* QR 코드 버튼 */}
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-md backdrop-blur-sm border-white/50"
+                onClick={showQrCode}
+                title="QR 코드 보기"
+              >
+                <QrCode className="h-4 w-4 text-gray-700" />
+              </Button>
 
-                {isAuthenticated && ( 
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    className="rounded-full bg-white/90 hover:bg-white"
-                    onClick={handleQuickCall}
-                  >
-                    <Phone className="h-4 w-4" />
-                  </Button>
-                )}
-
-                {isAuthenticated && (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-full bg-white/90 hover:bg-white"
-                    onClick={handleQuickMessage}
-                  >
-                    <MessageSquare className="h-4 w-4" />
-                  </Button>
-                )}
-
-                
+              {/* 통화 버튼 - 로그인한 사용자만 */}
                 <Button 
                   variant="outline" 
                   size="icon" 
-                  className="rounded-full bg-white/90 hover:bg-white"
-                  onClick={showQrCode}
+                  className="w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-md backdrop-blur-sm border-white/50"
+                  onClick={handleQuickCall}
+                  title="통화하기"
                 >
-                  <QrCode className="h-4 w-4" />
+                  <Phone className="h-4 w-4 text-green-600" />
                 </Button>
-              </div>
+              
+
+              {/* 메시지 버튼 - 로그인한 사용자만 */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-md backdrop-blur-sm border-white/50"
+                  onClick={handleQuickMessage}
+                  title="메시지 보내기"
+                >
+                  <MessageSquare className="h-4 w-4 text-blue-600" />
+                </Button>
+              
             </div>
-            
-            {/* 내용 영역 */}
+          </div>
+          
+          {/* 내용 영역 */}
+          <Link to={`/space/${id}`} className="block">
             <CardContent className="p-4">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-semibold text-lg line-clamp-1">{peerMallName}</h3>
@@ -343,78 +231,45 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
                 ))}
               </div>
               
+              {/* 🎯 하단 정보 및 좋아요 버튼 */}
               <div className="flex items-center justify-between text-sm text-gray-500">
                 <div className="flex items-center">
                   <User className="h-4 w-4 mr-1" />
                   <span>{ownerName}</span>
                 </div>
-                <div className="flex items-center">
+                
+                {/* 좋아요 버튼 */}
+                <button
+                  onClick={toggleLike}
+                  className="flex items-center gap-1 hover:text-red-500 transition-colors"
+                  title={isLiked ? "좋아요 취소" : "좋아요"}
+                >
                   <Heart className={cn(
-                    "h-4 w-4 mr-1",
-                    isLiked ? "fill-red-500 text-red-500" : "text-gray-400"
+                    "h-4 w-4 transition-colors",
+                    isLiked ? "fill-red-500 text-red-500" : "text-gray-400 hover:text-red-400"
                   )} />
-                  <span>{currentLikes}</span>
-                </div>
+                  <span className={isLiked ? "text-red-500" : ""}>{currentLikes}</span>
+                </button>
               </div>
             </CardContent>
-          </Card>
-        </Link>
+          </Link>
+        </Card>
       </motion.div>
       
-      {/* 하단 버튼 그룹 */}
-      {/* <div className="absolute bottom-4 right-4 flex space-x-2 z-10">
-        {onShowQrCode && (
-          <Button
-            size="icon" 
-            className="rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-all duration-300 text-gray-700 hover:text-blue-600"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onShowQrCode(id, title);
-            }}
-          >
-            <QrCode className="h-5 w-5" />
-          </Button>
-        )}
-        {isAuthenticated && (
-          <Button
-            size="icon"
-            className="rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-all duration-300 text-gray-700 hover:text-green-600"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsCallModalOpen(true);
-            }}
-          >
-            <Phone className="h-5 w-5" />
-          </Button>
-        )}
-        {isAuthenticated && (
-          <Button
-            size="icon"
-            className="rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-all duration-300 text-gray-700 hover:text-purple-600"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsMessageModalOpen(true);
-            }}
-          >
-            <MessageSquare className="h-5 w-5" />
-          </Button>
-        )}
-      </div> */}
-      
       {/* 통화 모달 */}
+
       {/* <CallModal 
-        open={isCallModalOpen} 
-        onOpenChange={setIsCallModalOpen} 
+        open={isCallModalOpen}
+        owner={owner}
+        peerMallKey={peerMallKey}
+        onOpenChange={setIsCallModalOpen}
         location={{
-          title: title || '상점',
-          owner: owner || '점주',
-          phone: phone || '010-1234-5678',
+          title,
+          owner,
+          phone,
           imageUrl: displayImageUrl,
-          trustScore: 95,
-          responseTime: "즉시 응답",
+          trustScore: 4.8, 
+          responseTime: '즉시',
           isOnline: true
         }} 
       /> */}

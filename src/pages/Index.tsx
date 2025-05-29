@@ -27,6 +27,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import SearchAndFilterBar from '@/components/navigation/SearchAndFilterBar';
 import { getPeerMallList } from '@/services/peerMallService';
+import PeermallCard from '@/components/peermall-features/PeermallCard';
 
 interface Location {
   lat: number;
@@ -132,7 +133,7 @@ const PeermallViewRenderer = ({
 }) => {
   const navigate = useNavigate();
 
-  // 🎯 그리드 뷰 (기본)
+  // 🎯 그리드 뷰 (기본) - PeermallCard 사용
   if (viewMode === 'grid') {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -142,8 +143,8 @@ const PeermallViewRenderer = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="group"
           >
+
             <Card className={`${designTokens.elevation.interactive} overflow-hidden bg-white/80 backdrop-blur-sm`}>
               <div className="relative overflow-hidden">
                 <img
@@ -190,13 +191,24 @@ const PeermallViewRenderer = ({
                 </div>
               </CardContent>
             </Card>
+
+            {/* 👈 기존 Card 대신 PeermallCard 사용 TO-BE*/}
+            {/* <PeermallCard
+              {...mall}
+              isPopular={mall.featured}
+              isFamilyCertified={mall.certified}
+              isRecommended={mall.recommended}
+              onShowQrCode={onShowQrCode}
+              onOpenMap={onOpenMap}
+            /> */}
+
           </motion.div>
         ))}
       </div>
     );
   }
 
-  // 📋 리스트 뷰
+  // 📋 리스트 뷰도 동일하게 수정
   if (viewMode === 'list') {
     return (
       <div className="space-y-4">
@@ -207,6 +219,7 @@ const PeermallViewRenderer = ({
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
           >
+
             <Card className={`${designTokens.elevation.card} overflow-hidden hover:shadow-lg transition-all duration-300`}>
               <div className="flex">
                 <img
@@ -275,6 +288,18 @@ const PeermallViewRenderer = ({
                 </div>
               </div>
             </Card>
+
+            {/* 👈 PeermallCard를 리스트 형태로 사용 TO-BE */}
+            {/* <PeermallCard
+              {...mall}
+              isPopular={mall.featured}
+              isFamilyCertified={mall.certified}
+              isRecommended={mall.recommended}
+              onShowQrCode={onShowQrCode}
+              onOpenMap={onOpenMap}
+              className="w-full" // 리스트 뷰용 스타일
+            /> */}
+
           </motion.div>
         ))}
       </div>
@@ -338,6 +363,16 @@ const PeermallViewRenderer = ({
                 </Button>
               </div>
             </div>
+            {/* <PeermallCard
+              {...mall}
+              isPopular={mall.featured}
+              isFamilyCertified={mall.certified}
+              isRecommended={mall.recommended}
+              onShowQrCode={onShowQrCode}
+              onOpenMap={onOpenMap}
+              className="aspect-square"
+            /> */}
+
           </motion.div>
         ))}
       </div>
@@ -355,6 +390,7 @@ const PeermallViewRenderer = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
+
             <Card className={`${designTokens.elevation.feature} overflow-hidden bg-white/90 backdrop-blur-sm`}>
               <div className="relative">
                 <img
@@ -449,6 +485,17 @@ const PeermallViewRenderer = ({
                 )}
               </CardContent>
             </Card>
+
+            {/* <PeermallCard
+              {...mall}
+              isPopular={mall.featured}
+              isFamilyCertified={mall.certified}
+              isRecommended={mall.recommended}
+              onShowQrCode={onShowQrCode}
+              onOpenMap={onOpenMap}
+              className="w-full max-w-4xl mx-auto"
+            /> */}
+
           </motion.div>
         ))}
       </div>
@@ -790,6 +837,8 @@ const Index = () => {
       navigate(`/space/${peermall['peerMallName']}?mk=${peermall['peerMallKey']}`);
     }
   }, [peermalls, navigate]);
+
+  
 
   // 🎨 뷰 모드 옵션 정의
   const viewModeOptions = [
@@ -1191,8 +1240,8 @@ const Index = () => {
                       viewMode="grid"
                       onDetailView={(productId) => {
                         const product = productsData.find(p => p.id === productId);
-                        if (product && product.peermallId) {
-                          navigate(`/space/${product.peermallId}/product/${productId}`);
+                        if (product && product.peerMallKey) {
+                          navigate(`/space/${product.peerMallKey}/product/${productId}`);
                         } else {
                           console.error('Product or peermallId not found:', productId);
                         }

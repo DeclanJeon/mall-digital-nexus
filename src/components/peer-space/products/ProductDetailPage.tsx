@@ -465,7 +465,7 @@ const ProductDetailPage: React.FC = () => {
 
                   {/* 평점 정보 */}
                   <div className="flex items-center gap-2 mt-3">
-                    <div className="flex items-center">
+                    {/* <div className="flex items-center">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
@@ -476,10 +476,10 @@ const ProductDetailPage: React.FC = () => {
                           }`}
                         />
                       ))}
-                    </div>
-                    <span className="text-sm text-gray-600">
+                    </div> */}
+                    {/* <span className="text-sm text-gray-600">
                       {product.rating?.toFixed(1) || '0.0'} ({product.reviewCount || 0}개 리뷰)
-                    </span>
+                    </span> */}
                   </div>
 
                   {/* 피어몰 정보 */}
@@ -526,7 +526,7 @@ const ProductDetailPage: React.FC = () => {
                     바로구매 💳
                   </Button>
                   
-                  <Button 
+                  {/* <Button 
                     variant="outline"
                     className="w-full py-4 border-purple-300 text-purple-600 hover:bg-purple-50 font-semibold rounded-xl transition-all duration-200" 
                     onClick={handleAddToCart}
@@ -534,7 +534,7 @@ const ProductDetailPage: React.FC = () => {
                   >
                     <ShoppingCart className="h-5 w-5 mr-2" />
                     장바구니 담기
-                  </Button>
+                  </Button> */}
                 </div>
 
                 <Separator className="my-6" />

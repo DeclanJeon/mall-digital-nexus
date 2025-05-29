@@ -29,6 +29,7 @@ interface ShoppingFilters {
   priceRange: number[];
   rating: number | null;
   status: string[];
+  searchQuery: string;
 }
 
 const ITEMS_PER_PAGE = 8;
@@ -43,6 +44,7 @@ const Shopping = () => {
     priceRange: [0, 100000],
     rating: 0,
     status: [],
+    searchQuery: '',
   });
 
   const [displayedPeermalls, setDisplayedPeermalls] = useState<Peermall[]>([]);
@@ -102,37 +104,47 @@ const Shopping = () => {
     { id: 'hobby', name: '취미', url: '/shopping?category=hobby' },
   ], []);
 
-  const popularTags = useMemo(() => [
-    { value: '베스트셀러', label: '베스트셀러' },
-    { value: '신규', label: '신규 상품' },
-    { value: '할인', label: '할인중' },
-    { value: '친환경', label: '친환경' },
-    { value: '수제품', label: '수제품' },
-  ], []);
-
   // 최적화된 핸들러 함수들
   const handleFilterChange = useCallback((newFilters: ShoppingFilters) => {
     setFilters(newFilters);
     console.log("Filters updated:", newFilters);
   }, []);
 
+  // 검색 및 필터링 로직 (searchQuery 추가)
+  const filteredProducts = useMemo(() => {
+    return productsData.filter(product => {
+      // 검색어 필터링 (제목, 설명, 태그에서 검색)
+      const searchQuery = filters.searchQuery;
+      const matchesSearch = searchQuery === '' || 
+        product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (product.tags && product.tags.some(tag => 
+          tag.toLowerCase().includes(searchQuery.toLowerCase())
+        ));
+      
+      // 카테고리 필터링
+      const matchesCategory = filters.categories.length === 0 || 
+        filters.categories.includes(product.category);
+      
+      // 가격 범위 필터링
+      const [minPrice, maxPrice] = filters.priceRange;
+      const matchesPrice = product.price >= minPrice && product.price <= maxPrice;
+      
+      // 평점 필터링
+      const matchesRating = !filters.rating || (product.rating && product.rating >= filters.rating);
+      
+      // 상태 필터링 (베스트셀러, 신규, 할인 등)
+      const matchesStatus = filters.status.length === 0 || 
+        (filters.status.includes('베스트셀러') && product.isBestSeller) ||
+        (filters.status.includes('신규') && product.isNew) ||
+        (filters.status.includes('할인') && product.discountPrice);
+      
+      return matchesSearch && matchesCategory && matchesPrice && matchesRating && matchesStatus;
+    });
+  }, [productsData, filters]);
+
   const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
     setViewMode(mode);
-  }, []);
-
-  const handleQuickFilter = useCallback((tag: string) => {
-    setFilters(prevFilters => {
-      switch (tag) {
-        case "베스트셀러":
-          return {...prevFilters, status: [...prevFilters.status, "베스트셀러"]};
-        case "신규":
-          return {...prevFilters, status: [...prevFilters.status, "신규"]};
-        case "할인":
-          return {...prevFilters, status: [...prevFilters.status, "할인"]};
-        default:
-          return {...prevFilters, categories: [...prevFilters.categories, tag]};
-      }
-    });
   }, []);
 
   const loadMorePeermalls = useCallback(() => {
@@ -202,6 +214,7 @@ const Shopping = () => {
     const loadProducts = () => {
       try {
         loadProductsInfo();
+
       } catch (error) {
         console.error('Error loading products:', error);
         setProductsData([]);
@@ -228,7 +241,7 @@ const Shopping = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg-100">
+    <div className="min-h-screen bg-gray-50">
       <main className="flex-grow">
         {/* Hero Carousel Section */}
         <Carousel className="relative" opts={{ loop: true }}>
@@ -283,14 +296,6 @@ const Shopping = () => {
         </Carousel>
 
         <div className="container mx-auto px-4 py-6">
-          {/* Category Navigation */}
-          <div className="mb-6">
-            <CategoryNav 
-              categories={categories} 
-              activeId={categories[0].id} 
-            />
-          </div>
-          
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Sidebar Filter - Hidden on Mobile */}
             <div className="hidden lg:block">
@@ -322,7 +327,18 @@ const Shopping = () => {
             <div className="lg:col-span-3">
               <Tabs defaultValue="products" className="w-full">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                  <div className="flex items-center gap-2">
+                  {/* <TabsList className="grid w-full grid-cols-2 lg:w-auto">
+                    <TabsTrigger value="products" className="flex items-center gap-2">
+                      <ShoppingBag className="h-4 w-4" />
+                      상품
+                    </TabsTrigger>
+                    <TabsTrigger value="peermalls" className="flex items-center gap-2">
+                      <LayoutGrid className="h-4 w-4" />
+                      피어몰
+                    </TabsTrigger>
+                  </TabsList> */}
+                  
+                  <div className="flex items-center gap-2 mt-4 sm:mt-0">
                     <Button
                       variant="outline"
                       size="sm"
@@ -355,46 +371,78 @@ const Shopping = () => {
                 
                 <Separator className="mb-4" />
                 
-                {/* Popular Tags - Mobile Only */}
-                <div className="lg:hidden mb-4">
-                  <div className="flex overflow-x-auto gap-2 py-2 scrollbar-hide">
-                    {popularTags.map(tag => (
-                      <Badge 
-                        key={tag.value} 
-                        variant="outline" 
-                        className="whitespace-nowrap cursor-pointer hover:bg-accent-100/10"
-                        onClick={() => handleQuickFilter(tag.label)}
-                      >
-                        {tag.label}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                
                 <div className="w-full"> 
                   <TabsContent value="products" className="mt-0">
-                    <ProductGrid 
-                      id="shopping-products"
-                      products={displayedProducts} 
-                      viewMode={viewMode} 
-                      filters={memoizedFilters}
-                      onDetailView={(productId) => {
-                        const product = productsData.find(p => p.id === productId);
-                        if (product && product.peermallId) {
-                          navigate(`/space/${product.peermallId}/product/${productId}`);
-                        } else {
-                          console.error('Product or peermallId not found:', productId);
-                        }
-                      }}
-                    />
-                    {hasMoreProducts && (
-                      <div className="mt-8 text-center">
-                        <Button onClick={loadMoreProducts}>더보기</Button>
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="text-sm text-gray-500">
+                        총 <span className="font-medium text-purple-600">{filteredProducts.length}</span>개의 상품
                       </div>
+                      {filters.searchQuery && (
+                        <Badge variant="outline" className="text-xs">
+                          검색: "{filters.searchQuery}"
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    {filteredProducts.length === 0 ? (
+                      <div className="text-center py-12">
+                        <div className="mx-auto h-12 w-12 text-gray-400 mb-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <h3 className="mt-2 text-lg font-medium text-gray-900">검색 결과가 없어요 😢</h3>
+                        <p className="mt-1 text-sm text-gray-500">
+                          다른 키워드로 검색하거나 필터를 조정해보세요!
+                        </p>
+                        <div className="mt-6">
+                          <Button
+                            onClick={() => {
+                              setFilters({
+                                categories: [],
+                                priceRange: [0, 100000],
+                                rating: 0,
+                                status: [],
+                                searchQuery: '',
+                              });
+                            }}
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                          >
+                            필터 초기화 🔄
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <ProductGrid 
+                        id="shopping-products"
+                        products={filteredProducts} 
+                        viewMode={viewMode} 
+                        filters={memoizedFilters}
+                        onDetailView={(productId) => {
+                          const product = productsData.find(p => p.id === productId);
+                          if (product && product.peerMallKey) {
+                            navigate(`/space/${product.peerMallKey}/product/${productId}`);
+                          } else {
+                            console.error('Product or peermallId not found:', productId);
+                          }
+                        }}
+                      />
+                    )}
+                    {hasMoreProducts && filteredProducts.length > 0 && (
+                      <Button
+                        variant="outline"
+                        onClick={loadMoreProducts}
+                        className="mt-6 w-full hover:bg-purple-50 hover:text-purple-600 transition-colors"
+                      >
+                        더 많은 상품 보기 ✨
+                      </Button>
                     )}
                   </TabsContent>
                   
                   <TabsContent value="peermalls" className="mt-0">
+                    <div className="text-sm text-gray-500 mb-4">
+                      총 <span className="font-medium text-purple-600">{displayedPeermalls.length}</span>개의 피어몰
+                    </div>
                     <PeermallGrid 
                       title="" 
                       malls={displayedPeermalls} 
@@ -405,7 +453,12 @@ const Shopping = () => {
                     />
                     {hasMorePeermalls && (
                       <div className="mt-8 text-center">
-                        <Button onClick={loadMorePeermalls}>더보기</Button>
+                        <Button 
+                          onClick={loadMorePeermalls}
+                          className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white"
+                        >
+                          더 많은 피어몰 보기 🏪
+                        </Button>
                       </div>
                     )}
                   </TabsContent>

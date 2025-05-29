@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ProductCard from '@/components/shopping/products/ProductCard';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 import { Grid2X2, List, Grid3X3, LayoutGrid, Rows3, Eye, Filter, SlidersHorizontal } from 'lucide-react';
 import { Content, PeerMallConfig } from '@/types/space';
@@ -37,6 +38,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
   peerMallKey
 }) => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [showFilters, setShowFilters] = useState(false);
@@ -177,7 +179,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {isOwner && (
+          {isAuthenticated && (
             <Button
               onClick={handleShowProductForm}
               className="bg-blue-500 hover:bg-blue-600 text-white"
@@ -325,7 +327,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
             <div className="text-6xl mb-4">🛍️</div>
             <p className="text-xl text-gray-500 mb-4">아직 등록된 제품이 없어요</p>
             <p className="text-gray-400 mb-6">첫 번째 멋진 제품을 등록해보세요!</p>
-            {isOwner && (
+            {isAuthenticated && (
               <Button 
                 onClick={handleShowProductForm} 
                 className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-medium px-8 py-3 rounded-full hover:scale-105 transition-all duration-300"

@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { 
@@ -11,7 +10,8 @@ import {
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { X, Search, Hash } from 'lucide-react';
 
 interface ShoppingFilterProps {
   onFilterChange: (filters: {
@@ -19,12 +19,14 @@ interface ShoppingFilterProps {
     priceRange: number[];
     rating: number | null;
     status: string[];
+    searchQuery: string;
   }) => void;
   initialFilters?: {
     categories: string[];
     priceRange: number[];
     rating: number | null;
     status: string[];
+    searchQuery?: string;
   };
 }
 
@@ -33,6 +35,7 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialFilters?.categories || []);
   const [selectedRating, setSelectedRating] = useState<number | null>(initialFilters?.rating || null);
   const [selectedStatus, setSelectedStatus] = useState<string[]>(initialFilters?.status || []);
+  const [searchQuery, setSearchQuery] = useState<string>(initialFilters?.searchQuery || '');
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   
   const categories = [
@@ -59,10 +62,43 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
     { id: 'new', label: '신규' },
     { id: 'discount', label: '할인중' },
   ];
+
+  // 인기 해시태그 목록
+  const popularHashtags = [
+    '#베스트셀러', '#신상품', '#할인중', '#친환경', 
+    '#수제품', '#디자인', '#유기농', '#핸드메이드',
+    '#프리미엄', '#건강식품', '#아트워크', '#빈티지'
+  ];
+  
+  // 검색어 변경 핸들러
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  }, []);
+
+  // 해시태그 클릭 핸들러
+  const handleHashtagClick = useCallback((hashtag: string) => {
+    const cleanTag = hashtag.replace('#', '');
+    if (searchQuery.includes(cleanTag)) {
+      // 이미 포함되어 있으면 제거
+      setSearchQuery(prev => prev.replace(cleanTag, '').trim());
+    } else {
+      // 포함되어 있지 않으면 추가
+      setSearchQuery(prev => prev ? `${prev} ${cleanTag}` : cleanTag);
+    }
+  }, [searchQuery]);
+
+  // 검색어 초기화
+  const clearSearch = useCallback(() => {
+    setSearchQuery('');
+  }, []);
   
   // Update activeFilters whenever any filter changes
   useEffect(() => {
     const newActiveFilters: string[] = [];
+    
+    if (searchQuery.trim()) {
+      newActiveFilters.push(`검색: "${searchQuery}"`);
+    }
     
     selectedCategories.forEach(cat => {
       if (cat !== '전체') newActiveFilters.push(cat);
@@ -81,7 +117,7 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
     
     setActiveFilters(newActiveFilters);
     
-  }, [selectedCategories, selectedRating, selectedStatus, priceRange]);
+  }, [selectedCategories, selectedRating, selectedStatus, priceRange, searchQuery]);
   
   // Call parent's onFilterChange whenever filters change
   useEffect(() => {
@@ -89,9 +125,10 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
       categories: selectedCategories,
       priceRange,
       rating: selectedRating,
-      status: selectedStatus
+      status: selectedStatus,
+      searchQuery
     });
-  }, [selectedCategories, priceRange, selectedRating, selectedStatus, onFilterChange]);
+  }, [selectedCategories, priceRange, selectedRating, selectedStatus, searchQuery, onFilterChange]);
   
   const handleCategoryChange = (category: string) => {
     if (category === '전체') {
@@ -119,7 +156,9 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
   
   const removeFilter = (filter: string) => {
     // Find which type of filter it is and remove it
-    if (categories.some(c => c.label === filter)) {
+    if (filter.startsWith('검색:')) {
+      setSearchQuery('');
+    } else if (categories.some(c => c.label === filter)) {
       setSelectedCategories(selectedCategories.filter(c => c !== filter));
     } else if (ratings.some(r => r.label === filter)) {
       setSelectedRating(null);
@@ -135,6 +174,7 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
     setPriceRange([0, 100000]);
     setSelectedRating(null);
     setSelectedStatus([]);
+    setSearchQuery('');
   };
   
   const formatPrice = (price: number) => {
@@ -150,35 +190,99 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
       categories: selectedCategories,
       priceRange,
       rating: selectedRating,
-      status: selectedStatus
+      status: selectedStatus,
+      searchQuery
     });
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-bold">필터</h2>
-        <Button variant="ghost" size="sm" onClick={clearFilters}>
-          초기화
-        </Button>
+    <div className="bg-white rounded-lg shadow-sm p-4 space-y-4">
+      {/* 검색 섹션 */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-bold flex items-center gap-2">
+          <Search className="h-5 w-5" />
+          검색 & 필터
+        </h2>
+        
+        {/* 검색창 */}
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-gray-400" />
+          </div>
+          <Input
+            type="text"
+            className="pl-10 pr-10"
+            placeholder="상품명, 해시태그로 검색..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
+          {searchQuery && (
+            <button
+              onClick={clearSearch}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-700 transition-colors"
+            >
+              <X className="h-4 w-4 text-gray-400" />
+            </button>
+          )}
+        </div>
+
+        {/* 인기 해시태그 */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-1 text-sm font-medium text-gray-700">
+            <Hash className="h-4 w-4" />
+            인기 해시태그
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {popularHashtags.map(hashtag => {
+              const isActive = searchQuery.includes(hashtag.replace('#', ''));
+              return (
+                <Badge 
+                  key={hashtag} 
+                  variant={isActive ? "default" : "outline"}
+                  className={`cursor-pointer text-xs transition-all hover:scale-105 ${
+                    isActive 
+                      ? 'bg-purple-100 text-purple-700 border-purple-200' 
+                      : 'hover:bg-gray-50'
+                  }`}
+                  onClick={() => handleHashtagClick(hashtag)}
+                >
+                  {hashtag}
+                </Badge>
+              );
+            })}
+          </div>
+        </div>
       </div>
-      
+
+      {/* 활성 필터 표시 */}
       {activeFilters.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-2">
-          {activeFilters.map(filter => (
-            <Badge key={filter} variant="outline" className="flex items-center gap-1 py-1">
-              {filter}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => removeFilter(filter)} />
-            </Badge>
-          ))}
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium text-gray-700">활성 필터</span>
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs">
+              전체 초기화
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {activeFilters.map(filter => (
+              <Badge key={filter} variant="secondary" className="flex items-center gap-1 py-1">
+                {filter}
+                <X 
+                  className="h-3 w-3 cursor-pointer hover:text-red-500 transition-colors" 
+                  onClick={() => removeFilter(filter)} 
+                />
+              </Badge>
+            ))}
+          </div>
         </div>
       )}
       
+      {/* 필터 아코디언 */}
       <Accordion type="multiple" defaultValue={["category", "price", "rating", "status"]}>
         <AccordionItem value="category">
           <AccordionTrigger>카테고리</AccordionTrigger>
           <AccordionContent>
-            <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
               {categories.map((category) => (
                 <div key={category.id} className="flex items-center space-x-2">
                   <Checkbox 
@@ -188,7 +292,7 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
                   />
                   <Label 
                     htmlFor={category.id} 
-                    className="cursor-pointer"
+                    className="cursor-pointer text-sm"
                   >
                     {category.label}
                   </Label>
@@ -199,7 +303,7 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
         </AccordionItem>
         
         {/* <AccordionItem value="price">
-          <AccordionTrigger>가격</AccordionTrigger>
+          <AccordionTrigger>가격 범위</AccordionTrigger>
           <AccordionContent>
             <div className="space-y-4">
               <Slider
@@ -209,9 +313,9 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
                 onValueChange={setPriceRange}
                 className="my-6"
               />
-              <div className="flex items-center justify-between">
-                <span>{formatPrice(priceRange[0])}</span>
-                <span>{formatPrice(priceRange[1])}</span>
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">{formatPrice(priceRange[0])}</span>
+                <span className="font-medium">{formatPrice(priceRange[1])}</span>
               </div>
             </div>
           </AccordionContent>
@@ -228,7 +332,7 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
                     checked={selectedRating === rating.value}
                     onCheckedChange={() => handleRatingChange(rating.value)}
                   />
-                  <Label htmlFor={rating.id} className="cursor-pointer">{rating.label}</Label>
+                  <Label htmlFor={rating.id} className="cursor-pointer text-sm">{rating.label}</Label>
                 </div>
               ))}
             </div>
@@ -236,7 +340,7 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
         </AccordionItem> */}
         
         {/* <AccordionItem value="status">
-          <AccordionTrigger>상태</AccordionTrigger>
+          <AccordionTrigger>상품 상태</AccordionTrigger>
           <AccordionContent>
             <div className="space-y-2">
               {statusOptions.map((option) => (
@@ -246,7 +350,7 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
                     checked={selectedStatus.includes(option.label)}
                     onCheckedChange={() => handleStatusChange(option.label)}
                   />
-                  <Label htmlFor={option.id} className="cursor-pointer">{option.label}</Label>
+                  <Label htmlFor={option.id} className="cursor-pointer text-sm">{option.label}</Label>
                 </div>
               ))}
             </div>
@@ -254,7 +358,9 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
         </AccordionItem> */}
       </Accordion>
       
-      <Button className="w-full mt-4" onClick={applyFilters}>적용</Button>
+      {/* <Button className="w-full mt-4" onClick={applyFilters}>
+        필터 적용하기 ✨
+      </Button> */}
     </div>
   );
 };

@@ -588,7 +588,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
   return (
     <div className={cn(
       "relative rounded-2xl overflow-hidden shadow-2xl",
-      mapFullscreen ? "fixed inset-0 z-[9999] w-screen" : "w-full",
+      mapFullscreen ? "fixed inset-0 z-[1000] w-full" : "w-100",
       // 반응형 높이 클래스 추가
       mapFullscreen ? "h-screen" : "h-full min-h-[250px]"
     )}>
@@ -1116,8 +1116,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
           trustScore: 0,
           responseTime: '',
           isOnline: false
-        }}
-      />
+        }} owner={''} peerMallKey={''}      />
 
       {/* 메시지 모달 */}
       {selectedLocationForAction && (

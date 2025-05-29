@@ -171,7 +171,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </AnimatePresence> */}
             
             {/* 찜하기 버튼 */}
-            <motion.button 
+            {/* <motion.button 
               className={cn(
                 'absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full',
                 'shadow-lg hover:shadow-xl transition-all duration-200',
@@ -184,7 +184,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
               <Heart 
                 className={cn('w-4 h-4', isWishlisted && 'fill-red-500')} 
               />
-            </motion.button>
+            </motion.button> */}
 
             {/* 할인 뱃지 */}
             {discountPrice && (
