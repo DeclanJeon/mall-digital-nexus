@@ -1,7 +1,9 @@
 import { Content, ContentType } from './space';
 
 export interface Product extends Content {
+  productKey: string;
   id: string;
+  name: string;
   title: string;
   owner: string;
   description: string;
@@ -12,8 +14,8 @@ export interface Product extends Content {
   imageUrl: string; // Content의 imageUrl이 optional이지만, Product에서는 필수
   rating: number;
   reviewCount: number;
-  peermallName: string;
-  peermallId?: string;
+  peerMallName: string;
+  peerMallKey?: string;
   category: string; // Content의 category가 optional이지만, Product에서는 필수
   tags: string[]; // Content의 tags가 optional이지만, Product에서는 필수
   isBestSeller?: boolean;
@@ -29,7 +31,7 @@ export interface Product extends Content {
 export function isProduct(content: Content): content is Product {
   return (content as Product).type === ContentType.Product &&
          (content as Product).reviewCount !== undefined &&
-         (content as Product).peermallName !== undefined;
+         (content as Product).peerMallName !== undefined;
 }
 
 export interface ProductCardProps {
@@ -47,6 +49,7 @@ export interface ProductCardProps {
   category?: string;
   tags?: string[];
   saleUrl?: string;
+  productKey: string;
 
   peerSpaceAddress?: string; // PeerSpace 주소 추가
   viewMode: 'grid' | 'list';
