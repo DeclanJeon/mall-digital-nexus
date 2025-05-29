@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: '::',
     port: 8080,
-    allowedHosts: ["2e2f1706-c6a1-48a6-ae32-e81be4d39721.lovableproject.com"]
+    allowedHosts: ["2e2f1706-c6a1-48a6-ae32-e81be4d39721.lovableproject.com", "https://peermall.com"]
   },
   plugins: [react(), mode === 'development' && componentTagger()].filter(
     Boolean
