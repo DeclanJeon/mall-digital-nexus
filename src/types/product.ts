@@ -44,8 +44,8 @@ export interface ProductCardProps {
   imageUrl: string;
   rating: number;
   reviewCount: number;
-  peermallName?: string;
-  peermallId?: string;
+  peerMallName?: string;
+  peerMallKey?: string;
   category?: string;
   tags?: string[];
   saleUrl?: string;

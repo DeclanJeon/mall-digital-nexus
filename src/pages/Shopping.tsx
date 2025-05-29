@@ -116,7 +116,7 @@ const Shopping = () => {
       // 검색어 필터링 (제목, 설명, 태그에서 검색)
       const searchQuery = filters.searchQuery;
       const matchesSearch = searchQuery === '' || 
-        product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (product.tags && product.tags.some(tag => 
           tag.toLowerCase().includes(searchQuery.toLowerCase())
@@ -182,8 +182,7 @@ const Shopping = () => {
 
   const loadProductsInfo = async () => {
     try {
-      const result = await productService.getAllProductList();
-      const allProducts = result['allProductList'];
+      const allProducts = await productService.getAllProductList();
       setProductsData(allProducts);
       setDisplayedProducts(allProducts.slice(0, ITEMS_PER_PAGE));
       setHasMoreProducts(allProducts.length > ITEMS_PER_PAGE);
@@ -418,12 +417,12 @@ const Shopping = () => {
                         products={filteredProducts} 
                         viewMode={viewMode} 
                         filters={memoizedFilters}
-                        onDetailView={(productId) => {
-                          const product = productsData.find(p => p.id === productId);
+                        onDetailView={(productKey) => {
+                          const product = productsData.find(p => p.productKey === productKey);
                           if (product && product.peerMallKey) {
-                            navigate(`/space/${product.peerMallKey}/product/${productId}`);
+                            navigate(`/space/${product.peerMallName}/product?mk=${product.peerMallKey}&pk=${productKey}`);
                           } else {
-                            console.error('Product or peermallId not found:', productId);
+                            console.error('Product or peermallId not found:', productKey);
                           }
                         }}
                       />

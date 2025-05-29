@@ -97,17 +97,17 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
   const showQrCode = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    if (onShowQrCode) {
-      onShowQrCode(id, title);
+
+    if (peerMallName) {
+      onShowQrCode(peerMallKey, peerMallName);
     } else {
       toast({
         title: "QR 코드",
-        description: `${title}의 QR 코드를 표시할 수 없습니다.`,
+        description: `${peerMallName}의 QR 코드를 표시할 수 없습니다.`,
         variant: "destructive",
       });
     }
-  }, [id, onShowQrCode, title, toast]);
+  }, [peerMallKey, onShowQrCode, peerMallName, toast]);
 
   // 통화하기
   const handleQuickCall = useCallback((e: React.MouseEvent) => {
