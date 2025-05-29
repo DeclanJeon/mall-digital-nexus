@@ -1154,7 +1154,7 @@ const Index = () => {
                           : '첫 번째 피어몰을 만들어 커뮤니티를 시작해보세요! 당신의 아이디어가 새로운 연결을 만들어낼 거예요.'
                         }
                       </p>
-                      {!searchQuery && (
+                      {/* {!searchQuery && (
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                           <Button 
                             onClick={() => navigate('/create-peermall')}
@@ -1172,7 +1172,7 @@ const Index = () => {
                             둘러보기
                           </Button>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   )}
                 </CardContent>

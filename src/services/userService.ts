@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // API 기본 URL
-const API_BASE_URL = 'https://api.peermall.com/v1/users';
+const API_BASE_URL = 'http://localhost:9393/v1/users';
 
 // API 호출을 위한 axios 인스턴스 생성
 const api = axios.create({

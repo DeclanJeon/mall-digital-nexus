@@ -168,7 +168,7 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             navigate('/');
           } else {
             // 기본 리디렉션
-            navigate('/my-info');
+            // navigate('/my-info');
           }
         } else {
           toast({
