@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   ArrowLeft, Star, Heart, Share2, ShoppingCart, Plus, Minus, 
   MessageCircle, Loader2, Send, Phone, Video, ThumbsUp, 
@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
+import productService from '@/services/productService';
 interface Review {
   id: string;
   userId: string;
@@ -51,15 +51,13 @@ interface Inquiry {
   timestamp: string;
 }
 
-const INQUIRIES_STORAGE_KEY = 'product_inquiries';
-
 const loadInquiries = (productId: string | number): Inquiry[] => {
   try {
-    const storedInquiries = localStorage.getItem(INQUIRIES_STORAGE_KEY);
-    if (storedInquiries) {
-      const allInquiries: Inquiry[] = JSON.parse(storedInquiries);
-      return allInquiries.filter(inquiry => inquiry.productId === productId);
-    }
+    // const storedInquiries = localStorage.getItem(INQUIRIES_STORAGE_KEY);
+    // if (storedInquiries) {
+    //   const allInquiries: Inquiry[] = JSON.parse(storedInquiries);
+    //   return allInquiries.filter(inquiry => inquiry.productId === productId);
+    // }
   } catch (error) {
     console.error("Failed to load inquiries from local storage", error);
   }
@@ -68,14 +66,17 @@ const loadInquiries = (productId: string | number): Inquiry[] => {
 
 const saveInquiries = (allInquiries: Inquiry[]) => {
   try {
-    localStorage.setItem(INQUIRIES_STORAGE_KEY, JSON.stringify(allInquiries));
+    //localStorage.setItem(INQUIRIES_STORAGE_KEY, JSON.stringify(allInquiries));
   } catch (error) {
     console.error("Failed to save inquiries to local storage", error);
   }
 };
 
 const ProductDetailPage: React.FC = () => { 
-  const { address, productId } = useParams<{ address: string; productId: string }>();
+  const { address } = useParams<{ address: string }>();
+  const [ searchParams ] = useSearchParams();
+  const peerMallKey = searchParams.get('mk');
+  const productKey = searchParams.get('pk');
   const navigate = useNavigate();
 
   // 상태들 - Product | undefined로 타입 수정
@@ -99,65 +100,36 @@ const ProductDetailPage: React.FC = () => {
   const [isOnline, setIsOnline] = useState(true);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
 
+  const loadProductInfo = async () => {
+    const result = await productService.getProductInfo(address, peerMallKey, productKey);
+    setProduct(result['productInfo']);
+  }
+
   // 상품 데이터 로드
   useEffect(() => {
-    const loadProduct = async () => {
-      if (!productId) {
-        setError('상품 ID가 제공되지 않았습니다.');
-        setIsLoading(false);
-        return;
-      }
+    setIsLoading(true);
 
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        console.log('Loading product with ID:', productId);
-        
-        // 모든 상품 목록 확인 (디버깅용)
-        const allProducts = getProducts();
-        console.log('All available products:', allProducts.map(p => ({ 
-          id: p.id, 
-          title: p.title 
-        })));
-        
-        const fetchedProduct = getProductById(productId);
-        
-        console.log('Fetched product:', fetchedProduct);
-        
-        if (fetchedProduct) {
-          setProduct(fetchedProduct);
-          loadMockReviews();
-        } else {
-          setError(`상품을 찾을 수 없습니다. (ID: ${productId})`);
-        }
-      } catch (err) {
-        console.error('Error loading product:', err);
-        setError('상품 정보를 불러오는 중 오류가 발생했습니다.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadProduct();
-  }, [productId]);
+    loadProductInfo();
+  
+    setIsLoading(false);
+  }, [productKey]);
 
   // 문의 데이터 로드
-  useEffect(() => {
-    if (productId) {
-      const loadedInquiries = loadInquiries(productId);
-      setInquiries(loadedInquiries);
-    }
-  }, [productId]);
+  // useEffect(() => {
+  //   if (productId) {
+  //     const loadedInquiries = loadInquiries(productId);
+  //     setInquiries(loadedInquiries);
+  //   }
+  // }, [productId]);
 
   // 문의 데이터 저장
-  useEffect(() => {
-    if (productId && inquiries.length > 0) {
-      const allInquiries = JSON.parse(localStorage.getItem(INQUIRIES_STORAGE_KEY) || '[]');
-      const otherProductInquiries = allInquiries.filter((inq: Inquiry) => inq.productId !== productId);
-      saveInquiries([...otherProductInquiries, ...inquiries]);
-    }
-  }, [inquiries, productId]);
+  // useEffect(() => {
+  //   if (productId && inquiries.length > 0) {
+  //     const allInquiries = JSON.parse(localStorage.getItem(INQUIRIES_STORAGE_KEY) || '[]');
+  //     const otherProductInquiries = allInquiries.filter((inq: Inquiry) => inq.productId !== productId);
+  //     saveInquiries([...otherProductInquiries, ...inquiries]);
+  //   }
+  // }, [inquiries, productId]);
 
   const loadMockReviews = () => {
     const mockReviews: Review[] = [
@@ -332,7 +304,7 @@ const ProductDetailPage: React.FC = () => {
 
     const inquiry: Inquiry = {
       id: Date.now().toString(),
-      productId: productId!,
+      productId: productKey,
       author: '나',
       content,
       timestamp: new Date().toLocaleString()
@@ -368,12 +340,6 @@ const ProductDetailPage: React.FC = () => {
           <p className="text-gray-600 mb-6">
             {error || '요청하신 상품 정보를 불러올 수 없습니다.'}
           </p>
-          <div className="space-y-2 mb-6">
-            <p className="text-sm text-gray-500">디버깅 정보:</p>
-            <p className="text-xs text-gray-400">Product ID: {productId}</p>
-            <p className="text-xs text-gray-400">Address: {address}</p>
-            <p className="text-xs text-gray-400">Total Products: {getProducts().length}</p>
-          </div>
           <Button onClick={handleBack} className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600">
             <ArrowLeft className="h-5 w-5" />
             뒤로 가기
@@ -391,23 +357,6 @@ const ProductDetailPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       <div className="container mx-auto py-4 px-4 lg:px-8">
-        {/* 디버깅 정보 (개발 중에만 표시) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <h4 className="font-semibold text-yellow-800 mb-2">디버깅 정보:</h4>
-            <pre className="text-xs text-yellow-700 overflow-auto">
-              {JSON.stringify({
-                productId,
-                address,
-                productTitle: product?.title,
-                productPrice: product?.price,
-                productImageUrl: product?.imageUrl,
-                productSaleUrl: product?.saleUrl,
-                totalProducts: getProducts().length
-              }, null, 2)}
-            </pre>
-          </div>
-        )}
 
         {/* 상단 네비게이션 */}
         <div className="flex items-center justify-between mb-6">
@@ -453,7 +402,7 @@ const ProductDetailPage: React.FC = () => {
 
               <div className="p-4">
                 <div className="flex gap-2 overflow-x-auto pb-2">
-                  {productImages.slice(0, 4).map((image, index) => (
+                  {/* {productImages.slice(0, 4).map((image, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImage(index)}
@@ -472,7 +421,7 @@ const ProductDetailPage: React.FC = () => {
                         }}
                       />
                     </button>
-                  ))}
+                  ))} */}
                 </div>
               </div>
             </Card>
@@ -534,9 +483,9 @@ const ProductDetailPage: React.FC = () => {
                   </div>
 
                   {/* 피어몰 정보 */}
-                  {product.peermallName && (
+                  {product.peerMallName && (
                     <p className="text-sm text-gray-600 mt-2">
-                      판매: {product.peermallName}
+                      판매: {product.peerMallName}
                     </p>
                   )}
 
@@ -604,8 +553,8 @@ const ProductDetailPage: React.FC = () => {
     size="lg"
     className="w-full flex items-center gap-2 py-3 border-purple-300 text-purple-600 hover:bg-purple-50 font-semibold rounded-xl transition-all duration-200 justify-center"
     onClick={() => {
-      if (product?.peerSpaceAddress) {
-        window.open(`https://peerterra.com/one/channel/${product.peerSpaceAddress}`, '_blank', 'noopener,noreferrer');
+      if (product?.productKey) {
+        window.open(`https://peerterra.com/one/channel/${address}/${product.name}?mk=${peerMallKey}&pk=${product.productKey}`, '_blank', 'noopener,noreferrer');
       } else {
         alert('피어몰 ID가 없습니다.');
       }
