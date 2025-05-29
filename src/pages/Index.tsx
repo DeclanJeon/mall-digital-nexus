@@ -769,9 +769,11 @@ const Index = () => {
     
     if (peermall) {
       // 상세 보기 로직 (필요시 구현)
-      navigate(`/space/${peermall.id}`);
+      // navigate(`/space/${peermall.id}`);
     }
   }, [peermalls, navigate]);
+
+  
 
   // 🎨 뷰 모드 옵션 정의
   const viewModeOptions = [
