@@ -57,7 +57,7 @@ const step1Schema = z.object({
     .regex(/^[a-zA-Z0-9-가-힣]+$/, { message: '한글, 영문 대소문자, 숫자, 하이픈(-)만 사용 가능합니다' }),
   name: z.string().min(2, { message: '피어몰 이름은 2자 이상이어야 합니다' }),
   description: z.string().min(10, { message: '설명은 10자 이상이어야 합니다' }),
-  representativeName: z.string().min(1, { message: '대표자 이름을 입력해주세요' }),
+  ownerName: z.string().min(1, { message: '대표자 이름을 입력해주세요' }),
   email: z.string().email({ message: '유효한 이메일을 입력해주세요' }),
 });
 
@@ -121,7 +121,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       address: '',
       name: '',
       description: '',
-      representativeName: '',
+      ownerName: '',
       email: '',
       membershipType: '', // Not in schema, consider removing or adding
       imageUrl: '',
@@ -159,7 +159,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       address: form.getValues('address'),
       name: form.getValues('name'),
       description: form.getValues('description'),
-      representativeName: form.getValues('representativeName'),
+      representativeName: form.getValues('ownerName'),
       email: form.getValues('email'),
     };
 
@@ -453,9 +453,9 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       id: id,
       title: values.name, // name을 title로 매핑
       name: values.name,                    // title 대신 name
-      representativeName: values.representativeName, // owner 대신 representativeName
+      representativeName: values.ownerName, // owner 대신 representativeName
       description: values.description,
-      owner: values.representativeName,
+      owner: values.ownerName,
       email: values.email,
       imageUrl: values.imageUrl || 'https://picsum.photos/400/300',
       membershipType: values.membershipType || '',
@@ -733,7 +733,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                     {/* 대표자 이름 */}
                     <FormField
                       control={form.control}
-                      name="representativeName"
+                      name="ownerName"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>

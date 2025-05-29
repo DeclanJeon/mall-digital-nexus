@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import SearchAndFilterBar from '@/components/navigation/SearchAndFilterBar';
+import { getPeerMallList } from '@/services/peerMallService';
 
 interface Location {
   lat: number;
@@ -124,12 +125,37 @@ const Index = () => {
   const [selectedHashtags, setSelectedHashtags] = useState<string[]>(['전체']);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [hotPeerMalls, setHotPeerMalls] = useState<Peermall[]>([]);
+  const [originHotPeerMalls, setOriginHotPeerMalls] = useState<Peermall[]>([]);
+  const [newPeerMalls, setNewPeerMalls] = useState<Peermall[]>([]);
+  const [originNewPeerMalls, setOriginNewPeerMalls] = useState<Peermall[]>([]);
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
-    // 여기에 검색 로직 추가
-    console.log('검색어 변경:', query);
-  }, []);
+
+    if(query === '') {
+      setHotPeerMalls(originHotPeerMalls);
+      setNewPeerMalls(originNewPeerMalls);
+      return;
+    }
+
+    if(originHotPeerMalls.length === 0 && originNewPeerMalls.length === 0) {
+      // 원본 데이터 저장
+      setOriginHotPeerMalls(hotPeerMalls);
+      setOriginNewPeerMalls(newPeerMalls);
+    }
+
+    // 검색 필터링
+    const searchedHotPeerMalls = hotPeerMalls.filter(peerMall => 
+      peerMall.peerMallName.includes(query)
+    );
+    setHotPeerMalls(searchedHotPeerMalls);
+
+    const searchedNewPeerMalls = newPeerMalls.filter(peerMall => 
+      peerMall.peerMallName.includes(query)
+    );
+    setNewPeerMalls(searchedNewPeerMalls);
+  }, [hotPeerMalls, newPeerMalls, originHotPeerMalls, originNewPeerMalls]);
 
   const handleBookmarkToggle = useCallback((itemId: string) => {
     setBookmarks(prev => {
@@ -169,16 +195,19 @@ const Index = () => {
         setIsLoading(true);
         console.log('🔄 초기 데이터 로드 시작...');
         
-        // 스토리지에서 피어몰 데이터 가져오기
-        const storedPeermalls = peermallStorage.getAll();
-        console.log('📦 스토리지에서 로드된 피어몰:', storedPeermalls.length, '개');
+        const storedPeermalls = await getPeerMallList();
+
+        if(storedPeermalls['success']) {
+          setHotPeerMalls(storedPeermalls['hostPeerMallList']);
+          setNewPeerMalls(storedPeermalls['newPeerMallList']);
+        }
         
-        setPeermalls(storedPeermalls);
-        setFilteredMalls(storedPeermalls);
+        //setPeermalls(storedPeermalls);
+        //setFilteredMalls(storedPeermalls);
         
         // 내 스페이스 필터링
-        const myOwnedSpaces = storedPeermalls.filter(mall => mall.owner === '나');
-        setMySpaces(myOwnedSpaces);
+        //const myOwnedSpaces = storedPeermalls.filter(mall => mall.owner === '나');
+        //setMySpaces(myOwnedSpaces);
         
         console.log('✅ 초기 데이터 로드 완료');
       } catch (error) {
@@ -324,14 +353,6 @@ const Index = () => {
       setRefreshing(true);
       console.log('🔄 데이터 새로고침 시작...');
       
-      // 스토리지에서 최신 데이터 다시 로드
-      const refreshedPeermalls = peermallStorage.getAll();
-      setPeermalls(refreshedPeermalls);
-      setFilteredMalls(refreshedPeermalls);
-      
-      const myOwnedSpaces = refreshedPeermalls.filter(mall => mall.owner === '나');
-      setMySpaces(myOwnedSpaces);
-      
       toast({
         title: "✅ 새로고침 완료",
         description: "최신 데이터로 업데이트되었습니다."
@@ -359,9 +380,6 @@ const Index = () => {
     totalLikes: peermalls.reduce((sum, mall) => sum + (mall.likes || 0), 0),
     totalFollowers: peermalls.reduce((sum, mall) => sum + (mall.followers || 0), 0)
   };
-
-  // 🔥 인기 피어몰 계산 (스토리지 내장 함수 사용)
-  const popularMalls = peermallStorage.getPopular(4);
   
   // ✨ 신규 피어몰 계산
   const newestMalls = [...filteredMalls]
@@ -485,9 +503,9 @@ const Index = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        {newestMalls.length}개
+                        {newPeerMalls.length}개
                       </Badge>
-                      {newestMalls.length > 0 && (
+                      {newPeerMalls.length > 0 && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -500,10 +518,10 @@ const Index = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {newestMalls.length > 0 ? (
+                  {newPeerMalls.length > 0 ? (
                     <PeermallGrid
                       title=""
-                      malls={newestMalls}
+                      malls={newPeerMalls}
                       onOpenMap={handleOpenMap}
                       viewMore={false}
                       viewMode={viewMode}
