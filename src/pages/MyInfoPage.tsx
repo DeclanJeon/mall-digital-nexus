@@ -39,7 +39,7 @@ const MyInfoPage = () => {
     name: '',
     nickname: '',
     peerNumber: '',
-    email: '',
+    email: localStorage.getItem('userEmail') || 'guest@example.com',
     phone: '',
     profileImage: '',
     bio: '',
@@ -51,24 +51,30 @@ const MyInfoPage = () => {
     ]
   });
 
+  // Load user data on component mount
+  useEffect(() => {
+    const loadUserData = () => {
+      const userEmail = localStorage.getItem('userEmail');
+      if (userEmail) {
+        const users = JSON.parse(localStorage.getItem('USERS') || '[]');
+        const currentUser = users.find((user: any) => user.email === userEmail);
+        
+        if (currentUser) {
+          setUserProfile(prev => ({
+            ...prev,
+            name: currentUser.name || '',
+            email: currentUser.email,
+            nickname: currentUser.nickname || currentUser.name || '',
+            profileImage: currentUser.avatar || ''
+          }));
+        }
+      }
+    };
+
+    loadUserData();
+  }, []);
+
   const [createdMalls, setCreatedMalls] = useState<PeerMall[]>([]);
-  
-  const authMethods = [
-    { type: '이메일', value: 'example@peermall.com', verified: true, primary: true },
-    { type: '휴대폰', value: '010-1234-5678', verified: true, primary: false }
-  ];
-  
-  const loginRecords = [
-    { device: '데스크톱 - Chrome', location: '서울', ip: '123.456.789.0', time: '지금', current: true },
-    { device: '모바일 - Safari', location: '서울', ip: '123.456.789.1', time: '2시간 전', current: false },
-    { device: '태블릿 - Chrome', location: '부산', ip: '234.567.890.1', time: '3일 전', current: false }
-  ];
-  
-  const privacySettings = {
-    profileVisibility: 'public' as const,
-    activityVisibility: 'friends' as const,
-    searchable: true
-  };
 
   // Define network data
   const networkData: NetworkSectionProps = {

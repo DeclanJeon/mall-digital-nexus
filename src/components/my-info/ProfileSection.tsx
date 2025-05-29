@@ -244,13 +244,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userProfile, setUserPro
                 </div>
               )}
             </div>
-            <div className="text-center space-y-1">
+            {/* <div className="text-center space-y-1">
               <div className="flex items-center justify-center space-x-1">
                 <Shield className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">피어넘버:</span>
               </div>
               <Badge variant="outline" className="text-sm font-mono">{userProfile.peerNumber}</Badge>
-            </div>
+            </div> */}
           </div>
           
           <div className="flex-1 space-y-4">

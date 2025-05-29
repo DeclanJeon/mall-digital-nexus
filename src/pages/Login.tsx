@@ -137,13 +137,38 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               : "인증이 완료되어 로그인되었습니다.",
           });
 
+          // 로그인 성공 및 사용자 정보 저장
+          const user = {
+            id: crypto.randomUUID(),
+            email: email.trim().toLowerCase(),
+            name: email.split('@')[0],
+            isAdmin: email.trim().toLowerCase() === ADMIN_EMAIL,
+            createdAt: new Date().toISOString(),
+            lastLoginAt: new Date().toISOString()
+          };
+
+          // 로컬 스토리지에 사용자 정보 저장
+          localStorage.setItem('userLoggedIn', 'true');
+          localStorage.setItem('userEmail', user.email);
+          
+          // 사용자 목록 업데이트
+          const users = JSON.parse(localStorage.getItem('USERS') || '[]');
+          const existingUserIndex = users.findIndex((u: any) => u.email === user.email);
+          
+          if (existingUserIndex >= 0) {
+            users[existingUserIndex] = { ...users[existingUserIndex], lastLoginAt: user.lastLoginAt };
+          } else {
+            users.push(user);
+          }
+          
+          localStorage.setItem('USERS', JSON.stringify(users));
+
           // 성공 콜백 또는 네비게이션
           if (onLoginSuccess) {
             onLoginSuccess();
           } else {
-            navigate('/');
-            // 페이지 리로드로 최신 상태 반영
-            window.location.reload();
+            // 기본 리디렉션
+            navigate('/my-info');
           }
         } else {
           toast({
