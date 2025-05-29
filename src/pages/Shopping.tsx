@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductGrid from '@/components/shopping/products/ProductGrid';
 import PeermallGrid from '@/components/peermall-features/PeermallGrid';
@@ -32,6 +33,7 @@ interface ShoppingFilters {
 const ITEMS_PER_PAGE = 8;
 
 const Shopping = () => {
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [peermallsData, setPeermallsData] = useState<Peermall[]>([]);
   const [productsData, setProductsData] = useState<Product[]>([]);
@@ -190,12 +192,12 @@ const Shopping = () => {
 
         if (allProducts.length === 0) {
           allProducts = [
-            { id: 'prod1', title: "디자인 템플릿 세트", description: "소셜 미디어용", price: 29000, currency: "KRW", type: ContentType.Product, imageUrl: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&q=80", rating: 4.9, reviewCount: 120, peermallName: "디자인 스튜디오", peermallId: "pm1", category: "디자인", tags: ["#템플릿"], isBestSeller: true, isRecommended: true, peerSpaceAddress: "ps1", date: "2023-01-01", likes: 10, comments: 5, views: 100, saves: 20},
-            { id: 'prod2', title: "친환경 대나무 칫솔", description: "생분해성", price: 12000, currency: "KRW", type: ContentType.Product, discountPrice: 9600, imageUrl: "https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?auto=format&fit=crop&q=80", rating: 4.7, reviewCount: 85, peermallName: "친환경 생활용품", peermallId: "pm2", category: "리빙", tags: ["#친환경"], isCertified: true, peerSpaceAddress: "ps2", date: "2023-02-01", likes: 8, comments: 3, views: 80, saves: 15},
-            { id: 'prod3', title: "유기농 통밀빵", description: "건강한 아침", price: 8000, currency: "KRW", type: ContentType.Product, imageUrl: "https://images.unsplash.com/photo-1565181017631-8a8ebac7357f?auto=format&fit=crop&q=80", rating: 4.8, reviewCount: 92, peermallName: "수제 베이커리", peermallId: "pm3", category: "푸드", tags: ["#유기농"], isNew: true, peerSpaceAddress: "ps3", date: "2023-03-01", likes: 12, comments: 7, views: 120, saves: 25},
-            { id: 'prod4', title: "은하수 귀걸이", description: "수제 은 귀걸이", price: 25000, currency: "KRW", type: ContentType.Product, discountPrice: 19000, imageUrl: "https://images.unsplash.com/photo-1611081588019-8de899071033?auto=format&fit=crop&q=80", rating: 4.9, reviewCount: 70, peermallName: "핸드메이드 액세서리", peermallId: "pm4", category: "패션", tags: ["#액세서리"], isRecommended: true, peerSpaceAddress: "ps4", date: "2023-04-01", likes: 9, comments: 4, views: 90, saves: 18},
-            { id: 'prod5', title: "프리미엄 레더 지갑", description: "수제 가죽 제품", price: 45000, currency: "KRW", type: ContentType.Product, imageUrl: "https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&q=80", rating: 4.6, reviewCount: 45, peermallName: "핸드메이드 액세서리", peermallId: "pm4", category: "패션", tags: ["#가죽"], isBestSeller: true, peerSpaceAddress: "ps5", date: "2023-05-01", likes: 7, comments: 2, views: 70, saves: 10},
-            { id: 'prod6', title: "홈메이드 그래놀라", description: "건강한 아침 식사", price: 15000, currency: "KRW", type: ContentType.Product, imageUrl: "https://images.unsplash.com/photo-1565181017631-8a8ebac7357f?auto=format&fit=crop&q=80", rating: 4.5, reviewCount: 38, peermallName: "수제 베이커리", peermallId: "pm3", category: "푸드", tags: ["#건강식"], isCertified: true, peerSpaceAddress: "ps6", date: "2023-06-01", likes: 6, comments: 1, views: 60, saves: 8},
+            { id: 'prod1', title: "디자인 템플릿 세트", owner: "디자인 스튜디오", description: "소셜 미디어용", price: 29000, currency: "KRW", type: ContentType.Product, imageUrl: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&q=80", rating: 4.9, reviewCount: 120, peermallName: "디자인 스튜디오", peermallId: "pm1", category: "디자인", tags: ["#템플릿"], isBestSeller: true, isRecommended: true, peerSpaceAddress: "ps1", date: "2023-01-01", likes: 10, comments: 5, views: 100, saves: 20},
+            { id: 'prod2', title: "친환경 대나무 칫솔", owner: "친환경 생활용품", description: "생분해성", price: 12000, currency: "KRW", type: ContentType.Product, discountPrice: 9600, imageUrl: "https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?auto=format&fit=crop&q=80", rating: 4.7, reviewCount: 85, peermallName: "친환경 생활용품", peermallId: "pm2", category: "리빙", tags: ["#친환경"], isCertified: true, peerSpaceAddress: "ps2", date: "2023-02-01", likes: 8, comments: 3, views: 80, saves: 15},
+            { id: 'prod3', title: "유기농 통밀빵", owner: "수제 베이커리", description: "건강한 아침", price: 8000, currency: "KRW", type: ContentType.Product, imageUrl: "https://images.unsplash.com/photo-1565181017631-8a8ebac7357f?auto=format&fit=crop&q=80", rating: 4.8, reviewCount: 92, peermallName: "수제 베이커리", peermallId: "pm3", category: "푸드", tags: ["#유기농"], isNew: true, peerSpaceAddress: "ps3", date: "2023-03-01", likes: 12, comments: 7, views: 120, saves: 25},
+            { id: 'prod4', title: "은하수 귀걸이", owner: "핸드메이드 액세서리", description: "수제 은 귀걸이", price: 25000, currency: "KRW", type: ContentType.Product, discountPrice: 19000, imageUrl: "https://images.unsplash.com/photo-1611081588019-8de899071033?auto=format&fit=crop&q=80", rating: 4.9, reviewCount: 70, peermallName: "핸드메이드 액세서리", peermallId: "pm4", category: "패션", tags: ["#액세서리"], isRecommended: true, peerSpaceAddress: "ps4", date: "2023-04-01", likes: 9, comments: 4, views: 90, saves: 18},
+            { id: 'prod5', title: "프리미엄 레더 지갑", owner: "핸드메이드 액세서리", description: "수제 가죽 제품", price: 45000, currency: "KRW", type: ContentType.Product, imageUrl: "https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&q=80", rating: 4.6, reviewCount: 45, peermallName: "핸드메이드 액세서리", peermallId: "pm4", category: "패션", tags: ["#가죽"], isBestSeller: true, peerSpaceAddress: "ps5", date: "2023-05-01", likes: 7, comments: 2, views: 70, saves: 10},
+            { id: 'prod6', title: "홈메이드 그래놀라", owner: "수제 베이커리", description: "건강한 아침 식사", price: 15000, currency: "KRW", type: ContentType.Product, imageUrl: "https://images.unsplash.com/photo-1565181017631-8a8ebac7357f?auto=format&fit=crop&q=80", rating: 4.5, reviewCount: 38, peermallName: "수제 베이커리", peermallId: "pm3", category: "푸드", tags: ["#건강식"], isCertified: true, peerSpaceAddress: "ps6", date: "2023-06-01", likes: 6, comments: 1, views: 60, saves: 8},
           ];
           allProducts.forEach(product => saveProduct(product));
         }
@@ -379,6 +381,14 @@ const Shopping = () => {
                       products={displayedProducts} 
                       viewMode={viewMode} 
                       filters={memoizedFilters}
+                      onDetailView={(productId) => {
+                        const product = productsData.find(p => p.id === productId);
+                        if (product && product.peermallId) {
+                          navigate(`/space/${product.peermallId}/product/${productId}`);
+                        } else {
+                          console.error('Product or peermallId not found:', productId);
+                        }
+                      }}
                     />
                     {hasMoreProducts && (
                       <div className="mt-8 text-center">

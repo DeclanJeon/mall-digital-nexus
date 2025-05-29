@@ -3,6 +3,7 @@ import { Content, ContentType } from './space';
 export interface Product extends Content {
   id: string;
   title: string;
+  owner: string;
   description: string;
   price: number;
   currency: string; // 화폐 단위 추가
@@ -34,6 +35,7 @@ export function isProduct(content: Content): content is Product {
 export interface ProductCardProps {
   id: string | number;
   title: string;
+  owner: string;
   description: string;
   price: number;
   discountPrice?: number | null;
@@ -70,4 +72,5 @@ export interface ProductGridProps {
   };
   onSearchChange?: (query: string) => void;
   searchQuery?: string;
+  onDetailView?: (productId: string | number) => void;
 }

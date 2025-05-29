@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useState } from 'react';
+import React, { lazy, Suspense, useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { MapPin } from 'lucide-react';
@@ -27,16 +27,18 @@ export const MapSelectorDialog: React.FC<MapSelectorDialogProps> = ({
     address: string;
   } | null>(null);
 
-  const handleLocationSelect = (location: { lat: number; lng: number; address: string }) => {
+  // handleLocationSelect를 useCallback으로 감싸기
+  const handleLocationSelect = useCallback((location: { lat: number; lng: number; address: string }) => {
     setSelectedLocation(location);
-  };
+  }, []); // 의존성 배열이 비어있으므로, setSelectedLocation은 항상 동일한 참조를 가짐
 
-  const handleConfirm = () => {
+  // handleConfirm도 useCallback으로 감싸기
+  const handleConfirm = useCallback(() => {
     if (selectedLocation) {
       onSelect(selectedLocation);
     }
     onClose();
-  };
+  }, [selectedLocation, onSelect, onClose]); // selectedLocation, onSelect, onClose를 의존성으로 추가
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

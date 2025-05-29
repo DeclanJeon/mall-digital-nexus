@@ -1,4 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { Product } from '@/types/product';
+import { getProducts } from '@/services/storage/productStorage';
+import ProductGrid from '@/components/shopping/products/ProductGrid';
 import { BookmarkItem } from '@/components/navigation/SearchAndFilterBar';
 import PeermallGrid from '@/components/peermall-features/PeermallGrid';
 import HashtagFilter, { HashtagFilterOption, PeermallType } from '@/components/navigation/HashtagFilter';
@@ -9,7 +12,12 @@ import CreatePeermall from '@/components/peermall-features/CreatePeermall';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeModal } from '@/components/peer-space/modals/QRCodeModal';
-import { ChevronRight, TrendingUp, Sparkles, Map, Users, Heart, Star, Phone, MessageSquare, Navigation, RefreshCw, Filter, Grid, List, Store, Search, Eye } from 'lucide-react';
+import { 
+  ChevronRight, ShoppingBag, Sparkles, Map, Users, Heart, Star, Phone, MessageSquare, 
+  Navigation, RefreshCw, Filter, Grid, List, Store, Search, Eye, LayoutGrid, 
+  Image, BookOpen, Calendar, MapPin, ThumbsUp, MessageCircle, Share2, Bookmark,
+  ChevronLeft
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -25,6 +33,9 @@ interface Location {
   address: string;
   title: string;
 }
+
+// 🎨 뷰어 모드 타입 정의
+type ViewMode = 'grid' | 'list' | 'gallery' | 'blog';
 
 // 🎨 프리미엄 디자인 토큰 - Z세대 감성 + 미래지향적
 const designTokens = {
@@ -106,6 +117,346 @@ const designTokens = {
   }
 };
 
+// 🎨 뷰어 모드별 피어몰 렌더링 컴포넌트
+const PeermallViewRenderer = ({ 
+  malls, 
+  viewMode, 
+  onOpenMap, 
+  onShowQrCode 
+}: {
+  malls: Peermall[];
+  viewMode: ViewMode;
+  onOpenMap: (location: Location) => void;
+  onShowQrCode: (id: string, title: string) => void;
+}) => {
+  const navigate = useNavigate();
+
+  // 🎯 그리드 뷰 (기본)
+  if (viewMode === 'grid') {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {malls.map((mall, index) => (
+          <motion.div
+            key={mall.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className="group"
+          >
+            <Card className={`${designTokens.elevation.interactive} overflow-hidden bg-white/80 backdrop-blur-sm`}>
+              <div className="relative overflow-hidden">
+                <img
+                  src={mall.imageUrl || '/placeholder-shop.jpg'} 
+                  alt={mall.title}
+                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.onerror = null; 
+                    target.src = '/placeholder-shop.jpg'; 
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute top-3 right-3 flex space-x-2">
+                  {mall.tags?.slice(0, 2).map(tag => (
+                    <Badge key={tag} className="bg-white/90 text-gray-700 text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">{mall.title}</h3>
+                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{mall.description}</p>
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <div className="flex items-center space-x-4">
+                    <span className="flex items-center">
+                      <Star className="w-3 h-3 mr-1 text-yellow-500" />
+                      {mall.rating || 0}
+                    </span>
+                    <span className="flex items-center">
+                      <ThumbsUp className="w-3 h-3 mr-1" />
+                      {mall.likes || 0}
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(`/space/${mall.id}`)}
+                    className="text-blue-600 hover:text-blue-700 p-0 h-auto"
+                  >
+                    자세히 보기
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+    );
+  }
+
+  // 📋 리스트 뷰
+  if (viewMode === 'list') {
+    return (
+      <div className="space-y-4">
+        {malls.map((mall, index) => (
+          <motion.div
+            key={mall.id}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.05 }}
+          >
+            <Card className={`${designTokens.elevation.card} overflow-hidden hover:shadow-lg transition-all duration-300`}>
+              <div className="flex">
+                <img
+                  src={mall.imageUrl || '/placeholder-shop.jpg'}
+                  alt={mall.title}
+                  className="w-48 h-32 object-cover flex-shrink-0"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.onerror = null; 
+                    target.src = '/placeholder-shop.jpg'; 
+                  }}
+                />
+                <div className="flex-1 p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-semibold text-gray-900 text-lg">{mall.title}</h3>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline" className="text-xs">
+                        {mall.category || '일반'}
+                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onShowQrCode(mall.id, mall.title)}
+                        className="p-1 h-auto"
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 mb-3 line-clamp-2">{mall.description}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <span className="flex items-center">
+                        <Star className="w-4 h-4 mr-1 text-yellow-500" />
+                        {mall.rating || 0} ({mall.reviewCount || 0}개 리뷰)
+                      </span>
+                      <span className="flex items-center">
+                        <ThumbsUp className="w-4 h-4 mr-1" />
+                        {mall.likes || 0}
+                      </span>
+                      <span className="flex items-center">
+                        <Users className="w-4 h-4 mr-1" />
+                        {mall.followers || 0}
+                      </span>
+                      {mall.location && (
+                        <span className="flex items-center">
+                          <MapPin className="w-4 h-4 mr-1" />
+                          {mall.location.address}
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      onClick={() => navigate(`/space/${mall.id}`)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      방문하기
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-1 mt-3">
+                    {mall.tags?.map(tag => (
+                      <Badge key={tag} variant="secondary" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+    );
+  }
+
+  // 🖼️ 갤러리 뷰
+  if (viewMode === 'gallery') {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {malls.map((mall, index) => (
+          <motion.div
+            key={mall.id}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.05 }}
+            className="group cursor-pointer"
+            onClick={() => navigate(`/space/${mall.id}`)}
+          >
+            <div className="relative overflow-hidden rounded-lg aspect-square">
+              <img
+                src={mall.imageUrl || '/placeholder-shop.jpg'}
+                alt={mall.title}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null; 
+                  target.src = '/placeholder-shop.jpg'; 
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 p-4 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <h3 className="text-white font-semibold mb-1 line-clamp-2">{mall.title}</h3>
+                <div className="flex items-center justify-between text-white/80 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <Star className="w-3 h-3" />
+                    <span>{mall.rating || 0}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <ThumbsUp className="w-3 h-3" />
+                    <span>{mall.likes || 0}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute top-3 left-3">
+                <Badge className="bg-white/90 text-gray-700 text-xs">
+                  {mall.category || '일반'}
+                </Badge>
+              </div>
+              <div className="absolute top-3 right-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShowQrCode(mall.id, mall.title);
+                  }}
+                  className="p-1 h-auto bg-white/20 hover:bg-white/30 text-white"
+                >
+                  <Share2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    );
+  }
+
+  // 📝 블로그 뷰
+  if (viewMode === 'blog') {
+    return (
+      <div className="space-y-8">
+        {malls.map((mall, index) => (
+          <motion.div
+            key={mall.id}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <Card className={`${designTokens.elevation.feature} overflow-hidden bg-white/90 backdrop-blur-sm`}>
+              <div className="relative">
+                <img
+                  src={mall.imageUrl || '/api/placeholder/800/400'}
+                  alt={mall.title}
+                  className="w-full h-64 sm:h-80 object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {mall.tags?.map(tag => (
+                      <Badge key={tag} className="bg-white/20 text-white border-white/30">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">{mall.title}</h2>
+                  <div className="flex items-center space-x-4 text-white/80 text-sm">
+                    <span className="flex items-center">
+                      <Calendar className="w-4 h-4 mr-1" />
+                      {mall.createdAt ? new Date(mall.createdAt).toLocaleDateString('ko-KR') : '최근'}
+                    </span>
+                    <span className="flex items-center">
+                      <Users className="w-4 h-4 mr-1" />
+                      {mall.owner || '익명'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <CardContent className="p-6">
+                <p className="text-gray-700 text-lg leading-relaxed mb-6 line-clamp-3">
+                  {mall.description}
+                </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-2 text-gray-600">
+                      <Star className="w-5 h-5 text-yellow-500" />
+                      <span className="font-medium">{mall.rating || 0}</span>
+                      <span className="text-sm">({mall.reviewCount || 0}개 리뷰)</span>
+                    </div>
+                    <div className="flex items-center space-x-4 text-gray-600">
+                      <span className="flex items-center">
+                        <ThumbsUp className="w-4 h-4 mr-1" />
+                        {mall.likes || 0}
+                      </span>
+                      <span className="flex items-center">
+                        <MessageCircle className="w-4 h-4 mr-1" />
+                        {mall.reviewCount || 0}
+                      </span>
+                      <span className="flex items-center">
+                        <Users className="w-4 h-4 mr-1" />
+                        {mall.followers || 0}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onShowQrCode(mall.id, mall.title)}
+                    >
+                      <Share2 className="w-4 h-4 mr-2" />
+                      공유
+                    </Button>
+                    <Button
+                      onClick={() => navigate(`/space/${mall.id}`)}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                    >
+                      자세히 보기
+                      <ChevronRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </div>
+                {mall.location && (
+                  <div className="mt-4 p-3 bg-gray-50 rounded-lg flex items-center">
+                    <MapPin className="w-4 h-4 text-gray-600 mr-2" />
+                    <span className="text-sm text-gray-600">{mall.location.address}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onOpenMap({
+                        title: mall.title,
+                        lat: mall.location.lat,
+                        lng: mall.location.lng,
+                        address: mall.location.address
+                      })}
+                      className="ml-auto text-blue-600 hover:text-blue-700"
+                    >
+                      지도에서 보기
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+    );
+  }
+
+  return null;
+};
+
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -119,6 +470,9 @@ const Index = () => {
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [qrModalTitle, setQrModalTitle] = useState('');
+  const [productsData, setProductsData] = useState<Product[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(8); // 페이지당 보여줄 상품 수
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [selectedHashtags, setSelectedHashtags] = useState<string[]>(['전체']);
@@ -154,7 +508,7 @@ const Index = () => {
     console.log('북마크 제거:', id);
   }, []);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid'); // 🎨 확장된 뷰 모드
   const [refreshing, setRefreshing] = useState(false);
 
   // 🚀 스토리지 연동 및 실시간 업데이트
@@ -212,6 +566,31 @@ const Index = () => {
       removeListener?.();
     };
   }, [toast]);
+
+  // 상품 데이터 로드
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const allProducts = await getProducts();
+      setProductsData(allProducts);
+    };
+    fetchProducts();
+  }, []);
+
+  // 현재 페이지에 보여질 상품 목록 계산
+  const getDisplayedProducts = useCallback(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return productsData.slice(startIndex, endIndex);
+  }, [productsData, currentPage, itemsPerPage]);
+
+  // 전체 페이지 수 계산
+  const totalPages = Math.ceil(productsData.length / itemsPerPage);
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // 🎨 피어몰 생성 핸들러 - 새로운 스토리지 시스템 사용
   const handleCreatePeermall = useCallback((newMallData: Omit<Peermall, 'id' | 'rating' | 'reviewCount' | 'createdAt' | 'updatedAt'>) => {
@@ -389,11 +768,42 @@ const Index = () => {
     );
     
     if (peermall) {
-      setSelectedPeermall(peermall);
-      setIsDetailViewOpen(true);
+      // 상세 보기 로직 (필요시 구현)
+      navigate(`/space/${peermall.id}`);
     }
-  }, [peermalls]);
+  }, [peermalls, navigate]);
 
+  // 🎨 뷰 모드 옵션 정의
+  const viewModeOptions = [
+    { 
+      value: 'grid' as ViewMode, 
+      label: '그리드', 
+      icon: Grid, 
+      description: '카드 형태로 깔끔하게',
+      gradient: 'from-blue-500 to-cyan-500'
+    },
+    { 
+      value: 'list' as ViewMode, 
+      label: '리스트', 
+      icon: List, 
+      description: '상세 정보와 함께',
+      gradient: 'from-green-500 to-emerald-500'
+    },
+    { 
+      value: 'gallery' as ViewMode, 
+      label: '갤러리', 
+      icon: Image, 
+      description: '이미지 중심으로',
+      gradient: 'from-purple-500 to-pink-500'
+    },
+    { 
+      value: 'blog' as ViewMode, 
+      label: '블로그', 
+      icon: BookOpen, 
+      description: '스토리텔링 방식',
+      gradient: 'from-orange-500 to-red-500'
+    }
+  ];
 
   // 로딩 상태 렌더링
   if (isLoading) {
@@ -413,8 +823,6 @@ const Index = () => {
       </div>
     );
   }
-
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
@@ -501,12 +909,10 @@ const Index = () => {
                 </CardHeader>
                 <CardContent>
                   {newestMalls.length > 0 ? (
-                    <PeermallGrid
-                      title=""
+                    <PeermallViewRenderer
                       malls={newestMalls}
+                      viewMode="grid"
                       onOpenMap={handleOpenMap}
-                      viewMore={false}
-                      viewMode={viewMode}
                       onShowQrCode={handleShowPeermallQrCode}
                     />
                   ) : (
@@ -526,7 +932,7 @@ const Index = () => {
               </Card>
             </motion.div>
 
-            {/* 🏢 전체 피어몰 섹션 - 새롭게 추가된 섹션 */}
+            {/* 🏢 전체 피어몰 섹션 - 향상된 뷰 모드 지원 */}
             <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.4 }}>
               <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-slate-50 to-gray-50 border-slate-200`}>
                 <CardHeader>
@@ -540,7 +946,7 @@ const Index = () => {
                           🏢 전체 피어몰
                         </h2>
                         <p className={`${designTokens.typography.caption} mt-1`}>
-                          모든 피어몰을 한눈에 탐색해보세요
+                          모든 피어몰을 다양한 방식으로 탐색해보세요
                         </p>
                       </div>
                     </div>
@@ -548,24 +954,6 @@ const Index = () => {
                       <Badge variant="secondary" className="bg-slate-100 text-slate-700">
                         총 {filteredMalls.length}개
                       </Badge>
-                      <div className="flex items-center space-x-1">
-                        <Button
-                          variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                          size="sm"
-                          onClick={() => setViewMode('grid')}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Grid className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant={viewMode === 'list' ? 'default' : 'ghost'}
-                          size="sm"
-                          onClick={() => setViewMode('list')}
-                          className="h-8 w-8 p-0"
-                        >
-                          <List className="h-4 w-4" />
-                        </Button>
-                      </div>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -577,6 +965,67 @@ const Index = () => {
                       </Button>
                     </div>
                   </div>
+                  
+                  {/* 🎨 향상된 뷰 모드 선택기 */}
+                  <div className="mt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-medium text-gray-700">보기 방식</h3>
+                      <div className="text-xs text-gray-500">
+                        현재: <span className="font-medium">{viewModeOptions.find(opt => opt.value === viewMode)?.label}</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {viewModeOptions.map((option) => {
+                        const IconComponent = option.icon;
+                        const isActive = viewMode === option.value;
+                        
+                        return (
+                          <motion.button
+                            key={option.value}
+                            onClick={() => setViewMode(option.value)}
+                            className={cn(
+                              "relative p-3 rounded-lg border-2 transition-all duration-300 group",
+                              isActive 
+                                ? "border-blue-500 bg-blue-50" 
+                                : "border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50"
+                            )}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <div className="flex flex-col items-center space-y-2">
+                              <div className={cn(
+                                "p-2 rounded-lg transition-all duration-300",
+                                isActive 
+                                  ? `bg-gradient-to-r ${option.gradient} text-white` 
+                                  : "bg-gray-100 text-gray-600 group-hover:bg-gray-200"
+                              )}>
+                                <IconComponent className="w-4 h-4" />
+                              </div>
+                              <div className="text-center">
+                                <div className={cn(
+                                  "text-sm font-medium transition-colors",
+                                  isActive ? "text-blue-700" : "text-gray-700"
+                                )}>
+                                  {option.label}
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {option.description}
+                                </div>
+                              </div>
+                            </div>
+                            {isActive && (
+                              <motion.div
+                                className="absolute inset-0 rounded-lg bg-blue-500/10"
+                                layoutId="activeViewMode"
+                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                              />
+                            )}
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
                 </CardHeader>
                 <CardContent>
                   {filteredMalls.length > 0 ? (
@@ -606,16 +1055,23 @@ const Index = () => {
                         </div>
                       )}
                       
-                      {/* 🎯 피어몰 그리드 */}
-                      <PeermallGrid
-                        title=""
-                        malls={filteredMalls}
-                        onOpenMap={handleOpenMap}
-                        viewMore={true}
-                        viewMode={viewMode}
-                        onShowQrCode={handleShowPeermallQrCode}
-                        showPagination={true}
-                      />
+                      {/* 🎯 향상된 피어몰 뷰 렌더러 */}
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={viewMode}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <PeermallViewRenderer
+                            malls={filteredMalls}
+                            viewMode={viewMode}
+                            onOpenMap={handleOpenMap}
+                            onShowQrCode={handleShowPeermallQrCode}
+                          />
+                        </motion.div>
+                      </AnimatePresence>
                     </div>
                   ) : (
                     <div className="text-center py-16">
@@ -689,9 +1145,98 @@ const Index = () => {
                 </CardContent>
               </Card>
             </motion.div>
-            
           </div>
 
+        </section>
+
+        {/* 🛍️ 전체 상품 보기 섹션 */}
+        <section className="grid grid-cols-1 gap-6 p-4 md:p-6">
+          <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.4 }}>
+            <Card className={`${designTokens.elevation.card} bg-gradient-to-br from-green-50 to-emerald-50`}>
+              <CardHeader>
+                <div className="flex items-center space-x-2">
+                  <ShoppingBag className="w-6 h-6 text-green-600" />
+                  <h2 className={designTokens.typography.subheading}>
+                    🛍️ 전체 상품 보기
+                  </h2>
+                </div>
+                <p className={`${designTokens.typography.caption} mt-1`}>
+                  피어몰에 등록된 모든 상품들을 만나보세요.
+                </p>
+              </CardHeader>
+              <CardContent>
+                {productsData.length > 0 ? (
+                  <>
+                    <ProductGrid 
+                      id="product-grid"
+                      products={getDisplayedProducts()} 
+                      viewMode="grid"
+                      onDetailView={(productId) => {
+                        const product = productsData.find(p => p.id === productId);
+                        if (product && product.peermallId) {
+                          navigate(`/space/${product.peermallId}/product/${productId}`);
+                        } else {
+                          console.error('Product or peermallId not found:', productId);
+                        }
+                      }}
+                    />
+                    {/* 페이지네이션 컨트롤 */}
+                    {totalPages > 1 && (
+                      <div className="flex justify-center mt-6 space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="w-10 h-10 p-0"
+                        >
+                          <ChevronLeft className="w-5 h-5" />
+                        </Button>
+                        
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          // 현재 페이지를 중심으로 5개의 페이지 번호 표시
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+                          
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={currentPage === pageNum ? "default" : "outline"}
+                              size="sm"
+                              className={`w-10 h-10 p-0 ${currentPage === pageNum ? 'font-bold' : ''}`}
+                              onClick={() => handlePageChange(pageNum)}
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="w-10 h-10 p-0"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-center text-gray-500 py-8">등록된 상품이 없습니다.</p>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
         </section>
       </main>
 
@@ -707,10 +1252,3 @@ const Index = () => {
 };
 
 export default Index;
-
-function setSelectedPeermall(peermall: Peermall) {
-  throw new Error('Function not implemented.');
-}
-function setIsDetailViewOpen(arg0: boolean) {
-  throw new Error('Function not implemented.');
-}
