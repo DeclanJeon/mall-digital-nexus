@@ -48,11 +48,40 @@ const login = async (
   }
 };
 
-const getAccessToken = (): string | null => localStorage.getItem('accessToken');
+const getUserInfo = async (): Promise<any> => {
+  try {
+    const accessToken = getAccessToken();
 
+    const response = await api.get(`/userInfo`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error logging in:', error);
+    throw error.response.data;
+  }
+};
+
+const updateUserInfo = async (userInfo: Object): Promise<any> => {
+  try {
+    const response = await api.post(`/updateUserInfo`, { userInfo } );
+    return response.data;
+  } catch (error) {
+    console.error('Error logging in:', error);
+    throw error.response.data;
+  }
+};
+
+const getAccessToken = (): string | null => {
+  return localStorage.getItem('accessToken');
+}
 const userService = {
   sendNumber,
   login,
+  getUserInfo,
+  updateUserInfo,
   getAccessToken
 };
 

@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Pen, User, Upload, Globe, Shield, AtSign } from 'lucide-react';
+import userService from '@/services/userService';
 
 interface ProfileSectionProps {
   userProfile: {
@@ -37,51 +38,17 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userProfile, setUserPro
   const [emailChangeError, setEmailChangeError] = useState('');
   const [otpError, setOtpError] = useState('');
 
-
-  const LOCAL_STORAGE_KEY = 'userProfileData';
-
-  // 컴포넌트 마운트 시 로컬 스토리지에서 데이터 로드
-  // TODO: 백엔드 API와 연동하여 초기 데이터를 받아오고, 로컬 스토리지는 캐시 또는 오프라인 지원용으로 활용 고려
-  useEffect(() => {
-    const storedProfile = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (storedProfile) {
-      try {
-        const parsedProfile = JSON.parse(storedProfile);
-        // setUserProfile을 직접 호출하기보다는, 부모 컴포넌트에서 초기값을 설정하도록 유도하는 것이 좋을 수 있습니다.
-        // 여기서는 ProfileSection이 userProfile 상태를 직접 관리한다고 가정하고 진행합니다.
-        // 만약 부모로부터 userProfile을 받고 있다면, 이 로직은 부모 컴포넌트에 있어야 합니다.
-        // 또는, 초기 userProfile prop이 로컬 스토리지 값보다 우선순위가 높도록 처리할 수 있습니다.
-        // 여기서는 일단 로컬 스토리지가 있으면 덮어쓰도록 합니다.
-        setUserProfile(parsedProfile);
-        setTempProfile(parsedProfile); // tempProfile도 동기화
-      } catch (error) {
-        console.error("Error parsing user profile from local storage:", error);
-        // 오류 발생 시 기본 userProfile prop 사용
-      }
-    }
-  }, [setUserProfile]); // setUserProfile은 일반적으로 변경되지 않지만, 의존성 배열에 명시
-
-  // userProfile 상태 변경 시 로컬 스토리지에 저장
-  // TODO: 실제 애플리케이션에서는 이 데이터를 백엔드 API를 통해 서버에 저장해야 합니다.
-  useEffect(() => {
-    // userProfile이 초기값(예: 빈 객체 또는 기본값)이 아닐 때만 저장하도록 조건 추가 가능
-    if (userProfile && Object.keys(userProfile).length > 0 && userProfile.name) { // 간단한 유효성 검사
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(userProfile));
-    }
-  }, [userProfile]);
-
-
   const handleEdit = () => {
     setTempProfile({ ...userProfile });
     setIsEditing(true);
   };
 
-  const handleSave = () => {
-    // 이메일 변경 로직이 진행 중이지 않을 때만 일반 프로필 저장
+  const handleSave = async () => {
     if (!isChangingEmail) {
-      // TODO: 백엔드 API에 tempProfile 업데이트 요청
+      await userService.updateUserInfo(tempProfile);
+
       setUserProfile(tempProfile);
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tempProfile)); // 로컬 스토리지에도 저장
+
       setIsEditing(false);
     } else {
       // 이메일 변경이 완료되면 여기서 처리하거나, 별도 함수에서 처리
@@ -115,7 +82,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userProfile, setUserPro
       reader.onloadend = () => {
         setTempProfile({
           ...tempProfile,
-          profileImage: reader.result as string,
+          imageUrl: reader.result as string,
         });
       };
       reader.readAsDataURL(file);
@@ -191,7 +158,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userProfile, setUserPro
     // 임시 로직 (실제로는 API 응답에 따라 처리)
     const updatedProfileData = { ...userProfile, email: newEmail };
     setUserProfile(updatedProfileData);
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedProfileData)); // 로컬 스토리지 업데이트
     setIsEditing(false);
     setIsChangingEmail(false);
     setIsOtpSent(false);
@@ -224,7 +190,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userProfile, setUserPro
           <div className="flex flex-col items-center space-y-4">
             <div className="relative">
               <Avatar className="h-32 w-32">
-                <AvatarImage src={isEditing ? tempProfile.profileImage : userProfile.profileImage} />
+                <AvatarImage src={isEditing ? tempProfile.imageUrl : userProfile.imageUrl} />
                 <AvatarFallback><User className="h-16 w-16" /></AvatarFallback>
               </Avatar>
               {isEditing && (
@@ -261,11 +227,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userProfile, setUserPro
                   <Input 
                     id="name"
                     name="name"
-                    value={tempProfile.name}
+                    value={tempProfile.name || ''}
                     onChange={handleInputChange}
+                    placeholder="이름을 입력하세요"
                   />
                 ) : (
-                  <div className="mt-1 py-2 px-3 bg-muted rounded-md">{userProfile.name}</div>
+                  <div className="mt-1 py-2 px-3 bg-muted rounded-md">{userProfile.name || '설정되지 않음'}</div>
                 )}
               </div>
               
@@ -370,7 +337,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userProfile, setUserPro
               </div>
             </div>
 
-            <div>
+            {/* <div>
               <Label htmlFor="bio">자기소개</Label>
               {isEditing ? (
                 <Textarea 
@@ -386,7 +353,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userProfile, setUserPro
                   {userProfile.bio || '자기소개가 설정되지 않았습니다.'}
                 </div>
               )}
-            </div>
+            </div> */}
             {/* 소셜 계정 연결 섹션 전체 삭제 */}
           </div>
         </div>
