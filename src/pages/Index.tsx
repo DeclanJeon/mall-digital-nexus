@@ -146,7 +146,7 @@ const PeermallViewRenderer = ({
             transition={{ delay: index * 0.1 }}
           >
 
-            <Card className={`${designTokens.elevation.interactive} overflow-hidden bg-white/80 backdrop-blur-sm`}>
+            {/* <Card className={`${designTokens.elevation.interactive} overflow-hidden bg-white/80 backdrop-blur-sm`}>
               <div className="relative overflow-hidden">
                 <img
                   src={mall.imageLocation || '/placeholder-shop.jpg'} 
@@ -191,17 +191,17 @@ const PeermallViewRenderer = ({
                   </Button>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* 👈 기존 Card 대신 PeermallCard 사용 TO-BE*/}
-            {/* <PeermallCard
+            <PeermallCard
               {...mall}
               isPopular={mall.featured}
               isFamilyCertified={mall.certified}
               isRecommended={mall.recommended}
               onShowQrCode={onShowQrCode}
               onOpenMap={onOpenMap}
-            /> */}
+            />
 
           </motion.div>
         ))}
@@ -221,7 +221,7 @@ const PeermallViewRenderer = ({
             transition={{ delay: index * 0.05 }}
           >
 
-            <Card className={`${designTokens.elevation.card} overflow-hidden hover:shadow-lg transition-all duration-300`}>
+            {/* <Card className={`${designTokens.elevation.card} overflow-hidden hover:shadow-lg transition-all duration-300`}>
               <div className="flex">
                 <img
                   src={mall.imageLocation || '/placeholder-shop.jpg'}
@@ -288,10 +288,10 @@ const PeermallViewRenderer = ({
                   </div>
                 </div>
               </div>
-            </Card>
+            </Card> */}
 
             {/* 👈 PeermallCard를 리스트 형태로 사용 TO-BE */}
-            {/* <PeermallCard
+            <PeermallCard
               {...mall}
               isPopular={mall.featured}
               isFamilyCertified={mall.certified}
@@ -299,7 +299,7 @@ const PeermallViewRenderer = ({
               onShowQrCode={onShowQrCode}
               onOpenMap={onOpenMap}
               className="w-full" // 리스트 뷰용 스타일
-            /> */}
+            />
 
           </motion.div>
         ))}
@@ -320,7 +320,7 @@ const PeermallViewRenderer = ({
             className="group cursor-pointer"
             onClick={() => navigate(`/space/${mall.peerMallName}?mk=${mall.peerMallKey}`)}
           >
-            <div className="relative overflow-hidden rounded-lg aspect-square">
+            {/* <div className="relative overflow-hidden rounded-lg aspect-square">
               <img
                 src={mall.imageLocation || '/placeholder-shop.jpg'}
                 alt={mall.peerMallName}
@@ -363,8 +363,9 @@ const PeermallViewRenderer = ({
                   <Share2 className="w-4 h-4" />
                 </Button>
               </div>
-            </div>
-            {/* <PeermallCard
+            </div> */}
+
+            <PeermallCard
               {...mall}
               isPopular={mall.featured}
               isFamilyCertified={mall.certified}
@@ -372,7 +373,7 @@ const PeermallViewRenderer = ({
               onShowQrCode={onShowQrCode}
               onOpenMap={onOpenMap}
               className="aspect-square"
-            /> */}
+            />
 
           </motion.div>
         ))}
@@ -392,7 +393,7 @@ const PeermallViewRenderer = ({
             transition={{ delay: index * 0.1 }}
           >
 
-            <Card className={`${designTokens.elevation.feature} overflow-hidden bg-white/90 backdrop-blur-sm`}>
+            {/* <Card className={`${designTokens.elevation.feature} overflow-hidden bg-white/90 backdrop-blur-sm`}>
               <div className="relative">
                 <img
                   src={mall.imageLocation || '/api/placeholder/800/400'}
@@ -485,9 +486,9 @@ const PeermallViewRenderer = ({
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </Card> */}
 
-            {/* <PeermallCard
+            <PeermallCard
               {...mall}
               isPopular={mall.featured}
               isFamilyCertified={mall.certified}
@@ -495,7 +496,7 @@ const PeermallViewRenderer = ({
               onShowQrCode={onShowQrCode}
               onOpenMap={onOpenMap}
               className="w-full max-w-4xl mx-auto"
-            /> */}
+            />
 
           </motion.div>
         ))}
