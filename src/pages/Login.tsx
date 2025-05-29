@@ -164,8 +164,8 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           localStorage.setItem('USERS', JSON.stringify(users));
 
           // 성공 콜백 또는 네비게이션
-          if (onLoginSuccess) {
-            onLoginSuccess();
+          if (loginRes.success) {
+            navigate('/');
           } else {
             // 기본 리디렉션
             navigate('/my-info');

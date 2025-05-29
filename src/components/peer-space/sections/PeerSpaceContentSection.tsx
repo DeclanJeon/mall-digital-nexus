@@ -154,7 +154,6 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
   ];
 
   const handleProductDetailView = (productKey: string | number) => {
-    debugger;
     navigate(`/space/${peerMallName}/product?mk=${peerMallKey}&pk=${productKey}`);
   };
 

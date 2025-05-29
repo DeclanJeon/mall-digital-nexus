@@ -120,7 +120,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           });
 
           // 성공 콜백 또는 네비게이션
-          if (onLoginSuccess) {
+          if (loginRes.success) {
             onLoginSuccess();
           } else {
             navigate('/');
