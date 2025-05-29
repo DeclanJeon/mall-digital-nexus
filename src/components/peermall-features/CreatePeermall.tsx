@@ -57,7 +57,7 @@ const CreatePeermall: React.FC<CreatePeermallProps> = ({ onCreatePeermall }) => 
         title: mallName,
         category: mallType,
         description: peermallData?.description || '',
-        owner: peermallData?.owner || peermallData?.representativeName || '',
+        owner: peermallData?.ownerName || '',
         imageUrl: peermallData?.imageUrl || '',
       });
 

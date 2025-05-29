@@ -453,9 +453,8 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       id: id,
       title: values.name, // name을 title로 매핑
       name: values.name,                    // title 대신 name
-      representativeName: values.ownerName, // owner 대신 representativeName
+      ownerName: values.ownerName, // owner 대신 representativeName
       description: values.description,
-      owner: values.ownerName,
       email: values.email,
       imageUrl: values.imageUrl || 'https://picsum.photos/400/300',
       membershipType: values.membershipType || '',
@@ -493,7 +492,8 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       if (imageFile) {
         formData.append('image', imageFile);
       }
-      await createPeerMall(formData);
+      const { success, peerMallKey } = await createPeerMall(formData);
+      dataForStorage['peerMallKey'] = peerMallKey;
 
         // 초기화
       form.reset();
@@ -510,7 +510,10 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
         variant: 'default',
       });
       
-      onClose(); // Always close the modal on success
+      if (onSuccess) {
+        onSuccess(dataForStorage);
+      }
+      onClose();
     } catch (error) {
       console.error('피어몰 저장 실패:', error);
       toast({
