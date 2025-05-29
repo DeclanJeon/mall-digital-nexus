@@ -73,10 +73,10 @@ import {
   Plus,
   X
 } from "lucide-react";
-import QRCodeSVG from 'qrcode.react';
 import ProductRegistrationPreview from "./ProductRegistrationPreview";
 import { Product } from "@/types/product";
 import { ContentType } from '@/types/space';
+import { peermallStorage } from '@/services/storage/peermallStorage';
 
 // Define categories for the dropdown
 const PRODUCT_CATEGORIES = [
@@ -104,26 +104,37 @@ const PRODUCT_CATEGORIES = [
 // Define form schema with enhanced validation
 const productSchema = z.object({
   id: z.string().optional(),
-  name: z.string().optional(),
+  name: z.string().default(""), // 빈 문자열로 기본값 설정
   price: z.preprocess(
-    (val) => Number(val), 
+    (val) => val === '' || val === null || val === undefined ? 0 : Number(val), 
     z.number().min(0, { message: "가격은 0 이상이어야 합니다." })
-  ).optional(),
-  currency: z.string().default('KRW'), // 화폐 단위 추가
-  imageUrl: z.string().url({ message: "유효한 이미지 URL을 입력해주세요." }).optional().or(z.literal('')), // 빈 문자열 허용
-  imageFile: z.any().optional(), // 이미지 파일 추가 (File 객체)
-  saleUrl: z.string().optional(),
-  distributor: z.string().optional(),
-  manufacturer: z.string().optional(),
-  description: z.string().optional(),
-  categoryId: z.string().optional(),
-  tags: z.array(z.string()).optional(),
-  brandUrl: z.string().url({ message: "유효한 URL을 입력해주세요." }).optional(),
-  stock: z.string().optional(),
+  ).default(0),
+  currency: z.string().default('KRW'),
+  // null 대신 빈 문자열 사용하도록 수정
+  discountPrice: z.preprocess(
+    (val) => val === '' || val === null || val === undefined ? '' : String(val), 
+    z.string().optional()
+  ).default(''),
+
+  imageUrl: z.string().default(''), // 기본값 추가
+  imageFile: z.any().optional(),
+  saleUrl: z.string().default(''), // 기본값 추가
+  distributor: z.string().default(''),
+  manufacturer: z.string().default(''),
+  description: z.string().default(''),
+  categoryId: z.string().default(''),
+  tags: z.array(z.string()).default([]),
+  peermallName: z.string().default(''),
+  peermallId: z.string().default(''),
+  isBestSeller: z.boolean().default(false),
+  isNew: z.boolean().default(false),
+  isRecommended: z.boolean().default(false),
+  isCertified: z.boolean().default(false),
+  stock: z.string().default(''),
   options: z.array(z.object({
     name: z.string(),
     values: z.array(z.string())
-  })).optional(),
+  })).default([]),
   isPublic: z.boolean().default(true)
 });
 
@@ -143,9 +154,12 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
   onClose,
 }) => {
   const [previewImage, setPreviewImage] = useState<string>("");
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
+  const [tagInput, setTagInput] = useState('');
+  const tagInputRef = useRef<HTMLInputElement>(null);
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [productTags, setProductTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState<string>("");
   const [options, setOptions] = useState<{name: string, values: string[]}[]>([]);
   const [optionName, setOptionName] = useState<string>("");
   const [optionValues, setOptionValues] = useState<string>("");
@@ -153,7 +167,6 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>("basic");
   const qrRef = useRef<HTMLDivElement>(null);
-  const tagInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   // Initialize form
@@ -166,16 +179,23 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       currency: 'KRW',
       imageUrl: "",
       imageFile: null,
-      saleUrl: "",
+      saleUrl: "", // 빈 문자열로 초기화
+      discountPrice: "", // 빈 문자열로 초기값 설정
+
       distributor: "",
       manufacturer: "",
       description: "",
       categoryId: "",
       tags: [],
-      brandUrl: "",
       stock: "",
       options: [],
-      isPublic: true
+      isPublic: true,
+      peermallName: "",
+      peermallId: "",
+      isBestSeller: false,
+      isNew: false,
+      isRecommended: false,
+      isCertified: false
     }
   });
 
@@ -186,24 +206,45 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
 
   // localStorage에서 데이터 로드
   React.useEffect(() => {
-    try {
-      const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (savedData) {
-        const parsedData = JSON.parse(savedData);
-        // price가 string으로 저장될 수 있으므로 number로 변환
-        if (parsedData.price !== undefined) {
-          parsedData.price = Number(parsedData.price);
-        }
-        form.reset(parsedData); // 폼 데이터 로드
-        // useState로 관리되는 상태들도 로드
-        if (parsedData.productTags) setProductTags(parsedData.productTags);
-        if (parsedData.options) setOptions(parsedData.options);
+  try {
+    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      
+      // null 값들을 적절한 기본값으로 변환
+      const cleanedData = {
+        ...parsedData,
+        name: parsedData.name || "",
+        price: parsedData.price !== undefined ? Number(parsedData.price) : 0,
+        discountPrice: parsedData.discountPrice || '', // null을 빈 문자열로
+        imageUrl: parsedData.imageUrl || "",
+        saleUrl: parsedData.saleUrl || "",
+        distributor: parsedData.distributor || "",
+        manufacturer: parsedData.manufacturer || "",
+        description: parsedData.description || "",
+        categoryId: parsedData.categoryId || "",
+        tags: parsedData.tags || [],
+        stock: parsedData.stock || "",
+        options: parsedData.options || [],
+        currency: parsedData.currency || 'KRW',
+        isPublic: parsedData.isPublic !== undefined ? parsedData.isPublic : true
+      };
+      
+      form.reset(cleanedData);
+      
+      // useState 상태들도 안전하게 로드
+      if (parsedData.productTags && Array.isArray(parsedData.productTags)) {
+        setProductTags(parsedData.productTags);
       }
-    } catch (error) {
-      console.error("Failed to load form data from localStorage", error);
-      localStorage.removeItem(LOCAL_STORAGE_KEY); // 오류 발생 시 데이터 삭제
+      if (parsedData.options && Array.isArray(parsedData.options)) {
+        setOptions(parsedData.options);
+      }
     }
-  }, []);
+  } catch (error) {
+    console.error("Failed to load form data from localStorage", error);
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+  }
+}, [form]);
 
   // 폼 데이터 변화 시 localStorage에 저장 (디바운싱 적용)
   React.useEffect(() => {
@@ -232,12 +273,12 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
   }, [watchImageUrl]);
 
   React.useEffect(() => {
-    if (watchSaleUrl) {
-      setQrCodeUrl(watchSaleUrl);
+    if (previewUrl) {
+      setQrCodeUrl(previewUrl);
     } else {
-      setQrCodeUrl("");
+      setQrCodeUrl(null);
     }
-  }, [watchSaleUrl]);
+  }, [previewUrl]);
 
   // Function to add a tag
   const addTag = () => {
@@ -287,19 +328,21 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
     form.setValue('options', newOptions);
   };
 
+  // Helper function to generate QR code image URL
+  const generateQrCodeImageUrl = (content: string) => {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(content)}`;
+  };
+
   // Function to download QR code
   const downloadQRCode = () => {
-    if (qrRef.current && qrCodeUrl) {
-      const canvas = qrRef.current.querySelector('canvas');
-      if (canvas) {
-        const url = canvas.toDataURL("image/png");
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${form.getValues("name") || "product"}-qrcode.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
+    if (qrCodeUrl) {
+      const imageUrl = generateQrCodeImageUrl(qrCodeUrl);
+      const a = document.createElement("a");
+      a.href = imageUrl;
+      a.download = `${form.getValues("name") || "product"}-qrcode.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
   };
 
@@ -325,18 +368,21 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       category: formValues.categoryId ?
         PRODUCT_CATEGORIES.find(c => c.id.toString() === formValues.categoryId)?.name || '' : '',
       attributes: {},
-      rating: 0, // 기본값 설정
-      reviewCount: 0, // 기본값 설정
-      peermallName: 'Default Peermall', // 기본값 설정
-      peerSpaceAddress: address, // 피어몰 주소 추가
-      type: ContentType.Product, // ContentType.Product로 고정
-      date: now, // 현재 시간으로 설정
-      likes: 0, // 기본값 설정
-      comments: 0, // 기본값 설정
-      views: 0, // 기본값 설정
-      saves: 0, // 기본값 설정
-      badges: [], // 기본값 설정
-      isFeatured: false, // 기본값 설정
+      rating: 0,
+      reviewCount: 0,
+      peermallName: (() => {
+        const peermall = peermallStorage.getAll().find(p => p.peerMallAddress === address);
+        return peermall ? (peermall.title || peermall.peerMallName || 'Unknown Peermall') : 'Unknown Peermall';
+      })(),
+      peerSpaceAddress: address,
+      type: ContentType.Product,
+      date: now,
+      likes: 0,
+      comments: 0,
+      views: 0,
+      saves: 0,
+      badges: [],
+      isFeatured: false,
       status: 'active',
       author: '',
       authorId: '',
@@ -347,55 +393,57 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       htmlContent: '',
       relatedBadges: [],
       location: '',
+      saleUrl: formValues.saleUrl || '', // ✨ saleUrl 제대로 매핑
     };
   };
+
 
   const handleFormSubmit = async (formValues: ProductFormValues) => {
     const productData = convertToContent(formValues);
     onProductSave(productData);
   };
 
+  // handleSubmit 함수의 newProduct 생성 부분 수정
   const handleSubmit = async (formValues: ProductFormValues) => {
     setIsSubmitting(true);
+    console.log("handleSubmit 함수 호출됨", formValues);
     
     try {
+      const now = new Date().toISOString();
       const newProduct: Product = {
+        // Content 필수 필드
         id: crypto.randomUUID(),
+        peerSpaceAddress: address, // 반드시 실제 피어몰 주소
         title: formValues.name,
-        description: "새로 등록된 상품 페이지로 이동합니다.",
+        description: formValues.description || '',
+        type: ContentType.Product,
+        date: now,
+        likes: 0,
+        comments: 0,
+        views: 0,
+        saves: 0,
+
+        // Product 필드
         price: Number(formValues.price) || 0,
         currency: formValues.currency || 'KRW',
+        discountPrice: formValues.discountPrice && formValues.discountPrice !== '' 
+          ? Number(formValues.discountPrice) 
+          : null,
         imageUrl: formValues.imageUrl || '',
-        isExternal: !!formValues.saleUrl,
-        externalUrl: formValues.saleUrl || '',
-        source: formValues.manufacturer || 'Unknown',
-        tags: formValues.tags || [],
+        rating: 0,
+        reviewCount: 0,
+        peermallName: formValues.peermallName || 'Default Peermall',
+        peermallId: formValues.peermallId || '',
         category: formValues.categoryId ?
           PRODUCT_CATEGORIES.find(c => c.id.toString() === formValues.categoryId)?.name || '' : '',
-        attributes: {},
-        rating: 0, // 기본값 설정
-        reviewCount: 0, // 기본값 설정
-        peermallName: 'Default Peermall', // 기본값 설정
-        peerSpaceAddress: address, // 피어몰 주소 추가
-        type: ContentType.Product, // ContentType.Product로 고정
-        date: new Date().toISOString(), // 현재 시간으로 설정
-        likes: 0, // 기본값 설정
-        comments: 0, // 기본값 설정
-        views: 0, // 기본값 설정
-        saves: 0, // 기본값 설정
-        badges: [], // 기본값 설정
-        isFeatured: false, // 기본값 설정
-        status: 'active',
-        author: '',
-        authorId: '',
-        media: [],
-        completion: 0,
-        maxParticipants: 0,
-        participants: [],
-        htmlContent: '',
-        relatedBadges: [],
-        location: '',
+        tags: formValues.tags || [],
+        isBestSeller: false,
+        isNew: true,
+        isRecommended: false,
+        isCertified: false,
+        saleUrl: formValues.saleUrl || '', // ✨ saleUrl 제대로 저장
       };
+
       await saveProduct(newProduct);
       await handleFormSubmit(formValues);
       
@@ -404,18 +452,18 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
         description: "상품 목록에 추가되었습니다.",
       });
       
-      localStorage.removeItem(LOCAL_STORAGE_KEY); // 상품 등록 성공 시 localStorage 데이터 삭제
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
 
       // Reset form and state
       form.reset();
       setPreviewImage("");
-      setQrCodeUrl("");
+      setQrCodeUrl(null);
       setProductTags([]);
       setOptions([]);
       setActiveTab("basic");
-      navigate(`/space/${address}/product/${newProduct.id}`); // 피어몰 주소 추가
+      navigate(`/space/${address}/product/${newProduct.id}`);
     } catch(err) {
-      console.error('상품 등록 실패:', err);
+      console.error('폼 제출 중 오류 발생:', err);
       toast({
         title: "상품 등록 오류",
         description: "서버 통신 중 에러가 발생했습니다. 네트워크 연결을 확인하고 다시 시도해주세요.",
@@ -425,6 +473,39 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       setIsSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'name' || name === 'price') {
+        const currentSaleUrl = value.saleUrl;
+
+        const currentName = value.name || '상품명';
+        const currentPrice = value.price ? `${value.price}원` : '가격';
+
+        let url = '';
+        if (currentSaleUrl) {
+          url = `판매: ${currentSaleUrl}`;
+        }
+
+        if (url) {
+          setPreviewUrl(`
+            ${url}
+            상품명: ${currentName}
+            가격: ${currentPrice}
+          `);
+        } else {
+          setPreviewUrl(null);
+        }
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  useEffect(() => {
+    if (form.formState.isSubmitSuccessful) {
+      form.reset();
+    }
+  }, [form.formState.isSubmitSuccessful, form]);
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-100 z-[500]">
@@ -556,8 +637,13 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
 
                 <CardFooter className="p-4 bg-gray-50 flex justify-between items-center border-t border-gray-100">
                   <div className="flex items-center text-sm text-blue-600">
-                    <Link className="h-4 w-4 mr-1" />
-                    <span>판매 링크로 이동</span>
+                    {form.watch("saleUrl") && (
+                      <a href={form.watch("saleUrl")} target="_blank" rel="noopener noreferrer" className="flex items-center mr-4">
+                        <Link className="h-4 w-4 mr-1" />
+                        <span>판매 링크</span>
+                      </a>
+                    )}
+
                   </div>
                   <Button size="sm" variant="outline" className="flex items-center gap-1">
                     <ShoppingBag className="h-4 w-4" />
@@ -574,7 +660,11 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                   <div className="flex flex-col items-center mb-6">
                     <div className="bg-white p-4 rounded-md mb-4 border border-gray-100" ref={qrRef}>
                       {qrCodeUrl ? (
-                        <QRCodeSVG value={qrCodeUrl} size={180} />
+                        <img
+                          src={generateQrCodeImageUrl(qrCodeUrl)}
+                          alt="Generated QR Code"
+                          className="w-48 h-48 object-contain mx-auto" // Adjusted size and centering
+                        />
                       ) : (
                         <div className="w-44 h-44 bg-gray-100 flex items-center justify-center text-gray-400">
                           <QrCode className="h-12 w-12" />
@@ -645,178 +735,95 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                     </TabsList>
                     
                     <TabsContent value="basic" className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="saleUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center">
-                              판매 URL 
+                      
+                    <FormField
+                      control={form.control}
+                      name="saleUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center">
+                            상품 링크 
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info className="h-3.5 w-3.5 ml-1 text-gray-400" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>판매 링크 외에 추가적인 상품 정보를 제공하는 링크를 입력해주세요.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </FormLabel>
+                          <FormControl>
+                            <div className="flex gap-2">
+                              <Input 
+                                placeholder="https://example.com/product-info" 
+                                {...field} 
+                                className="flex-1"
+                              />
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <Info className="h-3.5 w-3.5 ml-1 text-gray-400" />
+                                    <Button 
+                                      type="button" 
+                                      variant="outline" 
+                                      size="icon"
+                                      onClick={() => {
+                                        if (navigator.clipboard) {
+                                          navigator.clipboard.readText().then(text => {
+                                            if (text.startsWith('http')) {
+
+                                            }
+                                          });
+                                        }
+                                      }}
+                                    >
+                                      <RefreshCw className="h-4 w-4" />
+                                    </Button>
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p>실제 상품이 판매되는 URL을 입력해주세요. QR 코드가 자동 생성됩니다.</p>
+                                    <p>클립보드에서 URL 붙여넣기</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
-                            </FormLabel>
+                            </div>
+                          </FormControl>
+                          <FormDescription>
+                            판매 링크 외에 추가적인 상품 정보를 제공하는 링크를 입력해주세요.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>상품명</FormLabel>
+                          <FormControl>
+                            <Input placeholder="상품명을 입력하세요" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="price"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>가격</FormLabel>
                             <FormControl>
-                              <div className="flex gap-2">
+                              <div className="relative">
                                 <Input 
-                                  placeholder="https://example.com/product" 
+                                  placeholder="예: ₩30,000" 
                                   {...field} 
-                                  className="flex-1"
+                                  className="pl-10"
                                 />
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button 
-                                        type="button" 
-                                        variant="outline" 
-                                        size="icon"
-                                        onClick={() => {
-                                          if (navigator.clipboard) {
-                                            navigator.clipboard.readText().then(text => {
-                                              if (text.startsWith('http')) {
-                                                form.setValue('saleUrl', text);
-                                              }
-                                            });
-                                          }
-                                        }}
-                                      >
-                                        <RefreshCw className="h-4 w-4" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>클립보드에서 URL 붙여넣기</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              </div>
-                            </FormControl>
-                            <FormDescription>
-                              실제 상품이 판매되는 URL을 입력해주세요.
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>상품명</FormLabel>
-                            <FormControl>
-                              <Input placeholder="상품명을 입력하세요" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="price"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>가격</FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <Input 
-                                    placeholder="예: ₩30,000" 
-                                    {...field} 
-                                    className="pl-10"
-                                  />
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                          {/* <FormField
-                            control={form.control}
-                            name="currency"
-                            render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>화폐 단위</FormLabel>
-                              <FormControl>
-                                <Select 
-                                  onValueChange={field.onChange} 
-                                  defaultValue={field.value}
-                                >
-                                  <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="화폐 단위를 선택하세요" />
-                                  </SelectTrigger>
-                                  <SelectContent position="popper">
-                                    <SelectItem value="KRW">KRW (원)</SelectItem>
-                                    <SelectItem value="USD">USD (달러)</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        /> */}
-
-                        <FormField
-                          control={form.control}
-                          name="stock"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>재고 수량</FormLabel>
-                              <FormControl>
-                                <Input placeholder="재고 수량" {...field} type="number" min="0" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <FormField
-                        control={form.control}
-                        name="imageUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>이미지 URL</FormLabel>
-                            <FormControl>
-                              <div className="flex gap-2">
-                                <div className="relative flex-1">
-                                  <FileImage className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-                                  <Input 
-                                    placeholder="상품 이미지 URL을 입력하세요" 
-                                    {...field} 
-                                    className="pl-10"
-                                  />
-                                </div>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button type="button" variant="outline" size="icon">
-                                      <HelpCircle className="h-4 w-4" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>이미지 URL 찾는 방법</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        1. 웹페이지에서 원하는 이미지에 우클릭하세요.<br />
-                                        2. '이미지 주소 복사' 또는 '이미지 링크 복사'를 선택하세요.<br />
-                                        3. 복사한 URL을 이 필드에 붙여넣기 하세요.<br /><br />
-                                        <strong>참고:</strong> 항상 이미지 사용 권한을 확인하세요.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>닫기</AlertDialogCancel>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
                               </div>
                             </FormControl>
                             <FormMessage />
@@ -824,48 +831,23 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                         )}
                       />
 
-                      <FormField
-                        control={form.control}
-                        name="imageFile"
-                        render={({ field }) => (
+                        {/* <FormField
+                          control={form.control}
+                          name="currency"
+                          render={({ field }) => (
                           <FormItem>
-                            <FormLabel>이미지 파일</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="file" 
-                                {...field} 
-                                onChange={(e) => {
-                                  if (e.target.files) {
-                                    field.onChange(e.target.files[0]);
-                                  }
-                                }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      {/* <FormField
-                        control={form.control}
-                        name="categoryId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>카테고리</FormLabel>
+                            <FormLabel>화폐 단위</FormLabel>
                             <FormControl>
                               <Select 
                                 onValueChange={field.onChange} 
                                 defaultValue={field.value}
                               >
                                 <SelectTrigger className="w-full">
-                                  <SelectValue placeholder="카테고리를 선택하세요" />
+                                  <SelectValue placeholder="화폐 단위를 선택하세요" />
                                 </SelectTrigger>
                                 <SelectContent position="popper">
-                                  {PRODUCT_CATEGORIES.map((category) => (
-                                    <SelectItem key={category.id} value={category.id.toString()}>
-                                      {category.name}
-                                    </SelectItem>
-                                  ))}
+                                  <SelectItem value="KRW">KRW (원)</SelectItem>
+                                  <SelectItem value="USD">USD (달러)</SelectItem>
                                 </SelectContent>
                               </Select>
                             </FormControl>
@@ -874,47 +856,156 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                         )}
                       /> */}
 
-                      <div>
-                        <FormLabel htmlFor="tags">태그</FormLabel>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {productTags.map((tag, index) => (
-                            <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                              #{tag}
-                              <button 
-                                type="button" 
-                                onClick={() => removeTag(tag)}
-                                className="text-gray-500 hover:text-gray-700"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                        <div className="flex gap-2">
-                          <div className="relative flex-1">
-                            <Tag className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-                            <Input
-                              id="tags"
-                              placeholder="태그 입력 후 Enter 또는 추가"
-                              value={tagInput}
-                              onChange={(e) => setTagInput(e.target.value)}
-                              onKeyDown={handleTagKeyDown}
-                              className="pl-10"
-                              ref={tagInputRef}
+                      <FormField
+                        control={form.control}
+                        name="stock"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>재고 수량</FormLabel>
+                            <FormControl>
+                              <Input placeholder="재고 수량" {...field} type="number" min="0" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="imageUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>이미지 URL</FormLabel>
+                          <FormControl>
+                            <div className="flex gap-2">
+                              <div className="relative flex-1">
+                                <FileImage className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                                <Input 
+                                  placeholder="상품 이미지 URL을 입력하세요" 
+                                  {...field} 
+                                  className="pl-10"
+                                />
+                              </div>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button type="button" variant="outline" size="icon">
+                                    <HelpCircle className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>이미지 URL 찾는 방법</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      1. 웹페이지에서 원하는 이미지에 우클릭하세요.<br />
+                                      2. '이미지 주소 복사' 또는 '이미지 링크 복사'를 선택하세요.<br />
+                                      3. 복사한 URL을 이 필드에 붙여넣기 하세요.<br /><br />
+                                      <strong>참고:</strong> 항상 이미지 사용 권한을 확인하세요.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>닫기</AlertDialogCancel>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="imageFile"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>이미지 파일</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="file" 
+                              {...field} 
+                              onChange={(e) => {
+                                if (e.target.files) {
+                                  field.onChange(e.target.files[0]);
+                                }
+                              }}
                             />
-                          </div>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={addTag}
-                          >
-                            추가
-                          </Button>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">태그를 추가하면 상품 검색 노출이 향상됩니다.</p>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* <FormField
+                      control={form.control}
+                      name="categoryId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>카테고리</FormLabel>
+                          <FormControl>
+                            <Select 
+                              onValueChange={field.onChange} 
+                              defaultValue={field.value}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="카테고리를 선택하세요" />
+                              </SelectTrigger>
+                              <SelectContent position="popper">
+                                {PRODUCT_CATEGORIES.map((category) => (
+                                  <SelectItem key={category.id} value={category.id.toString()}>
+                                    {category.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    /> */}
+
+                    <div>
+                      <FormLabel htmlFor="tags">태그</FormLabel>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {productTags.map((tag, index) => (
+                          <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                            #{tag}
+                            <button 
+                              type="button" 
+                              onClick={() => removeTag(tag)}
+                              className="text-gray-500 hover:text-gray-700"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
                       </div>
-                    </TabsContent>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Tag className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                          <Input
+                            id="tags"
+                            placeholder="태그 입력 후 Enter 또는 추가"
+                            value={tagInput}
+                            onChange={(e) => setTagInput(e.target.value)}
+                            onKeyDown={handleTagKeyDown}
+                            className="pl-10"
+                            ref={tagInputRef}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={addTag}
+                        >
+                          추가
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">태그를 추가하면 상품 검색 노출이 향상됩니다.</p>
+                    </div>
+                  </TabsContent>
                     
                     <TabsContent value="details" className="space-y-4">
                       <FormField
@@ -974,7 +1065,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                         />
                       </div>
 
-                      <FormField
+                      {/* <FormField
                         control={form.control}
                         name="brandUrl"
                         render={({ field }) => (
@@ -990,13 +1081,11 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                                 />
                               </div>
                             </FormControl>
-                            <FormDescription>
-                              브랜드 또는 제조사의 공식 웹사이트 URL을 입력하세요. (선택 사항)
-                            </FormDescription>
+                            <p className="text-xs text-gray-500 mt-1">브랜드 또는 제조사의 공식 웹사이트 URL을 입력하세요. (선택 사항)</p>
                             <FormMessage />
                           </FormItem>
                         )}
-                      />
+                      /> */}
                     </TabsContent>
                     
                     <TabsContent value="options" className="space-y-4">
@@ -1145,7 +1234,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                     {form.watch("name") || "상품명"}
                   </h3>
                   <p className="text-blue-600 font-bold mt-1 mb-3">
-                    {form.watch("price") || "가격"} {form.watch("currency") || "KRW"}
+                    {form.watch("price") || "가격"}
                   </p>
 
                   {productTags.length > 0 && (
@@ -1202,7 +1291,11 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
 
                 <div className="flex justify-center bg-white p-4 rounded-md mb-3" ref={qrRef}>
                   {qrCodeUrl ? (
-                    <QRCodeSVG value={qrCodeUrl} size={128} />
+                    <img
+                      src={generateQrCodeImageUrl(qrCodeUrl)}
+                      alt="Generated QR Code"
+                      className="w-64 h-64 object-contain mx-auto" // Adjusted size and centering
+                    />
                   ) : (
                     <div className="w-32 h-32 bg-gray-100 flex items-center justify-center text-gray-400">
                       QR 코드

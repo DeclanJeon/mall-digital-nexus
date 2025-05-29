@@ -1,4 +1,3 @@
-// 개선된 ProductDetailPage 컴포넌트
 import React, { useState, useEffect } from 'react';
 import { Product } from '@/types/product';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,7 @@ import {
   ThumbsDown, Flag, User, Clock, CheckCircle, AlertCircle,
   Camera, Mic, Smile, Paperclip, MoreHorizontal
 } from 'lucide-react'; 
-import { getProductById } from '@/services/storage/productStorage';
+import { getProductById, getProducts } from '@/services/storage/productStorage';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
@@ -79,16 +78,17 @@ const ProductDetailPage: React.FC = () => {
   const { address, productId } = useParams<{ address: string; productId: string }>();
   const navigate = useNavigate();
 
-  // 기존 상태들
-  const [product, setProduct] = useState<Product | null>(null); 
+  // 상태들 - Product | undefined로 타입 수정
+  const [product, setProduct] = useState<Product | undefined>(undefined); 
   const [isLoading, setIsLoading] = useState(true); 
+  const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // 새로운 상태들 - 소셜 기능을 위한
+  // 소셜 기능 상태들
   const [reviews, setReviews] = useState<Review[]>([]);
   const [newReview, setNewReview] = useState({ rating: 5, content: '', images: [] as string[] });
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -96,29 +96,63 @@ const ProductDetailPage: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
-  const [isOnline, setIsOnline] = useState(true); // 판매자 온라인 상태
+  const [isOnline, setIsOnline] = useState(true);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
 
+  // 상품 데이터 로드
+  useEffect(() => {
+    const loadProduct = async () => {
+      if (!productId) {
+        setError('상품 ID가 제공되지 않았습니다.');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        console.log('Loading product with ID:', productId);
+        
+        // 모든 상품 목록 확인 (디버깅용)
+        const allProducts = getProducts();
+        console.log('All available products:', allProducts.map(p => ({ 
+          id: p.id, 
+          title: p.title 
+        })));
+        
+        const fetchedProduct = getProductById(productId);
+        
+        console.log('Fetched product:', fetchedProduct);
+        
+        if (fetchedProduct) {
+          setProduct(fetchedProduct);
+          loadMockReviews();
+        } else {
+          setError(`상품을 찾을 수 없습니다. (ID: ${productId})`);
+        }
+      } catch (err) {
+        console.error('Error loading product:', err);
+        setError('상품 정보를 불러오는 중 오류가 발생했습니다.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [productId]);
+
+  // 문의 데이터 로드
   useEffect(() => {
     if (productId) {
-      setIsLoading(true);
-      const fetchedProduct = getProductById(productId); 
-      setProduct(fetchedProduct || null);
-      
-      // 가짜 리뷰 데이터 로드
-      loadMockReviews();
-      
-      setIsLoading(false);
+      const loadedInquiries = loadInquiries(productId);
+      setInquiries(loadedInquiries);
     }
   }, [productId]);
 
+  // 문의 데이터 저장
   useEffect(() => {
-    const loadedInquiries = loadInquiries(productId);
-    setInquiries(loadedInquiries);
-  }, [productId]);
-
-  useEffect(() => {
-    if (inquiries.length > 0 || loadInquiries(productId).length > 0) {
+    if (productId && inquiries.length > 0) {
       const allInquiries = JSON.parse(localStorage.getItem(INQUIRIES_STORAGE_KEY) || '[]');
       const otherProductInquiries = allInquiries.filter((inq: Inquiry) => inq.productId !== productId);
       saveInquiries([...otherProductInquiries, ...inquiries]);
@@ -163,7 +197,29 @@ const ProductDetailPage: React.FC = () => {
     setReviews(mockReviews);
   };
 
-  // 기존 함수들은 그대로 유지...
+  // 가격 포맷팅 함수
+  const formatPrice = (price: number | string | undefined) => {
+    if (!price) return '0';
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    return new Intl.NumberFormat('ko-KR').format(numPrice);
+  };
+
+  // 상품 이미지 배열 생성
+  const getProductImages = () => {
+    const defaultImages = [
+      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500",
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500",
+      "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500",
+      "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500"
+    ];
+
+    if (product?.imageUrl) {
+      return [product.imageUrl, ...defaultImages.slice(1)];
+    }
+    return defaultImages;
+  };
+
+  // 핸들러 함수들
   const handleAddToCart = () => {
     toast({
       title: "장바구니 담기 완료! 🛒 (기능 준비중)",
@@ -172,10 +228,19 @@ const ProductDetailPage: React.FC = () => {
   };
 
   const handleBuyNow = () => {
-    toast({
-      title: "바로구매 진행중! 💳",
-      description: "주문 페이지로 이동합니다."
-    });
+    if (product?.saleUrl) {
+      window.open(product.saleUrl, '_blank', 'noopener,noreferrer');
+      toast({
+        title: "상품 페이지로 이동합니다 🚀",
+        description: `"${product.title}" 외부 페이지가 새 탭에서 열립니다.`,
+      });
+    } else {
+      toast({
+        title: "구매 링크 없음 ⚠️",
+        description: "이 상품에 대한 구매 링크가 제공되지 않았습니다.",
+        variant: "destructive",
+      });
+    }
   };
 
   const toggleFavorite = () => {
@@ -186,7 +251,6 @@ const ProductDetailPage: React.FC = () => {
     });
   };
 
-  // 새로운 함수들 - 소셜 기능
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
 
@@ -268,7 +332,7 @@ const ProductDetailPage: React.FC = () => {
 
     const inquiry: Inquiry = {
       id: Date.now().toString(),
-      productId: productId,
+      productId: productId!,
       author: '나',
       content,
       timestamp: new Date().toLocaleString()
@@ -282,6 +346,7 @@ const ProductDetailPage: React.FC = () => {
     navigate(-1);
   };
 
+  // 로딩 상태
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
@@ -293,13 +358,22 @@ const ProductDetailPage: React.FC = () => {
     );
   }
 
-  if (!product) {
+  // 에러 상태
+  if (error || !product) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-red-50 to-pink-50">
         <div className="text-center max-w-md">
           <AlertCircle className="h-16 w-16 text-red-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-800 mb-4">앗! 상품을 찾을 수 없어요 😅</h2>
-          <p className="text-gray-600 mb-6">요청하신 상품 정보를 불러올 수 없습니다. 링크를 다시 확인해주세요.</p>
+          <p className="text-gray-600 mb-6">
+            {error || '요청하신 상품 정보를 불러올 수 없습니다.'}
+          </p>
+          <div className="space-y-2 mb-6">
+            <p className="text-sm text-gray-500">디버깅 정보:</p>
+            <p className="text-xs text-gray-400">Product ID: {productId}</p>
+            <p className="text-xs text-gray-400">Address: {address}</p>
+            <p className="text-xs text-gray-400">Total Products: {getProducts().length}</p>
+          </div>
           <Button onClick={handleBack} className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600">
             <ArrowLeft className="h-5 w-5" />
             뒤로 가기
@@ -309,25 +383,7 @@ const ProductDetailPage: React.FC = () => {
     );
   }
 
-  const productImages = [
-    product.imageUrl || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500",
-    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500",
-    "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500",
-    "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500"
-  ];
-
-  const sizes = ['250', '260', '270', '280', '290'];
-  const colors = [
-    { name: 'Grey', value: '#9CA3AF', selected: true },
-    { name: 'Navy', value: '#1E3A8A' },
-    { name: 'Black', value: '#000000' },
-    { name: 'White', value: '#FFFFFF' }
-  ];
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('ko-KR').format(price);
-  };
-
+  const productImages = getProductImages();
   const averageRating = reviews.length > 0 
     ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
     : 0;
@@ -335,6 +391,24 @@ const ProductDetailPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       <div className="container mx-auto py-4 px-4 lg:px-8">
+        {/* 디버깅 정보 (개발 중에만 표시) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <h4 className="font-semibold text-yellow-800 mb-2">디버깅 정보:</h4>
+            <pre className="text-xs text-yellow-700 overflow-auto">
+              {JSON.stringify({
+                productId,
+                address,
+                productTitle: product?.title,
+                productPrice: product?.price,
+                productImageUrl: product?.imageUrl,
+                productSaleUrl: product?.saleUrl,
+                totalProducts: getProducts().length
+              }, null, 2)}
+            </pre>
+          </div>
+        )}
+
         {/* 상단 네비게이션 */}
         <div className="flex items-center justify-between mb-6">
           <Button
@@ -368,8 +442,12 @@ const ProductDetailPage: React.FC = () => {
               <div className="aspect-square bg-gradient-to-br from-gray-50 to-white border-b overflow-hidden">
                 <img
                   src={productImages[selectedImage]}
-                  alt="Product"
+                  alt={product.title || "상품 이미지"}
                   className="w-full h-full object-contain p-8 hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    console.log('Image failed to load:', productImages[selectedImage]);
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500";
+                  }}
                 />
               </div>
 
@@ -389,6 +467,9 @@ const ProductDetailPage: React.FC = () => {
                         src={image}
                         alt={`Product ${index + 1}`}
                         className="w-full h-full object-contain p-1"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500";
+                        }}
                       />
                     </button>
                   ))}
@@ -403,79 +484,86 @@ const ProductDetailPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="mb-4">
                   <h1 className="text-2xl font-bold text-gray-900 mb-3 leading-tight">
-                    {product.title}
+                    {product.title || '상품명 없음'}
                   </h1>
 
                   <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
-                    {formatPrice(Number(product.price) || 0)}원
+                    {formatPrice(product.price)}원
+                  </div>
+
+                  {/* 할인가 표시 */}
+                  {product.discountPrice && product.discountPrice > 0 && (
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-lg text-gray-500 line-through">
+                        {formatPrice(product.discountPrice)}원
+                      </span>
+                      <Badge variant="destructive" className="bg-red-500">
+                        할인
+                      </Badge>
+                    </div>
+                  )}
+
+                  {/* 추가 상품 정보 표시 */}
+                  {product.currency && product.currency !== 'KRW' && (
+                    <p className="text-sm text-gray-500">화폐: {product.currency}</p>
+                  )}
+                  
+                  {product.category && (
+                    <Badge variant="secondary" className="mt-2">
+                      {product.category}
+                    </Badge>
+                  )}
+
+                  {/* 평점 정보 */}
+                  <div className="flex items-center gap-2 mt-3">
+                    <div className="flex items-center">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-4 w-4 ${
+                            i < Math.floor(product.rating || 0)
+                              ? 'text-yellow-400 fill-current'
+                              : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-sm text-gray-600">
+                      {product.rating?.toFixed(1) || '0.0'} ({product.reviewCount || 0}개 리뷰)
+                    </span>
+                  </div>
+
+                  {/* 피어몰 정보 */}
+                  {product.peermallName && (
+                    <p className="text-sm text-gray-600 mt-2">
+                      판매: {product.peermallName}
+                    </p>
+                  )}
+
+                  {/* 상품 특징 배지들 */}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {product.isBestSeller && (
+                      <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">
+                        베스트셀러
+                      </Badge>
+                    )}
+                    {product.isNew && (
+                      <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
+                        신상품
+                      </Badge>
+                    )}
+                    {product.isRecommended && (
+                      <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
+                        추천
+                      </Badge>
+                    )}
+                    {product.isCertified && (
+                      <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200">
+                        인증상품
+                      </Badge>
+                    )}
                   </div>
                 </div>
-
-                <Separator className="my-6" />
-
-                {/* 옵션 선택 */}
-                {/* <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-gray-700">사이즈</label>
-                    <select
-                      value={selectedSize}
-                      onChange={(e) => setSelectedSize(e.target.value)}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                    >
-                      <option value="">사이즈 선택</option>
-                      {sizes.map((size) => (
-                        <option key={size} value={size}>{size}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-gray-700">색상</label>
-                    <div className="flex gap-3">
-                      {colors.map((color) => (
-                        <button
-                          key={color.name}
-                          className={`w-10 h-10 rounded-full border-3 transition-all duration-200 hover:scale-110 ${
-                            selectedColor === color.name 
-                              ? 'border-purple-500 shadow-lg' 
-                              : 'border-gray-300 hover:border-purple-300'
-                          }`}
-                          style={{ backgroundColor: color.value }}
-                          onClick={() => setSelectedColor(color.name)}
-                        >
-                          {color.value === '#FFFFFF' && (
-                            <div className="w-full h-full border border-gray-200 rounded-full"></div>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-gray-700">수량</label>
-                    <div className="flex items-center border border-gray-300 rounded-xl w-36 overflow-hidden">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
-                        className="hover:bg-purple-50"
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <span className="px-4 py-2 border-x border-gray-300 flex-1 text-center font-medium">
-                        {quantity}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setQuantity(prev => prev + 1)}
-                        className="hover:bg-purple-50"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div> */}
 
                 <Separator className="my-6" />
 
@@ -488,28 +576,44 @@ const ProductDetailPage: React.FC = () => {
                   >
                     바로구매 💳
                   </Button>
+                  
+                  <Button 
+                    variant="outline"
+                    className="w-full py-4 border-purple-300 text-purple-600 hover:bg-purple-50 font-semibold rounded-xl transition-all duration-200" 
+                    onClick={handleAddToCart}
+                    size="lg"
+                  >
+                    <ShoppingCart className="h-5 w-5 mr-2" />
+                    장바구니 담기
+                  </Button>
                 </div>
 
                 <Separator className="my-6" />
 
                 {/* 상담 및 소통 기능 */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-gray-800">상담하기</h3>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex flex-col items-center gap-1 h-auto py-3 hover:bg-green-50 border-green-200"
-                      onClick={handleVoiceCall}
-                    >
-                      <Phone className="h-4 w-4 text-green-500" />
-                      <span className="text-xm">음성</span>
-                    </Button>
-                  </div>
-                </div>
+  <div className="flex items-center justify-between mb-3">
+    <h3 className="font-semibold text-gray-800">상담하기</h3>
+    <div className="flex items-center gap-1">
+      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+      <span className="text-xs text-gray-500">온라인</span>
+    </div>
+  </div>
+  <Button
+    variant="outline"
+    size="lg"
+    className="w-full flex items-center gap-2 py-3 border-purple-300 text-purple-600 hover:bg-purple-50 font-semibold rounded-xl transition-all duration-200 justify-center"
+    onClick={() => {
+      if (product?.peerSpaceAddress) {
+        window.open(`https://peerterra.com/one/channel/${product.peerSpaceAddress}`, '_blank', 'noopener,noreferrer');
+      } else {
+        alert('피어몰 ID가 없습니다.');
+      }
+    }}
+  >
+    <span className="text-base">상담하기</span>
+  </Button>
+</div>
               </CardContent>
             </Card>
           </div>
@@ -518,160 +622,114 @@ const ProductDetailPage: React.FC = () => {
         {/* 하단: 상세 정보 탭 */}
         <div className="mt-8">
           <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-0">
+            <CardContent className="p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="details">상품 상세</TabsTrigger>
-                  <TabsTrigger value="reviews">후기 ({reviews.length})</TabsTrigger>
+                  {/* <TabsTrigger value="reviews">리뷰 ({reviews.length})</TabsTrigger> */}
                   <TabsTrigger value="inquiries">문의 ({inquiries.length})</TabsTrigger>
                 </TabsList>
 
                 {/* 상품 상세 탭 */} 
                 <TabsContent value="details" className="mt-6">
-                  <Card className="shadow-none border-0">
-                    <CardContent className="p-0">
+                  <div className="space-y-6">
+                    <div>
                       <h3 className="text-xl font-bold mb-4 text-gray-800">상품 설명</h3>
                       <div className="prose max-w-none text-gray-700 leading-relaxed">
-                        {product?.description ? (
-                          <p>{product.description}</p>
+                        {product.description ? (
+                          <p className="whitespace-pre-line">{product.description}</p>
                         ) : (
-                          <p className="text-gray-500">등록된 상품 설명이 없습니다.</p>
+                          <p className="text-gray-500 italic">등록된 상품 설명이 없습니다.</p>
                         )}
                       </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+                    </div>
 
-                {/* 후기 탭 */} 
-                <TabsContent value="reviews" className="mt-6">
-                  <Card className="shadow-none border-0">
-                    <CardContent className="p-0">
-                      <h3 className="text-xl font-bold mb-4 text-gray-800">상품 후기</h3>
-                      <div className="mb-6 p-4 border rounded-lg bg-gray-50">
-                        <h4 className="font-semibold mb-2">리뷰 작성</h4>
-                        <div className="flex items-center gap-1 mb-3">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`w-6 h-6 cursor-pointer ${newReview.rating >= star ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
-                              onClick={() => setNewReview({ ...newReview, rating: star })}
-                            />
+                    {/* 추가 상품 정보 */}
+                    {(product.tags && product.tags.length > 0) && (
+                      <div>
+                        <h4 className="font-semibold mb-2 text-gray-800">태그</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {product.tags.map((tag, index) => (
+                            <Badge key={index} variant="outline">
+                              #{tag}
+                            </Badge>
                           ))}
                         </div>
-                        <Textarea
-                          placeholder="상품에 대한 솔직한 후기를 남겨주세요... (최소 10자)"
-                          value={newReview.content}
-                          onChange={(e) => setNewReview({ ...newReview, content: e.target.value })}
-                          className="mb-3 min-h-[80px]"
-                        />
-                        <div className="flex justify-end">
-                          <Button onClick={handleSubmitReview} disabled={newReview.content.length < 10}>리뷰 제출</Button>
-                        </div>
                       </div>
+                    )}
 
-                      <div className="space-y-6">
-                        {reviews.length > 0 ? (
-                          reviews.map((review) => (
-                            <div key={review.id} className="border-b pb-6 last:border-b-0 last:pb-0">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-3">
-                                  <Avatar className="h-10 w-10">
-                                    <AvatarImage src={review.userAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${review.userName}`} />
-                                    <AvatarFallback>{review.userName.charAt(0)}</AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                    <p className="font-semibold text-gray-900">{review.userName}</p>
-                                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                                      {[...Array(5)].map((_, i) => (
-                                        <Star
-                                          key={i}
-                                          className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
-                                        />
-                                      ))}
-                                      <span>{review.date}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                {review.verified && (
-                                  <Badge variant="secondary" className="bg-green-100 text-green-700">
-                                    <CheckCircle className="h-3 w-3 mr-1" /> 구매확정
-                                  </Badge>
-                                )}
-                              </div>
-                              <p className="text-gray-800 mb-3 leading-relaxed">{review.content}</p>
-                              {review.images && review.images.length > 0 && (
-                                <div className="flex gap-2 mb-3">
-                                  {review.images.map((img, idx) => (
-                                    <img key={idx} src={img} alt="Review Image" className="w-20 h-20 object-cover rounded-md" />
-                                  ))}
-                                </div>
-                              )}
-                              <div className="flex items-center gap-4 text-sm text-gray-600">
-                                <Button variant="ghost" size="sm" className="hover:bg-gray-100">
-                                  <ThumbsUp className="h-4 w-4 mr-1" /> 도움돼요 ({review.helpful})
-                                </Button>
-                                <Button variant="ghost" size="sm" className="hover:bg-gray-100">
-                                  <ThumbsDown className="h-4 w-4 mr-1" />
-                                </Button>
-                                <Button variant="ghost" size="sm" className="hover:bg-gray-100">
-                                  <Flag className="h-4 w-4 mr-1" /> 신고
-                                </Button>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-center text-gray-500 py-10">아직 등록된 후기가 없습니다. 첫 후기를 남겨주세요!</p>
-                        )}
+                    {product.saleUrl && (
+                      <div>
+                        <h4 className="font-semibold mb-2 text-gray-800">구매 링크</h4>
+                        <a 
+                          href={product.saleUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline break-all"
+                        >
+                          {product.saleUrl}
+                        </a>
                       </div>
-                    </CardContent>
-                  </Card>
+                    )}
+                  </div>
                 </TabsContent>
+
+                {/* 리뷰 탭 */}
+                
 
                 {/* 문의 탭 */} 
                 <TabsContent value="inquiries" className="mt-6">
-                  <Card className="shadow-none border-0">
-                    <CardContent className="p-0">
-                      <h3 className="text-xl font-bold mb-4 text-gray-800">상품 문의</h3>
-                      <div className="mb-6 p-4 border rounded-lg bg-gray-50">
-                        <h4 className="font-semibold mb-2">문의 작성</h4>
-                        <Textarea
-                          placeholder="상품에 대해 궁금한 점을 문의해주세요..."
-                          className="mb-3 min-h-[80px]"
-                          value={newMessage}
-                          onChange={(e) => setNewMessage(e.target.value)}
-                        />
-                        <div className="flex justify-end">
-                          <Button onClick={() => handleSubmitInquiry(newMessage)} disabled={newMessage.length < 1}>문의 제출</Button>
-                        </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-4 text-gray-800">상품 문의</h3>
+                    <div className="mb-6 p-4 border rounded-lg bg-gray-50">
+                      <h4 className="font-semibold mb-2">문의 작성</h4>
+                      <Textarea
+                        placeholder="상품에 대해 궁금한 점을 문의해주세요..."
+                        className="mb-3 min-h-[80px]"
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                      />
+                      <div className="flex justify-end">
+                        <Button 
+                          onClick={() => handleSubmitInquiry(newMessage)} 
+                          disabled={newMessage.trim().length < 1}
+                        >
+                          문의 제출
+                        </Button>
                       </div>
+                    </div>
 
-                      <div className="space-y-4">
-                        {inquiries.length > 0 ? (
-                          inquiries.map((inquiry) => (
-                            <div key={inquiry.id} className="border-b pb-6 last:border-b-0 last:pb-0">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-3">
-                                  <Avatar className="h-10 w-10">
-                                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${inquiry.author}`} />
-                                    <AvatarFallback>{inquiry.author.charAt(0)}</AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                    <p className="font-semibold text-gray-900">{inquiry.author}</p>
-                                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                                      <span>{inquiry.timestamp}</span>
-                                    </div>
+                    <div className="space-y-4">
+                      {inquiries.length > 0 ? (
+                        inquiries.map((inquiry) => (
+                          <div key={inquiry.id} className="border-b pb-6 last:border-b-0 last:pb-0">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${inquiry.author}`} />
+                                  <AvatarFallback>{inquiry.author.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-semibold text-gray-900">{inquiry.author}</p>
+                                  <div className="flex items-center gap-1 text-sm text-gray-600">
+                                    <Clock className="h-3 w-3" />
+                                    <span>{inquiry.timestamp}</span>
                                   </div>
                                 </div>
                               </div>
-                              <p className="text-gray-800 mb-3 leading-relaxed">{inquiry.content}</p>
                             </div>
-                          ))
-                        ) : (
-                          <p className="text-center text-gray-500 py-10">아직 등록된 문의가 없습니다.</p>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                            <p className="text-gray-800 mb-3 leading-relaxed">{inquiry.content}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center text-gray-500 py-10">
+                          <MessageCircle className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                          <p>아직 등록된 문의가 없습니다.</p>
+                          <p className="text-sm">첫 번째 문의를 남겨보세요!</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </TabsContent>
               </Tabs>
             </CardContent>
@@ -697,6 +755,111 @@ const ProductDetailPage: React.FC = () => {
             </Button>
           </div>
         </div>
+
+        {/* 리뷰 작성 모달 */}
+        <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>리뷰 작성</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">평점</label>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((rating) => (
+                    <button
+                      key={rating}
+                      onClick={() => setNewReview(prev => ({ ...prev, rating }))}
+                      className="p-1"
+                    >
+                      <Star
+                        className={`h-6 w-6 ${
+                          rating <= newReview.rating
+                            ? 'text-yellow-400 fill-current'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">리뷰 내용</label>
+                <Textarea
+                  placeholder="상품에 대한 솔직한 후기를 남겨주세요..."
+                  value={newReview.content}
+                  onChange={(e) => setNewReview(prev => ({ ...prev, content: e.target.value }))}
+                  className="min-h-[100px]"
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setIsReviewModalOpen(false)}>
+                  취소
+                </Button>
+                <Button onClick={handleSubmitReview}>
+                  리뷰 등록
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* 채팅 모달 */}
+        <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
+          <DialogContent className="max-w-md max-h-[600px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                판매자와 채팅
+              </DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="h-[300px] p-4 border rounded-lg">
+              <div className="space-y-4">
+                {chatMessages.length > 0 ? (
+                  chatMessages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${
+                        message.senderId === 'current-user' ? 'justify-end' : 'justify-start'
+                      }`}
+                    >
+                      <div
+                        className={`max-w-[80%] p-3 rounded-lg ${
+                          message.senderId === 'current-user'
+                            ? 'bg-purple-500 text-white'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        <p className="text-sm">{message.content}</p>
+                        <p className="text-xs opacity-70 mt-1">
+                          {new Date(message.timestamp).toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
+                    <MessageCircle className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                    <p>아직 메시지가 없습니다.</p>
+                    <p className="text-sm">판매자에게 첫 메시지를 보내보세요!</p>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+            <div className="flex gap-2">
+              <Input
+                placeholder="메시지를 입력하세요..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                className="flex-1"
+              />
+              <Button onClick={handleSendMessage} size="icon">
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

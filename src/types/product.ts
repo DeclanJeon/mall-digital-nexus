@@ -7,6 +7,7 @@ export interface Product extends Content {
   price: number;
   currency: string; // 화폐 단위 추가
   discountPrice?: number | null;
+
   imageUrl: string; // Content의 imageUrl이 optional이지만, Product에서는 필수
   rating: number;
   reviewCount: number;
@@ -44,6 +45,8 @@ export interface ProductCardProps {
   category?: string;
   tags?: string[];
   saleUrl?: string;
+
+  peerSpaceAddress?: string; // PeerSpace 주소 추가
   viewMode: 'grid' | 'list';
   cardSize?: 'small' | 'medium' | 'large';
   seller?: {

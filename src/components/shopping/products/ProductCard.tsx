@@ -24,6 +24,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   rating,
   reviewCount,
   peermallName,
+  peerSpaceAddress,
   peermallId,
   category,
   tags,
@@ -32,7 +33,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   seller,
   onAddFriend,
   onDetailView,
-  saleUrl
+  saleUrl, // ✨ saleUrl prop 확실히 받기
 }) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
@@ -75,10 +76,18 @@ const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   const handlePurchase = () => {
-    if (saleUrl) {
-      window.open(saleUrl, '_blank');
+
+    console.log('🛒 구매하기 클릭 - saleUrl:', saleUrl);
+
+    if (saleUrl && saleUrl.trim() !== '') {
+      // URL이 http/https로 시작하지 않으면 추가
+      const targetUrl = saleUrl.startsWith('http') ? saleUrl : `https://${saleUrl}`;
+      console.log('🔗 이동할 URL:', targetUrl);
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
     } else {
-      console.log('판매 링크가 없습니다.');
+      console.warn('⚠️ 판매 URL이 없습니다.');
+      // 사용자에게 알림 표시
+      alert('판매 링크가 설정되지 않았습니다.');
     }
   };
 
@@ -187,7 +196,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </CardHeader>
 
         <CardContent className={cn("flex-1", viewMode === 'list' ? 'p-4 flex flex-col justify-between' : 'p-4')}>
-          <div className="flex justify-between items-start mb-2">
+          <div className="flex justify-between items-start mb-1">
             <h3 className={cn(
               "font-bold line-clamp-2",
               cardSize === 'small' ? 'text-sm' : cardSize === 'large' ? 'text-lg' : 'text-base'
@@ -203,20 +212,37 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleDetailView}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    상세 보기
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handlePurchase}>
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    구매하기
+                  </DropdownMenuItem>
                   {seller && onAddFriend && (
-                    <DropdownMenuItem onClick={handleAddFriend} disabled={isFriend}>
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      <span>{isFriend ? '친구 추가됨' : '친구 추가'}</span>
+                    <DropdownMenuItem onClick={handleAddFriend} disabled={friendStatus !== 'idle'}>
+                      {friendStatus === 'adding' ? (
+                        <MoreVertical className="mr-2 h-4 w-4 animate-spin" />
+                      ) : friendStatus === 'added' ? (
+                        <Check className="mr-2 h-4 w-4 text-green-500" />
+                      ) : (
+                        <UserPlus className="mr-2 h-4 w-4" />
+                      )}
+                      {friendStatus === 'adding' ? '친구 추가 중...' : friendStatus === 'added' ? '친구 추가됨' : '판매자와 친구 맺기'}
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem>
-                    <MessageCircle className="mr-2 h-4 w-4" />
-                    <span>메시지</span>
-                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
           </div>
+
+          {/* 피어몰 이름 뱃지 추가 */}
+          {peerSpaceAddress && (
+            <Badge variant="outline" className="mb-2 text-xs text-gray-600 border-gray-300">
+              {peerSpaceAddress}
+            </Badge>
+          )}
 
           <div className="flex items-center gap-2 mb-2">
             <span className={cn(
@@ -275,21 +301,29 @@ const ProductCard: React.FC<ProductCardProps> = ({
               </Button>
               <Button 
                 size="sm" 
-                className="w-full text-sm font-semibold py-2 rounded-lg transition-all duration-300"
+                className={cn(
+                  "w-full text-sm font-semibold py-2 rounded-lg transition-all duration-300",
+                  !saleUrl && "opacity-50 cursor-not-allowed"
+                )}
                 onClick={handlePurchase}
-                disabled={!saleUrl}
+                disabled={!saleUrl || saleUrl.trim() === ''}
               >
-                <ShoppingCart className="w-4 h-4 mr-2" /> 구매하기
+                <ShoppingCart className="w-4 h-4 mr-2" /> 
+                {saleUrl ? '구매하기' : '링크 없음'}
               </Button>
             </div>
           ) : cardSize === 'small' ? (
             <Button 
               size="sm" 
-              className="w-full text-sm font-semibold py-2 rounded-lg transition-all duration-300"
+              className={cn(
+                "w-full text-sm font-semibold py-2 rounded-lg transition-all duration-300",
+                !saleUrl && "opacity-50 cursor-not-allowed"
+              )}
               onClick={handlePurchase}
-              disabled={!saleUrl}
+              disabled={!saleUrl || saleUrl.trim() === ''}
             >
-              <ShoppingCart className="w-4 h-4 mr-2" /> 구매
+              <ShoppingCart className="w-4 h-4 mr-2" /> 
+              {saleUrl ? '구매' : '링크 없음'}
             </Button>
           ) : (
             <div className="grid grid-cols-2 gap-2 w-full">
@@ -303,61 +337,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
               </Button>
               <Button 
                 size="sm" 
-                className="w-full text-sm font-semibold py-2 rounded-lg transition-all duration-300"
+                className={cn(
+                  "w-full text-sm font-semibold py-2 rounded-lg transition-all duration-300",
+                  !saleUrl && "opacity-50 cursor-not-allowed"
+                )}
                 onClick={handlePurchase}
-                disabled={!saleUrl}
+                disabled={!saleUrl || saleUrl.trim() === ''}
               >
-                <ShoppingCart className="w-4 h-4 mr-2" /> 구매하기
+                <ShoppingCart className="w-4 h-4 mr-2" /> 
+                {saleUrl ? '구매하기' : '링크 없음'}
               </Button>
             </div>
           )}
         </CardFooter>
-
-        {/* 찜 목록 팝업 */}
-        <AnimatePresence>
-          {showWishlist && (
-            <motion.div 
-              className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-lg flex flex-col p-5 z-20 shadow-2xl border border-purple-100"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h4 className="text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  찜 목록에 추가됨! 💜
-                </h4>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => setShowWishlist(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <div className="flex-1 flex flex-col items-center justify-center text-center">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: 'spring' }}
-                  className="text-4xl mb-3"
-                >
-                  💖
-                </motion.div>
-                <p className="text-sm text-gray-600 mb-4">
-                  {title}이(가) 찜 목록에 추가되었어요!
-                </p>
-                <Button 
-                  className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white"
-                  onClick={() => setShowWishlist(false)}
-                >
-                  계속 쇼핑하기
-                </Button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </Card>
     </motion.div>
   );
