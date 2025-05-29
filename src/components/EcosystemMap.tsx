@@ -281,7 +281,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
       const mappedLocations = peermalls
         .filter(peermall => {
           // 위치 데이터가 있는지 확인
-          const hasLocation = (peermall.lat && peermall.lng);
+          const hasLocation = (peermall.latitude && peermall.longitude);
           
           if (!hasLocation) {
             console.warn('위치 정보 없는 피어몰:', peermall.peerMallName || peermall.peerMallKey);
@@ -290,8 +290,8 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
           return hasLocation;
         })
         .map(peermall => {
-          const lat = peermall.lat;
-          const lng = peermall.lng;
+          const lat = peermall.latitude;
+          const lng = peermall.longitude;
           
           // 좌표 유효성 검사
           if (!lat || !lng || isNaN(Number(lat)) || isNaN(Number(lng))) {
