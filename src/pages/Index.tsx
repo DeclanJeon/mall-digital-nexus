@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { BookmarkItem } from '@/components/navigation/SearchAndFilterBar';
 import PeermallGrid from '@/components/peermall-features/PeermallGrid';
@@ -10,7 +9,7 @@ import CreatePeermall from '@/components/peermall-features/CreatePeermall';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeModal } from '@/components/peer-space/modals/QRCodeModal';
-import { ChevronRight, TrendingUp, Sparkles, Map, Users, Heart, Star, Phone, MessageSquare, Navigation, RefreshCw, Filter, Grid, List } from 'lucide-react';
+import { ChevronRight, TrendingUp, Sparkles, Map, Users, Heart, Star, Phone, MessageSquare, Navigation, RefreshCw, Filter, Grid, List, Store, Search, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -65,7 +64,8 @@ const designTokens = {
       ocean: 'from-blue-500 via-cyan-500 to-teal-600',
       forest: 'from-green-400 via-emerald-500 to-teal-600',
       sunset: 'from-purple-500 via-pink-500 to-rose-600',
-      galaxy: 'from-indigo-600 via-purple-600 to-pink-600'
+      galaxy: 'from-indigo-600 via-purple-600 to-pink-600',
+      slate: 'from-slate-500 via-gray-600 to-zinc-700'
     }
   },
   typography: {
@@ -465,68 +465,6 @@ const Index = () => {
           {/* 🏪 피어몰 메인 리스트 */}
           <div className="lg:col-span-3 space-y-8">
             
-            {/* 🔥 인기 피어몰 섹션 */}
-            {/* <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.2 }}>
-              <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-orange-50 to-red-50`}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-orange-100 rounded-lg">
-                        <TrendingUp className="w-5 h-5 text-orange-600" />
-                      </div>
-                      <div>
-                        <h2 className={designTokens.typography.heading}>
-                          🔥 인기 피어몰
-                        </h2>
-                        <p className={`${designTokens.typography.caption} mt-1`}>
-                          가장 많은 사랑을 받는 피어몰들
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="secondary" className="bg-orange-100 text-orange-700">
-                        {popularMalls.length}개
-                      </Badge>
-                      {popularMalls.length > 0 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                        >
-                          더 보기 <ChevronRight className="h-4 w-4 ml-1" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {popularMalls.length > 0 ? (
-                    <PeermallGrid
-                      title=""
-                      malls={popularMalls}
-                      onOpenMap={handleOpenMap}
-                      viewMore={false}
-                      viewMode={viewMode}
-                      onShowQrCode={handleShowPeermallQrCode}
-                      isPopularSection={true}
-                    />
-                  ) : (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <TrendingUp className="w-8 h-8 text-orange-500" />
-                      </div>
-                      <h3 className={`${designTokens.typography.subheading} text-gray-700 mb-2`}>
-                        아직 인기 피어몰이 없어요
-                      </h3>
-                      <p className={designTokens.typography.caption}>
-                        첫 번째 피어몰을 만들어 인기 순위에 도전해보세요! 🚀
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div> */}
-
             {/* ✨ 신규 피어몰 섹션 */}
             <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.3 }}>
               <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-green-50 to-emerald-50`}>
@@ -588,33 +526,135 @@ const Index = () => {
               </Card>
             </motion.div>
 
-            {/* 📊 전체 피어몰 섹션 */}
-            {filteredMalls.length > 8 && (
-              <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.4 }}>
-                <Card className={designTokens.elevation.card}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <h2 className={designTokens.typography.heading}>
-                        전체 피어몰 ({filteredMalls.length}개)
-                      </h2>
-                      <Badge variant="outline">
-                        {viewMode === 'grid' ? '그리드' : '리스트'} 보기
-                      </Badge>
+            {/* 🏢 전체 피어몰 섹션 - 새롭게 추가된 섹션 */}
+            <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.4 }}>
+              <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-slate-50 to-gray-50 border-slate-200`}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-slate-100 rounded-lg">
+                        <Store className="w-5 h-5 text-slate-600" />
+                      </div>
+                      <div>
+                        <h2 className={designTokens.typography.heading}>
+                          🏢 전체 피어몰
+                        </h2>
+                        <p className={`${designTokens.typography.caption} mt-1`}>
+                          모든 피어몰을 한눈에 탐색해보세요
+                        </p>
+                      </div>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <PeermallGrid
-                      title=""
-                      malls={filteredMalls}
-                      onOpenMap={handleOpenMap}
-                      viewMore={true}
-                      viewMode={viewMode}
-                      onShowQrCode={handleShowPeermallQrCode}
-                    />
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="secondary" className="bg-slate-100 text-slate-700">
+                        총 {filteredMalls.length}개
+                      </Badge>
+                      <div className="flex items-center space-x-1">
+                        <Button
+                          variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                          size="sm"
+                          onClick={() => setViewMode('grid')}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Grid className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant={viewMode === 'list' ? 'default' : 'ghost'}
+                          size="sm"
+                          onClick={() => setViewMode('list')}
+                          className="h-8 w-8 p-0"
+                        >
+                          <List className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRefresh}
+                        disabled={refreshing}
+                        className="text-slate-600 hover:text-slate-700 hover:bg-slate-50"
+                      >
+                        <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {filteredMalls.length > 0 ? (
+                    <div className="space-y-4">
+                      {/* 🔍 검색 결과 정보 */}
+                      {searchQuery && (
+                        <div className="flex items-center space-x-2 text-sm text-slate-600 bg-blue-50 p-3 rounded-lg">
+                          <Search className="w-4 h-4" />
+                          <span>
+                            '<strong>{searchQuery}</strong>' 검색 결과: {filteredMalls.length}개
+                          </span>
+                        </div>
+                      )}
+                      
+                      {/* 🏷️ 활성 필터 표시 */}
+                      {(selectedHashtags.length > 0 && !selectedHashtags.includes('전체')) && (
+                        <div className="flex items-center space-x-2 text-sm text-slate-600">
+                          <Filter className="w-4 h-4" />
+                          <span>활성 필터:</span>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedHashtags.map(tag => (
+                              <Badge key={tag} variant="outline" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 🎯 피어몰 그리드 */}
+                      <PeermallGrid
+                        title=""
+                        malls={filteredMalls}
+                        onOpenMap={handleOpenMap}
+                        viewMore={true}
+                        viewMode={viewMode}
+                        onShowQrCode={handleShowPeermallQrCode}
+                        showPagination={true}
+                      />
+                    </div>
+                  ) : (
+                    <div className="text-center py-16">
+                      <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Store className="w-10 h-10 text-slate-400" />
+                      </div>
+                      <h3 className={`${designTokens.typography.subheading} text-gray-700 mb-3`}>
+                        {searchQuery ? '검색 결과가 없습니다' : '아직 피어몰이 없어요'}
+                      </h3>
+                      <p className={`${designTokens.typography.caption} mb-6 max-w-md mx-auto`}>
+                        {searchQuery 
+                          ? `'${searchQuery}'에 대한 검색 결과를 찾을 수 없습니다. 다른 키워드로 검색해보세요.`
+                          : '첫 번째 피어몰을 만들어 커뮤니티를 시작해보세요! 당신의 아이디어가 새로운 연결을 만들어낼 거예요.'
+                        }
+                      </p>
+                      {!searchQuery && (
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                          <Button 
+                            onClick={() => navigate('/create-peermall')}
+                            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
+                          >
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            피어몰 만들기
+                          </Button>
+                          <Button 
+                            variant="outline"
+                            onClick={() => navigate('/explore')}
+                            className="border-slate-300 hover:bg-slate-50"
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            둘러보기
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
 
           {/* 🗺️ 사이드바 */}
@@ -649,6 +689,7 @@ const Index = () => {
                 </CardContent>
               </Card>
             </motion.div>
+            
           </div>
 
         </section>

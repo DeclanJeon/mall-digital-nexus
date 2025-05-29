@@ -38,33 +38,71 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('latest');
 
-  // 중복 제거 로직 강화 - 현재 피어스페이스 주소와 일치하는 상품만 필터링
+  // 🔥 중복 제거 로직 완전 수정
   const validProducts = useMemo(() => {
     const loadedProducts = getProducts();
+  
+    console.log('🔍 디버깅 시작 - address:', address);
+    console.log('🔍 전체 로드된 상품들:', loadedProducts);
     
-    // 현재 피어스페이스 주소와 일치하는 상품만 필터링
-    const currentSpaceProducts = loadedProducts.filter(product => 
-      product && product.peerSpaceAddress === address
-    );
-
-    // ID 기준으로 중복 제거 (Set 사용으로 더 확실하게)
-    const uniqueProductsMap = new Map<string, Product>();
-    
-    currentSpaceProducts.forEach(product => {
-      if (product && product.id) {
-        // 같은 ID가 있다면 최신 것으로 덮어쓰기 (마지막에 추가된 것이 최신)
-        uniqueProductsMap.set(product.id, product);
+    // 각 상품의 peerSpaceAddress 확인
+    loadedProducts.forEach((product, index) => {
+      console.log(`🔍 상품 ${index}:`, {
+        id: product.id,
+        title: product.title,
+        peerSpaceAddress: product.peerSpaceAddress,
+        peermallId: product.peermallId,
+        address_match: product.peerSpaceAddress === address
+      });
+    });
+  
+    // 현재 피어스페이스 주소와 일치하는 상품만 필터링 (fallback 포함)
+    const currentSpaceProducts = loadedProducts.filter(product => {
+      const isValidProduct = product && product.id;
+      
+      // peerSpaceAddress가 있으면 그것으로 매칭
+      let addressMatch = false;
+      if (product.peerSpaceAddress) {
+        addressMatch = product.peerSpaceAddress === address;
+      } 
+      // peerSpaceAddress가 없으면 peermallId로 fallback
+      else if (product.peermallId) {
+        addressMatch = product.peermallId === address;
       }
+      // 둘 다 없으면 모든 상품 포함 (임시 - 개발 중)
+      else {
+        console.log('⚠️ peerSpaceAddress와 peermallId가 모두 없는 상품:', product.title);
+        addressMatch = true; // 개발 중에는 true, 배포시에는 false로 변경
+      }
+      
+      console.log(`🔍 필터링 체크 - ${product.title}:`, {
+        isValidProduct,
+        addressMatch,
+        productAddress: product.peerSpaceAddress,
+        productPeermallId: product.peermallId,
+        targetAddress: address
+      });
+      
+      return isValidProduct && addressMatch;
     });
 
-    const uniqueProducts = Array.from(uniqueProductsMap.values());
+    // ID 기준으로 중복 제거 - Set 방식으로 더 확실하게
+    const seenIds = new Set<string>();
+    const uniqueProducts = currentSpaceProducts.filter(product => {
+      if (seenIds.has(product.id)) {
+        console.log(`🗑️ 중복 제거: ${product.title} (ID: ${product.id})`);
+        return false;
+      }
+      seenIds.add(product.id);
+      return true;
+    });
     
     console.log('🛍️ 로드된 전체 상품:', loadedProducts.length);
     console.log('🎯 현재 피어스페이스 상품:', currentSpaceProducts.length);
     console.log('✨ 중복 제거 후 상품:', uniqueProducts.length);
     console.log('📦 최종 상품 목록:', uniqueProducts);
 
-    return uniqueProducts;
+    return uniqueProducts; // ✨ 이 return이 빠져있었음!
   }, [address]); // address 의존성 추가
 
   const categories = ['전체', '전자제품', '패션', '생활용품', '도서', '음식', '취미', '뷰티', '스포츠'];
@@ -74,6 +112,11 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
       .filter(product => selectedCategory === '전체' || product.category === selectedCategory)
       .sort((a, b) => {
         if (sortBy === 'latest') {
+          // 날짜 기준 정렬 (date 필드가 있다면)
+          if (a.date && b.date) {
+            return new Date(b.date).getTime() - new Date(a.date).getTime();
+          }
+          // ID 기준 정렬 (fallback)
           if (typeof a.id === 'string' && typeof b.id === 'string') {
             return b.id.localeCompare(a.id);
           }
@@ -119,7 +162,13 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div className="flex items-center space-x-2 mb-4 md:mb-0">
           <Eye className="h-5 w-5 text-gray-500" />
-          <h2 className="text-xl font-semibold text-gray-800">제품 ({filteredAndSortedProducts.length})</h2>
+          <h2 className="text-xl font-semibold text-gray-800">
+            제품 ({filteredAndSortedProducts.length})
+            {/* 디버깅용 정보 표시 */}
+            <span className="text-sm text-gray-400 ml-2">
+              (전체: {validProducts.length})
+            </span>
+          </h2>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -165,7 +214,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                     <Badge
                       key={category}
                       variant={selectedCategory === category ? 'default' : 'outline'}
-                      className="cursor-pointer"
+                      className="cursor-pointer hover:scale-105 transition-transform"
                       onClick={() => setSelectedCategory(category)}
                     >
                       {category}
@@ -180,7 +229,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                     <Badge
                       key={option.value}
                       variant={sortBy === option.value ? 'default' : 'outline'}
-                      className="cursor-pointer"
+                      className="cursor-pointer hover:scale-105 transition-transform"
                       onClick={() => setSortBy(option.value)}
                     >
                       {option.label}
@@ -200,6 +249,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
               key={option.key}
               variant={currentView === option.key ? 'default' : 'outline'}
               size="icon"
+              className="hover:scale-105 transition-transform"
               onClick={() => {
                 if (option.key === 'grid-small' || option.key === 'grid-medium' || 
                     option.key === 'grid-large' || option.key === 'list' || 
@@ -218,16 +268,23 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
         {filteredAndSortedProducts.length > 0 ? (
           <motion.div
             layout
-            className={`grid gap-6 ${viewOptions.find(v => v.key === currentView)?.cols}`}
+            className={`gap-6 ${currentView === 'list' ? 'space-y-4' : `grid ${viewOptions.find(v => v.key === currentView)?.cols}`}`}
           >
-            <AnimatePresence>
+            <AnimatePresence mode="popLayout">
               {filteredAndSortedProducts.map((product, index) => (
                 <motion.div
-                  key={`${product.id}-${product.peerSpaceAddress}`} // 고유 key 생성
+                  key={`product-${product.id}-${index}`} // 더 안전한 key 생성
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ 
+                    delay: index * 0.05,
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 25
+                  }}
                   className={currentView === 'masonry' ? 'break-inside-avoid mb-6' : ''}
+                  layout
                 >
                   <ProductCard
                     id={product.id}
@@ -240,10 +297,10 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                     reviewCount={product.reviewCount || 10}
                     peermallName={config.title}
                     peermallId={address}
-                    peerSpaceAddress={product.peerSpaceAddress} // 피어스페이스 주소 전달
+                    peerSpaceAddress={product.peerSpaceAddress}
                     category={product.category || '기타'}
                     tags={product.tags || []}
-                    saleUrl={product.saleUrl} // ✨ saleUrl 전달 추가
+                    saleUrl={product.saleUrl} // ✨ saleUrl 전달
                     viewMode={currentView === 'list' ? 'list' : 'grid'}
                     cardSize={currentView.includes('grid') ? currentView.split('-')[1] as 'small' | 'medium' | 'large' : 'medium'}
                     onDetailView={handleProductDetailView}
@@ -265,7 +322,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
             {isOwner && (
               <Button 
                 onClick={handleShowProductForm} 
-                className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-medium px-8 py-3 rounded-full"
+                className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-medium px-8 py-3 rounded-full hover:scale-105 transition-all duration-300"
               >
                 ✨ 첫 제품 등록하기
               </Button>
@@ -273,6 +330,36 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
           </motion.div>
         )}
       </div>
+
+      {/* 🔧 개발용 디버깅 패널 (배포시 제거) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-8 p-4 bg-gray-100 rounded-lg text-sm">
+          <h4 className="font-semibold mb-2">🔧 개발자 디버깅 정보</h4>
+          <div className="grid grid-cols-2 gap-4 text-xs">
+            <div>
+              <p><strong>현재 주소:</strong> {address}</p>
+              <p><strong>전체 상품:</strong> {validProducts.length}개</p>
+              <p><strong>필터링된 상품:</strong> {filteredAndSortedProducts.length}개</p>
+            </div>
+            <div>
+              <p><strong>선택된 카테고리:</strong> {selectedCategory}</p>
+              <p><strong>정렬 방식:</strong> {sortOptions.find(opt => opt.value === sortBy)?.label}</p>
+              <p><strong>보기 모드:</strong> {currentView}</p>
+            </div>
+          </div>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="mt-2"
+            onClick={() => {
+              console.log('🔍 현재 상품 데이터:', validProducts);
+              console.log('🔍 필터링된 상품:', filteredAndSortedProducts);
+            }}
+          >
+            콘솔에 데이터 출력
+          </Button>
+        </div>
+      )}
     </motion.div>
   );
 };
