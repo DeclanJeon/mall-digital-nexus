@@ -302,10 +302,10 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
           const tags = peermall.tags || ['쇼핑', '서비스', '로컬'];
           
           return {
-            id: peermall.peerMallKey,
+            peerMallKey: peermall.peerMallKey,
             lat: lat,
             lng: lng,
-            title: peermall.peerMallName || '피어몰',
+            peerMallName: peermall.peerMallName || '피어몰',
             address: peermall.address ?? '주소 정보 없음',
             phone: (peermall as any).contact || '전화번호 없음',
             //reviews: (peermall as any).reviews || [],
@@ -564,7 +564,9 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
   // 통화 모달 열기 함수
   const handleOpenCallModal = useCallback((location: MapLocation) => {
     setSelectedLocationForAction(location);
-    setCallModalOpen(true);
+    const url = `https://peerterra.com/one/channel/${location.peerMallName}?mk=${location.peerMallKey}`;
+    window.open(url, '_blank');
+    //setCallModalOpen(true);
   }, []);
 
   // 메시지 모달 열기 함수
@@ -1032,7 +1034,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
                   <Button
                     size="sm"
                     className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg"
-                    onClick={() => handleOpenCallModal(selectedLocation)} // 
+                    onClick={() => handleOpenCallModal(selectedLocation)}
                   >
                     <Phone className="w-4 h-4 mr-1" />
                     통화
