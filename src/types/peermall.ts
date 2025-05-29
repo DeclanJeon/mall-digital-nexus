@@ -64,7 +64,7 @@ export interface PeermallFormData {
   address: string;
   name: string;
   description: string;
-  representativeName: string;
+  ownerName: string;
   email: string;
   membershipType: string;
   imageUrl: string;

@@ -47,7 +47,6 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { CreatePeermallModalProps, Peermall, FamilyMember, PeermallFormData } from '@/types/peermall';
-
 import { createPeerMall } from '@/services/peerMallService';
 
 
@@ -112,6 +111,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
     lng: number;
     address: string;
   } | null>(null);
+    const [imageFile, setImageFile] = useState<File | null>(null);
 
 
   // React Hook Form 설정
@@ -303,6 +303,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       });
     };
     reader.readAsDataURL(file);
+    setImageFile(file);
   };
 
   // 해시태그 처리
@@ -480,12 +481,19 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
     };
 
     try {
-      // peermallStorage를 사용하여 데이터 저장
-      const savedPeermall = peermallStorage.save({
-        ...dataForStorage,
+      const formData = new FormData();
+      // 텍스트 데이터 추가
+      Object.keys(values).forEach(key => {
+        formData.append(key, values[key]);
       });
-      
-      console.log('피어몰 저장 완료:', savedPeermall);
+      formData.append('lat', String(finalLocation?.lat || 37.5665));
+      formData.append('lng', String(finalLocation?.lng || 126.9780));
+
+      // 이미지 파일 추가
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
+      await createPeerMall(formData);
 
         // 초기화
       form.reset();
@@ -494,10 +502,6 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
       setIsDuplicateAddress(false);
       setMapLocation(null);
       setIsLoading(false);
-
-      if (onSuccess) {
-        onSuccess(savedPeermall);
-      }
       
       // 성공 토스트 메시지
       toast({

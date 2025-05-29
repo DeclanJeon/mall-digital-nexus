@@ -56,7 +56,9 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
   title,
   description,
   owner,
+  ownerName,
   imageUrl,
+  imageLocation,
   category,
   phone,
   peerMallKey,
@@ -96,7 +98,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
   }, []);
 
   // 기본 이미지 URL 처리
-  const displayImageUrl = imageError ? "/placeholder-shop.jpg" : (imageUrl || "/placeholder-shop.jpg");
+  const displayImageUrl = imageLocation ? imageLocation : (imageUrl || "/placeholder-shop.jpg");
 
   // 좋아요 토글
   const toggleLike = useCallback((e: React.MouseEvent) => {
@@ -198,7 +200,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
     e.stopPropagation();
     setIsCallModalOpen(true);
 
-    const url = `https://peerterra.com/one/channel/${owner}?mk=${peerMallKey}`;
+    const url = `https://peerterra.com/one/channel/${peerMallName}?mk=${peerMallKey}`;
     window.open(url, '_blank');
   }, [owner, peerMallKey, toast]);
 
@@ -251,13 +253,13 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
       >
-        <Link to={`/space/${id}`} className="block h-full">
+        <Link to={`/space/${peerMallName}?mk=${peerMallKey}`} className="block h-full">
           <Card className="h-full overflow-hidden transition-shadow duration-300 hover:shadow-lg">
             {/* 이미지 영역 */}
             <div className="relative aspect-video bg-gray-100 overflow-hidden">
               <img
                 src={displayImageUrl}
-                alt={title}
+                alt={peerMallName}
                 className="w-full h-full object-cover"
                 onError={handleImageError}
               />
@@ -324,7 +326,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
             {/* 내용 영역 */}
             <CardContent className="p-4">
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-lg line-clamp-1">{title}</h3>
+                <h3 className="font-semibold text-lg line-clamp-1">{peerMallName}</h3>
                 <div className="flex items-center">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
                   <span className="text-sm font-medium">{rating.toFixed(1)}</span>
@@ -344,7 +346,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
               <div className="flex items-center justify-between text-sm text-gray-500">
                 <div className="flex items-center">
                   <User className="h-4 w-4 mr-1" />
-                  <span>{owner}</span>
+                  <span>{ownerName}</span>
                 </div>
                 <div className="flex items-center">
                   <Heart className={cn(
@@ -403,7 +405,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
       </div> */}
       
       {/* 통화 모달 */}
-      <CallModal 
+      {/* <CallModal 
         open={isCallModalOpen} 
         onOpenChange={setIsCallModalOpen} 
         location={{
@@ -415,7 +417,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
           responseTime: "즉시 응답",
           isOnline: true
         }} 
-      />
+      /> */}
       
       {/* 메시지 모달 */}
       <EnhancedMessageModal
