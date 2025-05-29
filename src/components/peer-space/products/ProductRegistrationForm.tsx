@@ -122,8 +122,8 @@ const productSchema = z.object({
   description: z.string().default(''),
   categoryId: z.string().default(''),
   tags: z.array(z.string()).default([]),
-  peermallName: z.string().default(''),
-  peermallId: z.string().default(''),
+  peerMallName: z.string().default(''),
+  peerMallKey: z.string().default(''),
   isBestSeller: z.boolean().default(false),
   isNew: z.boolean().default(false),
   isRecommended: z.boolean().default(false),
@@ -166,14 +166,11 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
   const qrRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // 🔥 고정 ID 생성 - 폼 초기화 시 한 번만
-  const [productId] = useState(() => crypto.randomUUID());
-
   // Initialize form
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
-      id: productId, // 🔥 고정 ID 사용
+      id: "", // 🔥 고정 ID 사용
       name: "",
       price: 0,
       currency: 'KRW',
@@ -189,8 +186,8 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       stock: "",
       options: [],
       isPublic: true,
-      peermallName: "",
-      peermallId: "",
+      peerMallName: "",
+      peerMallKey: "",
       isBestSeller: false,
       isNew: false,
       isRecommended: false,
@@ -203,48 +200,6 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
   const watchSaleUrl = form.watch("saleUrl");
   const watchAllFields = form.watch();
 
-  // localStorage에서 데이터 로드
-  React.useEffect(() => {
-    try {
-      const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (savedData) {
-        const parsedData = JSON.parse(savedData);
-        
-        const cleanedData = {
-          ...parsedData,
-          id: productId, // 🔥 항상 같은 ID 사용
-          name: parsedData.name || "",
-          price: parsedData.price !== undefined ? Number(parsedData.price) : 0,
-          discountPrice: parsedData.discountPrice || '',
-          imageUrl: parsedData.imageUrl || "",
-          saleUrl: parsedData.saleUrl || "",
-          distributor: parsedData.distributor || "",
-          manufacturer: parsedData.manufacturer || "",
-          description: parsedData.description || "",
-          categoryId: parsedData.categoryId || "",
-          tags: parsedData.tags || [],
-          stock: parsedData.stock || "",
-          options: parsedData.options || [],
-          currency: parsedData.currency || 'KRW',
-          isPublic: parsedData.isPublic !== undefined ? parsedData.isPublic : true
-        };
-        
-        form.reset(cleanedData);
-        
-        if (parsedData.productTags && Array.isArray(parsedData.productTags)) {
-          setProductTags(parsedData.productTags);
-        }
-        if (parsedData.options && Array.isArray(parsedData.options)) {
-          setOptions(parsedData.options);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to load form data from localStorage", error);
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
-    }
-  }, [form, productId]);
-
-  // 폼 데이터 변화 시 localStorage에 저장 (디바운싱 적용)
   React.useEffect(() => {
     const saveData = debounce(() => {
       const dataToSave = {
@@ -252,7 +207,6 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
         productTags: productTags,
         options: options,
       };
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dataToSave));
     }, 500);
 
     saveData();
@@ -354,33 +308,29 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
     const now = new Date().toISOString();
     
     // peermall 정보 가져오기
-    const getPeermalls = peermallStorage.getAll().map(p => ({
-        id: p.id,
-        title: p.title,
-    }))
-    const findPeermalls = getPeermalls.find(peermall => peermall.id === address);
-    const peermallName = findPeermalls.title || 'Unknown Peermall';
-
-    debugger;
+    // const getPeermalls = peermallStorage.getAll().map(p => ({
+    //     id: p.id,
+    //     title: p.title,
+    // }))
+    // const findPeermalls = getPeermalls.find(peermall => peermall.id === address);
+    // const peermallName = findPeermalls.title || 'Unknown Peermall';
     
-    if (!findPeermalls.id) {
-      console.error('❌ Peermall not found for address:', findPeermalls.id);
-      toast({
-        title: '피어몰을 찾을 수 없습니다',
-        description: '상품을 등록할 피어몰 정보를 찾을 수 없습니다. 새로고침 후 다시 시도해주세요.',
-        variant: 'destructive'
-      });
-      throw new Error('Peermall not found');
-    }
+    // if (!findPeermalls.id) {
+    //   console.error('❌ Peermall not found for address:', findPeermalls.id);
+    //   toast({
+    //     title: '피어몰을 찾을 수 없습니다',
+    //     description: '상품을 등록할 피어몰 정보를 찾을 수 없습니다. 새로고침 후 다시 시도해주세요.',
+    //     variant: 'destructive'
+    //   });
+    //   throw new Error('Peermall not found');
+    // }
     
     
     return {
-      // 🔥 고정 ID 사용 - 절대 중복되지 않음
-      id: productId,
-      
-      // Content 필수 필드
-      peerSpaceAddress: address,
+      id: "",
       title: formValues.name,
+      peerSpaceAddress: address,
+      name: formValues.name,
       description: formValues.description || '',
       type: ContentType.Product,
       date: now,
@@ -399,8 +349,8 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       imageUrl: formValues.imageUrl || '',
       rating: 0,
       reviewCount: 0,
-      peermallName: peermallName,
-      peermallId: address,
+      peerMallName: address,
+      peerMallKey: "",
       category: formValues.categoryId ?
         PRODUCT_CATEGORIES.find(c => c.id.toString() === formValues.categoryId)?.name || '' : '',
       tags: formValues.tags || [],
@@ -415,28 +365,19 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
   // 🔥 단일 저장 함수 - 중복 제거
   const handleSubmit = async (formValues: ProductFormValues) => {
     setIsSubmitting(true);
-    console.log("🚀 상품 등록 시작 - productId:", productId);
-    console.log("🚀 폼 데이터:", formValues);
     
     try {
       // 🔥 한 번만 생성, 한 번만 저장
       const newProduct = createProductFromForm(formValues);
-      
       console.log("💾 저장할 상품 데이터:", newProduct);
-      
-      // 🔥 localStorage에 저장
-      await saveProduct(newProduct);
       
       // 🔥 상위 컴포넌트에 알림 (UI 업데이트용)
       onProductSave(newProduct);
-      
+
       toast({
         title: "상품이 성공적으로 등록되었습니다! 🎉",
         description: `"${newProduct.title}"이(가) 상품 목록에 추가되었습니다.`,
       });
-      
-      // 성공 시 localStorage 데이터 삭제
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
 
       // Reset form and state
       form.reset();
@@ -447,7 +388,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       setActiveTab("basic");
       
       // 상품 상세 페이지로 이동
-      navigate(`/space/${address}/product/${newProduct.id}`);
+      //navigate(`/space/${address}/product/${newProduct.id}`);
       
     } catch(err) {
       console.error('🚨 상품 등록 중 오류 발생:', err);
@@ -492,13 +433,6 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
     <div className="bg-white rounded-lg shadow-sm border border-gray-100 z-[500]">
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-800">상품 등록</h2>
-            {/* 🔧 개발용 ID 표시 */}
-            {process.env.NODE_ENV === 'development' && (
-              <p className="text-xs text-gray-400 mt-1">Product ID: {productId}</p>
-            )}
-          </div>
           <div className="flex items-center gap-2">
             <TooltipProvider>
               <Tooltip>
@@ -535,10 +469,10 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-1">
                   {/* 🔥 기존 폼 내용 그대로, handleSubmit만 수정됨 */}
                   <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="mb-4 grid grid-cols-3">
+                    <TabsList className="mb-4 grid grid-cols-2">
                       <TabsTrigger value="basic">기본 정보</TabsTrigger>
                       <TabsTrigger value="details">상세 정보</TabsTrigger>
-                      <TabsTrigger value="options">옵션 및 설정</TabsTrigger>
+                      {/* <TabsTrigger value="options">옵션 및 설정</TabsTrigger> */}
                     </TabsList>
                     
                     <TabsContent value="basic" className="space-y-4">

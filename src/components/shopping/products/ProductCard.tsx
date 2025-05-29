@@ -34,7 +34,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   seller,
   saleUrl, // ✨ saleUrl prop 확실히 받기
   onAddFriend,
-  onDetailView
+  onDetailView,
+  productKey
 }) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
@@ -120,7 +121,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   const handleDetailView = () => {
-    onDetailView && onDetailView(id);
+    onDetailView && onDetailView(productKey);
   };
 
   return (
