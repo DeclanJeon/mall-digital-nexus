@@ -26,8 +26,9 @@ import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import SearchAndFilterBar from '@/components/navigation/SearchAndFilterBar';
-import { getPeerMallList } from '@/services/peerMallService';
+import { getAllPeerMallList } from '@/services/peerMallService';
 import PeermallCard from '@/components/peermall-features/PeermallCard';
+import productService from '@/services/productService';
 
 interface Location {
   lat: number;
@@ -511,6 +512,7 @@ const Index = () => {
   
   // 🎯 상태 관리 - 단순화 및 최적화
   const [peermalls, setPeermalls] = useState<Peermall[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [filteredMalls, setFilteredMalls] = useState<Peermall[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMySpacesOpen, setIsMySpacesOpen] = useState(false);
@@ -526,37 +528,28 @@ const Index = () => {
   const [selectedHashtags, setSelectedHashtags] = useState<string[]>(['전체']);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [hotPeerMalls, setHotPeerMalls] = useState<Peermall[]>([]);
-  const [originHotPeerMalls, setOriginHotPeerMalls] = useState<Peermall[]>([]);
-  const [newPeerMalls, setNewPeerMalls] = useState<Peermall[]>([]);
-  const [originNewPeerMalls, setOriginNewPeerMalls] = useState<Peermall[]>([]);
+  const [originPeerMalls, setOriginPeerMalls] = useState<Peermall[]>([]);
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
 
     if(query === '') {
-      setHotPeerMalls(originHotPeerMalls);
-      setNewPeerMalls(originNewPeerMalls);
+      setPeermalls(originPeerMalls);
       return;
     }
 
-    if(originHotPeerMalls.length === 0 && originNewPeerMalls.length === 0) {
+    if(originPeerMalls.length === 0) {
       // 원본 데이터 저장
-      setOriginHotPeerMalls(hotPeerMalls);
-      setOriginNewPeerMalls(newPeerMalls);
+      setOriginPeerMalls(peermalls);
     }
 
     // 검색 필터링
-    const searchedHotPeerMalls = hotPeerMalls.filter(peerMall => 
+    const searchedPeerMalls = peermalls.filter(peerMall => 
       peerMall.peerMallName.includes(query)
     );
-    setHotPeerMalls(searchedHotPeerMalls);
+    setFilteredMalls(searchedPeerMalls);
 
-    const searchedNewPeerMalls = newPeerMalls.filter(peerMall => 
-      peerMall.peerMallName.includes(query)
-    );
-    setNewPeerMalls(searchedNewPeerMalls);
-  }, [hotPeerMalls, newPeerMalls, originHotPeerMalls, originNewPeerMalls]);
+  }, [peermalls, originPeerMalls, filteredMalls]);
 
   const handleBookmarkToggle = useCallback((itemId: string) => {
     setBookmarks(prev => {
@@ -584,7 +577,6 @@ const Index = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('grid'); // 🎨 확장된 뷰 모드
   const [refreshing, setRefreshing] = useState(false);
 
-  // 🚀 스토리지 연동 및 실시간 업데이트
   useEffect(() => {
     // 로그인 상태 확인
     const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
@@ -596,12 +588,11 @@ const Index = () => {
         setIsLoading(true);
         console.log('🔄 초기 데이터 로드 시작...');
         
-        const storedPeermalls = await getPeerMallList();
+        const allPeermalls = await getAllPeerMallList();
+        const allProducts = await productService.getAllProductList();
 
-        if(storedPeermalls['success']) {
-          setHotPeerMalls(storedPeermalls['hostPeerMallList']);
-          setNewPeerMalls(storedPeermalls['newPeerMallList']);
-        }
+        setPeermalls(allPeermalls);
+        setProducts(allProducts);
         
         //setPeermalls(storedPeermalls);
         //setFilteredMalls(storedPeermalls);
@@ -625,83 +616,24 @@ const Index = () => {
 
     loadInitialData();
 
-    // 스토리지 변경 이벤트 리스너 등록
-    const removeListener = peermallStorage.addEventListener((updatedPeermalls) => {
-      console.log('🔔 스토리지 업데이트 감지:', updatedPeermalls.length, '개');
-      
-      setPeermalls(updatedPeermalls);
-      setFilteredMalls(updatedPeermalls);
-      
-      // 내 스페이스 업데이트
-      const myOwnedSpaces = updatedPeermalls.filter(mall => mall.owner === '나');
-      setMySpaces(myOwnedSpaces);
-    });
 
-    // 클린업
-    return () => {
-      removeListener?.();
-    };
   }, [toast]);
-
-  // 상품 데이터 로드
-  useEffect(() => {
-    const fetchProducts = async () => {
-      const allProducts = await getProducts();
-      setProductsData(allProducts);
-    };
-    fetchProducts();
-  }, []);
 
   // 현재 페이지에 보여질 상품 목록 계산
   const getDisplayedProducts = useCallback(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return productsData.slice(startIndex, endIndex);
-  }, [productsData, currentPage, itemsPerPage]);
+    return products.slice(startIndex, endIndex);
+  }, [products, currentPage, itemsPerPage]);
 
   // 전체 페이지 수 계산
-  const totalPages = Math.ceil(productsData.length / itemsPerPage);
+  const totalPages = Math.ceil(products.length / itemsPerPage);
 
   // 페이지 변경 핸들러
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  // 🎨 피어몰 생성 핸들러 - 새로운 스토리지 시스템 사용
-  const handleCreatePeermall = useCallback((newMallData: Omit<Peermall, 'id' | 'rating' | 'reviewCount' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      console.log('🆕 새 피어몰 생성 시작:', newMallData.title);
-      
-      // 스토리지에 저장 (자동으로 ID와 타임스탬프 생성됨)
-      const savedPeermall = peermallStorage.save({
-        ...newMallData,
-        rating: 0,
-        reviewCount: 0,
-        likes: 0,
-        followers: 0
-      });
-      
-      console.log('✅ 피어몰 생성 완료:', savedPeermall.id);
-      
-      // 성공 토스트
-      toast({
-        title: "🎉 피어몰 생성 완료!",
-        description: `${savedPeermall.title}이(가) 성공적으로 생성되었습니다.`,
-      });
-      
-      // 필요시 상세 페이지로 이동
-      // navigate(`/peerspace/${savedPeermall.id}`);
-      
-    } catch (error) {
-      console.error('❌ 피어몰 생성 오류:', error);
-      toast({
-        variant: "destructive",
-        title: "생성 실패",
-        description: "피어몰 생성 중 오류가 발생했습니다."
-      });
-    }
-  }, [toast]);
 
   // 🔍 필터링 로직 - 향상된 검색 기능
   const hashtagOptions: HashtagFilterOption[] = [
@@ -808,7 +740,7 @@ const Index = () => {
   };
   
   // ✨ 신규 피어몰 계산
-  const newestMalls = [...filteredMalls]
+  const newestMalls = [...peermalls]
     .sort((a, b) => {
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
@@ -818,18 +750,17 @@ const Index = () => {
 
   // 🗺️ 지도용 위치 데이터
   const allLocations = peermalls
-    .filter(mall => mall.location)
+    //.filter(mall => mall.location)
     .map(mall => ({
-      lat: mall.location!.lat,
-      lng: mall.location!.lng,
-      address: mall.location!.address,
-      title: mall.title
+      lat: mall.lat,
+      lng: mall.lng,
+      address: mall.address,
+      title: mall.peerMallName
     }));
   
   const handleLocationSelect = useCallback((location: any) => {
-    // Find the corresponding peermall
     const peermall = peermalls.find(
-      p => p.location?.lat === location.lat && p.location?.lng === location.lng
+      p => p.lat === location.lat && p.lng === location.lng
     );
     
     if (peermall) {
@@ -960,9 +891,9 @@ const Index = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        {newPeerMalls.length}개
+                        {newestMalls.length}개
                       </Badge>
-                      {newPeerMalls.length > 0 && (
+                      {newestMalls.length > 0 && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -975,9 +906,9 @@ const Index = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {newPeerMalls.length > 0 ? (
+                  {newestMalls.length > 0 ? (
                     <PeermallViewRenderer
-                      malls={newPeerMalls}
+                      malls={newestMalls}
                       viewMode="grid"
                       onOpenMap={handleOpenMap}
                       onShowQrCode={handleShowPeermallQrCode}
@@ -1019,7 +950,7 @@ const Index = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Badge variant="secondary" className="bg-slate-100 text-slate-700">
-                        총 {filteredMalls.length}개
+                        총 {peermalls.length}개
                       </Badge>
                       <Button
                         variant="ghost"
@@ -1095,14 +1026,14 @@ const Index = () => {
                   
                 </CardHeader>
                 <CardContent>
-                  {newPeerMalls.length > 0 ? (
+                  {peermalls.length > 0 ? (
                     <div className="space-y-4">
                       {/* 🔍 검색 결과 정보 */}
                       {searchQuery && (
                         <div className="flex items-center space-x-2 text-sm text-slate-600 bg-blue-50 p-3 rounded-lg">
                           <Search className="w-4 h-4" />
                           <span>
-                            '<strong>{searchQuery}</strong>' 검색 결과: {newPeerMalls.length}개
+                            '<strong>{searchQuery}</strong>' 검색 결과: {peermalls.length}개
                           </span>
                         </div>
                       )}
@@ -1132,7 +1063,7 @@ const Index = () => {
                           transition={{ duration: 0.3 }}
                         >
                           <PeermallViewRenderer
-                            malls={newPeerMalls}
+                            malls={peermalls}
                             viewMode={viewMode}
                             onOpenMap={handleOpenMap}
                             onShowQrCode={handleShowPeermallQrCode}
@@ -1154,7 +1085,7 @@ const Index = () => {
                           : '첫 번째 피어몰을 만들어 커뮤니티를 시작해보세요! 당신의 아이디어가 새로운 연결을 만들어낼 거예요.'
                         }
                       </p>
-                      {!searchQuery && (
+                      {/* {!searchQuery && (
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                           <Button 
                             onClick={() => navigate('/create-peermall')}
@@ -1172,7 +1103,7 @@ const Index = () => {
                             둘러보기
                           </Button>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   )}
                 </CardContent>
@@ -1232,18 +1163,18 @@ const Index = () => {
                 </p>
               </CardHeader>
               <CardContent>
-                {productsData.length > 0 ? (
+                {products.length > 0 ? (
                   <>
                     <ProductGrid 
                       id="product-grid"
-                      products={getDisplayedProducts()} 
+                      products={products} 
                       viewMode="grid"
-                      onDetailView={(productId) => {
-                        const product = productsData.find(p => p.id === productId);
+                      onDetailView={(productKey) => {
+                        const product = productsData.find(p => p.productKey === productKey);
                         if (product && product.peerMallKey) {
-                          navigate(`/space/${product.peerMallKey}/product/${productId}`);
+                          navigate(`/space/${product.peerMallName}/product?mk=${product.peerMallKey}&pk=${productKey}`);
                         } else {
-                          console.error('Product or peermallId not found:', productId);
+                          console.error('Product or peermallKey not found:', productKey);
                         }
                       }}
                     />
