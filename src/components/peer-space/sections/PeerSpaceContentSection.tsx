@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ProductCard from '@/components/shopping/products/ProductCard';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
 import { Grid2X2, List, Grid3X3, LayoutGrid, Rows3, Eye, Filter, SlidersHorizontal } from 'lucide-react';
@@ -34,15 +34,17 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
   setCurrentView,
   handleShowProductForm,
   filteredProducts,
-  peerMallName,
-  peerMallKey
+  peerMallName
 }) => {
+  debugger;
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('latest');
+  const [ searchParams ] = useSearchParams();
+  const peerMallKey = searchParams.get('mk');
 
   // 🔥 중복 제거 로직 완전 수정
   const validProducts = useMemo(() => {
@@ -154,7 +156,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
   ];
 
   const handleProductDetailView = (productKey: string | number) => {
-    navigate(`/space/${peerMallName}/product?mk=${peerMallKey}&pk=${productKey}`);
+    navigate(`/space/${config.peerMallName}/product?mk=${peerMallKey}&pk=${productKey}`);
   };
 
   return (
@@ -169,11 +171,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
         <div className="flex items-center space-x-2 mb-4 md:mb-0">
           <Eye className="h-5 w-5 text-gray-500" />
           <h2 className="text-xl font-semibold text-gray-800">
-            제품 ({filteredAndSortedProducts.length})
-            {/* 디버깅용 정보 표시 */}
-            <span className="text-sm text-gray-400 ml-2">
-              (전체: {validProducts.length})
-            </span>
+            제품 ({products.length})
           </h2>
         </div>
 
@@ -301,8 +299,8 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                     imageUrl={product.imageUrl}
                     rating={product.rating || 4.5}
                     reviewCount={product.reviewCount || 10}
-                    peermallName={config.title}
-                    peermallId={address}
+                    peerMallName={config.peerMallName}
+                    peerMallKey={peerMallKey}
                     peerSpaceAddress={product.peerSpaceAddress}
                     category={product.category || '기타'}
                     tags={product.tags || []}
