@@ -115,9 +115,11 @@ const Header = () => {
   const handleLogout = () => {
     localStorage.removeItem('userLoggedIn');
     localStorage.removeItem('userEmail');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
     setIsLoggedIn(false);
     setNotifications([]);
-    window.location.reload();
+    window.location.assign("/");
   };
 
   const toggleNotifications = () => {

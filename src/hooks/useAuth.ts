@@ -35,6 +35,8 @@ export const useAuth = (): AuthHook => {
       const accessToken = localStorage.getItem('accessToken');
       const refreshToken = localStorage.getItem('refreshToken');
 
+      console.log(email, accessToken, refreshToken)
+
       if (loggedIn && email) {
         setUser({ email, accessToken, refreshToken });
         setIsAuthenticated(true);

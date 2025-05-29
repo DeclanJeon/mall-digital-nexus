@@ -165,10 +165,11 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
           // 성공 콜백 또는 네비게이션
           if (loginRes.success) {
-            navigate('/');
+            // navigate('/');
+            location.assign('/');
           } else {
             // 기본 리디렉션
-            navigate('/my-info');
+            // navigate('/my-info');
           }
         } else {
           toast({
