@@ -405,13 +405,13 @@ const QRCodeGeneratorForm = () => {
           >
             QR 생성
           </Button>
-          <Button 
+          {/* <Button 
             onClick={() => setActiveTab('saved')} 
             variant={activeTab === 'saved' ? 'default' : 'outline'}
             className="rounded-l-none"
           >
             저장된 QR ({savedQRCodes.length})
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -493,11 +493,11 @@ const QRCodeGeneratorForm = () => {
             {/* Dynamic QR Switch - peermall과 peernumber는 동적 QR 대상이 아님 */}
             {selectedType !== 'peermall' && selectedType !== 'peernumber' && (
               <div className="flex items-center space-x-2 pt-4">
-                <Switch
+                {/* <Switch
                   id="dynamic-qr"
                   checked={isDynamic}
                   onCheckedChange={setIsDynamic}
-                  disabled={!isAuthenticated} // 로그인 상태에 따라 비활성화
+                  disabled={!isAuthenticated}
                   aria-readonly={!isAuthenticated}
                 />
                 <Label htmlFor="dynamic-qr" className="flex flex-col space-y-1">
@@ -505,7 +505,7 @@ const QRCodeGeneratorForm = () => {
                   <span className="font-normal leading-snug text-muted-foreground">
                     생성 후에도 QR 코드의 내용을 변경할 수 있습니다.
                   </span>
-                </Label>
+                </Label> */}
               </div>
             )}
             {isDynamic && !isAuthenticated && (
@@ -546,7 +546,7 @@ const QRCodeGeneratorForm = () => {
                         <Button onClick={downloadQRCodeImage} variant="outline" className="flex-1">다운로드</Button>
                     </div>
                 )}
-                <Button onClick={saveQRCode} disabled={!qrImageUrl} className="w-full mt-2">QR 코드 저장</Button>
+                {/* <Button onClick={saveQRCode} disabled={!qrImageUrl} className="w-full mt-2">QR 코드 저장</Button> */}
               </CardContent>
             </Card>
           </div>
