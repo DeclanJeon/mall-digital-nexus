@@ -354,25 +354,17 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
     const now = new Date().toISOString();
     
     // peermall 정보 가져오기
-    const peermall = peermallStorage.getAll().find(p => p.peerMallAddress === address);
-    const peermallName = peermall ? (peermall.title || peermall.peerMallName || 'Unknown Peermall') : 'Unknown Peermall';
-    const peermallId = peermall ? peermall.peerMallAddress : '';
-    
-    console.log('🔍 Peermall Info:', { 
-      address, 
-      peermall, 
-      peermallName, 
-      peermallId,
-      allPeermalls: peermallStorage.getAll().map(p => ({
+    const getPeermalls = peermallStorage.getAll().map(p => ({
         id: p.id,
         title: p.title,
-        peerMallAddress: p.peerMallAddress,
-        peerMallName: p.peerMallName
-      }))
-    });
+    }))
+    const findPeermalls = getPeermalls.find(peermall => peermall.id === address);
+    const peermallName = findPeermalls.title || 'Unknown Peermall';
+
+    debugger;
     
-    if (!peermallId) {
-      console.error('❌ Peermall not found for address:', address);
+    if (!findPeermalls.id) {
+      console.error('❌ Peermall not found for address:', findPeermalls.id);
       toast({
         title: '피어몰을 찾을 수 없습니다',
         description: '상품을 등록할 피어몰 정보를 찾을 수 없습니다. 새로고침 후 다시 시도해주세요.',
@@ -380,6 +372,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       });
       throw new Error('Peermall not found');
     }
+    
     
     return {
       // 🔥 고정 ID 사용 - 절대 중복되지 않음
@@ -407,7 +400,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       rating: 0,
       reviewCount: 0,
       peermallName: peermallName,
-      peermallId: peermallId,
+      peermallId: address,
       category: formValues.categoryId ?
         PRODUCT_CATEGORIES.find(c => c.id.toString() === formValues.categoryId)?.name || '' : '',
       tags: formValues.tags || [],
