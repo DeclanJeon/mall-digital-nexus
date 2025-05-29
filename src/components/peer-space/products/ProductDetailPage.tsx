@@ -391,24 +391,7 @@ const ProductDetailPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       <div className="container mx-auto py-4 px-4 lg:px-8">
-        {/* 디버깅 정보 (개발 중에만 표시) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <h4 className="font-semibold text-yellow-800 mb-2">디버깅 정보:</h4>
-            <pre className="text-xs text-yellow-700 overflow-auto">
-              {JSON.stringify({
-                productId,
-                address,
-                productTitle: product?.title,
-                productPrice: product?.price,
-                productImageUrl: product?.imageUrl,
-                productSaleUrl: product?.saleUrl,
-                totalProducts: getProducts().length
-              }, null, 2)}
-            </pre>
-          </div>
-        )}
-
+        
         {/* 상단 네비게이션 */}
         <div className="flex items-center justify-between mb-6">
           <Button
@@ -516,7 +499,7 @@ const ProductDetailPage: React.FC = () => {
 
                   {/* 평점 정보 */}
                   <div className="flex items-center gap-2 mt-3">
-                    <div className="flex items-center">
+                    {/* <div className="flex items-center">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
@@ -527,10 +510,10 @@ const ProductDetailPage: React.FC = () => {
                           }`}
                         />
                       ))}
-                    </div>
-                    <span className="text-sm text-gray-600">
+                    </div> */}
+                    {/* <span className="text-sm text-gray-600">
                       {product.rating?.toFixed(1) || '0.0'} ({product.reviewCount || 0}개 리뷰)
-                    </span>
+                    </span> */}
                   </div>
 
                   {/* 피어몰 정보 */}
@@ -577,7 +560,7 @@ const ProductDetailPage: React.FC = () => {
                     바로구매 💳
                   </Button>
                   
-                  <Button 
+                  {/* <Button 
                     variant="outline"
                     className="w-full py-4 border-purple-300 text-purple-600 hover:bg-purple-50 font-semibold rounded-xl transition-all duration-200" 
                     onClick={handleAddToCart}
@@ -585,35 +568,33 @@ const ProductDetailPage: React.FC = () => {
                   >
                     <ShoppingCart className="h-5 w-5 mr-2" />
                     장바구니 담기
-                  </Button>
+                  </Button> */}
                 </div>
 
                 <Separator className="my-6" />
 
                 {/* 상담 및 소통 기능 */}
                 <div className="space-y-3">
-  <div className="flex items-center justify-between mb-3">
-    <h3 className="font-semibold text-gray-800">상담하기</h3>
-    <div className="flex items-center gap-1">
-      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-      <span className="text-xs text-gray-500">온라인</span>
-    </div>
-  </div>
-  <Button
-    variant="outline"
-    size="lg"
-    className="w-full flex items-center gap-2 py-3 border-purple-300 text-purple-600 hover:bg-purple-50 font-semibold rounded-xl transition-all duration-200 justify-center"
-    onClick={() => {
-      if (product?.peerSpaceAddress) {
-        window.open(`https://peerterra.com/one/channel/${product.peerSpaceAddress}`, '_blank', 'noopener,noreferrer');
-      } else {
-        alert('피어몰 ID가 없습니다.');
-      }
-    }}
-  >
-    <span className="text-base">상담하기</span>
-  </Button>
-</div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-gray-800">상담하기</h3>
+                    <div className="flex items-center gap-1">
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline"
+                    size="lg"
+                    className="w-full flex items-center gap-2 py-3 border-purple-300 text-purple-600 hover:bg-purple-50 font-semibold rounded-xl transition-all duration-200 justify-center"
+                    onClick={() => {
+                      if (product?.peerSpaceAddress) {
+                        window.open(`https://peerterra.com/one/channel/${product.peerSpaceAddress}`, '_blank', 'noopener,noreferrer');
+                      } else {
+                        alert('피어몰 ID가 없습니다.');
+                      }
+                    }}
+                  >
+                    <span className="text-base">상담하기</span>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
