@@ -92,11 +92,11 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <Tabs defaultValue="internal" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-muted"> 
+        <Tabs defaultValue="external" className="w-full">
+          {/* <TabsList className="grid w-full grid-cols-1 bg-muted"> 
             <TabsTrigger value="internal" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">피어몰 서비스</TabsTrigger> 
             <TabsTrigger value="external" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">외부 서비스(링크)</TabsTrigger> 
-          </TabsList>
+          </TabsList> */}
 
           {/* 내부 서비스 탭 */}
           <TabsContent value="internal">

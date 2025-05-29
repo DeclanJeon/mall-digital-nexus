@@ -16,8 +16,6 @@ import {
   MessageSquare,
   PhoneOff
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { PeermallCardProps } from '@/types/peermall';
 
 interface CallModalProps {
   open: boolean;
