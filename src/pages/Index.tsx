@@ -147,7 +147,7 @@ const PeermallViewRenderer = ({
             <Card className={`${designTokens.elevation.interactive} overflow-hidden bg-white/80 backdrop-blur-sm`}>
               <div className="relative overflow-hidden">
                 <img
-                  src={mall.imageUrl || '/placeholder-shop.jpg'} 
+                  src={mall.imageLocation || '/placeholder-shop.jpg'} 
                   alt={mall.title}
                   className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                   onError={(e) => {
@@ -166,7 +166,7 @@ const PeermallViewRenderer = ({
                 </div>
               </div>
               <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">{mall.title}</h3>
+                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">{mall.peerMallName}</h3>
                 <p className="text-sm text-gray-600 mb-3 line-clamp-2">{mall.description}</p>
                 <div className="flex items-center justify-between text-xs text-gray-500">
                   <div className="flex items-center space-x-4">
@@ -176,13 +176,13 @@ const PeermallViewRenderer = ({
                     </span>
                     <span className="flex items-center">
                       <ThumbsUp className="w-3 h-3 mr-1" />
-                      {mall.likes || 0}
+                      {mall.likeCount || 0}
                     </span>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => navigate(`/space/${mall.id}`)}
+                    onClick={() => navigate(`/space/${mall.peerMallName}?mk=${mall.peerMallKey}`)}
                     className="text-blue-600 hover:text-blue-700 p-0 h-auto"
                   >
                     자세히 보기
@@ -210,8 +210,8 @@ const PeermallViewRenderer = ({
             <Card className={`${designTokens.elevation.card} overflow-hidden hover:shadow-lg transition-all duration-300`}>
               <div className="flex">
                 <img
-                  src={mall.imageUrl || '/placeholder-shop.jpg'}
-                  alt={mall.title}
+                  src={mall.imageLocation || '/placeholder-shop.jpg'}
+                  alt={mall.peerMallName}
                   className="w-48 h-32 object-cover flex-shrink-0"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
@@ -221,7 +221,7 @@ const PeermallViewRenderer = ({
                 />
                 <div className="flex-1 p-4">
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 text-lg">{mall.title}</h3>
+                    <h3 className="font-semibold text-gray-900 text-lg">{mall.peerMallName}</h3>
                     <div className="flex items-center space-x-2">
                       <Badge variant="outline" className="text-xs">
                         {mall.category || '일반'}
@@ -229,7 +229,7 @@ const PeermallViewRenderer = ({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onShowQrCode(mall.id, mall.title)}
+                        onClick={() => onShowQrCode(mall.peerMallKey, mall.peerMallName)}
                         className="p-1 h-auto"
                       >
                         <Share2 className="w-4 h-4" />
@@ -245,7 +245,7 @@ const PeermallViewRenderer = ({
                       </span>
                       <span className="flex items-center">
                         <ThumbsUp className="w-4 h-4 mr-1" />
-                        {mall.likes || 0}
+                        {mall.likeCount || 0}
                       </span>
                       <span className="flex items-center">
                         <Users className="w-4 h-4 mr-1" />
@@ -254,12 +254,12 @@ const PeermallViewRenderer = ({
                       {mall.location && (
                         <span className="flex items-center">
                           <MapPin className="w-4 h-4 mr-1" />
-                          {mall.location.address}
+                          {mall.mallAdress}
                         </span>
                       )}
                     </div>
                     <Button
-                      onClick={() => navigate(`/space/${mall.id}`)}
+                      onClick={() => navigate(`/space/${mall.peerMallName}?mk=${mall.peerMallKey}`)}
                       className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
                       방문하기
@@ -292,12 +292,12 @@ const PeermallViewRenderer = ({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.05 }}
             className="group cursor-pointer"
-            onClick={() => navigate(`/space/${mall.id}`)}
+            onClick={() => navigate(`/space/${mall.peerMallName}?mk=${mall.peerMallKey}`)}
           >
             <div className="relative overflow-hidden rounded-lg aspect-square">
               <img
-                src={mall.imageUrl || '/placeholder-shop.jpg'}
-                alt={mall.title}
+                src={mall.imageLocation || '/placeholder-shop.jpg'}
+                alt={mall.peerMallName}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
@@ -315,7 +315,7 @@ const PeermallViewRenderer = ({
                   </div>
                   <div className="flex items-center space-x-2">
                     <ThumbsUp className="w-3 h-3" />
-                    <span>{mall.likes || 0}</span>
+                    <span>{mall.likeCount || 0}</span>
                   </div>
                 </div>
               </div>
@@ -330,7 +330,7 @@ const PeermallViewRenderer = ({
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onShowQrCode(mall.id, mall.title);
+                    onShowQrCode(mall.peerMallKey, mall.peerMallName);
                   }}
                   className="p-1 h-auto bg-white/20 hover:bg-white/30 text-white"
                 >
@@ -358,8 +358,8 @@ const PeermallViewRenderer = ({
             <Card className={`${designTokens.elevation.feature} overflow-hidden bg-white/90 backdrop-blur-sm`}>
               <div className="relative">
                 <img
-                  src={mall.imageUrl || '/api/placeholder/800/400'}
-                  alt={mall.title}
+                  src={mall.imageLocation || '/api/placeholder/800/400'}
+                  alt={mall.peerMallName}
                   className="w-full h-64 sm:h-80 object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
@@ -398,7 +398,7 @@ const PeermallViewRenderer = ({
                     <div className="flex items-center space-x-4 text-gray-600">
                       <span className="flex items-center">
                         <ThumbsUp className="w-4 h-4 mr-1" />
-                        {mall.likes || 0}
+                        {mall.likeCount || 0}
                       </span>
                       <span className="flex items-center">
                         <MessageCircle className="w-4 h-4 mr-1" />
@@ -414,13 +414,13 @@ const PeermallViewRenderer = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onShowQrCode(mall.id, mall.title)}
+                      onClick={() => onShowQrCode(mall.peerMallKey, mall.peerMallName)}
                     >
                       <Share2 className="w-4 h-4 mr-2" />
                       공유
                     </Button>
                     <Button
-                      onClick={() => navigate(`/space/${mall.id}`)}
+                      onClick={() => navigate(`/space/${mall.peerMallName}?mk=${mall.peerMallKey}`)}
                       className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
                     >
                       자세히 보기
@@ -431,7 +431,7 @@ const PeermallViewRenderer = ({
                 {mall.location && (
                   <div className="mt-4 p-3 bg-gray-50 rounded-lg flex items-center">
                     <MapPin className="w-4 h-4 text-gray-600 mr-2" />
-                    <span className="text-sm text-gray-600">{mall.location.address}</span>
+                    <span className="text-sm text-gray-600">{mall.mallAddress}</span>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -720,9 +720,9 @@ const Index = () => {
   }, [navigate, handleCloseMySpaces]);
 
   // 📱 QR 코드 핸들러
-  const handleShowPeermallQrCode = useCallback((peermallId: string, peermallTitle: string) => {
-    setQrCodeUrl(`${window.location.origin}/space/${peermallId}`);
-    setQrModalTitle(`${peermallTitle} QR 코드`);
+  const handleShowPeermallQrCode = useCallback((peerMallKey: string, peerMallName: string) => {
+    setQrCodeUrl(`${window.location.origin}/space/${peerMallName}?mk=${peerMallKey}`);
+    setQrModalTitle(`${peerMallName} QR 코드`);
     setQrModalOpen(true);
   }, []);
 
@@ -787,7 +787,7 @@ const Index = () => {
     
     if (peermall) {
       // 상세 보기 로직 (필요시 구현)
-      navigate(`/space/${peermall.id}`);
+      navigate(`/space/${peermall['peerMallName']}?mk=${peermall['peerMallKey']}`);
     }
   }, [peermalls, navigate]);
 
@@ -1046,14 +1046,14 @@ const Index = () => {
                   
                 </CardHeader>
                 <CardContent>
-                  {filteredMalls.length > 0 ? (
+                  {newPeerMalls.length > 0 ? (
                     <div className="space-y-4">
                       {/* 🔍 검색 결과 정보 */}
                       {searchQuery && (
                         <div className="flex items-center space-x-2 text-sm text-slate-600 bg-blue-50 p-3 rounded-lg">
                           <Search className="w-4 h-4" />
                           <span>
-                            '<strong>{searchQuery}</strong>' 검색 결과: {filteredMalls.length}개
+                            '<strong>{searchQuery}</strong>' 검색 결과: {newPeerMalls.length}개
                           </span>
                         </div>
                       )}
@@ -1083,7 +1083,7 @@ const Index = () => {
                           transition={{ duration: 0.3 }}
                         >
                           <PeermallViewRenderer
-                            malls={filteredMalls}
+                            malls={newPeerMalls}
                             viewMode={viewMode}
                             onOpenMap={handleOpenMap}
                             onShowQrCode={handleShowPeermallQrCode}

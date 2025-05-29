@@ -4,26 +4,19 @@ import Footer from '@/components/layout/Footer';
 import PeermallGrid from '@/components/peermall-features/PeermallGrid';
 import { Peermall } from '@/types/peermall';
 import { peermallStorage } from '@/services/storage/peermallStorage';
+import { getAllPeerMallList } from '@/services/peerMallService';
 
 const PeermallsPage: React.FC = () => {
   const [peermalls, setPeermalls] = useState<Peermall[]>([]);
 
+  const loadAllMallList = async () => {
+    const allPeerMalls = await getAllPeerMallList();
+    setPeermalls(allPeerMalls);
+  }
+
   useEffect(() => {
-    const loadPeermalls = () => {
-      const allPeermalls = peermallStorage.getAll();
-      setPeermalls(allPeermalls);
-    };
-
-    loadPeermalls();
-
-    const unsubscribe = peermallStorage.addEventListener((updatedPeermalls) => {
-      setPeermalls(updatedPeermalls);
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
+    loadAllMallList();
+  });
 
   return (
     <div className="min-h-screen flex flex-col">
