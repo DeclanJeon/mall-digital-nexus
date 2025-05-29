@@ -1,8 +1,14 @@
 import axios from 'axios';
-import { getProducts, saveProduct } from '@/services/storage/productStorage';
-import { Product } from '@/types/product';
+import userService from './userService';
+import { Content } from '@/components/peer-space/content/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = 'http://localhost:9393/v1/products';
+const accessToken = userService.getAccessToken();
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+});
 
 interface PurchaseResponse {
   success: boolean;
@@ -11,6 +17,62 @@ interface PurchaseResponse {
 }
 
 export const productService = {
+  async registerProduct(productData: any, peerMallName: string, peerMallKey: string ): Promise<any> {
+    try {
+      const response = await api.post(`/register`, { productData, peerMallName, peerMallKey }, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      throw error.response.data;
+    }
+  },
+
+  async getAllProductList(): Promise<any> {
+    try {
+      const response = await api.get('/allProductList');
+      if (response.status === 200 && response.data.success) {
+        return response.data;
+      }
+      return { success: false };
+    } catch (error) {
+      console.error('Error sending verification code:', error);
+      return { success: false };
+    }
+  },
+
+  async getProductInfo(peerMallName: string, peerMallKey: string, productKey: string): Promise<any> {
+    try {
+      const response = await api.get('/productInfo', {
+        params: { peerMallName, peerMallKey, productKey }
+      });
+      if (response.status === 200 && response.data.success) {
+        return response.data;
+      }
+      return { success: false };
+    } catch (error) {
+      console.error('Error sending verification code:', error);
+      return { success: false };
+    }
+  },
+
+  async getProductList(peerMallName: string, peerMallKey: string): Promise<any> {
+    try {
+      const response = await api.get('/productList', {
+        params: { peerMallName, peerMallKey }
+      });
+      if (response.status === 200 && response.data.success) {
+        return response.data;
+      }
+      return { success: false };
+    } catch (error) {
+      console.error('Error sending verification code:', error);
+      return { success: false };
+    }
+  },
+
   // Add product to wishlist
   async addToWishlist(productId: string | number): Promise<boolean> {
     try {
@@ -97,16 +159,6 @@ export const productService = {
       console.error('Error converting currency:', error);
       return amount;
     }
-  },
-
-  // 로컬 스토리지에서 제품 목록 가져오기
-  getProductsFromLocalStorage(): Product[] {
-    return getProducts();
-  },
-
-  // 로컬 스토리지에 제품 목록 저장 (목업 데이터 초기화용)
-  saveProductsToLocalStorage(products: Product[]): void {
-    products.forEach(product => saveProduct(product));
   },
 };
 
