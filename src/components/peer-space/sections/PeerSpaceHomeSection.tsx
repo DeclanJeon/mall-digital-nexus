@@ -15,7 +15,7 @@ interface PeerSpaceHomeSectionProps {
   isOwner: boolean;
   address: string;
   config: PeerMallConfig;
-  activeSection: 'home' | 'content' | 'community' | 'following' | 'guestbook' | 'settings';
+  activeSection: 'space' | 'products' | 'community' | 'following' | 'guestbook' | 'settings';
   products: Content[];
   posts: Content[];
   searchQuery: string;
@@ -50,10 +50,13 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
 
   const filteredProducts = useMemo(() =>
     products.filter(product =>
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.description.toLowerCase().includes(searchQuery.toLowerCase())
     ).map(content => ({
       ...content,
+      productKey: content.id, // id를 productKey로 사용
+      title: content.title || '제목 없음',
+      owner: address,
       currency: content.price ? 'ETH' : 'ETH',
       reviewCount: content.rating ? content.rating : 0,
       peermallName: config.name,
@@ -62,7 +65,7 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
       imageUrl: content.imageUrl || '',
       category: content.category || '기타',
       tags: content.tags || [],
-    }) as Product),
+    }) as unknown as Product),
     [products, searchQuery, config.name]
   );
 
@@ -75,11 +78,11 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 flex align-center justify-center">
-      <div className="flex p-6">
+    <div className="min-h-screen bg-gray-50 text-gray-900 flex">
+      <div className="flex p-6 w-full">
         <div className="flex-1 pr-6">
           <>
-            {activeSection === 'home' && (
+            {activeSection === 'space' && (
               <>
                 <HeroSection
                   slides={heroSlides}
@@ -114,7 +117,7 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
               </>
             )}
 
-            {activeSection === 'content' && (
+            {activeSection === 'products' && (
               <ProductContentSection
                 isOwner={isOwner}
                 products={filteredProducts}

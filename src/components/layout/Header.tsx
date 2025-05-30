@@ -169,114 +169,156 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="container bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100/50 sticky top-0 z-50">
       {/* Main Header */}
-      <div className="mx-auto px-4">
-        <div className="flex justify-between items-center py-4">
-          {/* Left Side - Bookmark and Search */}
-          <div className="flex items-center space-x-4">
-            {/* <Bookmark className="h-6 w-6 text-gray-600" />
-            <Search className="h-6 w-6 text-gray-600" /> */}
-          </div>
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="flex justify-between items-center py-6">
+          {/* Left Side - Empty space for balance */}
+          <div className="w-32 hidden lg:block"></div>
 
           {/* Center - Logo */}
-          <Link to="/" className="flex items-center">
-            <div className="flex flex-col gap-3 items-center space-x-2">
-
-              <div className="flex items-center space-x-2">
-                <div className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold">
-                  세상을 넓히는 연결의 시작
+          <Link to="/" className="flex items-center group">
+            <div className="flex flex-col items-center space-y-3 transition-transform duration-300 group-hover:scale-105">
+              {/* Tagline */}
+              <div className="relative">
+                <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-xs font-semibold tracking-wide shadow-md">
+                  <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                    세상을 넓히는 연결의 시작
+                  </span>
                 </div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
               </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-3xl font-bold text-blue-600">PEER</span>
-                <span className="text-3xl font-bold text-gray-800">MALL</span>
+              
+              {/* Logo Text */}
+              <div className="flex items-center space-x-1">
+                <span className="text-4xl font-black bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent tracking-tight">
+                  PEER
+                </span>
+                <span className="text-4xl font-black bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent tracking-tight">
+                  MALL
+                </span>
               </div>
-
             </div>
           </Link>
 
-          {/* Right Side - Social Icons */}
-          <div className="flex items-center space-x-4 pr-4">
-            <div className="w-6 h-6 bg-gray-600 rounded flex items-center justify-center">
-              <div className="hidden md:flex items-center justify-end py-2">
-                {isLoggedIn ? (
-                  <div className="relative">
-                    <div 
-                      className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white cursor-pointer"
-                      onClick={() => setIsMenuOpen(prev => !prev)}
+          {/* Right Side - User Actions */}
+          <div className="flex items-center space-x-4 w-32 justify-end">
+            {isLoggedIn ? (
+              <div className="relative">
+                <div 
+                  className="group h-10 w-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+                  onClick={() => setIsMenuOpen(prev => !prev)}
+                >
+                  <User className="h-5 w-5" />
+                </div>
+                {isMenuOpen && (
+                  <div className="absolute right-0 mt-3 w-56 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100/50 py-2 z-20 animate-in slide-in-from-top-2 duration-200">
+                    <Link 
+                      to="/my-info" 
+                      className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 transition-colors duration-200 rounded-xl mx-2"
                     >
-                      <User className="h-5 w-5" />
-                    </div>
-                    {isMenuOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
-                        <Link to="/my-info" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">내 정보</Link>
-                        {/* <button 
-                          onClick={handleOpenMySpaces}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          내 스페이스
-                        </button> */}
-                        <button 
-                          onClick={handleLogout}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          로그아웃
-                        </button>
-                      </div>
-                    )}
+                      <User className="h-4 w-4 mr-3 text-gray-500" />
+                      내 정보
+                    </Link>
+                    <div className="border-t border-gray-100 my-2"></div>
+                    <button 
+                      onClick={handleLogout}
+                      className="flex items-center w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-red-50/80 hover:text-red-600 transition-colors duration-200 rounded-xl mx-2"
+                    >
+                      <X className="h-4 w-4 mr-3" />
+                      로그아웃
+                    </button>
                   </div>
-                ) : (
-                  <Button 
-                    onClick={handleLogin}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    로그인
-                  </Button>
                 )}
               </div>
-            </div>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button className="md:hidden p-2" onClick={toggleMenu}>
-            {isMenuOpen ? (
-              <X className="h-6 w-6 text-gray-600" />
             ) : (
-              <Menu className="h-6 w-6 text-gray-600" />
+              <Button 
+                onClick={handleLogin}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-6 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              >
+                로그인
+              </Button>
             )}
-          </button>
+
+            {/* Mobile Menu Button */}
+            <button 
+              className="lg:hidden p-2.5 rounded-full hover:bg-gray-100 transition-colors duration-200" 
+              onClick={toggleMenu}
+            >
+              {isMenuOpen ? (
+                <X className="h-6 w-6 text-gray-600" />
+              ) : (
+                <Menu className="h-6 w-6 text-gray-600" />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Navigation Menu */}
-        <nav className="hidden md:flex items-center justify-center space-x-8 py-4 border-t border-gray-100">
-          <Link to="/peermalls" className="text-gray-700 hover:text-blue-600 font-medium">피어몰 보러가기</Link>
-          <Link to="/products" className="text-gray-700 hover:text-blue-600 font-medium">제품 보러가기</Link>
-          <Link to="/create-qrcode" className="text-gray-700 hover:text-blue-600 font-medium">QR코드 만들기</Link>
-          <Button
-            onClick={() => {
-              if (isAuthenticated) {
-                handleCreateModalOpen();
-              } else {
-                handleLogin();
-              }
-            }}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200"
+        <nav className="hidden lg:flex items-center justify-center space-x-1 py-4 border-t border-gray-100/50">
+          <Link 
+            to="/peermalls" 
+            className="px-6 py-3 text-gray-700 hover:text-blue-600 font-medium rounded-full hover:bg-blue-50/80 transition-all duration-200 hover:scale-105"
           >
-            <Store className="mr-2 h-4 w-4" />
-            피어몰 만들기 ✨
-          </Button>
+            피어몰 보러가기
+          </Link>
+          <Link 
+            to="/products" 
+            className="px-6 py-3 text-gray-700 hover:text-blue-600 font-medium rounded-full hover:bg-blue-50/80 transition-all duration-200 hover:scale-105"
+          >
+            제품 보러가기
+          </Link>
+          <Link 
+            to="/create-qrcode" 
+            className="px-6 py-3 text-gray-700 hover:text-blue-600 font-medium rounded-full hover:bg-blue-50/80 transition-all duration-200 hover:scale-105"
+          >
+            QR코드 만들기
+          </Link>
+          <div className="px-2">
+            <Button
+              onClick={() => {
+                if (isAuthenticated) {
+                  handleCreateModalOpen();
+                } else {
+                  handleLogin();
+                }
+              }}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <Store className="mr-2 h-5 w-5" />
+              <span className="relative z-10">피어몰 만들기 ✨</span>
+            </Button>
+          </div>
         </nav>
       </div>
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100">
-          <div className="container mx-auto px-4 py-3">
-            <nav className="flex flex-col space-y-3">
-              <Link to="/peermalls" className="py-2 text-gray-700 hover:text-blue-600">피어몰 보러가기</Link>
-              <Link to="/products" className="py-2 text-gray-700 hover:text-blue-600">제품 보러가기</Link>
-              <Link to="/create-qrcode" className="py-2 text-gray-700 hover:text-blue-600">QR코드 만들기</Link>
+        <div className="lg:hidden bg-white/95 backdrop-blur-md border-t border-gray-100/50 animate-in slide-in-from-top-2 duration-300">
+          <div className="container mx-auto px-6 py-6">
+            <nav className="flex flex-col space-y-2">
+              <Link 
+                to="/peermalls" 
+                className="py-4 px-4 text-gray-700 hover:text-blue-600 hover:bg-blue-50/80 rounded-xl transition-all duration-200 font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                피어몰 보러가기
+              </Link>
+              <Link 
+                to="/products" 
+                className="py-4 px-4 text-gray-700 hover:text-blue-600 hover:bg-blue-50/80 rounded-xl transition-all duration-200 font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                제품 보러가기
+              </Link>
+              <Link 
+                to="/create-qrcode" 
+                className="py-4 px-4 text-gray-700 hover:text-blue-600 hover:bg-blue-50/80 rounded-xl transition-all duration-200 font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                QR코드 만들기
+              </Link>
               <button
                 onClick={() => {
                   if (isAuthenticated) {
@@ -284,18 +326,26 @@ const Header = () => {
                   } else {
                     handleLogin();
                   }
+                  setIsMenuOpen(false);
                 }}
-                className="py-2 text-left text-blue-600 hover:text-blue-700"
+                className="py-4 px-4 text-left text-blue-600 hover:text-blue-700 hover:bg-blue-50/80 rounded-xl transition-all duration-200 font-medium"
               >
-                피어몰 만들기
+                피어몰 만들기 ✨
               </button>
 
               {isLoggedIn ? (
                 <>
-                  <Link to="/my-info" className="py-2 text-gray-700 hover:text-blue-600" onClick={() => setIsMenuOpen(false)}>내 정보</Link>
+                  <div className="border-t border-gray-100 my-4"></div>
+                  <Link 
+                    to="/my-info" 
+                    className="py-4 px-4 text-gray-700 hover:text-blue-600 hover:bg-blue-50/80 rounded-xl transition-all duration-200 font-medium" 
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    내 정보
+                  </Link>
                   <button
                     onClick={() => { handleLogout(); setIsMenuOpen(false); }}
-                    className="py-2 text-left text-gray-700 hover:text-blue-600"
+                    className="py-4 px-4 text-left text-gray-700 hover:text-red-600 hover:bg-red-50/80 rounded-xl transition-all duration-200 font-medium"
                   >
                     로그아웃
                   </button>
@@ -303,7 +353,7 @@ const Header = () => {
               ) : (
                 <Button
                   onClick={() => { handleLogin(); setIsMenuOpen(false); }}
-                  className="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  className="mt-4 w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   로그인
                 </Button>
@@ -315,36 +365,43 @@ const Header = () => {
       
       {/* My Spaces Dialog */}
       <Dialog open={isMySpacesOpen} onOpenChange={handleCloseMySpaces}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>내 스페이스</DialogTitle>
+        <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-md border-0 shadow-2xl rounded-3xl">
+          <DialogHeader className="pb-6">
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              내 스페이스
+            </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto">
             {mySpaces.length > 0 ? (
               mySpaces.map((space) => (
                 <div
                   key={space.id}
-                  className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  className="group flex items-center p-4 border border-gray-100 rounded-2xl hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
                   onClick={() => handleSelectSpace(space.id)}
                 >
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden mr-4">
+                  <div className="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl overflow-hidden mr-4 shadow-md group-hover:shadow-lg transition-shadow duration-300">
                     <img
                       src={space.imageUrl}
                       alt={space.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                   </div>
-                  <div>
-                    <h3 className="font-semibold">{space.title}</h3>
-                    <p className="text-sm text-gray-500">{space.type}</p>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors duration-200">
+                      {space.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 font-medium">{space.type}</p>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500">생성된 스페이스가 없습니다.</p>
-                <p className="text-sm text-gray-400 mt-2">새로운 피어몰을 만들어보세요!</p>
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <Store className="h-8 w-8 text-gray-400" />
+                </div>
+                <p className="text-gray-500 font-semibold mb-2">생성된 스페이스가 없습니다.</p>
+                <p className="text-sm text-gray-400">새로운 피어몰을 만들어보세요! ✨</p>
               </div>
             )}
           </div>

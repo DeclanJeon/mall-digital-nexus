@@ -292,6 +292,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                   <ProductCard
                     id={product.id}
                     title={product.title}
+                    owner={address}
                     description={product.description}
                     price={Number(product.price || 0)}
                     discountPrice={product.discountPrice}

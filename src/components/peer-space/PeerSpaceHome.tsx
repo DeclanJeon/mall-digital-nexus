@@ -196,7 +196,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 flex">
+    <div className="min-h-screen bg-gray-50 text-gray-900">
       {/* 왼쪽 사이드바 */}
       <div className="w-64 bg-white shadow-md fixed left-0 top-0 h-full z-20">
         <div className="flex flex-col h-full">
@@ -222,8 +222,8 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             <ul className="space-y-2">
               <li>
                 <button 
-                  onClick={() => onNavigateToSection('home')}
-                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'home' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                  onClick={() => onNavigateToSection('space')}
+                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'space' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
                 >
                   <Home className="w-5 h-5 mr-3" />
                   <span>홈</span>
@@ -232,7 +232,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
               <li>
                 <button 
                   onClick={() => onNavigateToSection('products')}
-                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'content' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'products' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
                 >
                   <FileText className="w-5 h-5 mr-3" />
                   <span>제품</span>
@@ -326,7 +326,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         <div className="flex p-6">
           {/* 메인 콘텐츠 영역 */}
           <div className="flex-1 pr-6">
-            {activeSection === 'home' && (
+            {activeSection === 'space' && (
             <PeerSpaceHomeSection
               isOwner={isOwner}
               address={address}
@@ -352,8 +352,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                 setCurrentView={setCurrentView}
                 handleShowProductForm={handleShowProductForm}
                 filteredProducts={filteredProducts}
-                onDetailView={onDetailView}
-              />
+                onDetailView={onDetailView} peerMallName={''} peerMallKey={''}              />
             )}
             {activeSection === 'community' && (
               <PeerSpaceCommunitySection

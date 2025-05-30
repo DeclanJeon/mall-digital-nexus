@@ -824,7 +824,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
+    <div className="container min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
       <main className="px-4 py-8">
         {/* 🌟 즐겨찾기 서비스 섹션 */}
         {isLoggedIn && (
