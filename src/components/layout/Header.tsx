@@ -197,7 +197,7 @@ const Header = () => {
           </Link>
 
           {/* Right Side - Social Icons */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 pr-4">
             <div className="w-6 h-6 bg-gray-600 rounded flex items-center justify-center">
               <div className="hidden md:flex items-center justify-end py-2">
                 {isLoggedIn ? (
