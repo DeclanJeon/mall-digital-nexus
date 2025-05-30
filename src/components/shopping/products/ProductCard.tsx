@@ -269,15 +269,18 @@ const ProductCard: React.FC<ProductCardProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
               <div className="flex items-center">
-                {[...Array(5)].map((_, i) => (
-                  <Star 
-                    key={i}
-                    className={cn(
-                      "w-3 h-3",
-                      i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
-                    )}
-                  />
-                ))}
+                {[...Array(5)].map((_, i) => {
+                  const uniqueKey = `star-${i}-${rating}`;
+                  return (
+                    <Star
+                      key={uniqueKey}
+                      className={cn(
+                        "w-3 h-3",
+                        i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                      )}
+                    />
+                  );
+                })}
               </div>
               <span className="text-xs text-gray-500">({reviewCount})</span>
             </div>

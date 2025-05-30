@@ -225,8 +225,8 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
               <p className="text-sm text-gray-600 mb-3 line-clamp-2">{description}</p>
               
               <div className="flex flex-wrap gap-1 mb-3">
-                {tags.slice(0, 3).map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
+                {tags.slice(0, 3).map((tag) => (
+                  <Badge key={tag} variant="outline" className="text-xs">
                     {tag}
                   </Badge>
                 ))}
