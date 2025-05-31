@@ -80,9 +80,11 @@ const ProductDetailPage: React.FC = () => {
   const navigate = useNavigate();
 
   // 상태들 - Product | undefined로 타입 수정
-  const [product, setProduct] = useState<Product | undefined>(undefined); 
+  const [product, setProduct] = useState<Product>(); 
   const [isLoading, setIsLoading] = useState(true); 
   const [error, setError] = useState<string | null>(null);
+
+  console.log(productKey, peerMallKey)
 
   // 상품 데이터 로드
   useEffect(() => {
@@ -95,7 +97,7 @@ const ProductDetailPage: React.FC = () => {
     const loadProduct = async () => {
       try {
         // 상품 서비스를 통해 상품 데이터를 가져옵니다.
-        const productData = await productService.getProductByPeerMallKey(peerMallKey, productKey);
+        const productData = await productService.getProductInfo(address, peerMallKey, productKey);
         if (productData) {
           setProduct(productData);
           setIsLoading(false);
@@ -131,6 +133,8 @@ const ProductDetailPage: React.FC = () => {
     try {
       const result = await productService.getProductInfo(address, peerMallKey, productKey);
       const productData = result['productInfo'];
+
+      console.log(productData)
       
       // 데이터베이스 스키마에 맞게 데이터 변환
       const formattedProduct: Product = {
@@ -166,6 +170,7 @@ const ProductDetailPage: React.FC = () => {
       
       setProduct(formattedProduct);
     } catch (error) {
+      console.log(error.message)
       setError('상품 정보를 불러오는데 실패했습니다.');
     }
   }
