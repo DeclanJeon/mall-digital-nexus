@@ -10,19 +10,18 @@ import { Content, PeerMallConfig } from '@/types/space';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getProducts } from '@/services/storage/productStorage';
 import { Product } from '@/types/product';
+import { config } from 'process';
+import { productService } from '@/services/productService';
 
 interface PeerSpaceContentSectionProps {
   isOwner: boolean;
   address: string;
   config: PeerMallConfig;
-  products: Array<Content | Product>;
+  products: Array<Product>;
   currentView: 'grid-small' | 'grid-medium' | 'grid-large' | 'list' | 'masonry' | 'blog';
   setCurrentView: (view: 'grid-small' | 'grid-medium' | 'grid-large' | 'list' | 'masonry' | 'blog') => void;
   handleShowProductForm: () => void;
-  filteredProducts: Product[];
-  onDetailView: (productId: string | number) => void;
-  peerMallName: string;
-  peerMallKey: string;
+  onDetailView: (productKey: string | number) => void;
 }
 
 const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
@@ -33,114 +32,22 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
   currentView,
   setCurrentView,
   handleShowProductForm,
-  filteredProducts,
-  peerMallName
 }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('latest');
-  const [ searchParams ] = useSearchParams();
-  const peerMallKey = searchParams.get('mk');
+  // const [ searchParams ] = useSearchParams();
+  // const peerMallKey = searchParams.get('mk');
 
-  // 🔥 중복 제거 로직 완전 수정
-  const validProducts = useMemo(() => {
-    const loadedProducts = getProducts();
+  // console.log("products", products)
   
-    console.log('🔍 디버깅 시작 - address:', address);
-    console.log('🔍 전체 로드된 상품들:', loadedProducts);
-    
-    // 각 상품의 peerSpaceAddress 확인
-    loadedProducts.forEach((product, index) => {
-      console.log(`🔍 상품 ${index}:`, {
-        id: product.id,
-        title: product.title,
-        peerSpaceAddress: product.peerSpaceAddress,
-        peermallId: product.peerMallKey,
-        address_match: product.peerSpaceAddress === address
-      });
-    });
-  
-    // 현재 피어스페이스 주소와 일치하는 상품만 필터링 (fallback 포함)
-    const currentSpaceProducts = loadedProducts.filter(product => {
-      const isValidProduct = product && product.id;
-      
-      // peerSpaceAddress가 있으면 그것으로 매칭
-      let addressMatch = false;
-      if (product.peerSpaceAddress) {
-        addressMatch = product.peerSpaceAddress === address;
-      } 
-      // peerSpaceAddress가 없으면 peermallId로 fallback
-      else if (product.peerMallKey) {
-        addressMatch = product.peerMallKey === address;
-      }
-      // 둘 다 없으면 모든 상품 포함 (임시 - 개발 중)
-      else {
-        console.log('⚠️ peerSpaceAddress와 peermallId가 모두 없는 상품:', product.title);
-        addressMatch = true; // 개발 중에는 true, 배포시에는 false로 변경
-      }
-      
-      console.log(`🔍 필터링 체크 - ${product.title}:`, {
-        isValidProduct,
-        addressMatch,
-        productAddress: product.peerSpaceAddress,
-        productPeermallId: product.peerMallKey,
-        targetAddress: address
-      });
-      
-      return isValidProduct && addressMatch;
-    });
-
-    // ID 기준으로 중복 제거 - Set 방식으로 더 확실하게
-    const seenIds = new Set<string>();
-    const uniqueProducts = currentSpaceProducts.filter(product => {
-      if (seenIds.has(product.id)) {
-        console.log(`🗑️ 중복 제거: ${product.title} (ID: ${product.id})`);
-        return false;
-      }
-      seenIds.add(product.id);
-      return true;
-    });
-    
-    console.log('🛍️ 로드된 전체 상품:', loadedProducts.length);
-    console.log('🎯 현재 피어스페이스 상품:', currentSpaceProducts.length);
-    console.log('✨ 중복 제거 후 상품:', uniqueProducts.length);
-    console.log('📦 최종 상품 목록:', uniqueProducts);
-
-    return uniqueProducts; // ✨ 이 return이 빠져있었음!
-  }, [address]); // address 의존성 추가
+  const handleProductDetailView = (productKey: string | number) => {
+    navigate(`/space/${config.peerMallName}/product?mk=${config.peerMallKey}&pk=${productKey}`);
+  };
 
   const categories = ['전체', '전자제품', '패션', '생활용품', '도서', '음식', '취미', '뷰티', '스포츠'];
-
-  const filteredAndSortedProducts = useMemo(() => {
-    return validProducts
-      .filter(product => selectedCategory === '전체' || product.category === selectedCategory)
-      .sort((a, b) => {
-        if (sortBy === 'latest') {
-          // 날짜 기준 정렬 (date 필드가 있다면)
-          if (a.date && b.date) {
-            return new Date(b.date).getTime() - new Date(a.date).getTime();
-          }
-          // ID 기준 정렬 (fallback)
-          if (typeof a.id === 'string' && typeof b.id === 'string') {
-            return b.id.localeCompare(a.id);
-          }
-          return (Number(b.id) || 0) - (Number(a.id) || 0);
-        } else if (sortBy === 'popular') {
-          const bScore = (typeof b.reviewCount === 'number' && typeof b.rating === 'number') ? b.reviewCount * b.rating : 0;
-          const aScore = (typeof a.reviewCount === 'number' && typeof a.rating === 'number') ? a.reviewCount * a.rating : 0;
-          return bScore - aScore;
-        } else if (sortBy === 'price-asc') {
-          return (a.price || 0) - (b.price || 0);
-        } else if (sortBy === 'price-desc') {
-          return (b.price || 0) - (a.price || 0);
-        }
-        return 0;
-      });
-  }, [validProducts, selectedCategory, sortBy]);
-
   const viewOptions = [
     { key: 'grid-large', icon: Grid2X2, label: '큰 카드', cols: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' },
     { key: 'grid-medium', icon: Grid3X3, label: '중간 카드', cols: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' },
@@ -155,10 +62,6 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
     { value: 'price-asc', label: '가격 낮은순' },
     { value: 'price-desc', label: '가격 높은순' },
   ];
-
-  const handleProductDetailView = (productKey: string | number) => {
-    navigate(`/space/${config.peerMallName}/product?mk=${peerMallKey}&pk=${productKey}`);
-  };
 
   return (
     <motion.div
@@ -270,13 +173,13 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
       </div>
 
       <div>
-        {filteredProducts.length > 0 ? (
+        {products.length > 0 ? (
           <motion.div
             layout
             className={`gap-6 ${currentView === 'list' ? 'space-y-4' : `grid ${viewOptions.find(v => v.key === currentView)?.cols}`}`}
           >
             <AnimatePresence mode="popLayout">
-              {filteredProducts.map((product, index) => (
+              {products.map((product, index) => (
                 <motion.div
                   key={`product-${product.id}-${index}`} // 더 안전한 key 생성
                   initial={{ opacity: 0, y: 20 }}
@@ -293,7 +196,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                 >
                   <ProductCard
                     id={product.id}
-                    title={product.title}
+                    name={product.name}
                     owner={address}
                     description={product.description}
                     price={Number(product.price || 0)}
@@ -302,7 +205,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                     rating={product.rating || 4.5}
                     reviewCount={product.reviewCount || 10}
                     peerMallName={config.peerMallName}
-                    peerMallKey={peerMallKey}
+                    peerMallKey={config.peerMallKey}
                     peerSpaceAddress={product.peerSpaceAddress}
                     category={product.category || '기타'}
                     tags={product.tags || []}

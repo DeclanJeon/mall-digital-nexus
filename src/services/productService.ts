@@ -1,6 +1,5 @@
 import axios from 'axios';
 import userService from './userService';
-import { Content, Product } from '@/components/peer-space/content/types';
 import { Product as ProductType } from '@/types/product';
 
 

@@ -40,7 +40,7 @@ const AppContent = () => {
         {/* <Route path="/curation-links" element={<CurationLinks />} /> */}
         <Route path="/create-qrcode" element={<QRCodeGenerator />} />
         <Route path="/space/:address/product/:productId" element={<ProductDetailPage />} />
-        {/* <Route path="/space/:address/product/*" element={<ProductDetailPage />} /> */}
+        <Route path="/space/:address/product/*" element={<ProductDetailPage />} />
         {/* <Route path="/community" element={<Community />} /> 
         <Route path="/community/planet/:planetId" element={<Community />} /> 
         <Route path="/community/planet/:planetId/post/:postId" element={<Community />} /> */}

@@ -19,14 +19,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
   id,
   name,
   title,
-  owner,
   description,
   price,
   discountPrice,
   imageUrl,
   rating,
   reviewCount,
-  peerMallName,
   peerSpaceAddress,
   peerMallKey,
   category,
@@ -38,10 +36,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
   onAddFriend,
   onDetailView,
   productKey,
-  distributor,
-  manufacturer,
-  create_date,
-  update_date
 }) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);

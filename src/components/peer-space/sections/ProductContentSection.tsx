@@ -77,6 +77,11 @@ const ProductContentSection: React.FC<ProductContentSectionProps> = ({
             {displayedProducts.map((product) => (
               <div key={product.id} onClick={() => handleProductClick(product.id)} className="cursor-pointer">
                 <ProductCard
+                  productId={product.productId}
+                  name={product.name}
+                  owner={product.owner}
+                  create_date={product.create_date}
+                  productKey={product.productKey}
                   id={product.id}
                   title={product.title}
                   description={product.description}
@@ -86,8 +91,8 @@ const ProductContentSection: React.FC<ProductContentSectionProps> = ({
                   rating={product.rating || 0}
                   reviewCount={product.reviewCount || 0}
                   viewMode={currentView === 'blog' ? 'grid' : 'list'}
-                  peermallName={product.peermallName}
-                  peermallId={product.peermallId}
+                  peerMallName={product.peerMallName}
+                  peerMallKey={product.peerMallKey}
                   category={product.category}
                   tags={product.tags}
                   onDetailView={onDetailView}

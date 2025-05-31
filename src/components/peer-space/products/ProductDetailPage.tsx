@@ -456,7 +456,7 @@ const ProductDetailPage: React.FC = () => {
               <div className="aspect-square bg-gradient-to-br from-gray-50 to-white border-b overflow-hidden">
                 <img
                   src={productImages[selectedImage]}
-                  alt={product.title || "상품 이미지"}
+                  alt={product.name || "상품 이미지"}
                   className="w-full h-full object-contain p-8 hover:scale-105 transition-transform duration-300"
                   onError={(e) => {
                     console.log('Image failed to load:', productImages[selectedImage]);

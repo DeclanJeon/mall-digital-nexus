@@ -8,7 +8,7 @@ export interface Product {
   title: string; // name과 중복되지만 호환성 유지용
   owner: string;
   description: string;
-  price: string; // 데이터베이스와 일치
+  price: number | string; // 데이터베이스와 일치
   currency: string; // 화폐 단위 추가
   discountPrice?: string | null; // 데이터베이스와 일치
   distributor?: string; // 데이터베이스에 추가됨
@@ -49,7 +49,7 @@ export interface ProductCardProps {
   title?: string; // name과 중복되지만 호환성 유지용
   owner: string;
   description: string;
-  price: string; // 데이터베이스와 일치
+  price: number | string; // 데이터베이스와 일치
   discountPrice?: string | null; // 데이터베이스와 일치
   imageUrl: string;
   rating: number;
@@ -74,7 +74,7 @@ export interface ProductCardProps {
     image?: string;
   };
   onAddFriend?: (sellerId: string, sellerName: string, sellerImage?: string) => void;
-  onDetailView?: (productId: string | number) => void;
+  onDetailView?: (productKey: string | number) => void;
 }
 
 export interface ProductGridProps {
@@ -89,5 +89,5 @@ export interface ProductGridProps {
   };
   onSearchChange?: (query: string) => void;
   searchQuery?: string;
-  onDetailView?: (productId: string | number) => void;
+  onDetailView?: (productKey: string | number) => void;
 }

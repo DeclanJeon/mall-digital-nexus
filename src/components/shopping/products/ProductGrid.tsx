@@ -110,7 +110,7 @@ const ProductGrid = ({
           <motion.div key={product.id} variants={item} className="h-full">
             <ProductCard
               id={product.id}
-              title={product.name}
+              name={product.name}
               owner={product.owner}
               description={product.description}
               price={product.price}
