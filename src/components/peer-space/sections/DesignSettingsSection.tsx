@@ -230,7 +230,7 @@ const DesignSettingsSection: React.FC = () => {
                   <div>
                     <div className="text-sm text-primary-200 mb-1">부제목</div>
                     <div className="p-2 border rounded-md bg-gray-50">
-                      피어스페이스와 함께 새로운 지식을 발견하고 성장하세요
+                      피어몰과 함께 새로운 지식을 발견하고 성장하세요
                     </div>
                   </div>
                 </div>
@@ -280,7 +280,7 @@ const DesignSettingsSection: React.FC = () => {
                 <div>
                   <div className="text-sm text-primary-200 mb-1">저작권 텍스트</div>
                   <div className="p-2 border rounded-md bg-gray-50">
-                    © 2025 피어스페이스 예시 사업장. All rights reserved.
+                    © 2025 피어몰 예시 사업장. All rights reserved.
                   </div>
                 </div>
                 <div>

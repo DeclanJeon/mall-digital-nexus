@@ -86,7 +86,7 @@ const QuestEventSection: React.FC<QuestEventSectionProps> = ({ peerAddress, isOw
         {
           id: 'q1',
           title: '콘텐츠 5개 댓글 달기',
-          description: '이 피어스페이스의 콘텐츠에 의미 있는 댓글을 5개 이상 남겨보세요.',
+          description: '이 피어몰의 콘텐츠에 의미 있는 댓글을 5개 이상 남겨보세요.',
           reward: '포인트 500점',
           progress: 60,
           startDate: '2025-04-20',
@@ -98,7 +98,7 @@ const QuestEventSection: React.FC<QuestEventSectionProps> = ({ peerAddress, isOw
         {
           id: 'q2',
           title: '친구 3명 초대하기',
-          description: '이 피어스페이스에 친구 3명을 초대하고 함께 활동해보세요.',
+          description: '이 피어몰에 친구 3명을 초대하고 함께 활동해보세요.',
           reward: '특별 배지',
           progress: 33,
           startDate: '2025-04-25',

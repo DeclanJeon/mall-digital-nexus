@@ -208,7 +208,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   );
 
   if (!address) {
-    return <div className="container mx-auto p-6"><EmptyState title="404 - 피어몰을 찾을 수 없습니다" description="올바른 피어스페이스 주소인지 확인해주세요." /></div>;
+    return <div className="container mx-auto p-6"><EmptyState title="404 - 피어몰을 찾을 수 없습니다" description="올바른 피어몰 주소인지 확인해주세요." /></div>;
   }
 
   return (

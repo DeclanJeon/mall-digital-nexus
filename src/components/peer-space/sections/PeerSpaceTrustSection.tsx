@@ -51,7 +51,7 @@ const PeerSpaceTrustSection: React.FC<PeerSpaceTrustSectionProps> = ({ config })
                 <div className="flex items-center p-3 bg-green-50 border border-green-100 rounded-lg">
                   <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
                   <div>
-                    <span className="font-medium">인증된 피어스페이스</span>
+                    <span className="font-medium">인증된 피어몰</span>
                     <p className="text-xs text-gray-600 mt-1">
                       공식 인증을 통해 신뢰할 수 있는 공간임을 확인하였습니다.
                     </p>

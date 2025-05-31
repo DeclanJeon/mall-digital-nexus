@@ -368,7 +368,7 @@ const Header = () => {
         <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-md border-0 shadow-2xl rounded-3xl">
           <DialogHeader className="pb-6">
             <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              내 스페이스
+              내 피어몰
             </DialogTitle>
           </DialogHeader>
           
@@ -400,7 +400,7 @@ const Header = () => {
                 <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
                   <Store className="h-8 w-8 text-gray-400" />
                 </div>
-                <p className="text-gray-500 font-semibold mb-2">생성된 스페이스가 없습니다.</p>
+                <p className="text-gray-500 font-semibold mb-2">생성된 피어몰이 없습니다.</p>
                 <p className="text-sm text-gray-400">새로운 피어몰을 만들어보세요! ✨</p>
               </div>
             )}

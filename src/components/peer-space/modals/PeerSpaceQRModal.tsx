@@ -12,7 +12,7 @@ const PeerSpaceQRModal: React.FC<PeerSpaceQRModalProps> = ({ showQRModal, setSho
   return (
     <Dialog open={showQRModal} onOpenChange={setShowQRModal}>
       <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle className="text-xl font-bold">내 스페이스 QR 코드</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="text-xl font-bold">내 피어몰 QR 코드</DialogTitle></DialogHeader>
         <div className="p-4 flex justify-center">
           <div className="w-48 h-48 bg-gray-200 flex items-center justify-center text-sm text-gray-500">QR 코드 영역</div>
         </div>

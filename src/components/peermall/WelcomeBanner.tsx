@@ -22,7 +22,7 @@ const WelcomeBanner = () => {
           <p className="mb-4 opacity-90">I govern, You govern, We govern - 피어몰에서는 당신이 주체입니다.</p>
           <div className="flex gap-3">
             <button className="bg-white text-peermall-blue font-medium px-5 py-2 rounded-lg hover:bg-opacity-90 transition-colors">
-              스페이스 생성
+              피어몰 생성
             </button>
             <button className="border border-white px-5 py-2 rounded-lg hover:bg-peermall-dark-blue/30 transition-colors">
               더 알아보기

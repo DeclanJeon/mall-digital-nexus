@@ -22,9 +22,9 @@ const api = axios.create({
   timeout: 10000,
 });
 
-// 피어스페이스 타입 정의
+// 피어몰 타입 정의
 export interface PeerMall {
-  address: string; // 피어스페이스 고유 주소
+  address: string; // 피어몰 고유 주소
   title: string; // 제목
   description: string; // 설명
   ownerPeerId: string; // 소유자 피어넘버
@@ -57,7 +57,7 @@ export interface PeerMall {
   updatedAt: string; // 최종 수정 시간
 }
 
-// 피어스페이스 생성
+// 피어몰 생성
 export const createPeerSpace = async (
   peerMall: Omit<PeerMall, 'createdAt' | 'updatedAt'>
 ): Promise<string> => {
@@ -143,7 +143,7 @@ export const getAllPeerMallList = async (): Promise<any> => {
   }
 };
 
-// 사용자가 소유한 피어스페이스 목록 조회
+// 사용자가 소유한 피어몰 목록 조회
 export const getUserPeerSpaces = async (
   ownerPeerId: string
 ): Promise<PeerMall[]> => {
@@ -154,12 +154,12 @@ export const getUserPeerSpaces = async (
   );
 };
 
-// 모든 피어스페이스 목록 조회
+// 모든 피어몰 목록 조회
 export const getAllPeerSpaces = async (): Promise<PeerMall[]> => {
   return await getAll<PeerMall>(STORES.PEER_SPACES);
 };
 
-// 피어스페이스 업데이트
+// 피어몰 업데이트
 export const updatePeerSpace = async (
   address: string,
   updates: Partial<PeerMall>
@@ -180,13 +180,13 @@ export const updatePeerSpace = async (
   return true;
 };
 
-// 피어스페이스 삭제
+// 피어몰 삭제
 export const deletePeerSpace = async (address: string): Promise<boolean> => {
   try {
     await remove(STORES.PEER_SPACES, address);
     return true;
   } catch (error) {
-    console.error('피어스페이스 삭제 오류:', error);
+    console.error('피어몰 삭제 오류:', error);
     return false;
   }
 };

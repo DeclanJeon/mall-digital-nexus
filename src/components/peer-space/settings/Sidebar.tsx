@@ -68,7 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection }) =>
       
       <div className="mt-auto pt-4 border-t">
         <Button variant="outline" className="w-full justify-start" onClick={handleBackToMyMall}>
-          <span className="mr-2">←</span> 피어스페이스로 돌아가기
+          <span className="mr-2">←</span> 피어몰로 돌아가기
         </Button>
       </div>
     </div>

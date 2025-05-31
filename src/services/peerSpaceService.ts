@@ -11,9 +11,9 @@ import {
 import { STORES } from '../utils/indexedDB';
 import { v4 as uuidv4 } from 'uuid'; // UUID 생성 라이브러리
 
-// 피어스페이스 타입 정의
+// 피어몰 타입 정의
 export interface PeerSpace {
-  address: string; // 피어스페이스 고유 주소
+  address: string; // 피어몰 고유 주소
   title: string; // 제목
   description: string; // 설명
   ownerPeerId: string; // 소유자 피어넘버
@@ -46,7 +46,7 @@ export interface PeerSpace {
   updatedAt: string; // 최종 수정 시간
 }
 
-// 피어스페이스 생성
+// 피어몰 생성
 export const createPeerSpace = async (
   peerSpace: Omit<PeerSpace, 'createdAt' | 'updatedAt'>
 ): Promise<string> => {
@@ -78,14 +78,14 @@ export const createPeerSpace = async (
   return address;
 };
 
-// 피어스페이스 조회
+// 피어몰 조회
 export const getPeerSpace = async (
   address: string
 ): Promise<PeerSpace | undefined> => {
   return await get<PeerSpace>(STORES.PEER_SPACES, address);
 };
 
-// 사용자가 소유한 피어스페이스 목록 조회
+// 사용자가 소유한 피어몰 목록 조회
 export const getUserPeerSpaces = async (
   ownerPeerId: string
 ): Promise<PeerSpace[]> => {
@@ -96,12 +96,12 @@ export const getUserPeerSpaces = async (
   );
 };
 
-// 모든 피어스페이스 목록 조회
+// 모든 피어몰 목록 조회
 export const getAllPeerSpaces = async (): Promise<PeerSpace[]> => {
   return await getAll<PeerSpace>(STORES.PEER_SPACES);
 };
 
-// 피어스페이스 업데이트
+// 피어몰 업데이트
 export const updatePeerSpace = async (
   address: string,
   updates: Partial<PeerSpace>
@@ -122,18 +122,18 @@ export const updatePeerSpace = async (
   return true;
 };
 
-// 피어스페이스 삭제
+// 피어몰 삭제
 export const deletePeerSpace = async (address: string): Promise<boolean> => {
   try {
     await remove(STORES.PEER_SPACES, address);
     return true;
   } catch (error) {
-    console.error('피어스페이스 삭제 오류:', error);
+    console.error('피어몰 삭제 오류:', error);
     return false;
   }
 };
 
-// 피어스페이스 팔로우
+// 피어몰 팔로우
 export const followPeerSpace = async (
   address: string,
   userId: string
@@ -162,7 +162,7 @@ export const followPeerSpace = async (
   return true;
 };
 
-// 피어스페이스 뱃지 추가
+// 피어몰 뱃지 추가
 export const addBadgeToPeerSpace = async (
   address: string,
   badgeId: string
@@ -188,7 +188,7 @@ export const addBadgeToPeerSpace = async (
   return true;
 };
 
-// 피어스페이스 섹션 관리
+// 피어몰 섹션 관리
 export const updatePeerSpaceSections = async (
   address: string,
   sections: string[],

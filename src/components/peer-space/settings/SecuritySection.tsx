@@ -482,7 +482,7 @@ const SecuritySection = () => {
               <div className="space-y-4">
                 <div className="flex justify-between items-center py-2 border-b">
                   <div>
-                    <div className="font-medium">피어스페이스 데이터 초기화</div>
+                    <div className="font-medium">피어몰 데이터 초기화</div>
                     <div className="text-sm text-gray-500">모든 콘텐츠와 설정 초기화</div>
                   </div>
                   <Button variant="destructive" size="sm">
@@ -491,8 +491,8 @@ const SecuritySection = () => {
                 </div>
                 <div className="flex justify-between items-center py-2">
                   <div>
-                    <div className="font-medium">피어스페이스 삭제</div>
-                    <div className="text-sm text-gray-500">피어스페이스를 영구적으로 삭제</div>
+                    <div className="font-medium">피어몰 삭제</div>
+                    <div className="text-sm text-gray-500">피어몰을 영구적으로 삭제</div>
                   </div>
                   <Button variant="destructive" size="sm">
                     삭제

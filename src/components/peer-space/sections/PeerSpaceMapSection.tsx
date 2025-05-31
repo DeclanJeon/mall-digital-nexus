@@ -436,7 +436,7 @@ const PeerSpaceMapSection: React.FC<PeerSpaceMapSectionProps> = ({ location, tit
             {isOwner && !location && !isEditing && (
               <div className="space-y-4">
                 <p className="text-gray-600 text-sm">
-                  피어스페이스 위치를 등록합니다. 주소를 입력하여 검색하거나 지도에서 직접 위치를 클릭 후 '위치 등록' 버튼을 눌러주세요.
+                  피어몰 위치를 등록합니다. 주소를 입력하여 검색하거나 지도에서 직접 위치를 클릭 후 '위치 등록' 버튼을 눌러주세요.
                 </p>
                 {renderAddressInput('Reg')}
                 <Button onClick={handleRegisterLocation} className="w-full bg-green-500 hover:bg-green-600">

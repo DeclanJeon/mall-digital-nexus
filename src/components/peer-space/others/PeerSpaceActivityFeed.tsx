@@ -78,7 +78,7 @@ const PeerSpaceActivityFeed: React.FC = () => {
       id: `user-${Date.now()}`,
       user: generatedUsername,
       action: '방문',
-      target: '이 피어스페이스',
+      target: '이 피어몰',
       time: '방금 전',
       userImage: `https://api.dicebear.com/7.x/personas/svg?seed=${generatedUsername}`
     };
@@ -149,7 +149,7 @@ const PeerSpaceActivityFeed: React.FC = () => {
             </div>
           ))}
         </div>
-        <Button variant="outline" className="w-full mt-4" onClick={() => addUserActivity('좋아요', '이 피어스페이스')}>
+        <Button variant="outline" className="w-full mt-4" onClick={() => addUserActivity('좋아요', '이 피어몰')}>
           모든 활동 보기
         </Button>
       </CardContent>
