@@ -50,8 +50,8 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
 
   const filteredProducts = useMemo(() =>
     products.filter(product =>
-      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase())
+      (product.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (product.description?.toLowerCase() || '').includes(searchQuery.toLowerCase())
     ).map(content => ({
       ...content,
       productKey: content.id, // id를 productKey로 사용
@@ -84,10 +84,10 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
           <>
             {activeSection === 'space' && (
               <>
-                <HeroSection
+                {/* <HeroSection
                   slides={heroSlides}
                   badges={config.badges}
-                />
+                /> */}
 
                 <PeerSpaceContentSection
                   isOwner={isOwner}

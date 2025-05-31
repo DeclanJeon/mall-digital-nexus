@@ -129,7 +129,9 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
           }
           return (Number(b.id) || 0) - (Number(a.id) || 0);
         } else if (sortBy === 'popular') {
-          return (b.reviewCount * b.rating) - (a.reviewCount * a.rating);
+          const bScore = (typeof b.reviewCount === 'number' && typeof b.rating === 'number') ? b.reviewCount * b.rating : 0;
+          const aScore = (typeof a.reviewCount === 'number' && typeof a.rating === 'number') ? a.reviewCount * a.rating : 0;
+          return bScore - aScore;
         } else if (sortBy === 'price-asc') {
           return (a.price || 0) - (b.price || 0);
         } else if (sortBy === 'price-desc') {

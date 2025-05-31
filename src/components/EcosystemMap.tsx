@@ -79,6 +79,8 @@ interface MapLocation {
   responseTime?: string;
   isOnline?: boolean;
   owner?: string;
+  peerMallName?: string;
+  peerMallKey?: string;
 }
 
 interface EcosystemMapProps {
