@@ -10,6 +10,7 @@ import CommunityBoard from '@/components/community/CommunityBoard';
 import { CommunityStats, PeerSpaceCommunitySectionProps } from '@/types/community';
 import { Input } from '@/components/ui/input'; 
 import { Textarea } from '@/components/ui/textarea'; 
+import { getCommentList, registerComment } from '@/services/communityService';
 
 // 임시 사용자 정보 (실제 앱에서는 인증 컨텍스트 등을 사용)
 const TEMP_IS_LOGGED_IN = true; // 예시: 사용자가 로그인했다고 가정
@@ -63,11 +64,17 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
     }
   }, []);
 
+  
+
   // 게시글 선택 시 댓글 로드
   useEffect(() => {
     if (selectedPost && selectedPost.id) {
-      const loadedComments = loadCommentsFromLocalStorage(selectedPost.id);
-      setComments(loadedComments);
+      const loadCommentList = async () => {
+        const loadedComments = await getCommentList(selectedPost.id);
+        setComments(loadedComments);
+      }
+
+      loadCommentList();
     } else {
       setComments([]); 
     }
@@ -128,7 +135,7 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
     });
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (!selectedPost || !newComment.trim()) {
       toast({
         title: "댓글 작성 실패",
@@ -157,15 +164,17 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
     const commentToAdd: Comment = {
       id: generateCommentId(),
       postId: selectedPost.id,
+      name: authorName,
       author: authorName,
       content: newComment.trim(),
       createdAt: new Date().toISOString(),
       isAnonymous: currentIsAnonymous, // 로그인 여부에 따라 익명성 결정
     };
 
-    saveCommentToLocalStorage(commentToAdd);
+    await registerComment(commentToAdd);
     setComments(prevComments => [...prevComments, commentToAdd].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()));
     setNewComment("");
+
     // 닉네임 필드는 현재 값 유지 (로그인 사용자는 기본값으로, 비로그인 사용자는 입력값으로)
     // 비로그인 후 댓글 작성 시 닉네임 필드를 비우고 싶다면 아래 주석 해제
     // if (!isLoggedIn) {
@@ -322,7 +331,7 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
                         className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600"
                       >
                         <MessageSquare className="h-4 w-4" />
-                        댓글 ({selectedPost.comments || 0})
+                        댓글 ({comments.length})
                       </Button>
                       <Button 
                         variant="outline" 
@@ -377,12 +386,12 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
                       comments.map((comment) => (
                         <div key={comment.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
                           <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white font-semibold">
-                            {comment.author.substring(0, 1).toUpperCase()}
+                            {comment.name.substring(0, 1).toUpperCase()}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-1">
                               <span className="font-semibold text-gray-800">
-                                {comment.author}
+                                {comment.name}
                                 {comment.isAnonymous && <span className="text-xs text-gray-500 ml-2">(익명)</span>}
                               </span>
                               <span className="text-xs text-gray-500">
@@ -409,7 +418,7 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
                   <div className="border-t pt-6">
                     <h3 className="text-lg font-semibold text-gray-700 mb-3">댓글 작성하기</h3>
                     <div className="mb-4">
-                      <label htmlFor="editableNickname" className="block text-sm font-medium text-gray-700 mb-1">
+                      {/* <label htmlFor="editableNickname" className="block text-sm font-medium text-gray-700 mb-1">
                         닉네임 {isLoggedIn ? `(기본: ${currentUserEmail?.split('@')[0]}, 수정 가능)` : "(익명으로 작성됩니다)"}
                       </label>
                       <Input 
@@ -419,7 +428,7 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
                         onChange={(e) => setEditableNickname(e.target.value)} 
                         placeholder={isLoggedIn ? "닉네임 수정 가능" : "닉네임을 입력하세요"}
                         className="w-full md:w-1/2"
-                      />
+                      /> */}
                     </div>
                     <Textarea 
                       value={newComment} 
