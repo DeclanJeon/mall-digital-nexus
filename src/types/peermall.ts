@@ -9,6 +9,10 @@ export interface Peermall {
   category: string;
   phone?: string; // 전화번호 필드 추가
   type?: string; // 'peermall'과 같은 타입을 나타내는 필드 추가 (선택적)
+
+    // 추가 설정 정보
+  hashtags?: string; // 쉼표로 구분된 해시태그
+  mapAddress?: string; // 피어맵 표시 주소
   
   // 메타데이터
   tags?: string[]; // 선택적
@@ -92,4 +96,29 @@ export interface FamilyMember {
   level?: '기본' | '가디언' | '퍼실리테이터';
   certified?: boolean;
   description?: string;
+}
+
+export interface PeermallFilters {
+  categories: string[];
+  rating: number;
+  status: string[];
+  searchQuery: string;
+  location?: any;  // Make optional
+  certified?: boolean;  // Make optional
+  featured?: boolean;  // Make optional
+}
+
+export interface PeermallFiltersProps {
+  onFilterChange: (filters: {
+    categories: string[];
+    rating: number | null;
+    status: string[];
+    searchQuery: string;
+  }) => void;
+  initialFilters?: {
+    categories: string[];
+    rating: number | null;
+    status: string[];
+    searchQuery?: string;
+  };
 }

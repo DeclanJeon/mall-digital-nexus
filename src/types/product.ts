@@ -91,3 +91,4 @@ export interface ProductGridProps {
   searchQuery?: string;
   onDetailView?: (productKey: string | number) => void;
 }
+

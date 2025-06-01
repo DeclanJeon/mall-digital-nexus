@@ -30,7 +30,7 @@ const ProductGrid = ({
     // Price range filter
     if (filters.priceRange) {
       const productPrice = product.discountPrice || product.price;
-      matchesPriceRange = productPrice >= filters.priceRange[0] && productPrice <= filters.priceRange[1];
+      matchesPriceRange = Number(productPrice) >= filters.priceRange[0] && Number(productPrice) <= filters.priceRange[1];
     }
     
     // Rating filter

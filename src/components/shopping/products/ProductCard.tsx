@@ -272,7 +272,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
-              <div className="flex items-center">
+              {/* <div className="flex items-center">
                 {[...Array(5)].map((_, i) => {
                   const uniqueKey = `star-${i}-${rating}`;
                   return (
@@ -285,8 +285,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     />
                   );
                 })}
-              </div>
-              <span className="text-xs text-gray-500">({reviewCount})</span>
+              </div> */}
+              {/* <span className="text-xs text-gray-500">({reviewCount})</span> */}
             </div>
             
             {cardSize === 'large' && (

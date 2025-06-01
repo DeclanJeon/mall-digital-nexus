@@ -1554,8 +1554,8 @@ const Index = () => {
               {...designTokens.animations.fadeIn} 
               transition={{ delay: 0.4 }}
             >
-              <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-slate-50 to-gray-50 border-slate-200`}>
-                <CardHeader className="pb-4">
+              <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-slate-50 to-gray-50 border-slate-200 h-full min-h-[600px] flex flex-col`}>
+                <CardHeader className="pb-4 flex-shrink-0">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="p-2 bg-slate-100 rounded-lg">
@@ -1600,12 +1600,12 @@ const Index = () => {
                   </div>
                 </CardHeader>
                 
-                <CardContent className="pt-0">
+                <CardContent className="pt-0 flex-1 flex flex-col overflow-hidden">
                   {peermalls.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-4 flex-1 flex flex-col">
                       {/* 🔍 검색 결과 정보 */}
                       {searchQuery && (
-                        <div className="flex items-center space-x-2 text-sm text-slate-600 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                        <div className="flex items-center space-x-2 text-sm text-slate-600 bg-blue-50 p-3 rounded-lg border border-blue-100 flex-shrink-0">
                           <Search className="w-4 h-4" />
                           <span>
                             '<strong>{searchQuery}</strong>' 검색 결과: {peermalls.length}개
@@ -1615,7 +1615,7 @@ const Index = () => {
                       
                       {/* 🏷️ 활성 필터 표시 */}
                       {(selectedHashtags.length > 0 && !selectedHashtags.includes('전체')) && (
-                        <div className="flex items-center space-x-2 text-sm text-slate-600 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                        <div className="flex items-center space-x-2 text-sm text-slate-600 bg-gray-50 p-3 rounded-lg border border-gray-100 flex-shrink-0">
                           <Filter className="w-4 h-4" />
                           <span>활성 필터:</span>
                           <div className="flex flex-wrap gap-1">
@@ -1628,53 +1628,61 @@ const Index = () => {
                         </div>
                       )}
                       
-                      {/* 🎯 향상된 피어몰 뷰 렌더러 */}
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key={sectionViewModes.allMalls}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <UniversalViewRenderer
-                            items={peermalls}
-                            viewMode={sectionViewModes.allMalls}
-                            type="peermall"
-                            onOpenMap={handleOpenMap}
-                            onShowQrCode={handleShowPeermallQrCode}
-                          />
-                        </motion.div>
-                      </AnimatePresence>
+                      {/* 🎯 향상된 피어몰 뷰 렌더러 - 스크롤 가능한 영역 */}
+                      <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={sectionViewModes.allMalls}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <UniversalViewRenderer
+                              items={peermalls}
+                              viewMode={sectionViewModes.allMalls}
+                              type="peermall"
+                              onOpenMap={handleOpenMap}
+                              onShowQrCode={handleShowPeermallQrCode}
+                            />
+                          </motion.div>
+                        </AnimatePresence>
+                      </div>
                     </div>
                   ) : (
-                    <div className="text-center py-16">
-                      <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Store className="w-10 h-10 text-slate-400" />
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="text-center py-8">
+                        <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                          <Store className="w-10 h-10 text-slate-400" />
+                        </div>
+                        <h3 className={`${designTokens.typography.subheading} text-gray-700 mb-3`}>
+                          {searchQuery ? '검색 결과가 없습니다' : '아직 피어몰이 없어요'}
+                        </h3>
+                        <p className={`${designTokens.typography.caption} mb-6 max-w-md mx-auto`}>
+                          {searchQuery 
+                            ? `'${searchQuery}'에 대한 검색 결과를 찾을 수 없습니다. 다른 키워드로 검색해보세요.`
+                            : '첫 번째 피어몰을 만들어 커뮤니티를 시작해보세요! 당신의 아이디어가 새로운 연결을 만들어낼 거예요.'
+                          }
+                        </p>
                       </div>
-                      <h3 className={`${designTokens.typography.subheading} text-gray-700 mb-3`}>
-                        {searchQuery ? '검색 결과가 없습니다' : '아직 피어몰이 없어요'}
-                      </h3>
-                      <p className={`${designTokens.typography.caption} mb-6 max-w-md mx-auto`}>
-                        {searchQuery 
-                          ? `'${searchQuery}'에 대한 검색 결과를 찾을 수 없습니다. 다른 키워드로 검색해보세요.`
-                          : '첫 번째 피어몰을 만들어 커뮤니티를 시작해보세요! 당신의 아이디어가 새로운 연결을 만들어낼 거예요.'
-                        }
-                      </p>
                     </div>
                   )}
                 </CardContent>
               </Card>
             </motion.div>
 
-            {/* 🌟 커뮤니티 피드 */}
+            {/* 🌟 커뮤니티 피드 - 높이 일관성 적용 */}
             <motion.div 
+              className="h-full min-h-[600px]"
               {...designTokens.animations.fadeIn} 
               transition={{ delay: 0.5 }}
             >
-              <CommunityFeed />
+              <div className="h-full">
+                <CommunityFeed />
+              </div>
             </motion.div>
           </section>
+
         </div>
 
         {/* 🛍️ 전체 상품 보기 섹션 - 뷰어 모드 적용 */}
