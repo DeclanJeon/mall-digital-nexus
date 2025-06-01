@@ -548,7 +548,7 @@ const Index = () => {
     const searchedPeerMalls = peermalls.filter(peerMall => 
       peerMall.peerMallName.includes(query)
     );
-    setFilteredMalls(searchedPeerMalls);
+    setPeermalls(searchedPeerMalls);
 
   }, [peermalls, originPeerMalls, filteredMalls]);
 
@@ -766,7 +766,8 @@ const Index = () => {
     
     if (peermall) {
       // 상세 보기 로직 (필요시 구현)
-      navigate(`/space/${peermall['peerMallName']}?mk=${peermall['peerMallKey']}`);
+      const path = `/space/${peermall['peerMallName']}?mk=${peermall['peerMallKey']}`;
+      window.open(path, '_blank');
     }
   }, [peermalls, navigate]);
 
