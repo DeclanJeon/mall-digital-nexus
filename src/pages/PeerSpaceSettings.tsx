@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -96,6 +96,9 @@ const PeerSpaceSettings: React.FC = () => {
   } | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
+  const [searchParams] = useSearchParams();
+  const peerMallKey = searchParams.get('mk');
+
   // **데이터 페칭**
   const { data: peermall, isLoading, error } = useQuery({
     queryKey: ['peermall', address],
@@ -150,6 +153,10 @@ const PeerSpaceSettings: React.FC = () => {
     });
     return () => subscription.unsubscribe();
   }, [form]);
+
+  const onBack = () => {
+    window.history.back();
+  };
 
   // **저장 뮤테이션**
   const saveMutation = useMutation({
@@ -347,7 +354,7 @@ const PeerSpaceSettings: React.FC = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate(`/space/${address}`)}
+                onClick={() => onBack()}
                 className="hover:bg-white/60 transition-all duration-200"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -565,11 +572,11 @@ const PeerSpaceSettings: React.FC = () => {
 
                 {/* **브랜딩 섹션** */}
                 <div className="space-y-6">
-                  <div className="flex items-center gap-2 mb-4">
+                  {/* <div className="flex items-center gap-2 mb-4">
                     <Palette className="h-5 w-5 text-purple-600" />
                     <h3 className="text-lg font-semibold text-gray-800">브랜딩 & 개성</h3>
                     <div className="flex-1 h-px bg-gradient-to-r from-purple-200 to-transparent"></div>
-                  </div>
+                  </div> */}
 
                   <div className="grid md:grid-cols-2 gap-8">
                     {/* 왼쪽: 대표 이미지 */}
