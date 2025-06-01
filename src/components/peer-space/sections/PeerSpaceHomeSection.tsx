@@ -24,6 +24,7 @@ interface PeerSpaceHomeSectionProps {
   setSearchQuery: (query: string) => void;
   setCurrentView: (view: 'list' | 'blog' | 'grid-small' | 'grid-medium' | 'grid-large' | 'masonry') => void;
   handleShowProductForm: () => void;
+  onDetailView: (productKey: string | number) => void;
 }
 
 const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
@@ -39,13 +40,15 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
   setSearchQuery,
   setCurrentView,
   handleShowProductForm,
+  onDetailView,
 }) => {
   const navigate = useNavigate();
   const [ searchParams ] = useSearchParams();
   const peerMallKey = searchParams.get('mk');
 
-  const handleProductDetailView = (productId: string | number) => {
-    navigate(`/space/${address}/product/${productId}`);
+  const handleProductDetailView = (productKey: string | number) => {
+    // navigate(`/space/${address}/product?mk=${peerMallKey}&pk=${productKey}`);
+    onDetailView(productKey);
   };
 
   const filteredProducts = useMemo(() =>

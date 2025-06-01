@@ -33,6 +33,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
   currentView,
   setCurrentView,
   handleShowProductForm,
+  onDetailView,
 }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -43,10 +44,8 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
   const [detailView, setDetailView] = useState(false);
   const peerMallKey = searchParams.get('mk');
 
-  // console.log("products", products)
-  
   const handleProductDetailView = (productKey: string | number) => {
-    navigate(`/space/${config.peerMallName}/product?mk=${peerMallKey}&pk=${productKey}`);
+    onDetailView(productKey);
   };
 
   const categories = ['전체', '전자제품', '패션', '생활용품', '도서', '음식', '취미', '뷰티', '스포츠'];
@@ -207,6 +206,8 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                     id={product.id}
                     name={product.name}
                     owner={address}
+                    create_date={product.create_date}
+                    productKey={product.productKey}
                     description={product.description}
                     price={Number(product.price || 0)}
                     discountPrice={product.discountPrice}
@@ -218,11 +219,10 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                     peerSpaceAddress={product.peerSpaceAddress}
                     category={product.category || '기타'}
                     tags={product.tags || []}
-                    saleUrl={product.saleUrl} // ✨ saleUrl 전달
+                    saleUrl={product.saleUrl}
                     viewMode={currentView === 'list' ? 'list' : 'grid'}
                     cardSize={currentView.includes('grid') ? currentView.split('-')[1] as 'small' | 'medium' | 'large' : 'medium'}
                     onDetailView={handleProductDetailView}
-                    productKey={product.productKey}
                   />
 
                   {/* <ProductDetailComponent product={product} peerMallName={config.peerMallName} peerMallKey={config.peerMallKey} onBack={handleBack} /> */}
