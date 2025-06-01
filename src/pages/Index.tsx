@@ -28,6 +28,7 @@ import PeermallCard from '@/components/peermall-features/PeermallCard';
 import productService from '@/services/productService';
 import { Product } from '@/types/product';
 import ProductGrid from '@/components/shopping/products/ProductGrid';
+import CommunityFeed from '@/components/community/CommunityFeed';
 
 interface Location {
   lat: number;
@@ -144,55 +145,6 @@ const PeermallViewRenderer = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-
-            {/* <Card className={`${designTokens.elevation.interactive} overflow-hidden bg-white/80 backdrop-blur-sm`}>
-              <div className="relative overflow-hidden">
-                <img
-                  src={mall.imageLocation || '/placeholder-shop.jpg'} 
-                  alt={mall.title}
-                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.onerror = null; 
-                    target.src = '/placeholder-shop.jpg'; 
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="absolute top-3 right-3 flex space-x-2">
-                  {mall.tags?.slice(0, 2).map(tag => (
-                    <Badge key={tag} className="bg-white/90 text-gray-700 text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">{mall.peerMallName}</h3>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{mall.description}</p>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <div className="flex items-center space-x-4">
-                    <span className="flex items-center">
-                      <Star className="w-3 h-3 mr-1 text-yellow-500" />
-                      {mall.rating || 0}
-                    </span>
-                    <span className="flex items-center">
-                      <ThumbsUp className="w-3 h-3 mr-1" />
-                      {mall.likeCount || 0}
-                    </span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate(`/space/${mall.peerMallName}?mk=${mall.peerMallKey}`)}
-                    className="text-blue-600 hover:text-blue-700 p-0 h-auto"
-                  >
-                    자세히 보기
-                  </Button>
-                </div>
-              </CardContent>
-            </Card> */}
-
-            {/* 👈 기존 Card 대신 PeermallCard 사용 TO-BE*/}
             <PeermallCard
               {...mall}
               isPopular={mall.featured}
@@ -201,14 +153,13 @@ const PeermallViewRenderer = ({
               onShowQrCode={onShowQrCode}
               onOpenMap={onOpenMap}
             />
-
           </motion.div>
         ))}
       </div>
     );
   }
 
-  // 📋 리스트 뷰도 동일하게 수정
+  // 📋 리스트 뷰
   if (viewMode === 'list') {
     return (
       <div className="space-y-4">
@@ -219,77 +170,6 @@ const PeermallViewRenderer = ({
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
           >
-
-            {/* <Card className={`${designTokens.elevation.card} overflow-hidden hover:shadow-lg transition-all duration-300`}>
-              <div className="flex">
-                <img
-                  src={mall.imageLocation || '/placeholder-shop.jpg'}
-                  alt={mall.peerMallName}
-                  className="w-48 h-32 object-cover flex-shrink-0"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.onerror = null; 
-                    target.src = '/placeholder-shop.jpg'; 
-                  }}
-                />
-                <div className="flex-1 p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 text-lg">{mall.peerMallName}</h3>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="outline" className="text-xs">
-                        {mall.category || '일반'}
-                      </Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onShowQrCode(mall.peerMallKey, mall.peerMallName)}
-                        className="p-1 h-auto"
-                      >
-                        <Share2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <p className="text-gray-600 mb-3 line-clamp-2">{mall.description}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span className="flex items-center">
-                        <Star className="w-4 h-4 mr-1 text-yellow-500" />
-                        {mall.rating || 0} ({mall.reviewCount || 0}개 리뷰)
-                      </span>
-                      <span className="flex items-center">
-                        <ThumbsUp className="w-4 h-4 mr-1" />
-                        {mall.likeCount || 0}
-                      </span>
-                      <span className="flex items-center">
-                        <Users className="w-4 h-4 mr-1" />
-                        {mall.followers || 0}
-                      </span>
-                      {mall.location && (
-                        <span className="flex items-center">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {mall.mallAdress}
-                        </span>
-                      )}
-                    </div>
-                    <Button
-                      onClick={() => navigate(`/space/${mall.peerMallName}?mk=${mall.peerMallKey}`)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      방문하기
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-1 mt-3">
-                    {mall.tags?.map(tag => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </Card> */}
-
-            {/* 👈 PeermallCard를 리스트 형태로 사용 TO-BE */}
             <PeermallCard
               {...mall}
               isPopular={mall.featured}
@@ -297,9 +177,8 @@ const PeermallViewRenderer = ({
               isRecommended={mall.recommended}
               onShowQrCode={onShowQrCode}
               onOpenMap={onOpenMap}
-              className="w-full" // 리스트 뷰용 스타일
+              className="w-full"
             />
-
           </motion.div>
         ))}
       </div>
@@ -319,51 +198,6 @@ const PeermallViewRenderer = ({
             className="group cursor-pointer"
             onClick={() => navigate(`/space/${mall.peerMallName}?mk=${mall.peerMallKey}`)}
           >
-            {/* <div className="relative overflow-hidden rounded-lg aspect-square">
-              <img
-                src={mall.imageLocation || '/placeholder-shop.jpg'}
-                alt={mall.peerMallName}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.onerror = null; 
-                  target.src = '/placeholder-shop.jpg'; 
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute inset-0 p-4 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <h3 className="text-white font-semibold mb-1 line-clamp-2">{mall.title}</h3>
-                <div className="flex items-center justify-between text-white/80 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <Star className="w-3 h-3" />
-                    <span>{mall.rating || 0}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <ThumbsUp className="w-3 h-3" />
-                    <span>{mall.likeCount || 0}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute top-3 left-3">
-                <Badge className="bg-white/90 text-gray-700 text-xs">
-                  {mall.category || '일반'}
-                </Badge>
-              </div>
-              <div className="absolute top-3 right-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onShowQrCode(mall.peerMallKey, mall.peerMallName);
-                  }}
-                  className="p-1 h-auto bg-white/20 hover:bg-white/30 text-white"
-                >
-                  <Share2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </div> */}
-
             <PeermallCard
               {...mall}
               isPopular={mall.featured}
@@ -373,7 +207,6 @@ const PeermallViewRenderer = ({
               onOpenMap={onOpenMap}
               className="aspect-square"
             />
-
           </motion.div>
         ))}
       </div>
@@ -391,102 +224,6 @@ const PeermallViewRenderer = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-
-            {/* <Card className={`${designTokens.elevation.feature} overflow-hidden bg-white/90 backdrop-blur-sm`}>
-              <div className="relative">
-                <img
-                  src={mall.imageLocation || '/api/placeholder/800/400'}
-                  alt={mall.peerMallName}
-                  className="w-full h-64 sm:h-80 object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {mall.tags?.map(tag => (
-                      <Badge key={tag} className="bg-white/20 text-white border-white/30">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">{mall.title}</h2>
-                  <div className="flex items-center space-x-4 text-white/80 text-sm">
-                    <span className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      {mall.createdAt ? new Date(mall.createdAt).toLocaleDateString('ko-KR') : '최근'}
-                    </span>
-                    <span className="flex items-center">
-                      <Users className="w-4 h-4 mr-1" />
-                      {mall.owner || '익명'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <CardContent className="p-6">
-                <p className="text-gray-700 text-lg leading-relaxed mb-6 line-clamp-3">
-                  {mall.description}
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-6">
-                    <div className="flex items-center space-x-2 text-gray-600">
-                      <Star className="w-5 h-5 text-yellow-500" />
-                      <span className="font-medium">{mall.rating || 0}</span>
-                      <span className="text-sm">({mall.reviewCount || 0}개 리뷰)</span>
-                    </div>
-                    <div className="flex items-center space-x-4 text-gray-600">
-                      <span className="flex items-center">
-                        <ThumbsUp className="w-4 h-4 mr-1" />
-                        {mall.likeCount || 0}
-                      </span>
-                      <span className="flex items-center">
-                        <MessageCircle className="w-4 h-4 mr-1" />
-                        {mall.reviewCount || 0}
-                      </span>
-                      <span className="flex items-center">
-                        <Users className="w-4 h-4 mr-1" />
-                        {mall.followers || 0}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onShowQrCode(mall.peerMallKey, mall.peerMallName)}
-                    >
-                      <Share2 className="w-4 h-4 mr-2" />
-                      공유
-                    </Button>
-                    <Button
-                      onClick={() => navigate(`/space/${mall.peerMallName}?mk=${mall.peerMallKey}`)}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
-                    >
-                      자세히 보기
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
-                </div>
-                {mall.location && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg flex items-center">
-                    <MapPin className="w-4 h-4 text-gray-600 mr-2" />
-                    <span className="text-sm text-gray-600">{mall.mallAddress}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onOpenMap({
-                        title: mall.title,
-                        lat: mall.location.lat,
-                        lng: mall.location.lng,
-                        address: mall.location.address
-                      })}
-                      className="ml-auto text-blue-600 hover:text-blue-700"
-                    >
-                      지도에서 보기
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card> */}
-
             <PeermallCard
               {...mall}
               isPopular={mall.featured}
@@ -496,7 +233,6 @@ const PeermallViewRenderer = ({
               onOpenMap={onOpenMap}
               className="w-full max-w-4xl mx-auto"
             />
-
           </motion.div>
         ))}
       </div>
@@ -522,14 +258,18 @@ const Index = () => {
   const [qrModalTitle, setQrModalTitle] = useState('');
   
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(8); // 페이지당 보여줄 상품 수
+  const [itemsPerPage] = useState(8);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [selectedHashtags, setSelectedHashtags] = useState<string[]>(['전체']);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [originPeerMalls, setOriginPeerMalls] = useState<Peermall[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [refreshing, setRefreshing] = useState(false);
 
+  // 🔍 검색 핸들러
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
 
@@ -539,25 +279,22 @@ const Index = () => {
     }
 
     if(originPeerMalls.length === 0) {
-      // 원본 데이터 저장
       setOriginPeerMalls(peermalls);
     }
 
-    // 검색 필터링
     const searchedPeerMalls = peermalls.filter(peerMall => 
       peerMall.peerMallName.includes(query)
     );
     setFilteredMalls(searchedPeerMalls);
-
   }, [peermalls, originPeerMalls, filteredMalls]);
 
+  // 📖 북마크 핸들러
   const handleBookmarkToggle = useCallback((itemId: string) => {
     setBookmarks(prev => {
       const isBookmarked = prev.some(bookmark => bookmark.id === itemId);
       if (isBookmarked) {
         return prev.filter(bookmark => bookmark.id !== itemId);
       } else {
-        // 여기서는 예시로 북마크 아이템을 생성합니다. 실제로는 해당 아이템의 정보를 가져와야 합니다.
         const newBookmark: BookmarkItem = {
           id: itemId,
           title: `북마크 ${itemId}`,
@@ -571,118 +308,10 @@ const Index = () => {
 
   const handleBookmarkRemove = useCallback((id: string) => {
     setBookmarks(prev => prev.filter(bookmark => bookmark.id !== id));
-    console.log('북마크 제거:', id);
   }, []);
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('grid'); // 🎨 확장된 뷰 모드
-  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    // 로그인 상태 확인
-    const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
-    setIsLoggedIn(userLoggedIn);
-    
-    // 초기 데이터 로드
-    const loadInitialData = async () => {
-      try {
-        setIsLoading(true);
-        console.log('🔄 초기 데이터 로드 시작...');
-        
-        const allPeermalls = await getAllPeerMallList();
-        const allProducts = await productService.getAllProductList();
-
-        setPeermalls(allPeermalls);
-        setProducts(allProducts);
-        
-        //setPeermalls(storedPeermalls);
-        //setFilteredMalls(storedPeermalls);
-        
-        // 내 피어몰 필터링
-        //const myOwnedSpaces = storedPeermalls.filter(mall => mall.owner === '나');
-        //setMySpaces(myOwnedSpaces);
-        
-        console.log('✅ 초기 데이터 로드 완료');
-      } catch (error) {
-        console.error('❌ 초기 데이터 로드 오류:', error);
-        toast({
-          variant: "destructive",
-          title: "데이터 로드 오류",
-          description: "피어몰 데이터를 불러오는 중 오류가 발생했습니다."
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadInitialData();
-
-
-  }, [toast]);
-
-  // 현재 페이지에 보여질 상품 목록 계산
-  const getDisplayedProducts = useCallback(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return products.slice(startIndex, endIndex);
-  }, [products, currentPage, itemsPerPage]);
-
-  // 전체 페이지 수 계산
-  const totalPages = Math.ceil(products.length / itemsPerPage);
-
-  // 페이지 변경 핸들러
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // 🔍 필터링 로직 - 향상된 검색 기능
-  const hashtagOptions: HashtagFilterOption[] = [
-    { label: '전체', value: '전체' },
-    { label: '#디자인', value: '#디자인' },
-    { label: '#푸드', value: '#푸드' },
-    { label: '#패션', value: '#패션' },
-    { label: '#테크', value: '#테크' },
-    { label: '#아트', value: '#아트' },
-    { label: '#라이프', value: '#라이프' },
-    { label: '#취미', value: '#취미' },
-    { label: '#여행', value: '#여행' },
-  ];
-
-  const peermallTypeOptions: { label: string; value: PeermallType }[] = [
-    { label: '모두', value: 'all' },
-    { label: '인기', value: 'trending' },
-    { label: '최신', value: 'recent' },
-    { label: '추천', value: 'recommended' },
-  ];
-
-  const handleFilterChange = useCallback((selectedHashtags: string[], selectedTypes: PeermallType[]) => {
-    console.log('🔍 필터 변경:', { selectedHashtags, selectedTypes });
-    
-    if ((selectedHashtags.length === 0 || selectedHashtags.includes('전체')) && 
-        (selectedTypes.length === 0 || selectedTypes.includes('all'))) {
-      setFilteredMalls(peermalls);
-      return;
-    }
-    
-    let filtered = [...peermalls];
-    
-    // 타입 필터링
-    if (selectedTypes.length > 0 && !selectedTypes.includes('all')) {
-      filtered = filtered.filter(mall => selectedTypes.includes(mall.type as PeermallType));
-    }
-    
-    // 해시태그 필터링
-    if (selectedHashtags.length > 0 && !selectedHashtags.includes('전체')) {
-      filtered = filtered.filter(mall => 
-        mall.tags && mall.tags.some(tag => selectedHashtags.includes(tag))
-      );
-    }
-    
-    setFilteredMalls(filtered);
-    console.log('✅ 필터링 완료:', filtered.length, '개');
-  }, [peermalls]);
-
-    const handleOpenMap = useCallback((location: Location) => {
+  // 🗺️ 지도 핸들러
+  const handleOpenMap = useCallback((location: Location) => {
     setSelectedLocation(location);
     setIsMapOpen(true);
   }, []);
@@ -729,6 +358,97 @@ const Index = () => {
     }
   }, [toast]);
 
+  // 🎯 초기 데이터 로드
+  useEffect(() => {
+    const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+    setIsLoggedIn(userLoggedIn);
+    
+    const loadInitialData = async () => {
+      try {
+        setIsLoading(true);
+        console.log('🔄 초기 데이터 로드 시작...');
+        
+        const allPeermalls = await getAllPeerMallList();
+        const allProducts = await productService.getAllProductList();
+
+        setPeermalls(allPeermalls);
+        setProducts(allProducts);
+        
+        console.log('✅ 초기 데이터 로드 완료');
+      } catch (error) {
+        console.error('❌ 초기 데이터 로드 오류:', error);
+        toast({
+          variant: "destructive",
+          title: "데이터 로드 오류",
+          description: "피어몰 데이터를 불러오는 중 오류가 발생했습니다."
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadInitialData();
+  }, [toast]);
+
+  // 📄 페이지네이션
+  const getDisplayedProducts = useCallback(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return products.slice(startIndex, endIndex);
+  }, [products, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 🔍 필터링 로직
+  const hashtagOptions: HashtagFilterOption[] = [
+    { label: '전체', value: '전체' },
+    { label: '#디자인', value: '#디자인' },
+    { label: '#푸드', value: '#푸드' },
+    { label: '#패션', value: '#패션' },
+    { label: '#테크', value: '#테크' },
+    { label: '#아트', value: '#아트' },
+    { label: '#라이프', value: '#라이프' },
+    { label: '#취미', value: '#취미' },
+    { label: '#여행', value: '#여행' },
+  ];
+
+  const peermallTypeOptions: { label: string; value: PeermallType }[] = [
+    { label: '모두', value: 'all' },
+    { label: '인기', value: 'trending' },
+    { label: '최신', value: 'recent' },
+    { label: '추천', value: 'recommended' },
+  ];
+
+  const handleFilterChange = useCallback((selectedHashtags: string[], selectedTypes: PeermallType[]) => {
+    console.log('🔍 필터 변경:', { selectedHashtags, selectedTypes });
+    
+    if ((selectedHashtags.length === 0 || selectedHashtags.includes('전체')) && 
+        (selectedTypes.length === 0 || selectedTypes.includes('all'))) {
+      setFilteredMalls(peermalls);
+      return;
+    }
+    
+    let filtered = [...peermalls];
+    
+    if (selectedTypes.length > 0 && !selectedTypes.includes('all')) {
+      filtered = filtered.filter(mall => selectedTypes.includes(mall.type as PeermallType));
+    }
+    
+    if (selectedHashtags.length > 0 && !selectedHashtags.includes('전체')) {
+      filtered = filtered.filter(mall => 
+        mall.tags && mall.tags.some(tag => selectedHashtags.includes(tag))
+      );
+    }
+    
+    setFilteredMalls(filtered);
+    console.log('✅ 필터링 완료:', filtered.length, '개');
+  }, [peermalls]);
+
   // 📊 통계 및 데이터 계산
   const stats = {
     totalMalls: peermalls.length,
@@ -749,14 +469,12 @@ const Index = () => {
     .slice(0, 4);
 
   // 🗺️ 지도용 위치 데이터
-  const allLocations = peermalls
-    //.filter(mall => mall.location)
-    .map(mall => ({
-      lat: mall.lat,
-      lng: mall.lng,
-      address: mall.address,
-      title: mall.peerMallName
-    }));
+  const allLocations = peermalls.map(mall => ({
+    lat: mall.lat,
+    lng: mall.lng,
+    address: mall.address,
+    title: mall.peerMallName
+  }));
   
   const handleLocationSelect = useCallback((location: any) => {
     const peermall = peermalls.find(
@@ -764,12 +482,9 @@ const Index = () => {
     );
     
     if (peermall) {
-      // 상세 보기 로직 (필요시 구현)
       navigate(`/space/${peermall['peerMallName']}?mk=${peermall['peerMallKey']}`);
     }
   }, [peermalls, navigate]);
-
-  
 
   // 🎨 뷰 모드 옵션 정의
   const viewModeOptions = [
@@ -850,6 +565,7 @@ const Index = () => {
           </motion.section>
         )}
 
+        {/* 🔍 검색 및 필터 바 */}
         <motion.section 
           className="mb-8"
           {...designTokens.animations.fadeIn}
@@ -865,16 +581,20 @@ const Index = () => {
           />
         </motion.section>
 
-        {/* 📊 메인 콘텐츠 그리드 */}
-        <section className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-12">
+        {/* 📊 메인 콘텐츠 - 개선된 레이아웃 */}
+        <div className="space-y-8">
           
-          {/* 🏪 피어몰 메인 리스트 */}
-          <div className="lg:col-span-3 space-y-8">
+          {/* 🎯 상단 섹션: 신규 피어몰 + 피어맵 */}
+          <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             
             {/* ✨ 신규 피어몰 섹션 */}
-            <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.3 }}>
-              <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-green-50 to-emerald-50`}>
-                <CardHeader>
+            <motion.div 
+              className="xl:col-span-2"
+              {...designTokens.animations.fadeIn} 
+              transition={{ delay: 0.2 }}
+            >
+              <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-green-50 to-emerald-50 border-green-100 h-full`}>
+                <CardHeader className="pb-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="p-2 bg-green-100 rounded-lg">
@@ -890,7 +610,7 @@ const Index = () => {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge variant="secondary" className="bg-green-100 text-green-700">
+                      <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
                         {newestMalls.length}개
                       </Badge>
                       {newestMalls.length > 0 && (
@@ -905,14 +625,28 @@ const Index = () => {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-0">
                   {newestMalls.length > 0 ? (
-                    <PeermallViewRenderer
-                      malls={newestMalls}
-                      viewMode="grid"
-                      onOpenMap={handleOpenMap}
-                      onShowQrCode={handleShowPeermallQrCode}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {newestMalls.slice(0, 4).map((mall, index) => (
+                        <motion.div
+                          key={mall.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                        >
+                          <PeermallCard
+                            {...mall}
+                            isPopular={mall.featured}
+                            isFamilyCertified={mall.certified}
+                            isRecommended={mall.recommended}
+                            onShowQrCode={handleShowPeermallQrCode}
+                            onOpenMap={handleOpenMap}
+                            className="h-full"
+                          />
+                        </motion.div>
+                      ))}
+                    </div>
                   ) : (
                     <div className="text-center py-12">
                       <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -930,10 +664,52 @@ const Index = () => {
               </Card>
             </motion.div>
 
-            {/* 🏢 전체 피어몰 섹션 - 향상된 뷰 모드 지원 */}
-            <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.4 }}>
+            {/* 🗺️ 피어맵 */}
+            <motion.div 
+              {...designTokens.animations.fadeIn} 
+              transition={{ delay: 0.3 }}
+            >
+              <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-100 h-full min-h-[400px]`}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <Map className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className={designTokens.typography.subheading}>
+                          🗺️ 피어맵
+                        </h3>
+                        <p className={`${designTokens.typography.caption} mt-1`}>
+                          피어몰 위치 탐색
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                      {allLocations.length}개 위치
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0 flex-1">
+                  <div className="h-[350px] overflow-hidden rounded-b-lg">
+                    <EcosystemMap onLocationSelect={handleLocationSelect} />
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </section>
+
+          {/* 🎯 중간 섹션: 전체 피어몰 + 커뮤니티 피드 */}
+          <section className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+            
+            {/* 🏢 전체 피어몰 섹션 */}
+            <motion.div 
+              className="xl:col-span-3"
+              {...designTokens.animations.fadeIn} 
+              transition={{ delay: 0.4 }}
+            >
               <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-slate-50 to-gray-50 border-slate-200`}>
-                <CardHeader>
+                <CardHeader className="pb-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="p-2 bg-slate-100 rounded-lg">
@@ -949,7 +725,7 @@ const Index = () => {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge variant="secondary" className="bg-slate-100 text-slate-700">
+                      <Badge variant="secondary" className="bg-slate-100 text-slate-700 border-slate-200">
                         총 {peermalls.length}개
                       </Badge>
                       <Button
@@ -1023,14 +799,14 @@ const Index = () => {
                       })}
                     </div>
                   </div>
-                  
                 </CardHeader>
-                <CardContent>
+                
+                <CardContent className="pt-0">
                   {peermalls.length > 0 ? (
                     <div className="space-y-4">
                       {/* 🔍 검색 결과 정보 */}
                       {searchQuery && (
-                        <div className="flex items-center space-x-2 text-sm text-slate-600 bg-blue-50 p-3 rounded-lg">
+                        <div className="flex items-center space-x-2 text-sm text-slate-600 bg-blue-50 p-3 rounded-lg border border-blue-100">
                           <Search className="w-4 h-4" />
                           <span>
                             '<strong>{searchQuery}</strong>' 검색 결과: {peermalls.length}개
@@ -1040,7 +816,7 @@ const Index = () => {
                       
                       {/* 🏷️ 활성 필터 표시 */}
                       {(selectedHashtags.length > 0 && !selectedHashtags.includes('전체')) && (
-                        <div className="flex items-center space-x-2 text-sm text-slate-600">
+                        <div className="flex items-center space-x-2 text-sm text-slate-600 bg-gray-50 p-3 rounded-lg border border-gray-100">
                           <Filter className="w-4 h-4" />
                           <span>활성 필터:</span>
                           <div className="flex flex-wrap gap-1">
@@ -1085,82 +861,45 @@ const Index = () => {
                           : '첫 번째 피어몰을 만들어 커뮤니티를 시작해보세요! 당신의 아이디어가 새로운 연결을 만들어낼 거예요.'
                         }
                       </p>
-                      {/* {!searchQuery && (
-                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                          <Button 
-                            onClick={() => navigate('/create-peermall')}
-                            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
-                          >
-                            <Sparkles className="w-4 h-4 mr-2" />
-                            피어몰 만들기
-                          </Button>
-                          <Button 
-                            variant="outline"
-                            onClick={() => navigate('/explore')}
-                            className="border-slate-300 hover:bg-slate-50"
-                          >
-                            <Eye className="w-4 h-4 mr-2" />
-                            둘러보기
-                          </Button>
-                        </div>
-                      )} */}
                     </div>
                   )}
                 </CardContent>
               </Card>
             </motion.div>
-          </div>
 
-          {/* 🗺️ 사이드바 */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* 🗺️ 피어맵 - 반응형 크기 */}
-            <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.3 }}>
-              <Card className={`${designTokens.elevation.card} bg-gradient-to-br from-blue-50 to-cyan-50 
-              h-[40vh] sm:h-[45vh] md:h-[50vh] lg:h-[55vh] xl:h-[60vh]
-              min-h-[300px] max-h-[800px]`}>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Map className="w-5 h-5 text-blue-600" />
-                      <h2 className={designTokens.typography.subheading}>
-                        🗺️ 피어맵
-                      </h2>
-                    </div>
-                    <Badge variant="outline" className="text-xs">
-                      {allLocations.length}개 위치
-                    </Badge>
-                  </div>
-                  <p className={`${designTokens.typography.caption} mt-1`}>
-                    피어몰 위치를 한눈에 확인하세요
-                  </p>
-                </CardHeader>
-                <CardContent className="p-0 h-full">
-                  <div className="h-full overflow-hidden rounded-b-lg">
-                    <EcosystemMap 
-                      onLocationSelect={handleLocationSelect}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+            {/* 🌟 커뮤니티 피드 */}
+            <motion.div 
+              {...designTokens.animations.fadeIn} 
+              transition={{ delay: 0.5 }}
+            >
+              <CommunityFeed />
             </motion.div>
-          </div>
-
-        </section>
+          </section>
+        </div>
 
         {/* 🛍️ 전체 상품 보기 섹션 */}
-        <section className="grid grid-cols-1 gap-6 p-4 md:p-6">
-          <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.4 }}>
-            <Card className={`${designTokens.elevation.card} bg-gradient-to-br from-green-50 to-emerald-50`}>
+        <section className="grid grid-cols-1 gap-6 p-4 md:p-6 mt-12">
+          <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.6 }}>
+            <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-green-50 to-emerald-50 border-green-100`}>
               <CardHeader>
-                <div className="flex items-center space-x-2">
-                  <ShoppingBag className="w-6 h-6 text-green-600" />
-                  <h2 className={designTokens.typography.subheading}>
-                    🛍️ 전체 상품 보기
-                  </h2>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <ShoppingBag className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div>
+                      <h2 className={designTokens.typography.heading}>
+                        🛍️ 전체 상품 보기
+                      </h2>
+                      <p className={`${designTokens.typography.caption} mt-1`}>
+                        피어몰에 등록된 모든 상품들을 만나보세요
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
+                    {products.length}개 상품
+                  </Badge>
                 </div>
-                <p className={`${designTokens.typography.caption} mt-1`}>
-                  피어몰에 등록된 모든 상품들을 만나보세요.
-                </p>
               </CardHeader>
               <CardContent>
                 {products.length > 0 ? (
@@ -1192,7 +931,6 @@ const Index = () => {
                         </Button>
                         
                         {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                          // 현재 페이지를 중심으로 5개의 페이지 번호 표시
                           let pageNum;
                           if (totalPages <= 5) {
                             pageNum = i + 1;
@@ -1226,11 +964,21 @@ const Index = () => {
                         >
                           <ChevronRight className="w-5 h-5" />
                         </Button>
-                      </div>
+</div >
                     )}
                   </>
                 ) : (
-                  <p className="text-center text-gray-500 py-8">등록된 상품이 없습니다.</p>
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <ShoppingBag className="w-8 h-8 text-green-500" />
+                    </div>
+                    <h3 className={`${designTokens.typography.subheading} text-gray-700 mb-2`}>
+                      등록된 상품이 없습니다
+                    </h3>
+                    <p className={designTokens.typography.caption}>
+                      첫 번째 상품을 등록해보세요! 🛍️
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
