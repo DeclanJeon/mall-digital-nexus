@@ -1,14 +1,17 @@
 export interface Post {
   id: string;
+  name: string;
   title: string;
   author: string;
   date: string;
+  type: string;
   content: string; // Markdown 요약본 또는 일반 텍스트 내용 (렌더링 시 주의)
   description: string;
   likes: number;
   comments: number;
   tags: string[];
   channelId?: string;
+  channelType?: string;
   communityId?: string;
   isNotice?: boolean;
   isPinned?: boolean;
@@ -34,6 +37,7 @@ export interface Channel {
 
 export interface Comment {
   id: string;
+  name: string;
   postId: string;
   author: string; // 닉네임 또는 이메일 아이디
   content: string;
