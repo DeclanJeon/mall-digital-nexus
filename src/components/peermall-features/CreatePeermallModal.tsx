@@ -816,7 +816,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                 <CardContent className="p-6 space-y-5">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-green-700">브랜딩 & 개인화 설정</h3>
+                    <h3 className="text-lg font-semibold text-green-700">추가 설정</h3>
                     <ImageIcon className="w-4 h-4 text-green-500" />
                   </div>
                   

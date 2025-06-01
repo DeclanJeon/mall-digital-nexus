@@ -37,7 +37,13 @@ import {
   Share2,
   Bookmark,
   Route,
-  Navigation2
+  Navigation2,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  Grid3X3,
+  Sparkles,
+  MoreHorizontal
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -80,13 +86,15 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
   const [filterType, setFilterType] = useState<'all' | 'popular' | 'verified' | 'featured'>('all');
   const [selectedHashtag, setSelectedHashtag] = useState<string | null>(null);
   const [availableHashtags, setAvailableHashtags] = useState<Set<string>>(new Set());
-  const [showFilters, setShowFilters] = useState(false);
+  const [showUnifiedPanel, setShowUnifiedPanel] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [callModalOpen, setCallModalOpen] = useState(false);
   const [messageModalOpen, setMessageModalOpen] = useState(false);
   const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLocation | null>(null);
-
   
+  // 🚀 새로운 상태: 컨트롤 패널 표시/숨김
+  const [showControlPanel, setShowControlPanel] = useState(false);
+
   const navigate = useNavigate();
 
   // 🚀 이메일 유효성 검증 함수
@@ -123,29 +131,33 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
   // 프리미엄 마커 아이콘 생성 함수
   const createPremiumMarkerIcon = useCallback((location: MapLocation) => {
     const getMarkerStyle = () => {
-      let backgroundColor = '#3B82F6'; // 기본 파란색
-      let borderColor = '#1E40AF';
+      let backgroundColor = '#6366f1'; // Indigo-500
+      let borderColor = '#4f46e5'; // Indigo-600
       let emoji = '🏪';
-      let size = 36;
+      let size = 40;
+      let glowColor = '#6366f1';
 
       if (location.isFeatured) {
-        backgroundColor = '#F59E0B';
-        borderColor = '#D97706';
+        backgroundColor = '#f59e0b'; // Amber-500
+        borderColor = '#d97706'; // Amber-600
         emoji = '⭐';
-        size = 48;
+        size = 52;
+        glowColor = '#f59e0b';
       } else if (location.isPopular) {
-        backgroundColor = '#EF4444';
-        borderColor = '#DC2626';
+        backgroundColor = '#ef4444'; // Red-500
+        borderColor = '#dc2626'; // Red-600
         emoji = '🔥';
-        size = 42;
+        size = 46;
+        glowColor = '#ef4444';
       } else if (location.isVerified) {
-        backgroundColor = '#10B981';
-        borderColor = '#059669';
+        backgroundColor = '#10b981'; // Emerald-500
+        borderColor = '#059669'; // Emerald-600
         emoji = '✅';
-        size = 40;
+        size = 44;
+        glowColor = '#10b981';
       }
 
-      return { backgroundColor, borderColor, emoji, size };
+      return { backgroundColor, borderColor, emoji, size, glowColor };
     };
 
     const style = getMarkerStyle();
@@ -153,37 +165,74 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
     return L.divIcon({
       className: 'premium-marker-container',
       html: `
-        <div style="position: relative;">
+        <div style="position: relative; filter: drop-shadow(0 0 8px ${style.glowColor}40);">
           <div style="
             width: ${style.size}px;
             height: ${style.size}px;
             background: linear-gradient(135deg, ${style.backgroundColor}, ${style.borderColor});
             border-radius: 50%;
-            border: 3px solid white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border: 3px solid rgba(255,255,255,0.9);
+            box-shadow: 
+              0 8px 32px rgba(0,0,0,0.12),
+              0 4px 16px rgba(0,0,0,0.08),
+              inset 0 1px 0 rgba(255,255,255,0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: ${style.size * 0.4}px;
+            font-size: ${style.size * 0.35}px;
             cursor: pointer;
-            transition: transform 0.3s ease;
-          " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+          " 
+          onmouseover="
+            this.style.transform='scale(1.15) translateY(-2px)';
+            this.style.boxShadow='0 12px 40px rgba(0,0,0,0.16), 0 6px 20px rgba(0,0,0,0.12)';
+          " 
+          onmouseout="
+            this.style.transform='scale(1) translateY(0)';
+            this.style.boxShadow='0 8px 32px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.08)';
+          ">
+            <div style="
+              position: absolute;
+              inset: 0;
+              background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+              animation: shimmer 2s infinite;
+            "></div>
             ${style.emoji}
           </div>
           ${location.isOnline ? `
             <div style="
               position: absolute;
-              top: -2px;
-              right: -2px;
-              width: 12px;
-              height: 12px;
-              background: #10B981;
+              top: -3px;
+              right: -3px;
+              width: 14px;
+              height: 14px;
+              background: linear-gradient(135deg, #10b981, #059669);
               border-radius: 50%;
-              border: 2px solid white;
-              animation: pulse 2s infinite;
-            "></div>
+              border: 3px solid rgba(255,255,255,0.9);
+              box-shadow: 0 2px 8px rgba(16,185,129,0.4);
+            ">
+              <div style="
+                position: absolute;
+                inset: 2px;
+                background: #10b981;
+                border-radius: 50%;
+                animation: pulse 2s infinite;
+              "></div>
+            </div>
           ` : ''}
         </div>
+        <style>
+          @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(200%) rotate(45deg); }
+          }
+          @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.9); }
+          }
+        </style>
       `,
       iconSize: [style.size, style.size],
       iconAnchor: [style.size/2, style.size],
@@ -234,7 +283,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
             lng: lng,
             peerMallName: peermall.peerMallName || '피어몰',
             address: peermall.address ?? '주소 정보 없음',
-            email: extractedEmail, // 🚀 개선된 이메일 추출 사용
+            email: extractedEmail,
             phone: (peermall as any).contact || '전화번호 없음',
             imageUrl: peermall.imageLocation || `https://picsum.photos/400/300?random=${peermall.peerMallKey}`,
             description: peermall.description || '멋진 피어몰입니다. 다양한 제품과 서비스를 만나보세요!',
@@ -245,13 +294,11 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
       
       console.log('매핑된 위치 데이터:', mappedLocations);
       
-      // 🚀 이메일 통계 로깅
       const emailCount = mappedLocations.filter(loc => loc?.email).length;
       console.log(`📊 이메일 정보가 있는 피어몰: ${emailCount}/${mappedLocations.length}개`);
       
       setLocations(mappedLocations as MapLocation[]);
       
-      // Extract all unique hashtags from all locations
       const allTags = new Set<string>();
       mappedLocations.forEach(location => {
         location?.tags?.forEach(tag => allTags.add(tag));
@@ -319,7 +366,6 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
     });
 
     const filteredLocations = locations.filter(loc => {
-      // 위치 데이터 유효성 검사 강화
       const hasValidCoords = loc.lat && loc.lng && 
                             !isNaN(Number(loc.lat)) && 
                             !isNaN(Number(loc.lng)) &&
@@ -331,13 +377,11 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
         return false;
       }
 
-      // Apply filter type
       const typeMatch = filterType === 'all' || 
         (filterType === 'popular' && loc.isPopular) ||
         (filterType === 'verified' && loc.isVerified) ||
         (filterType === 'featured' && loc.isFeatured);
       
-      // Apply hashtag filter if selected
       const hashtagMatch = !selectedHashtag || loc.tags?.includes(selectedHashtag);
       
       return typeMatch && hashtagMatch;
@@ -355,10 +399,8 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
 
         marker.addTo(mapInstance.current!);
         
-        // 클릭 이벤트 추가
         marker.on('click', () => {
           console.log('마커 클릭됨:', loc.title, '이메일:', loc.email);
-
           console.log(loc)
 
           mapInstance.current?.setView([lat, lng], 15);
@@ -433,12 +475,15 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
           className: 'user-location-marker',
           html: `
             <div class="relative">
-              <div class="w-6 h-6 bg-blue-500 rounded-full border-4 border-white shadow-lg animate-pulse"></div>
-              <div class="absolute inset-0 w-6 h-6 bg-blue-400 rounded-full animate-ping opacity-75"></div>
+              <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full border-4 border-white shadow-xl animate-pulse"></div>
+              <div class="absolute inset-0 w-8 h-8 bg-blue-400 rounded-full animate-ping opacity-60"></div>
+              <div class="absolute inset-2 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                <div class="w-2 h-2 bg-blue-600 rounded-full"></div>
+              </div>
             </div>
           `,
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
         }),
         ...{ isUserLocation: true } as any
       }).addTo(mapInstance.current!).bindPopup('📍 내 위치');
@@ -489,10 +534,9 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
     setSelectedLocationForAction(location);
     const url = `https://peerterra.com/one/channel/${location.peerMallName}?mk=${location.peerMallKey}`;
     window.open(url, '_blank');
-    //setCallModalOpen(true);
   }, []);
 
-  // 🚀 메시지 모달 열기 함수 (디버깅 강화)
+  // 메시지 모달 열기 함수
   const handleOpenMessageModal = useCallback((location: MapLocation) => {
     console.log('🚀 메시지 모달 열기:', {
       title: location.title,
@@ -516,223 +560,417 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
 
   return (
     <div className={cn(
-      "relative rounded-2xl overflow-hidden shadow-2xl z-[1]",
-      mapFullscreen ? "fixed inset-0 z-[1000] w-full" : "w-100",
-      mapFullscreen ? "h-screen" : "h-full min-h-[250px]"
+      "relative overflow-hidden",
+      mapFullscreen ? "fixed inset-0 z-[1000] w-full" : "w-full",
+      mapFullscreen ? "h-screen" : "h-full min-h-[400px]",
+      "bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50"
     )}>
       
+      {/* 🎨 메인 지도 컨테이너 */}
       <div 
         ref={mapRef} 
-        className="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-100"
+        className={cn(
+          "w-full h-full relative",
+          "rounded-2xl shadow-2xl border border-white/20",
+          "bg-gradient-to-br from-blue-50 to-indigo-100"
+        )}
+        style={{
+          filter: 'contrast(1.02) saturate(1.05)',
+        }}
       />
       
-      {/* 프리미엄 컨트롤 패널 */}
+      {/* 🌟 글로우 효과 오버레이 */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-blue-400/5 via-indigo-400/5 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-purple-400/5 via-pink-400/5 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-to-r from-transparent via-white/2 to-transparent"></div>
+      </div>
+
+      {/* 🎯 초소형 토글 버튼 */}
       <motion.div 
-        className="absolute top-6 left-6 z-[1000] backdrop-blur-xl bg-white/90 border border-white/20 rounded-2xl p-4 shadow-xl hover:shadow-2xl transition-all duration-500"
-        initial={{ opacity: 0, x: -50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5 }}
+        className="absolute top-3 left-3 z-[1000]"
+        initial={{ opacity: 0, scale: 0, rotate: -180 }}
+        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+        transition={{ 
+          duration: 0.6, 
+          type: "spring", 
+          stiffness: 200,
+          delay: 0.1 
+        }}
       >
-        {/* 검색 바 */}
-        <div className="relative mb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && searchPeermall()}
-              placeholder="피어몰, 태그, 주소 검색..."
-              className="w-64 pl-10 pr-12 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white/80 backdrop-blur-sm"
-            />
-            {searchQuery && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-1.5 h-7 w-7 p-0 hover:bg-gray-100 rounded-lg"
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            )}
-          </div>
-          <Button
-            onClick={searchPeermall}
-            className="absolute right-1 top-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium shadow-lg transition-all"
-          >
-            검색
-          </Button>
-        </div>
-
-        {/* 지도 타입 및 도구 */}
-        <div className="flex gap-2">
-          <Button
-            variant={mapType === 'street' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setMapType('street')}
-            className={cn(
-              "flex-1 text-xs transition-all",
-              mapType === 'street' 
-                ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white" 
-                : "bg-white/80 hover:bg-white"
-            )}
-          >
-            <MapPin className="w-3 h-3 mr-1" />
-            지도뷰
-          </Button>
-          <Button
-            variant={mapType === 'satellite' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setMapType('satellite')}
-            className={cn(
-              "flex-1 text-xs transition-all",
-              mapType === 'satellite' 
-                ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white" 
-                : "bg-white/80 hover:bg-white"
-            )}
-          >
-            <SatelliteIcon className="w-3 h-3 mr-1" />
-            위성뷰
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={findMyLocation}
-            className="bg-white/80 hover:bg-white border-gray-200 hover:border-orange-300 text-xs"
-            title="내 위치 찾기"
-          >
-            <LocateFixed className="w-3 h-3" />
-            내 위치
-          </Button>
-        </div>
-      </motion.div>
-
-      {/* 우측 상단 컨트롤 */}
-      <motion.div 
-        className="absolute top-6 right-6 z-[1000] backdrop-blur-xl bg-white/90 border border-white/20 rounded-2xl p-3 shadow-xl hover:shadow-2xl transition-all duration-500"
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
-        <div className="flex flex-col gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setMapFullscreen(!mapFullscreen)}
-            className="bg-white/80 hover:bg-white border-gray-200 hover:border-blue-300 text-xs"
-            title={mapFullscreen ? "일반 모드" : "전체화면"}
-          >
-            {mapFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={loadPeermalls}
-            disabled={isLoading}
-            className="bg-white/80 hover:bg-white border-gray-200 hover:border-green-300 text-xs"
-            title="새로고침"
-          >
-            <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className="bg-white/80 hover:bg-white border-gray-200 hover:border-purple-300 text-xs"
-            title="고급 필터"
-          >
-            <Filter className="w-4 h-4" />
-          </Button>
-        </div>
-      </motion.div>
-
-      {/* 하단 통계 패널 */}
-      <motion.div 
-        className="absolute bottom-6 left-6 z-[1000] backdrop-blur-xl bg-white/90 border border-white/20 rounded-2xl p-4 shadow-xl hover:shadow-2xl transition-all duration-500"
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full animate-pulse"></div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-gray-700">
-                표시된 피어몰: {filteredCount}개
-              </span>
-              {selectedHashtag && (
-                <div className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-xs">
-                  <span>#{selectedHashtag}</span>
-                  <button 
-                    onClick={() => setSelectedHashtag(null)}
-                    className="text-blue-500 hover:text-blue-700"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* 고급 필터 패널 */}
-      <AnimatePresence>
-        {showFilters && (
-          <motion.div
-            className="absolute top-24 right-6 z-[1000] backdrop-blur-xl bg-white/90 border border-white/20 rounded-2xl p-4 shadow-xl hover:shadow-2xl transition-all duration-500 w-72"
-            initial={{ opacity: 0, scale: 0.9, x: 20 }}
-            animate={{ opacity: 1, scale: 1, x: 0 }}
-            exit={{ opacity: 0, scale: 0.9, x: 20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-gray-800">필터</h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowFilters(false)}
-                  className="h-6 w-6 p-0"
+        <Button
+          onClick={() => setShowControlPanel(!showControlPanel)}
+          className={cn(
+            "w-8 h-8 rounded-lg relative overflow-hidden group",
+            "bg-white/90 backdrop-blur-xl border border-white/40",
+            "shadow-lg hover:shadow-xl",
+            "transition-all duration-300 ease-out",
+            "hover:scale-110 active:scale-95"
+          )}
+        >
+          <div className="relative z-10">
+            <AnimatePresence mode="wait">
+              {showControlPanel ? (
+                <motion.div
+                  key="close"
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+                  <X className="h-3.5 w-3.5 text-slate-700" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="menu"
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Grid3X3 className="h-3.5 w-3.5 text-slate-700" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </Button>
+      </motion.div>
+
+      {/* 🎨 초소형 컨트롤 패널 */}
+      <AnimatePresence>
+        {showControlPanel && (
+          <motion.div 
+            className={cn(
+              "absolute top-3 left-14 z-[1000]",
+              "bg-white/95 backdrop-blur-xl border border-white/50",
+              "rounded-xl shadow-lg",
+              "transition-all duration-400"
+            )}
+            initial={{ 
+              opacity: 0, 
+              scale: 0.8, 
+              x: -20, 
+              filter: "blur(5px)" 
+            }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1, 
+              x: 0, 
+              filter: "blur(0px)" 
+            }}
+            exit={{ 
+              opacity: 0, 
+              scale: 0.8, 
+              x: -20, 
+              filter: "blur(5px)" 
+            }}
+            transition={{ 
+              duration: 0.3, 
+              type: "spring", 
+              stiffness: 200
+            }}
+          >
+            <div className="p-3 space-y-3 w-64">
               
-              <div className="space-y-3">
-                {/* 해시태그 필터 */}
-                <div>
-                  <label className="text-xs font-medium text-gray-700 mb-2 block">해시태그</label>
-                  <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1">
-                    {Array.from(availableHashtags).map(tag => (
+              {/* 🔍 미니 검색 바 */}
+              <div className="relative">
+                <div className="flex items-center gap-1 p-1 bg-white/80 rounded-lg border border-slate-200/60">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-slate-400" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && searchPeermall()}
+                      placeholder="검색..."
+                      className="w-full pl-6 pr-2 py-1.5 bg-transparent border-none outline-none text-slate-700 placeholder-slate-400 text-xs"
+                    />
+                    {searchQuery && (
                       <button
-                        key={tag}
-                        onClick={() => setSelectedHashtag(tag === selectedHashtag ? null : tag)}
-                        className={`px-2.5 py-1 text-xs rounded-full border ${
-                          tag === selectedHashtag 
-                            ? 'bg-blue-100 border-blue-300 text-blue-700' 
-                            : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                        }`}
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-1 top-1/2 transform -translate-y-1/2 w-4 h-4 hover:bg-slate-100 rounded text-slate-400 flex items-center justify-center"
                       >
-                        #{tag}
+                        <X className="h-2.5 w-2.5" />
                       </button>
-                    ))}
-                    {availableHashtags.size === 0 && (
-                      <div className="text-xs text-gray-400 py-1">사용 가능한 해시태그가 없습니다</div>
                     )}
                   </div>
+                  <Button
+                    onClick={searchPeermall}
+                    size="sm"
+                    className="h-6 w-6 p-0 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded"
+                  >
+                    <Search className="h-2.5 w-2.5" />
+                  </Button>
                 </div>
-                
-                <div className="border-t border-gray-100 my-2"></div>
+              </div>
+
+              {/* 🎛️ 지도 타입 미니 토글 */}
+              <div className="flex gap-1 p-1 bg-slate-100/80 rounded-lg">
+                <Button
+                  variant={mapType === 'street' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setMapType('street')}
+                  className={cn(
+                    "flex-1 h-6 text-xs font-medium",
+                    mapType === 'street' 
+                      ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-sm" 
+                      : "text-slate-600 hover:text-slate-800 hover:bg-white/70"
+                  )}
+                >
+                  <MapPin className="w-2.5 h-2.5 mr-1" />
+                  지도
+                </Button>
+                <Button
+                  variant={mapType === 'satellite' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setMapType('satellite')}
+                  className={cn(
+                    "flex-1 h-6 text-xs font-medium",
+                    mapType === 'satellite' 
+                      ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-sm" 
+                      : "text-slate-600 hover:text-slate-800 hover:bg-white/70"
+                  )}
+                >
+                  <SatelliteIcon className="w-2.5 h-2.5 mr-1" />
+                  위성
+                </Button>
+              </div>
+
+              {/* 🎮 미니 액션 버튼 그리드 */}
+              <div className="grid grid-cols-4 gap-1">
+                {[
+                  {
+                    icon: LocateFixed,
+                    action: findMyLocation,
+                    gradient: "from-orange-400 to-red-500",
+                    title: "내 위치"
+                  },
+                  {
+                    icon: RefreshCw,
+                    action: loadPeermalls,
+                    gradient: "from-green-400 to-emerald-500",
+                    title: "새로고침",
+                    loading: isLoading
+                  },
+                  {
+                    icon: Filter,
+                    action: () => setShowUnifiedPanel(!showUnifiedPanel),
+                    gradient: "from-purple-400 to-pink-500",
+                    title: "필터"
+                  },
+                  {
+                    icon: mapFullscreen ? Minimize2 : Maximize2,
+                    action: () => setMapFullscreen(!mapFullscreen),
+                    gradient: "from-blue-400 to-cyan-500",
+                    title: mapFullscreen ? "축소" : "전체"
+                  }
+                ].map((btn, index) => (
+                  <motion.button
+                    key={index}
+                    onClick={btn.action}
+                    disabled={btn.loading}
+                    className={cn(
+                      "w-full h-7 rounded-lg transition-all duration-200",
+                      "bg-white/80 hover:bg-gradient-to-r",
+                      `hover:${btn.gradient} hover:text-white`,
+                      "border border-slate-200/60 hover:border-transparent",
+                      "shadow-sm hover:shadow-md",
+                      "flex items-center justify-center group"
+                    )}
+                    whileHover={{ scale: 1.05, y: -1 }}
+                    whileTap={{ scale: 0.95 }}
+                    title={btn.title}
+                  >
+                    <btn.icon className={cn(
+                      "w-3 h-3 text-slate-600 group-hover:text-white transition-colors",
+                      btn.loading && "animate-spin"
+                    )} />
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* 📊 미니 통계 */}
+              <div className="flex items-center justify-between p-2 bg-gradient-to-r from-indigo-50/80 to-purple-50/80 rounded-lg border border-indigo-200/40">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-semibold text-slate-700">
+                    피어몰 <span className="text-indigo-600">{filteredCount}</span>개
+                  </span>
+                </div>
+                {selectedHashtag && (
+                  <div className="flex items-center gap-1 bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 px-2 py-0.5 rounded-md text-xs font-medium">
+                    <span>#{selectedHashtag}</span>
+                    <button 
+                      onClick={() => setSelectedHashtag(null)}
+                      className="text-indigo-500 hover:text-indigo-700 transition-colors"
+                    >
+                      <X className="h-2 w-2" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* 🚀 개선된 선택된 위치 상세 패널 */}
+      {/* 🎛️ 초소형 고급 필터 패널 */}
+      <AnimatePresence>
+        {showUnifiedPanel && (
+          <motion.div
+            className={cn(
+              "absolute top-3 right-3 z-[1000] w-60",
+              "bg-white/95 backdrop-blur-xl border border-white/50",
+              "rounded-xl shadow-lg"
+            )}
+            initial={{ 
+              opacity: 0, 
+              scale: 0.8, 
+              x: 20, 
+              filter: "blur(5px)" 
+            }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1, 
+              x: 0, 
+              filter: "blur(0px)" 
+            }}
+            exit={{ 
+              opacity: 0, 
+              scale: 0.8, 
+              x: 20, 
+              filter: "blur(5px)" 
+            }}
+            transition={{ 
+              duration: 0.3, 
+              type: "spring", 
+              stiffness: 200
+            }}
+          >
+            <div className="p-3 space-y-3">
+              {/* 헤더 */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                    <Filter className="h-3 w-3 text-white" />
+                  </div>
+                  <h3 className="font-bold text-slate-800 text-sm">필터</h3>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowUnifiedPanel(false)}
+                  className="h-6 w-6 p-0 hover:bg-slate-100 rounded-lg"
+                >
+                  <X className="h-3 w-3 text-slate-400" />
+                </Button>
+              </div>
+              
+              {/* 필터 타입 선택 - 2x2 그리드 */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  <Zap className="h-2.5 w-2.5 text-amber-500" />
+                  카테고리
+                </label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { 
+                      value: 'all', 
+                      label: '전체', 
+                      icon: '🌟', 
+                      gradient: 'from-slate-400 to-slate-600'
+                    },
+                    { 
+                      value: 'featured', 
+                      label: '추천', 
+                      icon: '⭐', 
+                      gradient: 'from-amber-400 to-orange-500'
+                    },
+                    { 
+                      value: 'popular', 
+                      label: '인기', 
+                      icon: '🔥', 
+                      gradient: 'from-red-400 to-pink-500'
+                    },
+                    { 
+                      value: 'verified', 
+                      label: '인증', 
+                      icon: '✅', 
+                      gradient: 'from-emerald-400 to-green-500'
+                    }
+                  ].map(type => (
+                    <motion.button
+                      key={type.value}
+                      onClick={() => setFilterType(type.value as any)}
+                      className={cn(
+                        "p-2 rounded-lg border transition-all duration-200",
+                        "transform hover:scale-105 active:scale-95",
+                        filterType === type.value
+                          ? `bg-gradient-to-br ${type.gradient} text-white border-white/30 shadow-md scale-105`
+                          : "bg-white/80 text-slate-700 border-slate-200/60 hover:border-slate-300/80 hover:bg-white"
+                      )}
+                      whileHover={{ y: -1 }}
+                      whileTap={{ y: 0 }}
+                    >
+                      <div className="text-sm mb-0.5">{type.icon}</div>
+                      <div className="text-xs font-semibold">{type.label}</div>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* 해시태그 필터 - 컴팩트 */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  <Star className="h-2.5 w-2.5 text-purple-500" />
+                  태그 <span className="text-xs text-slate-500 font-normal">({availableHashtags.size})</span>
+                </label>
+                <div className="max-h-24 overflow-y-auto p-1.5 bg-slate-50/80 rounded-lg border border-slate-200/60">
+                  <div className="flex flex-wrap gap-1">
+                    {Array.from(availableHashtags).slice(0, 8).map(tag => (
+                      <motion.button
+                        key={tag}
+                        onClick={() => setSelectedHashtag(tag === selectedHashtag ? null : tag)}
+                        className={cn(
+                          "px-2 py-1 text-xs rounded-md border font-medium",
+                          "transition-all duration-200 transform hover:scale-105 active:scale-95",
+                          tag === selectedHashtag 
+                            ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-white/30 shadow-sm scale-105'
+                            : 'bg-white/80 text-slate-700 border-slate-200/60 hover:border-indigo-300/80 hover:bg-indigo-50 hover:text-indigo-700'
+                        )}
+                        whileHover={{ y: -0.5 }}
+                        whileTap={{ y: 0 }}
+                      >
+                        #{tag}
+                      </motion.button>
+                    ))}
+                    {availableHashtags.size > 8 && (
+                      <div className="px-2 py-1 text-xs text-slate-400 font-medium">
+                        +{availableHashtags.size - 8}개
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 필터 리셋 버튼 */}
+              <Button
+                onClick={() => {
+                  setFilterType('all');
+                  setSelectedHashtag(null);
+                }}
+                variant="outline"
+                className="w-full h-7 border-slate-200/60 bg-white/80 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-200 hover:border-transparent text-slate-700 font-medium text-xs"
+              >
+                <RefreshCw className="h-2.5 w-2.5 mr-1" />
+                초기화
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 🚀 선택된 위치 상세 패널 */}
       <LocationPopup 
         selectedLocation={selectedLocationForAction}
         setSelectedLocation={setSelectedLocationForAction}
@@ -741,28 +979,61 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
         handleOpenMessageModal={handleOpenMessageModal}
       />
 
-      {/* 로딩 오버레이 */}
+      {/* ✨ 미니 로딩 오버레이 */}
       <AnimatePresence>
         {isLoading && (
           <motion.div
-            className="absolute inset-0 bg-white/80 backdrop-blur-sm z-[2000] flex items-center justify-center"
+            className="absolute inset-0 z-[2000] flex items-center justify-center bg-white/90 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
           >
-            <div className="text-center">
+            <motion.div 
+              className="text-center"
+              initial={{ scale: 0.8, filter: "blur(5px)" }}
+              animate={{ scale: 1, filter: "blur(0px)" }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* 미니 스피너 */}
               <div className="relative mb-4">
-                <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-                <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-purple-600 rounded-full animate-spin animate-reverse"></div>
+                <div className="w-12 h-12 relative">
+                  <div className="absolute inset-0 border-2 border-indigo-200 rounded-full animate-spin"></div>
+                  <div className="absolute inset-0 border-2 border-transparent border-t-indigo-600 rounded-full animate-spin"></div>
+                  <div className="absolute inset-1 border-2 border-transparent border-r-purple-600 rounded-full animate-spin animate-reverse"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-4 h-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full animate-pulse"></div>
+                  </div>
+                </div>
               </div>
-              <p className="text-lg font-semibold text-gray-700 mb-2">지도 로딩 중...</p>
-              <p className="text-sm text-gray-500">최고의 피어몰들을 찾고 있습니다</p>
-            </div>
+              
+              <h3 className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-1">
+                로딩 중...
+              </h3>
+              <p className="text-slate-600 text-sm font-medium">
+                🚀 피어몰 검색 중
+              </p>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* 통화 모달 */}
+      {/* 📱 모바일 최적화 FAB - 더 작게 */}
+      <motion.div 
+        className="absolute bottom-3 right-3 z-[1000] md:hidden"
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+      >
+        <Button
+          onClick={() => setShowControls(!showControls)}
+          className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 active:scale-95"
+        >
+          {showControls ? <ChevronUp className="h-5 w-5" /> : <Settings className="h-5 w-5" />}
+        </Button>
+      </motion.div>
+
+      {/* 🎮 통화 모달 */}
       <CallModal
         open={callModalOpen}
         onOpenChange={setCallModalOpen}
@@ -779,14 +1050,14 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
         peerMallKey={''}      
       />
 
-      {/* 🚀 개선된 메시지 모달 */}
+      {/* 💬 개선된 메시지 모달 */}
       {selectedLocationForAction && (
         <EnhancedMessageModal 
           messageModalOpen={messageModalOpen}
           setMessageModalOpen={setMessageModalOpen}
           owner={selectedLocationForAction.owner || '운영자'}
           title={selectedLocationForAction.title}
-          email={selectedLocationForAction.email} // 🚀 이메일 정보 전달
+          email={selectedLocationForAction.email}
           displayImageUrl={selectedLocationForAction.imageUrl}
           imageError={false}
         />
@@ -796,4 +1067,3 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
 });
 
 export default React.memo(EcosystemMap);
-    
