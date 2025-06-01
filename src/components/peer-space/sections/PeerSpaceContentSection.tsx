@@ -202,7 +202,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                   className={currentView === 'masonry' ? 'break-inside-avoid mb-6' : ''}
                   layout
                 >
-                  {/* <ProductCard
+                  <ProductCard
                     productId={product.id}
                     id={product.id}
                     name={product.name}
@@ -223,10 +223,9 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                     cardSize={currentView.includes('grid') ? currentView.split('-')[1] as 'small' | 'medium' | 'large' : 'medium'}
                     onDetailView={handleProductDetailView}
                     productKey={product.productKey}
-                  /> */}
+                  />
 
-                  
-                  <ProductDetailComponent product={product} peerMallName={config.peerMallName} peerMallKey={config.peerMallKey} onBack={handleBack} />
+                  {/* <ProductDetailComponent product={product} peerMallName={config.peerMallName} peerMallKey={config.peerMallKey} onBack={handleBack} /> */}
                  
                 </motion.div>
               ))}

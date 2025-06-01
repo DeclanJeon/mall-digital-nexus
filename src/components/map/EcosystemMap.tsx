@@ -867,7 +867,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
               </div>
               
               {/* 필터 타입 선택 - 2x2 그리드 */}
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
                   <Zap className="h-2.5 w-2.5 text-amber-500" />
                   카테고리
@@ -917,7 +917,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
                     </motion.button>
                   ))}
                 </div>
-              </div>
+              </div> */}
               
               {/* 해시태그 필터 - 컴팩트 */}
               <div className="space-y-2">

@@ -195,16 +195,7 @@ export const LocationPopup = ({
                     {selectedLocation.owner}
                   </span>
                 </div>
-
-                {/* 이메일 (있는 경우만) */}
-                {selectedLocation.email && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs">📧</span>
-                    <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-1.5 py-0.5 h-4">
-                      연동가능
-                    </Badge>
-                  </div>
-                )}
+                
               </div>
 
               {/* 🎮 아이콘 액션 버튼 그리드 */}
