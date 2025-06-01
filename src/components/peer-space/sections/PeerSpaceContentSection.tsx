@@ -40,6 +40,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('latest');
   const [ searchParams ] = useSearchParams();
+  const [detailView, setDetailView] = useState(false);
   const peerMallKey = searchParams.get('mk');
 
   // console.log("products", products)
@@ -64,7 +65,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
     { value: 'price-desc', label: '가격 높은순' },
   ];
 
-  const [detailView, setDetailView] = useState(false);
+  // const [detailView, setDetailView] = useState(false);
 
   const handleBack = () => {
     setDetailView(false);

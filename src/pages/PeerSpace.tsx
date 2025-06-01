@@ -200,8 +200,11 @@ const PeerSpace = () => {
   };
 
   // ProductCard의 onDetailView prop으로 전달될 함수
-  const handleDetailView = (productId: string | number) => {
-    navigate(`/space/${address}/product/${productId}`);
+  const handleDetailView = (productKey: string | number) => {
+
+    console.log("Detail View : ", peerMallKey, productKey)
+
+    navigate(`/space/${address}/product?mk=${peerMallKey}&pk=${productKey}`);
   };
 
   if (isLoading) {

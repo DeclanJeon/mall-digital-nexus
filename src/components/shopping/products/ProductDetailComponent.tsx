@@ -27,15 +27,7 @@ import {
   Info
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Product } from '@/types/product';
-
-interface ProductDetailComponentProps {
-  product: Product;
-  peerMallName: string;
-  peerMallKey: string;
-  onBack: () => void;
-  isOwner?: boolean;
-}
+import { ProductDetailComponentProps } from '@/types/product';
 
 const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
   product,
