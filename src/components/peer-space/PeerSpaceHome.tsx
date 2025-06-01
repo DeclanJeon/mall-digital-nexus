@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { Content, ContentType, PeerMallConfig, SectionType } from '@/types/space';
+import { Content, PeerMallConfig, SectionType } from '@/types/space';
 import { Peermall } from '@/types/peermall';
 import { 
   Heart, 
