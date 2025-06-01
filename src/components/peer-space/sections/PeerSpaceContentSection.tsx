@@ -12,6 +12,7 @@ import { getProducts } from '@/services/storage/productStorage';
 import { Product } from '@/types/product';
 import { config } from 'process';
 import { productService } from '@/services/productService';
+import ProductDetailComponent from '@/components/shopping/products/ProductDetailComponent';
 
 interface PeerSpaceContentSectionProps {
   isOwner: boolean;
@@ -62,6 +63,12 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
     { value: 'price-asc', label: '가격 낮은순' },
     { value: 'price-desc', label: '가격 높은순' },
   ];
+
+  // const [detailView, setDetailView] = useState(false);
+
+  // const handleBack = () => {
+  //   setDetailView(false);
+  // };
 
   return (
     <motion.div
@@ -216,6 +223,10 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                     onDetailView={handleProductDetailView}
                     productKey={product.productKey}
                   />
+
+                  {/* 
+                  <ProductDetailComponent product={product} peerMallName={config.peerMallName} peerMallKey={config.peerMallKey} onBack={handleBack} />
+                  */}
                 </motion.div>
               ))}
             </AnimatePresence>
