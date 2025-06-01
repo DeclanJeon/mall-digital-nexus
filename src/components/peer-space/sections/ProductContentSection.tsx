@@ -13,7 +13,7 @@ interface ProductContentSectionProps {
   handleShowProductForm: () => void;
   onNavigateToSection?: (section: string) => void;
   showAll?: boolean;
-  onDetailView?: (productId: string | number) => void;
+  onDetailView?: (productKey: string | number) => void;
 }
 
 const ProductContentSection: React.FC<ProductContentSectionProps> = ({
@@ -31,8 +31,8 @@ const ProductContentSection: React.FC<ProductContentSectionProps> = ({
 
   const displayedProducts = showAll ? products : products.slice(0, 8);
 
-  const handleProductClick = (productId: string) => {
-    onDetailView?.(productId);
+  const handleProductClick = (productKey: string) => {
+    onDetailView?.(productKey);
   };
 
   return (
