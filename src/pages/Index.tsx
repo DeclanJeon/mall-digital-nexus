@@ -3,7 +3,7 @@ import { BookmarkItem } from '@/components/navigation/SearchAndFilterBar';
 import PeermallGrid from '@/components/peermall-features/PeermallGrid';
 import HashtagFilter, { HashtagFilterOption, PeermallType } from '@/components/navigation/HashtagFilter';
 import FavoriteServicesSection from '@/components/feature-sections/FavoriteServicesSection';
-import EcosystemMap from '@/components/EcosystemMap';
+import EcosystemMap from '@/components/map/EcosystemMap';
 import CommunityHighlights from '@/components/CommunityHighlights';
 import CreatePeermall from '@/components/peermall-features/CreatePeermall';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -518,11 +518,15 @@ const UniversalViewRenderer = ({
     const date = (item as Peermall).createdAt || new Date().toISOString();
     const likes = (item as Peermall).likes || 0;
     const views = (item as Peermall).views || Math.floor(Math.random() * 1000);
+    
+    // 🎯 고유 ID 생성 - 더 안전한 방법
+    const itemId = isProduct ? (item as Product).productKey : (item as Peermall).peerMallKey || (item as Peermall).id;
 
     return (
       <motion.div
         className={cn(
-          "group cursor-pointer bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300",
+          "group cursor-pointer bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100",
+          isMain && "shadow-lg hover:shadow-xl",
           className
         )}
         onClick={() => {
@@ -532,100 +536,271 @@ const UniversalViewRenderer = ({
             navigate(`/space/${(item as Peermall).peerMallName}?mk=${(item as Peermall).peerMallKey}`);
           }
         }}
-        whileHover={{ y: -2 }}
+        whileHover={{ y: -2, scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+        layout
       >
-        {/* 이미지 영역 */}
+        {/* 🖼️ 이미지 영역 - 향상된 비주얼 */}
         <div className={cn(
-          "relative overflow-hidden bg-gray-100",
+          "relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200",
           isMain ? "aspect-[16/9]" : "aspect-[4/3]"
         )}>
           {imageUrl ? (
             <img 
               src={imageUrl} 
               alt={title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
+              loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
               {isProduct ? (
-                <ShoppingBag className="w-12 h-12 text-gray-400" />
+                <div className="text-center">
+                  <ShoppingBag className="w-12 h-12 text-blue-400 mx-auto mb-2" />
+                  <span className="text-xs text-blue-600 font-medium">상품 이미지</span>
+                </div>
               ) : (
-                <Store className="w-12 h-12 text-gray-400" />
+                <div className="text-center">
+                  <Store className="w-12 h-12 text-indigo-400 mx-auto mb-2" />
+                  <span className="text-xs text-indigo-600 font-medium">피어몰</span>
+                </div>
               )}
             </div>
           )}
           
-          {/* 오버레이 정보 */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          {/* 🌈 그라디언트 오버레이 - 더 세련되게 */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          
+          {/* 🏷️ 상단 배지들 */}
+          <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
+            <div className="flex flex-wrap gap-1">
+              {isMain && (
+                <Badge className="bg-red-500 hover:bg-red-600 text-white border-0 text-xs px-2 py-1 shadow-lg">
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  헤드라인
+                </Badge>
+              )}
+              {isProduct && (
+                <Badge className="bg-green-500 hover:bg-green-600 text-white border-0 text-xs px-2 py-1 shadow-lg">
+                  <ShoppingBag className="w-3 h-3 mr-1" />
+                  상품
+                </Badge>
+              )}
+            </div>
+            
+            {/* 📊 실시간 통계 */}
+            <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="flex items-center space-x-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-1">
+                <Eye className="w-3 h-3 text-white" />
+                <span className="text-white text-xs font-medium">{views.toLocaleString()}</span>
+              </div>
+              {!isProduct && likes > 0 && (
+                <div className="flex items-center space-x-1 bg-red-500/80 backdrop-blur-sm rounded-full px-2 py-1">
+                  <Heart className="w-3 h-3 text-white" />
+                  <span className="text-white text-xs font-medium">{likes}</span>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* 🏷️ 하단 태그 및 제목 영역 */}
           <div className="absolute bottom-3 left-3 right-3">
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mb-2">
-                {tags.slice(0, 2).map((tag, index) => (
+                {tags.slice(0, isMain ? 3 : 2).map((tag, index) => (
                   <Badge 
-                    key={index} 
+                    key={`tag-${itemId}-${tag}-${index}`} // ✅ 완전 고유한 key
                     variant="secondary" 
-                    className="text-xs bg-white/20 text-white border-white/30 backdrop-blur-sm"
+                    className="text-xs bg-white/25 text-white border-white/30 backdrop-blur-sm hover:bg-white/35 transition-colors"
                   >
-                    {tag}
+                    {tag.startsWith('#') ? tag : `#${tag}`}
                   </Badge>
                 ))}
+                {tags.length > (isMain ? 3 : 2) && (
+                  <Badge 
+                    key={`more-tags-${itemId}`}
+                    variant="secondary" 
+                    className="text-xs bg-white/25 text-white border-white/30 backdrop-blur-sm"
+                  >
+                    +{tags.length - (isMain ? 3 : 2)}
+                  </Badge>
+                )}
               </div>
             )}
             
+            {/* 🎯 메인 아이템의 제목 */}
             {isMain && (
-              <h2 className="text-white font-bold text-lg line-clamp-2 mb-1">
-                {title}
-              </h2>
+              <div className="space-y-2">
+                <h2 className="text-white font-bold text-xl line-clamp-2 mb-1 drop-shadow-lg">
+                  {title}
+                </h2>
+                {description && (
+                  <p className="text-white/90 text-sm line-clamp-2 drop-shadow">
+                    {description}
+                  </p>
+                )}
+              </div>
             )}
+          </div>
+
+          {/* 🎨 호버 시 액션 버튼들 */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+            <div className="flex items-center space-x-2">
+              <motion.button
+                className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // 공유 기능
+                }}
+              >
+                <Share2 className="w-4 h-4" />
+              </motion.button>
+              <motion.button
+                className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // 북마크 기능
+                }}
+              >
+                <Bookmark className="w-4 h-4" />
+              </motion.button>
+            </div>
           </div>
         </div>
 
-        {/* 콘텐츠 영역 */}
-        <div className="p-4">
+        {/* 📝 콘텐츠 영역 - 더 세련된 레이아웃 */}
+        <div className="p-4 space-y-3">
+          {/* 📰 제목 영역 */}
           {!isMain && (
-            <h3 className="font-semibold text-gray-900 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
-              {title}
-            </h3>
+            <div className="space-y-2">
+              <h3 className="font-bold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors leading-tight">
+                {title}
+              </h3>
+              {description && (
+                <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
+                  {description}
+                </p>
+              )}
+            </div>
           )}
           
-          {description && (
-            <p className={cn(
-              "text-gray-600 line-clamp-3 mb-3",
-              isMain ? "text-sm" : "text-xs"
-            )}>
-              {description}
-            </p>
+          {/* 🏷️ 카테고리 및 태그 (메인이 아닌 경우) */}
+          {!isMain && tags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {tags.slice(0, 2).map((tag, index) => (
+                <Badge 
+                  key={`content-tag-${itemId}-${tag}-${index}`} // ✅ 고유 key
+                  variant="outline" 
+                  className="text-xs text-gray-600 border-gray-300 hover:bg-gray-50 transition-colors"
+                >
+                  {tag.startsWith('#') ? tag : `#${tag}`}
+                </Badge>
+              ))}
+            </div>
           )}
 
-          {/* 메타 정보 */}
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-1">
+          {/* 📊 메타 정보 - 향상된 디자인 */}
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+            <div className="flex items-center space-x-4">
+              {/* 📅 날짜 */}
+              <div className="flex items-center space-x-1 text-gray-500">
                 <Clock className="w-3 h-3" />
-                <span>{new Date(date).toLocaleDateString('ko-KR')}</span>
+                <span className="text-xs font-medium">
+                  {new Date(date).toLocaleDateString('ko-KR', {
+                    month: 'short',
+                    day: 'numeric'
+                  })}
+                </span>
               </div>
-              <div className="flex items-center space-x-1">
+              
+              {/* 👁️ 조회수 */}
+              <div className="flex items-center space-x-1 text-gray-500">
                 <Eye className="w-3 h-3" />
-                <span>{views.toLocaleString()}</span>
+                <span className="text-xs font-medium">{views.toLocaleString()}</span>
               </div>
-              {!isProduct && (
-                <div className="flex items-center space-x-1">
+              
+              {/* ❤️ 좋아요 (피어몰만) */}
+              {!isProduct && likes > 0 && (
+                <div className="flex items-center space-x-1 text-red-500">
                   <Heart className="w-3 h-3" />
-                  <span>{likes}</span>
+                  <span className="text-xs font-medium">{likes}</span>
                 </div>
               )}
             </div>
             
+            {/* 💰 가격 (상품만) */}
             {isProduct && (
-              <span className="font-semibold text-blue-600">
-                ₩{(item as Product).price?.toLocaleString()}
-              </span>
+              <div className="flex items-center space-x-1">
+                <span className="text-lg font-bold text-blue-600">
+                  ₩{(item as Product).price?.toLocaleString()}
+                </span>
+              </div>
+            )}
+            
+            {/* 🏪 피어몰명 (상품인 경우) */}
+            {isProduct && (
+              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                {(item as Product).peerMallName}
+              </Badge>
             )}
           </div>
+
+          {/* 🎯 추가 액션 버튼들 (메인 아이템만) */}
+          {isMain && (
+            <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+              <div className="flex items-center space-x-2">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="text-xs h-7 px-3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // 더 보기 기능
+                  }}
+                >
+                  <ChevronRight className="w-3 h-3 mr-1" />
+                  더 보기
+                </Button>
+              </div>
+              
+              <div className="flex items-center space-x-1">
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="w-7 h-7 p-0 text-gray-500 hover:text-red-500"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // 좋아요 기능
+                  }}
+                >
+                  <Heart className="w-3 h-3" />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="w-7 h-7 p-0 text-gray-500 hover:text-blue-500"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // 공유 기능
+                  }}
+                >
+                  <Share2 className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* 🌟 특별 효과: 호버 시 글로우 */}
+        <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-400/0 via-purple-400/0 to-pink-400/0 group-hover:from-blue-400/10 group-hover:via-purple-400/10 group-hover:to-pink-400/10 transition-all duration-500 pointer-events-none" />
       </motion.div>
     );
   };
+
 
   const renderItem = (item: Peermall | Product, className?: string) => {
     if (type === 'peermall') {
@@ -1186,9 +1361,9 @@ const Index = () => {
       p => p.lat === location.lat && p.lng === location.lng
     );
     
-    if (peermall) {
-      navigate(`/space/${peermall['peerMallName']}?mk=${peermall['peerMallKey']}`);
-    }
+    // if (peermall) {
+    //   navigate(`/space/${peermall['peerMallName']}?mk=${peermall['peerMallKey']}`);
+    // }
   }, [peermalls, navigate]);
 
   // 로딩 상태 렌더링

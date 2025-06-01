@@ -100,7 +100,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
     e.stopPropagation();
 
     if (peerMallName) {
-      onShowQrCode(peerMallKey, peerMallName);
+      onShowQrCode?.(peerMallKey, peerMallName);
     } else {
       toast({
         title: "QR 코드",
@@ -118,7 +118,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
 
     const url = `https://peerterra.com/one/channel/${peerMallName}?mk=${peerMallKey}`;
     window.open(url, '_blank');
-  }, [owner, peerMallKey, toast]);
+  }, [owner, peerMallKey, peerMallName]);
 
   // 메시지 보내기
   const handleQuickMessage = useCallback((e: React.MouseEvent) => {
@@ -153,7 +153,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
               />
             </Link>
             
-            {/* 배지들 */}
+            {/* 배지들 - 좌측 상단 */}
             <div className="absolute top-2 left-2 flex flex-col items-start gap-1">
               {isPopular && (
                 <Badge variant="secondary" className="bg-amber-500 text-white">
@@ -171,44 +171,6 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
                 </Badge>
               )}
             </div>
-            
-            {/* 🎯 항상 보이는 액션 버튼들 - 우측 상단 */}
-            <div className="absolute top-2 right-2 flex flex-col gap-2">
-              {/* QR 코드 버튼 */}
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-md backdrop-blur-sm border-white/50"
-                onClick={showQrCode}
-                title="QR 코드 보기"
-              >
-                <QrCode className="h-4 w-4 text-gray-700" />
-              </Button>
-
-              {/* 통화 버튼 - 로그인한 사용자만 */}
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-md backdrop-blur-sm border-white/50"
-                  onClick={handleQuickCall}
-                  title="통화하기"
-                >
-                  <Phone className="h-4 w-4 text-green-600" />
-                </Button>
-              
-
-              {/* 메시지 버튼 - 로그인한 사용자만 */}
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-md backdrop-blur-sm border-white/50"
-                  onClick={handleQuickMessage}
-                  title="메시지 보내기"
-                >
-                  <MessageSquare className="h-4 w-4 text-blue-600" />
-                </Button>
-              
-            </div>
           </div>
           
           {/* 내용 영역 */}
@@ -216,9 +178,40 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
             <CardContent className="p-4">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-semibold text-lg line-clamp-1">{peerMallName}</h3>
-                <div className="flex items-center">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-                  <span className="text-sm font-medium">{rating.toFixed(1)}</span>
+                {/* 🎯 액션 버튼들을 여기로 이동 - 우측 상단 타이틀 옆 */}
+                <div className="flex items-center gap-1 ml-2">
+                  {/* QR 코드 버튼 */}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-6 h-6 p-0 hover:bg-gray-100 rounded-full"
+                    onClick={showQrCode}
+                    title="QR 코드 보기"
+                  >
+                    <QrCode className="h-3 w-3 text-gray-600" />
+                  </Button>
+
+                  {/* 통화 버튼 */}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-6 h-6 p-0 hover:bg-gray-100 rounded-full"
+                    onClick={handleQuickCall}
+                    title="통화하기"
+                  >
+                    <Phone className="h-3 w-3 text-green-600" />
+                  </Button>
+
+                  {/* 메시지 버튼 */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-6 h-6 p-0 hover:bg-gray-100 rounded-full"
+                    onClick={handleQuickMessage}
+                    title="메시지 보내기"
+                  >
+                    <MessageSquare className="h-3 w-3 text-blue-600" />
+                  </Button>
                 </div>
               </div>
               
@@ -256,24 +249,6 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
           </Link>
         </Card>
       </motion.div>
-      
-      {/* 통화 모달 */}
-
-      {/* <CallModal 
-        open={isCallModalOpen}
-        owner={owner}
-        peerMallKey={peerMallKey}
-        onOpenChange={setIsCallModalOpen}
-        location={{
-          title,
-          owner,
-          phone,
-          imageUrl: displayImageUrl,
-          trustScore: 4.8, 
-          responseTime: '즉시',
-          isOnline: true
-        }} 
-      /> */}
       
       {/* 메시지 모달 */}
       <EnhancedMessageModal

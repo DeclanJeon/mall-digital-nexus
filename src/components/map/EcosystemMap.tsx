@@ -39,49 +39,24 @@ import {
   Route,
   Navigation2
 } from 'lucide-react';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
-import { Card, CardContent } from './ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Peermall } from '@/types/peermall';
-import ReviewSection from './peermall-features/ReviewSection';
+import ReviewSection from '@/components/peermall-features/ReviewSection';
 import { peermallStorage } from '@/services/storage/peermallStorage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import CallModal from '@/components/features/CallModal';
 import MessageModal from '@/components/features/MessageModal';
-import EnhancedMessageModal from './features/EnhancedMessageModal';
+import EnhancedMessageModal from '@/components/features/EnhancedMessageModal';
 import { useAuth } from '@/hooks/useAuth';
 import { getAllPeerMallList } from  "@/services/peerMallService";
+import { useNavigate } from 'react-router-dom';
+import { MapLocation } from '@/types/map';
+import { LocationPopup } from '@/components/map/LocationPopup';
 
 const DEFAULT_CENTER: [number, number] = [37.5665, 126.9780];
-
-interface MapLocation {
-  isFamilyCertified: unknown;
-  certified: unknown;
-  premiumStats: unknown;
-  lat: number;
-  lng: number;
-  title: string;
-  address: string;
-  phone: string;
-  reviews?: any[];
-  id?: string;
-  email?: string;
-  imageUrl?: string;
-  rating?: number;
-  followers?: number;
-  isPopular?: boolean;
-  isFeatured?: boolean;
-  isVerified?: boolean;
-  description?: string;
-  tags?: string[];
-  trustScore?: number;
-  responseTime?: string;
-  isOnline?: boolean;
-  owner?: string;
-  peerMallName?: string;
-  peerMallKey?: string;
-}
 
 interface EcosystemMapProps {
   onLocationSelect?: (location: MapLocation) => void;
@@ -107,10 +82,12 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
   const [availableHashtags, setAvailableHashtags] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
   const [callModalOpen, setCallModalOpen] = useState(false);
   const [messageModalOpen, setMessageModalOpen] = useState(false);
   const [selectedLocationForAction, setSelectedLocationForAction] = useState<MapLocation | null>(null);
+
+  
+  const navigate = useNavigate();
 
   // 🚀 이메일 유효성 검증 함수
   const isValidEmail = (email: string): boolean => {
@@ -212,102 +189,6 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
       iconAnchor: [style.size/2, style.size],
       popupAnchor: [0, -style.size]
     });
-  }, []);
-
-  // 팝업 생성 함수
-  const createPremiumPopup = useCallback((location: MapLocation) => {
-    const trustScore = location.trustScore || Math.floor((location.rating || 4.0) * 20);
-    const responseTime = location.responseTime || '5';
-    
-    return `
-      <div class="premium-popup-content w-80 h-[500px] p-0 overflow-hidden rounded-2xl shadow-2xl bg-white">
-        <!-- 헤더 이미지 영역 -->
-        <div class="relative h-32 bg-gradient-to-br from-blue-500 via-purple-600 to-pink-600 overflow-hidden">
-          ${location.imageUrl ? `
-            <img src="${location.imageUrl}" alt="${location.title}" 
-                 class="w-full h-full object-cover opacity-90" />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
-          ` : `
-            <div class="w-full h-full bg-gradient-to-br from-blue-500 via-purple-600 to-pink-600 flex items-center justify-center">
-              <div class="text-6xl opacity-80">🏪</div>
-            </div>
-          `}
-          
-          <!-- 하단 정보 오버레이 -->
-          <div class="absolute bottom-0 left-0 right-0 p-4 text-white">
-            <h3 class="font-bold text-lg mb-1 truncate">${location.title}</h3>
-            <div class="flex items-center gap-2 text-sm opacity-90">
-              <div class="flex items-center gap-1">
-                ${location.rating ? `
-                  <span class="text-yellow-400">⭐</span>
-                  <span>${location.rating.toFixed(1)}</span>
-                ` : ''}
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 콘텐츠 영역 -->
-        <div class="p-4 space-y-4">
-          <!-- 기본 정보 -->
-          <div class="space-y-2">
-            <div class="flex items-start gap-2 text-sm">
-              <span class="text-gray-500">📍</span>
-              <span class="text-gray-700 flex-1">${location.address}</span>
-            </div>
-            ${location.phone ? `
-              <div class="flex items-center gap-2 text-sm">
-                <span class="text-gray-500">📞</span>
-                <span class="text-gray-700">${location.phone}</span>
-              </div>
-            ` : ''}
-            ${location.email ? `
-              <div class="flex items-center gap-2 text-sm">
-                <span class="text-gray-500">📧</span>
-                <span class="text-gray-700">${location.email}</span>
-              </div>
-            ` : ''}
-            ${location.description ? `
-              <div class="text-sm text-gray-600 line-clamp-2 mt-2">
-                ${location.description}
-              </div>
-            ` : ''}
-          </div>
-          
-          <!-- 태그 -->
-          ${location.tags && location.tags.length > 0 ? `
-            <div class="flex flex-wrap gap-1">
-              ${location.tags.slice(0, 3).map(tag => `
-                <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs border border-blue-200">
-                  #${tag}
-                </span>
-              `).join('')}
-              ${location.tags.length > 3 ? `
-                <span class="bg-gray-50 text-gray-600 px-2 py-1 rounded-full text-xs border border-gray-200">
-                  +${location.tags.length - 3}
-                </span>
-              ` : ''}
-            </div>
-          ` : ''}
-          
-          <!-- 액션 버튼들 -->
-          <div class="grid grid-cols-2 gap-2 pt-2">
-            <button class="premium-popup-btn call-btn bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-2 px-3 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl">
-              📞 통화하기
-            </button>
-            <button class="premium-popup-btn message-btn bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-2 px-3 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl">
-              💬 메시지
-            </button>
-            <button class="premium-popup-btn visit-btn bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white py-2 px-3 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl">
-              🏪 방문하기
-            </button>
-            <button class="premium-popup-btn share-btn bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white py-2 px-3 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl">
-              📤 공유하기
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
   }, []);
 
   // 피어몰 데이터 로드 함수
@@ -477,6 +358,9 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
         // 클릭 이벤트 추가
         marker.on('click', () => {
           console.log('마커 클릭됨:', loc.title, '이메일:', loc.email);
+
+          console.log(loc)
+
           mapInstance.current?.setView([lat, lng], 15);
           setSelectedLocation(loc);
           setSelectedLocationForAction(loc);
@@ -849,153 +733,13 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
       </AnimatePresence>
 
       {/* 🚀 개선된 선택된 위치 상세 패널 */}
-      <AnimatePresence>
-        {selectedLocation && (
-          <motion.div
-            className="absolute bottom-6 right-6 z-[1000] backdrop-blur-xl bg-white/90 border border-white/20 rounded-2xl p-5 shadow-2xl w-80 max-h-96 overflow-y-auto"
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <div className="space-y-4">
-              {/* 헤더 */}
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-bold text-lg text-gray-900">{selectedLocation.title}</h3>
-                    {selectedLocation.isOnline && (
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    {/* 🚀 이메일 연동 가능 여부 표시 */}
-                    {selectedLocation.email && (
-                      <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">
-                        📧 이메일 연동 가능
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedLocation(null)}
-                  className="h-8 w-8 p-0 hover:bg-gray-100 rounded-lg"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* 이미지 */}
-              {selectedLocation.imageUrl && (
-                <div className="relative h-32 rounded-xl overflow-hidden">
-                  <img 
-                    src={selectedLocation.imageUrl} 
-                    alt={selectedLocation.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-                </div>
-              )}
-
-              {/* 🚀 개선된 정보 섹션 */}
-              <div className="space-y-2 text-sm">
-                <div className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">{selectedLocation.address}</span>
-                </div>
-                
-                {/* 🚀 이메일 정보 표시 */}
-                {selectedLocation.email && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">📧</span>
-                    <span className="text-gray-700 text-xs">{selectedLocation.email}</span>
-                  </div>
-                )}
-                
-                {selectedLocation.description && (
-                  <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">
-                    {selectedLocation.description}
-                  </p>
-                )}
-              </div>
-
-              {/* 태그 */}
-              {selectedLocation.tags && selectedLocation.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {selectedLocation.tags.slice(0, 3).map((tag, index) => (
-                    <Badge 
-                      key={index}
-                      variant="secondary" 
-                      className="text-xs bg-blue-50 text-blue-700 border-blue-200"
-                    >
-                      #{tag}
-                    </Badge>
-                  ))}
-                  {selectedLocation.tags.length > 3 && (
-                    <Badge variant="secondary" className="text-xs bg-gray-50 text-gray-600">
-                      +{selectedLocation.tags.length - 3}
-                    </Badge>
-                  )}
-                </div>
-              )}
-
-              {/* 액션 버튼들 */}
-              <div className="grid grid-cols-2 gap-2 pt-2">
-                {isAuthenticated && (
-                  <Button
-                    size="sm"
-                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg"
-                    onClick={() => handleOpenCallModal(selectedLocation)}
-                  >
-                    <Phone className="w-4 h-4 mr-1" />
-                    통화
-                  </Button>
-                )}
-                
-                {isAuthenticated && (
-                  <Button
-                    size="sm"
-                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg"
-                    onClick={() => handleOpenMessageModal(selectedLocation)}
-                  >
-                    <MessageSquare className="w-4 h-4 mr-1" />
-                    메시지
-                  </Button>
-                )}
-                
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="border-purple-200 hover:bg-purple-50 hover:border-purple-300"
-                  onClick={() => {
-                    if (selectedLocation.id) {
-                      window.open(`/space/${selectedLocation.id}`, '_blank');
-                    }
-                  }}
-                >
-                  <ExternalLink className="w-4 h-4 mr-1 text-purple-600" />
-                  방문하기
-                </Button>
-                
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="border-orange-200 hover:bg-orange-50 hover:border-orange-300"
-                  onClick={() => {
-                    const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.lat},${selectedLocation.lng}`;
-                    window.open(url, '_blank');
-                  }}
-                >
-                  <Navigation className="w-4 h-4 mr-1 text-orange-600" />
-                  길찾기
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <LocationPopup 
+        selectedLocation={selectedLocationForAction}
+        setSelectedLocation={setSelectedLocationForAction}
+        isAuthenticated={isAuthenticated}
+        handleOpenCallModal={handleOpenCallModal}
+        handleOpenMessageModal={handleOpenMessageModal}
+      />
 
       {/* 로딩 오버레이 */}
       <AnimatePresence>
