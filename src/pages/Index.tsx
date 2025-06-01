@@ -1470,7 +1470,7 @@ const Index = () => {
           </section>
 
           {/* 🎯 중간 섹션: 전체 피어몰 + 커뮤니티 피드 */}
-          <section className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+          <section className="grid grid-cols-1 xl:grid-cols-3 gap-8">
             
             {/* 🏢 전체 피어몰 섹션 */}
             <motion.div 
@@ -1626,27 +1626,7 @@ const Index = () => {
             </motion.div>
 
             {/* 🌟 커뮤니티 피드 */}
-            <motion.div 
-              className="h-full min-h-[800px]"
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              <div className={cn(
-                "relative overflow-hidden rounded-3xl h-full",
-                zGenDesignTokens.effects.glass,
-                "bg-gradient-to-br from-purple-50/80 to-pink-50/80 dark:from-purple-900/20 dark:to-pink-900/20"
-              )}>
-                <div className="relative z-10 h-full">
-                  <CommunityFeed />
-                </div>
-                
-                {/* 배경 장식 */}
-                <div className="absolute top-0 left-0 w-48 h-48 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-3xl" />
-                <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tr from-pink-400/10 to-purple-400/10 rounded-full blur-3xl" />
-              </div>
-            </motion.div>
+            
           </section>
 
           {/* 🛍️ 전체 상품 보기 섹션 */}
