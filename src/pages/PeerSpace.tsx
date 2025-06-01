@@ -58,7 +58,7 @@ const PeerSpace = () => {
   const [isOwner, setIsOwner] = useState(true); // In reality, this would be based on authentication
   const [config, setConfig] = useState<PeerMallConfig | null>(null);
   const [peermall, setPeermall] = useState<Peermall | null>(null);
-  const [activeSection, setActiveSection] = useState<SectionType>('home');
+  const [activeSection, setActiveSection] = useState<SectionType>('space');
 
   // 모달 관련 상태
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -187,8 +187,8 @@ const PeerSpace = () => {
       setActiveSection('following');
     } else if (path.includes('/guestbook')) {
       setActiveSection('guestbook');
-    } else {
-      setActiveSection('home');
+    } else if (path.includes("/space")){
+      setActiveSection('space');
     }
   }, [location.pathname]);
 

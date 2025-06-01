@@ -1,9 +1,9 @@
 import axios from 'axios';
 import userService from './userService';
-import { Content } from '@/components/peer-space/content/types';
+import { Product as ProductType } from '@/types/product';
 
 
-const API_BASE_URL = 'https://api.peermall.com/v1/products';
+const API_BASE_URL = 'http://localhost:9393/v1/products';
 const accessToken = userService.getAccessToken();
 
 const api = axios.create({
@@ -161,6 +161,50 @@ export const productService = {
       return amount;
     }
   },
+  async getProductByPeerMallKey(peerMallKey: string, productKey: string): Promise<ProductType | null> {
+    try {
+      const response = await api.get('/productInfo', {
+        params: { peerMallKey, productKey }
+      });
+      
+      if (response.data.success && response.data.product) {
+        return {
+          productId: response.data.product.product_id,
+          productKey: response.data.product.product_key,
+          id: response.data.product.product_id, // 호환성 유지용
+          name: response.data.product.name,
+          title: response.data.product.name, // 호환성 유지용
+          owner: response.data.product.user_uid,
+          description: response.data.product.description || '',
+          price: response.data.product.price,
+          currency: 'KRW', // 기본 화폐 단위
+          distributor: response.data.product.distributor,
+          manufacturer: response.data.product.manufacturer,
+          imageUrl: response.data.product.image_url || '',
+          rating: 0, // 초기값
+          reviewCount: 0, // 초기값
+          peerMallName: response.data.product.my_mall_id,
+          peerMallKey,
+          category: '', // 초기값
+          tags: response.data.product.tags ? response.data.product.tags.split(',') : [],
+          saleUrl: response.data.product.sale_url,
+          create_date: response.data.product.create_date,
+          update_date: response.data.product.update_date,
+          type: 'Product',
+          peerSpaceAddress: '', // 초기값
+          date: response.data.product.create_date,
+          likes: 0, // 초기값
+          comments: 0, // 초기값
+          views: 0, // 초기값
+          saves: 0 // 초기값
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('상품 정보 조회 오류:', error);
+      throw error;
+    }
+  }
 };
 
 export default productService;

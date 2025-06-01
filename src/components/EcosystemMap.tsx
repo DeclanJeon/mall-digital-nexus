@@ -79,6 +79,8 @@ interface MapLocation {
   responseTime?: string;
   isOnline?: boolean;
   owner?: string;
+  peerMallName?: string;
+  peerMallKey?: string;
 }
 
 interface EcosystemMapProps {
@@ -630,7 +632,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
 
   return (
     <div className={cn(
-      "relative rounded-2xl overflow-hidden shadow-2xl",
+      "relative rounded-2xl overflow-hidden shadow-2xl z-[1]",
       mapFullscreen ? "fixed inset-0 z-[1000] w-full" : "w-100",
       mapFullscreen ? "h-screen" : "h-full min-h-[250px]"
     )}>

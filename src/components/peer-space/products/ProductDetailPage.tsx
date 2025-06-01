@@ -83,6 +83,33 @@ const ProductDetailPage: React.FC = () => {
   const [product, setProduct] = useState<Product | undefined>(undefined); 
   const [isLoading, setIsLoading] = useState(true); 
   const [error, setError] = useState<string | null>(null);
+
+  // 상품 데이터 로드
+  useEffect(() => {
+    if (!productKey || !peerMallKey) {
+      setError('상품 정보를 찾을 수 없습니다.');
+      setIsLoading(false);
+      return;
+    }
+
+    const loadProduct = async () => {
+      try {
+        // 상품 서비스를 통해 상품 데이터를 가져옵니다.
+        const productData = await productService.getProductByPeerMallKey(peerMallKey, productKey);
+        if (productData) {
+          setProduct(productData);
+          setIsLoading(false);
+        } else {
+          setError('상품을 찾을 수 없습니다.');
+        }
+      } catch (err) {
+        setError('상품 정보를 로드하는 중 오류가 발생했습니다.');
+        console.error('상품 로드 오류:', err);
+      }
+    };
+
+    loadProduct();
+  }, [productKey, peerMallKey]);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('');
@@ -101,8 +128,46 @@ const ProductDetailPage: React.FC = () => {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
 
   const loadProductInfo = async () => {
-    const result = await productService.getProductInfo(address, peerMallKey, productKey);
-    setProduct(result['productInfo']);
+    try {
+      const result = await productService.getProductInfo(address, peerMallKey, productKey);
+      const productData = result['productInfo'];
+      
+      // 데이터베이스 스키마에 맞게 데이터 변환
+      const formattedProduct: Product = {
+        productId: productData.product_id,
+        productKey: productData.product_key,
+        id: productData.product_id, // 호환성 유지용
+        name: productData.name,
+        title: productData.name, // 호환성 유지용
+        owner: productData.user_uid,
+        description: productData.description,
+        price: productData.price,
+        currency: 'KRW', // 기본 화폐 단위
+        imageUrl: productData.image_url || '',
+        rating: 0, // 리뷰 기능 구현 시 업데이트
+        reviewCount: 0, // 리뷰 기능 구현 시 업데이트
+        peerMallName: '', // 마이몰 이름 구현 시 업데이트
+        peerMallKey: '', // 마이몰 키 구현 시 업데이트
+        category: '', // 카테고리 구현 시 업데이트
+        tags: productData.tags?.split(',') || [],
+        saleUrl: productData.sale_url,
+        distributor: productData.distributor,
+        manufacturer: productData.manufacturer,
+        create_date: productData.create_date,
+        update_date: productData.update_date,
+        type: 'Product',
+        peerSpaceAddress: '', // Content 인터페이스 호환성
+        date: productData.create_date,
+        likes: 0,
+        comments: 0,
+        views: 0,
+        saves: 0
+      };
+      
+      setProduct(formattedProduct);
+    } catch (error) {
+      setError('상품 정보를 불러오는데 실패했습니다.');
+    }
   }
 
   // 상품 데이터 로드
@@ -391,7 +456,7 @@ const ProductDetailPage: React.FC = () => {
               <div className="aspect-square bg-gradient-to-br from-gray-50 to-white border-b overflow-hidden">
                 <img
                   src={productImages[selectedImage]}
-                  alt={product.title || "상품 이미지"}
+                  alt={product.name || "상품 이미지"}
                   className="w-full h-full object-contain p-8 hover:scale-105 transition-transform duration-300"
                   onError={(e) => {
                     console.log('Image failed to load:', productImages[selectedImage]);

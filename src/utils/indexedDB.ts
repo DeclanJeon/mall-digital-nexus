@@ -126,7 +126,7 @@ function createInitialStores(db: IDBDatabase) {
     usersStore.createIndex('by_status', 'status', { unique: false });
   }
 
-  // peerSpaces - 피어몰/피어스페이스 정보
+  // peerSpaces - 피어몰 정보
   if (!db.objectStoreNames.contains(STORES.PEER_SPACES)) {
     const peerSpacesStore = db.createObjectStore(STORES.PEER_SPACES, {
       keyPath: 'address',
@@ -629,14 +629,14 @@ function createVersion4Stores(db: IDBDatabase) {
       keyPath: 'id', // 또는 'addressId', 'uuid' 등 고유 식별자
       // autoIncrement: true, // 필요하다면 자동 증가 ID 사용
     });
-    // 주소는 다양한 엔티티(사용자, 피어스페이스 등)에 연결될 수 있으므로,
+    // 주소는 다양한 엔티티(사용자, 피어몰 등)에 연결될 수 있으므로,
     // 어떤 엔티티의 주소인지, 그리고 해당 엔티티의 ID가 무엇인지 저장하는 것이 일반적입니다.
     addressStore.createIndex('by_entityType', 'entityType', { unique: false }); // 예: 'user', 'peerSpace'
     addressStore.createIndex('by_entityId', 'entityId', { unique: false }); // 해당 엔티티의 ID
     addressStore.createIndex('by_userId', 'userId', { unique: false }); // 특정 사용자와 직접 연결된 경우
     addressStore.createIndex('by_peerSpace', 'peerSpaceAddress', {
       unique: false,
-    }); // 특정 피어스페이스와 연결된 경우
+    }); // 특정 피어몰과 연결된 경우
     addressStore.createIndex('by_type', 'type', { unique: false }); // 예: 'shipping', 'billing', 'location'
     addressStore.createIndex('by_country', 'country', { unique: false });
     addressStore.createIndex('by_postalCode', 'postalCode', { unique: false });

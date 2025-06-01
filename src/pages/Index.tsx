@@ -598,7 +598,7 @@ const Index = () => {
         //setPeermalls(storedPeermalls);
         //setFilteredMalls(storedPeermalls);
         
-        // 내 스페이스 필터링
+        // 내 피어몰 필터링
         //const myOwnedSpaces = storedPeermalls.filter(mall => mall.owner === '나');
         //setMySpaces(myOwnedSpaces);
         
@@ -690,7 +690,7 @@ const Index = () => {
 
   const handleCloseMap = useCallback(() => setIsMapOpen(false), []);
 
-  // 📱 내 스페이스 관련 핸들러
+  // 📱 내 피어몰 관련 핸들러
   const handleOpenMySpaces = useCallback(() => setIsMySpacesOpen(true), []);
   const handleCloseMySpaces = useCallback(() => setIsMySpacesOpen(false), []);
 
@@ -825,7 +825,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
+    <div className="container min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
       <main className="px-4 py-8">
         {/* 🌟 즐겨찾기 서비스 섹션 */}
         {isLoggedIn && (

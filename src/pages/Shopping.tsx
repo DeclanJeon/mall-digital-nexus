@@ -128,7 +128,7 @@ const Shopping = () => {
       
       // 가격 범위 필터링
       const [minPrice, maxPrice] = filters.priceRange;
-      const matchesPrice = product.price >= minPrice && product.price <= maxPrice;
+      const matchesPrice = Number(product.price) >= minPrice && Number(product.price) <= maxPrice;
       
       // 평점 필터링
       const matchesRating = !filters.rating || (product.rating && product.rating >= filters.rating);

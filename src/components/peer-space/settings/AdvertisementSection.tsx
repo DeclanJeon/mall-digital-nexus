@@ -90,14 +90,14 @@ const AdvertisementSection = () => {
             <CardHeader>
               <CardTitle>광고 형식 설정</CardTitle>
               <CardDescription>
-                피어스페이스에 표시할 광고 형식을 설정합니다.
+                피어몰에 표시할 광고 형식을 설정합니다.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center p-4 border rounded-md">
                 <div>
                   <h3 className="font-medium">기본형 광고</h3>
-                  <p className="text-sm text-muted-foreground">피어스페이스 상단에 배너 형태로 표시됩니다.</p>
+                  <p className="text-sm text-muted-foreground">피어몰 상단에 배너 형태로 표시됩니다.</p>
                 </div>
                 <Switch checked onChange={handleSettingChange} />
               </div>

@@ -82,6 +82,44 @@ interface PeerSpaceHomeProps {
   onDetailView?: (productId: string | number) => void;
 }
 
+
+// 🎯 데이터 변환 함수 분리
+const transformApiProductToProduct = (apiProduct: any, address: string, config: PeerMallConfig, peerMallKey: string): Product => ({
+  productId: apiProduct.productKey || '',
+  productKey: apiProduct.productKey || '',
+  id: apiProduct.productKey || '',
+  name: apiProduct.name || '',
+  title: apiProduct.name || '',
+  owner: address,
+  description: apiProduct.description || '',
+  price: apiProduct.price || 0,
+  currency: 'KRW',
+  discountPrice: apiProduct.discountPrice || null,
+  distributor: apiProduct.distributor || '',
+  manufacturer: apiProduct.manufacturer || '',
+  imageUrl: apiProduct.imageUrl || '',
+  rating: apiProduct.rating || 4.5,
+  reviewCount: apiProduct.reviewCount || 10,
+  peerMallName: config.peerMallName,
+  peerMallKey: peerMallKey || '',
+  category: apiProduct.category || '기타',
+  tags: apiProduct.tags ? apiProduct.tags.split(',') : [],
+  isBestSeller: apiProduct.isBestSeller || false,
+  isNew: apiProduct.isNew || false,
+  isRecommended: apiProduct.isRecommended || false,
+  isCertified: apiProduct.isCertified || false,
+  saleUrl: apiProduct.saleUrl || '',
+  create_date: apiProduct.create_date || new Date().toISOString(),
+  update_date: apiProduct.update_date || new Date().toISOString(),
+  type: 'Product',
+  peerSpaceAddress: address,
+  date: apiProduct.create_date || new Date().toISOString(),
+  likes: apiProduct.likes || 0,
+  comments: apiProduct.comments || 0,
+  views: apiProduct.views || 0,
+  saves: apiProduct.saves || 0
+});
+
 const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ 
   isOwner, 
   address,
@@ -116,44 +154,40 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   const peerMallKey = searchParams.get('mk');
 
   useEffect(() => {
-    const loadContents = async () => {
-      if (address) {
-        try {
-            if (peermall && config) {
-              // 설정이 피어몰 데이터와 다르면 업데이트
-              if (config.peerMallName !== peermall.peerMallName || 
-                config.ownerName !== peermall.ownerName ||
-                config.profileImage !== peermall.imageUrl) {
-              
-              const updatedConfig = {
-                ...config,
-                peerMallName: peermall.peerMallName,
-                ownerName: peermall.ownerName,
-                profileImage: peermall.imageUrl,
-                followers: peermall.followers || config.followers,
-                recommendations: peermall.likes || config.recommendations
-              };
-              
-              onUpdateConfig(updatedConfig);
-              console.log('🔄 피어스페이스 설정이 피어몰 데이터와 동기화되었습니다');
-            }
-          }
+
+     const loadAllData = async () => {
+       if (!address) return;
+       
+      try {
+        console.log('🔄 데이터 로딩 시작...', { address, peerMallKey });
+        
+        // 🎯 API 한 번만 호출!
+        const loadedProductsResponse = await productService.getProductList(address, peerMallKey);
+        console.log('📦 API 응답 원본:', loadedProductsResponse);
+        
+        if (loadedProductsResponse && loadedProductsResponse.productList) {
+          // 🔥 데이터 변환
+          const transformedProducts = loadedProductsResponse.productList.map((apiProduct: any) => 
+            transformApiProductToProduct(apiProduct, address, config, peerMallKey || '')
+          );
           
-          let loadedProducts = await productService.getProductList(address, peerMallKey);
-          setProducts(loadedProducts['productList']);
-        } catch (error) {
-          console.error("Error loading contents:", error);
+          setProducts(transformedProducts);
+          console.log('✅ 변환된 products:', transformedProducts);
+          console.log('🔍 첫 번째 제품의 productKey:', transformedProducts[0]?.productKey);
+        } else {
+          console.warn('⚠️ API 응답에 productList가 없습니다:', loadedProductsResponse);
+          setProducts([]);
         }
+        
+        
+      } catch (error) {
+        console.error('❌ 데이터 로딩 오류:', error);
+        setProducts([]);
       }
     };
-    loadContents();
-    
-    // 히어로 슬라이드 자동 전환
-    const slideInterval = setInterval(() => {
-      setCurrentHeroSlide(prev => (prev + 1) % heroSlides.length);
-    }, 5000);
-    
-    return () => clearInterval(slideInterval);
+
+    loadAllData();
+
   }, [address, config.sections]);
 
   const handleMessage = () => {
@@ -168,35 +202,17 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   const handleShowProductForm = () => setShowProductForm(true);
   const handleShowSettings = () => setShowSettingsModal(true);
   
-  const handleContentClick = (contentItem: Content) => {
-    console.log('Content clicked:', contentItem);
-    // 상세 페이지로 이동 로직 (나중에 구현)
-  };
-
-  // 새 UI를 위한 필터된 콘텐츠
-  const filteredProducts = products.filter(product => 
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const filteredPosts = posts.filter(post => 
     post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     post.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // 위젯 토글 함수
-  const toggleWidgets = () => setShowWidgets(!showWidgets);
-
   if (!address) {
-    return <div className="container mx-auto p-6"><EmptyState title="404 - 피어스페이스를 찾을 수 없습니다" description="올바른 피어스페이스 주소인지 확인해주세요." /></div>;
-  }
-
-   function handleLogout(event: React.MouseEvent<HTMLButtonElement>): void {
-     window.location.href = "/";
+    return <div className="container mx-auto p-6"><EmptyState title="404 - 피어몰을 찾을 수 없습니다" description="올바른 피어몰 주소인지 확인해주세요." /></div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 flex">
+    <div className="min-h-screen bg-gray-50 text-gray-900">
       {/* 왼쪽 사이드바 */}
       <div className="w-64 bg-white shadow-md fixed left-0 top-0 h-full z-20">
         <div className="flex flex-col h-full">
@@ -222,8 +238,8 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             <ul className="space-y-2">
               <li>
                 <button 
-                  onClick={() => onNavigateToSection('home')}
-                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'home' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                  onClick={() => onNavigateToSection('space')}
+                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'space' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
                 >
                   <Home className="w-5 h-5 mr-3" />
                   <span>홈</span>
@@ -232,7 +248,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
               <li>
                 <button 
                   onClick={() => onNavigateToSection('products')}
-                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'content' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'products' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
                 >
                   <FileText className="w-5 h-5 mr-3" />
                   <span>제품</span>
@@ -270,7 +286,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                 {isOwner ? (
                   <Link to={`/space/${address}/settings`} className="flex items-center p-2 rounded-lg hover:bg-gray-100">
                     <Settings className="w-5 h-5 mr-3" />
-                    <span>스페이스 관리</span>
+                    <span>내 피어몰 관리</span>
                   </Link>
                 ) : (
                   <button onClick={handleMessage} className="w-full flex items-center p-2 rounded-lg hover:bg-gray-100">
@@ -326,7 +342,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         <div className="flex p-6">
           {/* 메인 콘텐츠 영역 */}
           <div className="flex-1 pr-6">
-            {activeSection === 'home' && (
+            {activeSection === 'space' && (
             <PeerSpaceHomeSection
               isOwner={isOwner}
               address={address}
@@ -351,7 +367,6 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                 currentView={currentView}
                 setCurrentView={setCurrentView}
                 handleShowProductForm={handleShowProductForm}
-                filteredProducts={filteredProducts}
                 onDetailView={onDetailView}
               />
             )}

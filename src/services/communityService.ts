@@ -14,7 +14,7 @@ import axios from 'axios';
 import { Peermall } from '@/types/peermall';
 import userService from './userService';
 
-const API_BASE_URL = 'https://api.peermall.com/v1/communities';
+const API_BASE_URL = 'http://localhost:9393/v1/communities';
 const accessToken = userService.getAccessToken();
 
 const api = axios.create({
@@ -22,9 +22,9 @@ const api = axios.create({
   timeout: 10000,
 });
 
-// 피어스페이스 타입 정의
+// 피어몰 타입 정의
 export interface PeerMall {
-  address: string; // 피어스페이스 고유 주소
+  address: string; // 피어몰 고유 주소
   title: string; // 제목
   description: string; // 설명
   ownerPeerId: string; // 소유자 피어넘버

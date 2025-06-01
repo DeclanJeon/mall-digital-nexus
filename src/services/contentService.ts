@@ -43,7 +43,7 @@ export const getContent = async (id: string): Promise<Content | undefined> => {
   return await get<Content>(STORES.CONTENTS, id);
 };
 
-// 피어스페이스의 모든 콘텐츠 조회
+// 피어몰의 모든 콘텐츠 조회
 export const getPeerSpaceContents = async (
   peerSpaceAddress: string
 ): Promise<Content[]> => {

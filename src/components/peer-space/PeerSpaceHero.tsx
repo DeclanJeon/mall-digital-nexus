@@ -89,7 +89,7 @@ const PeerSpaceHero: React.FC<PeerSpaceHeroProps> = ({
         
         toast({
           title: "추천 완료",
-          description: "해당 피어스페이스를 추천하였습니다.",
+          description: "해당 피어몰을 추천하였습니다.",
         });
         
         // Refresh the page to show updated counts
@@ -265,7 +265,7 @@ const PeerSpaceHero: React.FC<PeerSpaceHeroProps> = ({
           {/* 방문자 뱃지 주기 - 디자인 개선 필요 시 */}
           {!isOwner && availableBadges.filter(b => !config.badges.includes(b)).length > 0 && (
             <div className="mt-10">
-              <p className="text-md text-gray-300/80 mb-3">이 스페이스에 뱃지 선물하기:</p>
+              <p className="text-md text-gray-300/80 mb-3">이 피어몰에 뱃지 선물하기:</p>
               <div className="flex flex-wrap gap-3">
                 {availableBadges.filter(badge => !config.badges.includes(badge)).map((badge) => (
                   <Badge

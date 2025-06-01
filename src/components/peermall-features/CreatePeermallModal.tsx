@@ -685,7 +685,7 @@ const CreatePeermallModal: React.FC<CreatePeermallModalProps> = ({
                         </FormLabel>
                         <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-all">
                           <span className="bg-gray-50 px-3 py-2 text-sm text-muted-foreground border-r">
-                            peermall.com/space/
+                            {window.location.origin}/space
                           </span>
                           <FormControl>
                             <Input

@@ -15,16 +15,16 @@ import { ProductCardProps } from "@/types/product";
 import { useNavigate, useParams } from 'react-router-dom';
 
 const ProductCard: React.FC<ProductCardProps> = ({
+  productId,
   id,
+  name,
   title,
-  owner,
   description,
   price,
   discountPrice,
   imageUrl,
   rating,
   reviewCount,
-  peerMallName,
   peerSpaceAddress,
   peerMallKey,
   category,
@@ -32,10 +32,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
   viewMode,
   cardSize = 'medium',
   seller,
-  saleUrl, // ✨ saleUrl prop 확실히 받기
+  saleUrl,
   onAddFriend,
   onDetailView,
-  productKey
+  productKey,
 }) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
@@ -137,11 +137,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
         "bg-gradient-to-br from-white to-gray-50/30",
         isHovered && "ring-2 ring-purple-200"
       )}>
-        <CardHeader className="p-0 relative">
+        <CardHeader className={`p-0 relative ${productId}`}>
           <div className={cn("overflow-hidden relative", getImageClasses(), viewMode === 'list' ? 'rounded-l-lg' : 'rounded-t-lg')}>
-            <img 
+            <img  
               src={imageUrl} 
-              alt={title}
+              alt={name}
               className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
             />
             
@@ -187,13 +187,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </motion.button> */}
 
             {/* 할인 뱃지 */}
-            {discountPrice && (
+            {/* {discountPrice && (
               <div className="absolute top-3 left-3">
                 <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold">
                   {Math.round(((price - discountPrice) / price) * 100)}% OFF
                 </Badge>
               </div>
-            )}
+            )} */}
           </div>
         </CardHeader>
 
@@ -203,7 +203,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
               "font-bold line-clamp-2",
               cardSize === 'small' ? 'text-sm' : cardSize === 'large' ? 'text-lg' : 'text-base'
             )}>
-              {title}
+              {name}
             </h3>
             
             {viewMode !== 'list' && (
@@ -269,15 +269,18 @@ const ProductCard: React.FC<ProductCardProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
               <div className="flex items-center">
-                {[...Array(5)].map((_, i) => (
-                  <Star 
-                    key={i}
-                    className={cn(
-                      "w-3 h-3",
-                      i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
-                    )}
-                  />
-                ))}
+                {[...Array(5)].map((_, i) => {
+                  const uniqueKey = `star-${i}-${rating}`;
+                  return (
+                    <Star
+                      key={uniqueKey}
+                      className={cn(
+                        "w-3 h-3",
+                        i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                      )}
+                    />
+                  );
+                })}
               </div>
               <span className="text-xs text-gray-500">({reviewCount})</span>
             </div>

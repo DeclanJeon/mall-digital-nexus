@@ -189,7 +189,7 @@ const GamificationSection = () => {
                     </div>
                     <div>
                       <h3 className="font-medium">신규 가입</h3>
-                      <p className="text-sm text-muted-foreground">피어스페이스에 가입 완료 시 획득</p>
+                      <p className="text-sm text-muted-foreground">피어몰에 가입 완료 시 획득</p>
                     </div>
                   </div>
                   <Button variant="outline" size="sm">수정</Button>
