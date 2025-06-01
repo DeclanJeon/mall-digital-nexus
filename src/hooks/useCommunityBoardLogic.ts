@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import {
   loadPostsFromLocalStorage,
@@ -12,26 +12,7 @@ import {
 } from '@/utils/storageUtils';
 import { Post, Channel } from '@/types/post';
 import { CommunityZone } from '@/types/community';
-
-const DEFAULT_CHANNELS: Channel[] = [
-  {
-    id: 'channel-1',
-    name: '공지사항',
-    icon: '📢',
-    description: '중요 소식',
-    color: '#6366f1',
-    communityId: 'global',
-  },
-  {
-    id: 'channel-2',
-    name: '자유게시판',
-    icon: '💬',
-    description: '자유로운 토론',
-    color: '#06b6d4',
-    communityId: 'global',
-  },
-];
-
+import { getCommunityChannel, getCommunityList, registerCommunityBoard } from '@/services/communityService';
 interface UseCommunityBoardLogicProps {
   communityId: string;
   initialPosts?: Post[];
@@ -47,6 +28,8 @@ const useCommunityBoardLogic = ({
 }: UseCommunityBoardLogicProps) => {
   const navigate = useNavigate();
   const { address } = useParams<{ address: string }>(); // 🔥 현재 PeerSpace 주소 확인
+  const [ searchParams ] = useSearchParams();
+  const peerMallKey = searchParams.get('mk');
   const { toast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,6 +39,7 @@ const useCommunityBoardLogic = ({
   const [isQRDialogOpen, setIsQRDialogOpen] = useState(false);
   const [isChannelDialogOpen, setIsChannelDialogOpen] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [communities, setCommunities] = useState<CommunityZone[]>([]);
   const [viewMode, setViewMode] = useState<'list' | 'grid' | 'compact'>('list');
@@ -79,24 +63,12 @@ const useCommunityBoardLogic = ({
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      // Simulate API call delay
-      setTimeout(() => {
-        const loadedPosts = initialPosts || loadPostsFromLocalStorage(communityId);
+      const loadedPosts = await getCommunityList(address, peerMallKey);
+      const loadedChannels = await getCommunityChannel();
 
-        let loadedChannels = loadChannelsFromLocalStorage(communityId);
-        if (!loadedChannels || loadedChannels.length === 0) {
-          loadedChannels = DEFAULT_CHANNELS;
-          loadedChannels.forEach((channel) =>
-            saveChannelToLocalStorage(channel, communityId)
-          );
-        }
-        const loadedCommunities = loadCommunitiesFromLocalStorage();
-
-        setPosts(loadedPosts);
-        setChannels(loadedChannels);
-        setCommunities(loadedCommunities);
-        setIsLoading(false);
-      }, 800);
+      setPosts(loadedPosts);
+      setChannels(loadedChannels);
+      setIsLoading(false);
     };
     loadData();
   }, [communityId, initialPosts]);
@@ -106,10 +78,10 @@ const useCommunityBoardLogic = ({
     let filtered = posts.filter((post) => {
       const matchesSearch = searchQuery.trim()
         ? post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.tags.some((tag) =>
-            tag.toLowerCase().includes(searchQuery.toLowerCase())
-          )
+          post.content.toLowerCase().includes(searchQuery.toLowerCase())
+          // post.tags.some((tag) =>
+          //   tag.toLowerCase().includes(searchQuery.toLowerCase())
+          // )
         : true;
 
       const matchesTab =
@@ -162,7 +134,7 @@ const useCommunityBoardLogic = ({
       }
 
       if (address) {
-        navigate(`/space/${address}/community/${post.communityId}/post/${post.id}`);
+        navigate(`/space/${address}/community/post/${post.id}?mk=${peerMallKey}`);
       }
       else {
         // 여기서 페이지 이동 로직 실행
@@ -172,7 +144,7 @@ const useCommunityBoardLogic = ({
     }
   };
 
-  const handleSubmitNewPost = (
+  const handleSubmitNewPost = async (
     newPostData: Omit<
       Post,
       'id' | 'author' | 'date' | 'likes' | 'comments' | 'viewCount'
@@ -187,18 +159,20 @@ const useCommunityBoardLogic = ({
       viewCount: 0,
       ...newPostData,
       communityId,
+      peerMallName: address,
+      peerMallKey,
     };
 
-    savePostToLocalStorage(newPost);
+    await registerCommunityBoard(newPost);
     setPosts((prevPosts) => [newPost, ...prevPosts]);
     toast({
       title: '게시글이 작성되었습니다',
       description: '게시판에 새 글이 등록되었습니다.',
       variant: 'default',
     });
-    setTimeout(() => {
-      handlePostClick(newPost);
-    }, 800);
+    // setTimeout(() => {
+    //   handlePostClick(newPost);
+    // }, 800);
   };
 
   const handleShowQRCode = (e: React.MouseEvent, post: Post) => {
@@ -291,6 +265,20 @@ const useCommunityBoardLogic = ({
     localStorage.setItem('communityHelpTipsDismissed', 'true');
   };
 
+  const handleTabClick = (id) => {
+    let filteredLists;
+
+    if(id == 'all') {
+      filteredLists = posts;
+    }else {
+      filteredLists = posts.filter(post => {
+        return post['type'] == id
+      });
+    }
+
+    setFilteredPosts(filteredLists);
+  }
+
   return {
     // State
     searchQuery,
@@ -309,7 +297,7 @@ const useCommunityBoardLogic = ({
     hasNotifications,
     activeFilters,
     breadcrumbs,
-
+    filteredPosts,
     // Derived State
     processedPosts,
 
@@ -333,6 +321,7 @@ const useCommunityBoardLogic = ({
     handleChannelDelete,
     toggleFilter,
     dismissHelpTips,
+    handleTabClick
   };
 };
 

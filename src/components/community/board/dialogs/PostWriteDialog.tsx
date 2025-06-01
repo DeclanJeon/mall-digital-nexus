@@ -16,6 +16,7 @@ import RichTextEditor from '@/components/community/RichTextEditor';
 import { Editor } from '@toast-ui/react-editor';
 import { Channel, Post } from '@/types/post';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getDefaultChannelsIcon } from '@/utils/storageUtils'; 
 
 interface PostWriteDialogProps {
   isOpen: boolean;
@@ -223,6 +224,7 @@ const PostWriteDialog: React.FC<PostWriteDialogProps> = ({
   // 현재 선택된 채널의 색상 분석
   const selectedChannelData = channels.find(c => c.id === selectedChannel);
   const colorAnalysis = analyzeColor(selectedChannelData?.color);
+  const channelsIcon = getDefaultChannelsIcon();
 
   useEffect(() => {
     if (isOpen) {
@@ -294,14 +296,14 @@ const PostWriteDialog: React.FC<PostWriteDialogProps> = ({
       });
       return;
     }
-    
+
     onSubmit({
       title: newPostTitle,
       content: plainContent.substring(0, 150) + (plainContent.length > 150 ? "..." : ""),
       richContent,
       tags: selectedTags,
       isNotice,
-      channelId: selectedChannel,
+      channelType: selectedChannel,
       communityId: initialPost?.communityId || 'global',
     });
     onOpenChange(false);
@@ -372,7 +374,7 @@ const PostWriteDialog: React.FC<PostWriteDialogProps> = ({
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {channels.map(channel => {
+              {channels.map((channel, idx) => {
                 const channelColorAnalysis = analyzeColor(channel.color);
                 const isSelected = selectedChannel === channel.id;
                 
@@ -409,7 +411,7 @@ const PostWriteDialog: React.FC<PostWriteDialogProps> = ({
                           transition={{ duration: 0.6, ease: "easeInOut" }}
                         />
                       )}
-                      <span className="mr-2 relative z-10">{channel.icon}</span>
+                      <span className="mr-2 relative z-10">{channelsIcon[idx].icon}</span>
                       <span className="relative z-10">{channel.name}</span>
                       
                       {/* 접근성 인디케이터 */}
@@ -627,13 +629,13 @@ const PostWriteDialog: React.FC<PostWriteDialogProps> = ({
           
           {/* 추가 옵션 - 개선된 디자인 */}
           <div className="space-y-4 pt-2">
-            <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            {/* <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
               <div className="w-1 h-4 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></div>
               추가 옵션
-            </h4>
+            </h4> */}
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <motion.label 
+              {/* <motion.label 
                 className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-purple-50/50 transition-all duration-200"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -667,7 +669,7 @@ const PostWriteDialog: React.FC<PostWriteDialogProps> = ({
                   <span className="text-sm font-medium text-gray-700">공지사항으로 등록</span>
                   <p className="text-xs text-gray-500">중요한 공지사항일 경우 선택하세요</p>
                 </div>
-              </motion.label>
+              </motion.label> */}
               
               {/* <motion.label 
                 className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border border-gray-200 hover:border-green-300 hover:bg-gradient-to-r hover:from-green-50/50 hover:to-emerald-50/50 transition-all duration-200"

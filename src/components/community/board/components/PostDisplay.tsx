@@ -796,11 +796,11 @@ const PostDisplay: React.FC<PostDisplayProps> = ({
                       )}
                       
                       <div className="flex flex-wrap gap-1 mb-4">
-                        {post.tags.map((tag, index) => (
+                        {/* {post.tags.map((tag, index) => (
                           <Badge key={index} variant="secondary" className="bg-indigo-50 text-indigo-600">
                             {tag}
                           </Badge>
-                        ))}
+                        ))} */}
                       </div>
                       
                       <div className="flex justify-between items-center">
