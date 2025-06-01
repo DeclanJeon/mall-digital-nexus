@@ -303,7 +303,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             <div className="flex items-center justify-center"> 
               <button onClick={() => navigate('/')} className="text-gray-500 hover:text-gray-700 flex items-center gap-2">
                 <Home className="w-4 h-4" />
-                <span>홈으로 가기</span>
+                <span>피어몰 메인홈으로 가기</span>
               </button>
             </div>
           </div>
