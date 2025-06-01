@@ -11,6 +11,10 @@ export interface FavoriteService {
   lastUsed?: Date;
   addedAt?: Date;
   ogData?: OpenGraphData;
+  category?: string; // Add this
+  rating?: number; // Add this
+  isPopular?: boolean; // Add this
+  isTrending?: boolean; // Add this
 }
 
 export interface OpenGraphData {
