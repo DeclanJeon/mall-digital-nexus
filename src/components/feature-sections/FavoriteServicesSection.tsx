@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, FreeMode } from 'swiper/modules';
 import { Plus, ExternalLink, Globe, Star, Clock, ArrowRight, Loader2 } from 'lucide-react';
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/free-mode';
+import { getMyFavoriteService, registerMyFavoriteService } from '@/services/peerMallService';
 
 interface FavoriteService {
   id: number;
@@ -26,6 +27,8 @@ interface FavoriteService {
   lastUsed?: Date;
   addedAt?: Date;
   ogData?: OpenGraphData;
+  serviceLink: string;
+  serviceName: string;
 }
 
 interface OpenGraphData {
@@ -73,50 +76,20 @@ const extractOpenGraphData = async (url: string): Promise<OpenGraphData> => {
 };
 
 const FavoriteServicesSection: React.FC = () => {
-  const [services, setServices] = useState<FavoriteService[]>([
-    {
-      id: 1,
-      name: "Notion",
-      link: "https://notion.so",
-      description: "올인원 워크스페이스로 노트, 데이터베이스, 칸반보드를 통합 관리",
-      iconUrl: "https://www.notion.so/images/favicon.ico",
-      thumbnailUrl: "https://www.notion.so/images/meta/default.png",
-      domain: "notion.so",
-      usageCount: 127,
-      lastUsed: new Date(),
-      addedAt: new Date(),
-      ogData: {
-        title: "Notion – The all-in-one workspace for your notes, tasks, wikis, and databases.",
-        description: "A new tool that blends your everyday work apps into one. It's the all-in-one workspace for you and your team",
-        image: "https://www.notion.so/images/meta/default.png",
-        siteName: "Notion",
-        favicon: "https://www.notion.so/images/favicon.ico"
-      }
-    },
-    {
-      id: 2,
-      name: "Figma",
-      link: "https://figma.com",
-      description: "실시간 협업이 가능한 UI/UX 디자인 도구",
-      iconUrl: "https://static.figma.com/app/icon/1/favicon.ico",
-      thumbnailUrl: "https://cdn.sanity.io/images/599r6htc/localized/46a76c802176eb17b04e12108de7e7e0f3736dc6-1024x1024.png",
-      domain: "figma.com",
-      usageCount: 89,
-      lastUsed: new Date(),
-      addedAt: new Date(),
-      ogData: {
-        title: "Figma: the collaborative interface design tool",
-        description: "Build better products as a team. Design, prototype, and gather feedback all in one place with Figma.",
-        image: "https://cdn.sanity.io/images/599r6htc/localized/46a76c802176eb17b04e12108de7e7e0f3736dc6-1024x1024.png",
-        siteName: "Figma",
-        favicon: "https://static.figma.com/app/icon/1/favicon.ico"
-      }
-    }
-  ]);
+  const [services, setServices] = useState<FavoriteService[]>();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingServices, setLoadingServices] = useState<Set<string>>(new Set());
   const swiperRef = useRef<any>(null);
+
+  useEffect(() => {
+    const loadServices = async () => {
+      const favoriteService = await getMyFavoriteService();
+      setServices(favoriteService);
+    };
+
+    loadServices();
+  }, []);
 
   const handleServiceClick = (service: FavoriteService, e: React.MouseEvent) => {
     e.preventDefault();
@@ -133,19 +106,18 @@ const FavoriteServicesSection: React.FC = () => {
     target.style.transform = 'scale(0.98)';
     setTimeout(() => {
       target.style.transform = 'scale(1)';
-      window.open(service.link, '_blank', 'noopener,noreferrer');
+      window.open(service.serviceLink, '_blank', 'noopener,noreferrer');
     }, 100);
   };
 
   const handleAddExternalService = async (name: string, link: string) => {
     const tempId = `temp-${Date.now()}`;
     setLoadingServices(prev => new Set(prev).add(tempId));
-    
     try {
       // Open Graph 데이터 추출
       const ogData = await extractOpenGraphData(link);
       const domain = new URL(link).hostname;
-      
+
       const newService: FavoriteService = {
         id: Date.now(),
         name: name || ogData.title || domain,
@@ -157,10 +129,13 @@ const FavoriteServicesSection: React.FC = () => {
         usageCount: 0,
         lastUsed: new Date(),
         addedAt: new Date(),
-        ogData: ogData
+        ogData: ogData,
+        serviceLink: link,
+        serviceName: name,
       };
-      
-      setServices(prev => [...prev, newService]);
+
+      await registerMyFavoriteService(newService);
+      setServices(services ? prev => [...prev, newService] : [newService]);
       
       // 성공 피드백
       console.log('서비스 추가 완료:', newService.name);
@@ -179,10 +154,12 @@ const FavoriteServicesSection: React.FC = () => {
         domain: domain,
         usageCount: 0,
         lastUsed: new Date(),
-        addedAt: new Date()
+        addedAt: new Date(),
+        serviceLink: '',
+        serviceName: ''
       };
       
-      setServices(prev => [...prev, fallbackService]);
+      setServices(services ? prev => [...prev, fallbackService] : [fallbackService]);
     } finally {
       setLoadingServices(prev => {
         const newSet = new Set(prev);
@@ -203,7 +180,9 @@ const FavoriteServicesSection: React.FC = () => {
       iconUrl: '/favicon.ico', // PeerTerra 파비콘
       usageCount: 0,
       lastUsed: new Date(),
-      addedAt: new Date()
+      addedAt: new Date(),
+      serviceLink: '',
+      serviceName: ''
     }));
     setServices(prev => [...prev, ...newInternalServices]);
   };
@@ -221,25 +200,16 @@ const FavoriteServicesSection: React.FC = () => {
     if (diffDays < 7) return `${diffDays}일 전`;
     return date.toLocaleDateString();
   };
-
+  
   return (
     <section className="mb-10">
       {/* 헤더 섹션 */}
       <div className="flex items-center justify-between mb-6">
-        {/* <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">
-            즐겨찾는 서비스
-          </h2>
-          <p className="text-gray-600 text-sm">
-            URL을 입력하면 자동으로 Open Graph 정보를 가져옵니다
-          </p>
-        </div> */}
-        
-        <div className="flex items-center space-x-4 text-sm text-gray-500">
+        {/* <div className="flex items-center space-x-4 text-sm text-gray-500">
           <span>{services.length}개 서비스</span>
           <span>•</span>
-          <span>{services.reduce((acc, s) => acc + (s.usageCount || 0), 0)} 총 사용</span>
-        </div>
+          <span>{services.length > 0 && services.reduce((acc, s) => acc + (s.usageCount || 0), 0)} 총 사용</span>
+        </div> */}
       </div>
 
       {/* 메인 스와이퍼 */}
@@ -257,7 +227,7 @@ const FavoriteServicesSection: React.FC = () => {
           className="!overflow-visible"
         >
           {/* 서비스 카드들 */}
-          {services.map((service) => (
+          {services && services.map((service) => (
             <SwiperSlide key={service.id} style={{ width: 'auto' }}>
               <Card 
                 className="w-80 cursor-pointer group hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-gray-300"
@@ -266,10 +236,20 @@ const FavoriteServicesSection: React.FC = () => {
                 <CardContent className="p-0">
                   {/* 썸네일 섹션 - Open Graph 이미지 우선 사용 */}
                   <div className="relative h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-lg overflow-hidden">
-                    {service.ogData?.image || service.thumbnailUrl ? (
+                    {/* {service.ogData?.image || service.thumbnailUrl ? (
                       <img 
                         src={service.ogData?.image || service.thumbnailUrl} 
                         alt={service.ogData?.title || service.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      /> */}
+                      {service.serviceLink ? (
+                      <img 
+                        src={service.serviceLink}
+                        alt={service.serviceName}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
@@ -295,7 +275,7 @@ const FavoriteServicesSection: React.FC = () => {
                     {/* 사이트명 배지 (Open Graph siteName 사용) */}
                     <div className="absolute bottom-3 left-3">
                       <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-xs px-2 py-1">
-                        {service.ogData?.siteName || service.domain}
+                        {service.serviceName}
                       </Badge>
                     </div>
                   </div>
@@ -306,10 +286,10 @@ const FavoriteServicesSection: React.FC = () => {
                     <div className="flex items-start space-x-3">
                       {/* 파비콘 - Open Graph favicon 우선 사용 */}
                       <div className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                        {service.ogData?.favicon || service.iconUrl ? (
+                        {service.iconUrl ? (
                           <img 
-                            src={service.ogData?.favicon || service.iconUrl} 
-                            alt={service.name}
+                            src={service.iconUrl} 
+                            alt={service.serviceName}
                             className="w-8 h-8 object-cover"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
@@ -324,10 +304,10 @@ const FavoriteServicesSection: React.FC = () => {
                       {/* 서비스 정보 - Open Graph 데이터 우선 사용 */}
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
-                          {service.ogData?.title || service.name}
+                          {service.serviceName}
                         </h3>
                         <p className="text-sm text-gray-600 line-clamp-2 mt-1">
-                          {service.ogData?.description || service.description}
+                          {service.description}
                         </p>
                       </div>
                     </div>
@@ -344,9 +324,7 @@ const FavoriteServicesSection: React.FC = () => {
                     {/* 푸터 */}
                     <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
                       <div className="flex items-center space-x-3">
-                        {service.usageCount && service.usageCount > 0 && (
                           <span>{service.usageCount}회 사용</span>
-                        )}
                         {service.lastUsed && (
                           <div className="flex items-center space-x-1">
                             <Clock className="w-3 h-3" />
@@ -399,7 +377,8 @@ const FavoriteServicesSection: React.FC = () => {
         </Swiper>
 
         {/* 네비게이션 버튼 */}
-        {services.length > 2 && (
+        {/* {services.length > 2 && ( */}
+        {services && (
           <>
             <button className="swiper-button-prev-custom absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:shadow-xl transition-shadow duration-300">
               <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
