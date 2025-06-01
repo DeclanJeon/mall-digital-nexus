@@ -48,6 +48,7 @@ const AppContent = () => {
         <Route path="/space/:address/community/:communityId" element={<CommunityDetailPage />} />
         <Route path="/space/:address/community/:communityId/post/:postId" element={<PostDetailPage />} />
         <Route path="/space/:address/community/:communityId/post/by-slug/:slug" element={<PostDetailPage />} />
+        <Route path="/space/:address/community/post/:postId/*" element={<PostDetailPage />} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/service" element={<ServicePage />} />
