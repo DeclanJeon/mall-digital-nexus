@@ -1233,71 +1233,17 @@ const Index = () => {
   // 로딩 상태 렌더링 - 사이버펑크 스타일
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black flex items-center justify-center overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
         <motion.div
-          className="text-center relative"
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8 }}
+          className="text-center"
+          {...zGenDesignTokens.animations.scaleIn}
         >
-          {/* 🌟 네온 로딩 애니메이션 */}
-          <div className="relative mb-8">
-            <motion.div 
-              className="w-24 h-24 border-4 border-transparent rounded-full mx-auto relative"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            >
-              <div className="absolute inset-0 border-4 border-cyan-400 rounded-full border-t-transparent animate-spin" />
-              <div className="absolute inset-2 border-4 border-pink-500 rounded-full border-b-transparent animate-spin animate-reverse" />
-              <div className="absolute inset-4 border-4 border-purple-500 rounded-full border-l-transparent animate-spin" />
-            </motion.div>
-            
-            {/* 글로우 효과 */}
-            <motion.div
-              className="absolute inset-0 w-24 h-24 mx-auto bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-full blur-xl opacity-30"
-              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-purple-600 rounded-full animate-spin animate-reverse mx-auto" />
           </div>
-          
-          <motion.h2 
-            className="text-3xl font-black bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-4"
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            피어몰 로딩 중...
-          </motion.h2>
-          
-          <motion.p 
-            className="text-gray-300 text-lg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            잠시만 기다려주세요 ✨
-          </motion.p>
-          
-          {/* 파티클 효과 */}
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 bg-white rounded-full"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [0, -100, 0],
-                opacity: [0, 1, 0],
-                scale: [0, 1, 0]
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                delay: Math.random() * 2
-              }}
-            />
-          ))}
+          <h2 className={zGenDesignTokens.typography.title}>피어몰 로딩 중...</h2>
+          <p className={zGenDesignTokens.typography.caption}>잠시만 기다려주세요 ✨</p>
         </motion.div>
       </div>
     );
