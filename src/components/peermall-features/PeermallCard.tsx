@@ -144,7 +144,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
         <Card className="h-full overflow-hidden transition-shadow duration-300 hover:shadow-lg">
           {/* 이미지 영역 */}
           <div className="relative aspect-video bg-gray-100 overflow-hidden">
-            <Link to={`/space/${peerMallName}?mk=${peerMallKey}`} className="block h-full">
+            <Link to={`/space/${peerMallName}?mk=${peerMallKey}`} target="_blank" className="block h-full">
               <img
                 src={displayImageUrl}
                 alt={peerMallName}
@@ -212,7 +212,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
           </div>
           
           {/* 내용 영역 */}
-          <Link to={`/space/${id}`} className="block">
+          <Link to={`/space/${peerMallName}?mk=${peerMallKey}`} target="_blank" className="block">
             <CardContent className="p-4">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-semibold text-lg line-clamp-1">{peerMallName}</h3>
