@@ -38,13 +38,13 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('latest');
-  // const [ searchParams ] = useSearchParams();
-  // const peerMallKey = searchParams.get('mk');
+  const [ searchParams ] = useSearchParams();
+  const peerMallKey = searchParams.get('mk');
 
   // console.log("products", products)
   
   const handleProductDetailView = (productKey: string | number) => {
-    navigate(`/space/${config.peerMallName}/product?mk=${config.peerMallKey}&pk=${productKey}`);
+    navigate(`/space/${config.peerMallName}/product?mk=${peerMallKey}&pk=${productKey}`);
   };
 
   const categories = ['전체', '전자제품', '패션', '생활용품', '도서', '음식', '취미', '뷰티', '스포츠'];
@@ -195,6 +195,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                   layout
                 >
                   <ProductCard
+                    productId={product.id}
                     id={product.id}
                     name={product.name}
                     owner={address}
