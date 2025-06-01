@@ -311,6 +311,7 @@ export interface PeerSpaceHomeProps {
   onUpdateConfig: (updatedConfig: PeerMallConfig) => void;
   activeSection: 'space' | 'products' | 'community' | 'following' | 'guestbook' | 'settings';
   onNavigateToSection: (section: 'space' | 'products' | 'community' | 'following' | 'guestbook' | 'settings') => void;
+  onDetailView?: (productId: string | number) => void;
 }
 
 export type SectionType =

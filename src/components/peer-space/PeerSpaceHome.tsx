@@ -69,16 +69,7 @@ import productService from '@/services/productService';
 import { Product } from '@/types/product';
 import { Post } from '@/types/post';
 
-interface PeerSpaceHomeProps {
-  isOwner: boolean;
-  address: string;
-  config: PeerMallConfig;
-  peermall: Peermall | null;
-  onUpdateConfig: (updatedConfig: PeerMallConfig) => void;
-  activeSection: SectionType;
-  onNavigateToSection: (section: SectionType) => void;
-  onDetailView?: (productId: string | number) => void;
-}
+import { PeerSpaceHomeProps } from '@/types/space';
 
 
 // 🎯 데이터 변환 함수 분리
@@ -158,6 +149,11 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
        
       try {
         console.log('🔄 데이터 로딩 시작...', { address, peerMallKey });
+
+        console.log(isOwner, 
+  address,
+  config,
+  peermall)
         
         // 🎯 API 한 번만 호출!
         const loadedProductsResponse = await productService.getProductList(address, peerMallKey);
