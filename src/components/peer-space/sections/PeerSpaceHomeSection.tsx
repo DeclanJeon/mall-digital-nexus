@@ -97,10 +97,7 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
                   currentView={currentView}
                   setCurrentView={setCurrentView}
                   handleShowProductForm={handleShowProductForm}
-                  filteredProducts={filteredProducts}
                   onDetailView={handleProductDetailView}
-                  peerMallName={address}
-                  peerMallKey={peerMallKey}
                 />
 
                 {/* <CommunitySection

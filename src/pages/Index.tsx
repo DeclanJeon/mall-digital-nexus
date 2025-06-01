@@ -1,7 +1,4 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Product } from '@/types/product';
-import { getProducts } from '@/services/storage/productStorage';
-import ProductGrid from '@/components/shopping/products/ProductGrid';
 import { BookmarkItem } from '@/components/navigation/SearchAndFilterBar';
 import PeermallGrid from '@/components/peermall-features/PeermallGrid';
 import HashtagFilter, { HashtagFilterOption, PeermallType } from '@/components/navigation/HashtagFilter';
@@ -29,6 +26,8 @@ import SearchAndFilterBar from '@/components/navigation/SearchAndFilterBar';
 import { getAllPeerMallList } from '@/services/peerMallService';
 import PeermallCard from '@/components/peermall-features/PeermallCard';
 import productService from '@/services/productService';
+import { Product } from '@/types/product';
+import ProductGrid from '@/components/shopping/products/ProductGrid';
 
 interface Location {
   lat: number;
@@ -521,7 +520,7 @@ const Index = () => {
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [qrModalTitle, setQrModalTitle] = useState('');
-  const [productsData, setProductsData] = useState<Product[]>([]);
+  
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8); // 페이지당 보여줄 상품 수
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -1171,7 +1170,7 @@ const Index = () => {
                       products={products} 
                       viewMode="grid"
                       onDetailView={(productKey) => {
-                        const product = productsData.find(p => p.productKey === productKey);
+                        const product = products.find(p => p.productKey === productKey);
                         if (product && product.peerMallKey) {
                           navigate(`/space/${product.peerMallName}/product?mk=${product.peerMallKey}&pk=${productKey}`);
                         } else {

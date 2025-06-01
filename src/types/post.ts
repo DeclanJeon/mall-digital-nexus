@@ -4,6 +4,7 @@ export interface Post {
   author: string;
   date: string;
   content: string; // Markdown 요약본 또는 일반 텍스트 내용 (렌더링 시 주의)
+  description: string;
   likes: number;
   comments: number;
   tags: string[];

@@ -36,7 +36,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
   onAddFriend,
   onDetailView,
   productKey,
+  create_date = new Date().toISOString(), // Default value
 }) => {
+  // Use id as productId if not provided
+  const effectiveProductId = productId || id?.toString();
+  
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
   const [wishlistHover, setWishlistHover] = useState(false);
@@ -137,7 +141,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         "bg-gradient-to-br from-white to-gray-50/30",
         isHovered && "ring-2 ring-purple-200"
       )}>
-        <CardHeader className={`p-0 relative ${productId}`}>
+        <CardHeader className={`p-0 relative ${effectiveProductId}`}>
           <div className={cn("overflow-hidden relative", getImageClasses(), viewMode === 'list' ? 'rounded-l-lg' : 'rounded-t-lg')}>
             <img  
               src={imageUrl} 

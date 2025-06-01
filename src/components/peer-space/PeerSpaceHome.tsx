@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Content, ContentType, PeerMallConfig, SectionType } from '@/types/space';
-import { Product, isProduct } from '@/types/product';
 import { Peermall } from '@/types/peermall';
 import { 
   Heart, 
@@ -38,13 +37,11 @@ import {
   ArrowUp,
   Map
 } from 'lucide-react';
-import { createContent } from '@/services/contentService';
 // import { getPeerSpaceContents } from '@/utils/peerSpaceStorage';
 import { ContentFormValues } from './forms/AddContentForm';
 import { usePeerSpaceTabs } from '@/hooks/usePeerSpaceTabs';
 // import { add } from '@/utils/indexedDBService';
 import EmptyState from './ui/EmptyState';
-import ProductCard from '@/components/shopping/products/ProductCard';
 import BadgeSelector from './ui/BadgeSelector';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import BasicInfoSection from './sections/BasicInfoSection';
@@ -70,6 +67,8 @@ import {
 import { saveSectionOrder, getSectionOrder, getSectionDisplayName } from './utils/peerSpaceUtils';
 import { peermallStorage } from '@/services/storage/peermallStorage';
 import productService from '@/services/productService';
+import { Product } from '@/types/product';
+import { Post } from '@/types/post';
 
 interface PeerSpaceHomeProps {
   isOwner: boolean;
@@ -211,6 +210,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
     return <div className="container mx-auto p-6"><EmptyState title="404 - 피어몰을 찾을 수 없습니다" description="올바른 피어몰 주소인지 확인해주세요." /></div>;
   }
 
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       {/* 왼쪽 사이드바 */}
@@ -346,9 +346,9 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             <PeerSpaceHomeSection
               isOwner={isOwner}
               address={address}
+              products={products}
               config={config}
               onNavigateToSection={onNavigateToSection}
-              products={products}
               posts={posts}
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}

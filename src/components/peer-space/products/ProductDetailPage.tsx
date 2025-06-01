@@ -74,6 +74,9 @@ const saveInquiries = (allInquiries: Inquiry[]) => {
 
 const ProductDetailPage: React.FC = () => { 
   const { address } = useParams<{ address: string }>();
+
+  console.log(address)
+
   const [ searchParams ] = useSearchParams();
   const peerMallKey = searchParams.get('mk');
   const productKey = searchParams.get('pk');
@@ -134,7 +137,7 @@ const ProductDetailPage: React.FC = () => {
       const result = await productService.getProductInfo(address, peerMallKey, productKey);
       const productData = result['productInfo'];
 
-      console.log(productData)
+      console.log(peerMallKey)
       
       // 데이터베이스 스키마에 맞게 데이터 변환
       const formattedProduct: Product = {
