@@ -76,7 +76,7 @@ const extractOpenGraphData = async (url: string): Promise<OpenGraphData> => {
 };
 
 const FavoriteServicesSection: React.FC = () => {
-  const [services, setServices] = useState<FavoriteService[]>();
+  const [services, setServices] = useState<FavoriteService[]>([]); // ✅ 빈 배열로 초기화
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingServices, setLoadingServices] = useState<Set<string>>(new Set());
@@ -95,19 +95,11 @@ const FavoriteServicesSection: React.FC = () => {
     e.preventDefault();
     
     // 사용 횟수 증가 및 마지막 사용 시간 업데이트
-    setServices(prev => prev.map(s => 
+    setServices(prev => Array.isArray(prev) ? prev.map(s => 
       s.id === service.id 
         ? { ...s, usageCount: (s.usageCount || 0) + 1, lastUsed: new Date() }
         : s
-    ));
-
-    // 부드러운 클릭 피드백
-    const target = e.currentTarget as HTMLElement;
-    target.style.transform = 'scale(0.98)';
-    setTimeout(() => {
-      target.style.transform = 'scale(1)';
-      window.open(service.serviceLink, '_blank', 'noopener,noreferrer');
-    }, 100);
+    ) : []); // prev가 배열이 아닐 경우 빈 배열 반환
   };
 
   const handleAddExternalService = async (name: string, link: string) => {
@@ -135,7 +127,7 @@ const FavoriteServicesSection: React.FC = () => {
       };
 
       await registerMyFavoriteService(newService);
-      setServices(services ? prev => [...prev, newService] : [newService]);
+      setServices(prev => Array.isArray(prev) ? [...prev, newService] : [newService]); // services가 배열이 아닐 경우 새 배열 생성
       
       // 성공 피드백
       console.log('서비스 추가 완료:', newService.name);
@@ -159,7 +151,7 @@ const FavoriteServicesSection: React.FC = () => {
         serviceName: ''
       };
       
-      setServices(services ? prev => [...prev, fallbackService] : [fallbackService]);
+      setServices(prev => Array.isArray(prev) ? [...prev, fallbackService] : [fallbackService]); // services가 배열이 아닐 경우 새 배열 생성
     } finally {
       setLoadingServices(prev => {
         const newSet = new Set(prev);
@@ -184,7 +176,7 @@ const FavoriteServicesSection: React.FC = () => {
       serviceLink: '',
       serviceName: ''
     }));
-    setServices(prev => [...prev, ...newInternalServices]);
+    setServices(prev => Array.isArray(prev) ? [...prev, ...newInternalServices] : [...newInternalServices]); // prev가 배열이 아닐 경우 새 배열 생성
   };
 
   const formatTimeAgo = (date: Date) => {
@@ -227,7 +219,7 @@ const FavoriteServicesSection: React.FC = () => {
           className="!overflow-visible"
         >
           {/* 서비스 카드들 */}
-          {services && services.map((service) => (
+          {Array.isArray(services) && services.map((service) => (
             <SwiperSlide key={service.id} style={{ width: 'auto' }}>
               <Card 
                 className="w-80 cursor-pointer group hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-gray-300"
@@ -378,7 +370,7 @@ const FavoriteServicesSection: React.FC = () => {
 
         {/* 네비게이션 버튼 */}
         {/* {services.length > 2 && ( */}
-        {services && (
+        {Array.isArray(services) && (
           <>
             <button className="swiper-button-prev-custom absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:shadow-xl transition-shadow duration-300">
               <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

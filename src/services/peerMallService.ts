@@ -16,7 +16,7 @@ import userService from './userService';
 
 //const API_BASE_URL = 'https://api.peermall.com/v1/peerMalls';
 const API_BASE_URL = 'http://localhost:9393/v1/peerMalls';
-const accessToken = userService.getAccessToken();
+let accessToken;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -90,24 +90,26 @@ export const createPeerSpace = async (
   return address;
 };
 
-export const createPeerMall = async (formData: FormData ): Promise<any> => {
+export const createPeerMall = async (formData: FormData): Promise<any> => {
   try {
+    accessToken = userService.getAccessToken();
+
     const response = await api.post(`/register`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${accessToken}`
+        Authorization: `Bearer ${accessToken}`,
       },
     });
     return response.data;
   } catch (error: any) {
     throw error.response.data;
   }
-}
+};
 
 // 피어몰 리스트 조회
 export const getPeerMallList = async (): Promise<Object> => {
   try {
-      const response = await api.get('/peerMallList');
+    const response = await api.get('/peerMallList');
     if (response.status === 200 && response.data.success) {
       return response.data;
     }
@@ -118,9 +120,15 @@ export const getPeerMallList = async (): Promise<Object> => {
   }
 };
 
-export const getPeerMallData = async (peerMallName: string, peerMallKey: string): Promise<Peermall | undefined> => {
+export const getPeerMallData = async (
+  peerMallName: string,
+  peerMallKey: string
+): Promise<Peermall | undefined> => {
   try {
-    const response = await api.post('/peerMallData', { peerMallName, peerMallKey });
+    const response = await api.post('/peerMallData', {
+      peerMallName,
+      peerMallKey,
+    });
     if (response.status === 200 && response.data.success) {
       return response.data['peerMallData'];
     }
@@ -144,26 +152,29 @@ export const getAllPeerMallList = async (): Promise<any> => {
   }
 };
 
-export const registerMyFavoriteService = async (data: Object ): Promise<any> => {
+export const registerMyFavoriteService = async (data: Object): Promise<any> => {
   try {
+    accessToken = userService.getAccessToken();
+
     const response = await api.post(`/registerMyFavoriteService`, data, {
       headers: {
-        'Authorization': `Bearer ${accessToken}`
+        Authorization: `Bearer ${accessToken}`,
       },
     });
     return response.data;
   } catch (error: any) {
     throw error.response.data;
   }
-}
+};
 
 export const getMyFavoriteService = async (): Promise<any> => {
   try {
-      const response = await api.get('/getMyFavoriteService', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        },
-      });
+    accessToken = userService.getAccessToken();
+    const response = await api.get('/getMyFavoriteService', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
     if (response.status === 200 && response.data.success) {
       return response.data.myFavoriteService;

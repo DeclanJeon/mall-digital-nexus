@@ -2,7 +2,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { SectionType } from '../types';
+import { SectionType } from '@/types/space';
 import { getSectionDisplayName, saveSectionOrder } from '../utils/peerSpaceUtils';
 
 interface PeerSpaceSettingsModalProps {

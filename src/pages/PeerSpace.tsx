@@ -111,7 +111,7 @@ const PeerSpace = () => {
           followers: peermallData.followers || 0,
           recommendations: peermallData.likes || 0,
           badges: [],
-          sections: ['space', 'products', 'community', 'following', 'guestbook', 'settings'],
+          sections: [activeSection],
           createdAt: peermallData.createdAt,
           peerMallKey: peermallData.peerMallKey,
           peerMallName: peermallData.peerMallName,
@@ -166,6 +166,8 @@ const PeerSpace = () => {
       setActiveSection('products');
     } else if (path.includes('/community')) {
       setActiveSection('community');
+    } else if (path.includes('/peermap')) {
+      setActiveSection('peermap');
     } else if (path.includes('/following')) {
       setActiveSection('following');
     } else if (path.includes('/guestbook')) {
@@ -201,9 +203,6 @@ const PeerSpace = () => {
 
   // ProductCard의 onDetailView prop으로 전달될 함수
   const handleDetailView = (productKey: string | number) => {
-
-    console.log("Detail View : ", peerMallKey, productKey)
-
     navigate(`/space/${address}/product?mk=${peerMallKey}&pk=${productKey}`);
   };
 

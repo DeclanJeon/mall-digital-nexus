@@ -9,13 +9,15 @@ import CommunitySection from './CommunitySection';
 import GuestbookSection from './GuestbookSection';
 import FollowingSection from './FollowingSection';
 import PeerSpaceContentSection from './PeerSpaceContentSection';
+import EcosystemMap from '@/components/EcosystemMap';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import PeerSpaceMapSection from './PeerSpaceMapSection';
 
 interface PeerSpaceHomeSectionProps {
   isOwner: boolean;
   address: string;
   config: PeerMallConfig;
-  activeSection: 'space' | 'products' | 'community' | 'following' | 'guestbook' | 'settings';
+  activeSection: 'space' | 'products' | 'community' | 'following' | 'guestbook' | 'settings' | 'peermap'; // 🚀 peermap 추가
   products: Content[];
   posts: Content[];
   searchQuery: string;
@@ -24,6 +26,7 @@ interface PeerSpaceHomeSectionProps {
   setSearchQuery: (query: string) => void;
   setCurrentView: (view: 'list' | 'blog' | 'grid-small' | 'grid-medium' | 'grid-large' | 'masonry') => void;
   handleShowProductForm: () => void;
+  onDetailView: (productKey: string | number) => void;
 }
 
 const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
@@ -39,13 +42,23 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
   setSearchQuery,
   setCurrentView,
   handleShowProductForm,
+  onDetailView,
 }) => {
   const navigate = useNavigate();
-  const [ searchParams ] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const peerMallKey = searchParams.get('mk');
 
-  const handleProductDetailView = (productId: string | number) => {
-    navigate(`/space/${address}/product/${productId}`);
+  const handleProductDetailView = (productKey: string | number) => {
+    onDetailView(productKey);
+  };
+
+  // 🗺️ 피어맵에서 위치 선택 시 처리 함수
+  const handleLocationSelect = (location: any) => {
+    console.log('🚀 선택된 피어몰:', location);
+    // 선택된 피어몰로 이동하는 로직을 여기에 추가할 수 있습니다
+    if (location.peerMallKey) {
+      navigate(`/space/${location.peerMallKey}?mk=${location.peerMallKey}`);
+    }
   };
 
   const filteredProducts = useMemo(() =>
@@ -54,7 +67,7 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
       (product.description?.toLowerCase() || '').includes(searchQuery.toLowerCase())
     ).map(content => ({
       ...content,
-      productKey: content.id, // id를 productKey로 사용
+      productKey: content.id,
       title: content.title || '제목 없음',
       owner: address,
       currency: content.price ? 'ETH' : 'ETH',
@@ -78,81 +91,80 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 flex">
-      <div className="flex p-6 w-full">
-        <div className="flex-1 pr-6">
-          <>
-            {activeSection === 'space' && (
-              <>
-                {/* <HeroSection
-                  slides={heroSlides}
-                  badges={config.badges}
-                /> */}
+    <div className="w-full">
+      {/* 🎯 반응형 컨테이너 */}
+      <div className="w-full max-w-none">
+        {activeSection === 'space' && (
+          <div className="space-y-6 lg:space-y-8">
+            {/* 🎨 피어스페이스 메인 콘텐츠 */}
+            <PeerSpaceContentSection
+              isOwner={isOwner}
+              address={address}
+              config={config}
+              products={filteredProducts}
+              currentView={currentView}
+              setCurrentView={setCurrentView}
+              handleShowProductForm={handleShowProductForm}
+              onDetailView={handleProductDetailView}
+            />
+          </div>
+        )}
 
-                <PeerSpaceContentSection
-                  isOwner={isOwner}
-                  address={address}
-                  config={config}
-                  products={filteredProducts}
-                  currentView={currentView}
-                  setCurrentView={setCurrentView}
-                  handleShowProductForm={handleShowProductForm}
-                  onDetailView={handleProductDetailView}
-                />
+        {activeSection === 'products' && (
+          <div className="space-y-6 lg:space-y-8">
+            <ProductContentSection
+              isOwner={isOwner}
+              products={filteredProducts}
+              currentView={currentView}
+              setCurrentView={setCurrentView}
+              handleShowProductForm={handleShowProductForm}
+              showAll={true}
+              onDetailView={handleProductDetailView}
+            />
+          </div>
+        )}
 
-                {/* <CommunitySection
-                  posts={filteredPosts}
-                  isOwner={isOwner}
-                  onNavigateToSection={onNavigateToSection}
-                  owner={config.owner}
-                /> */}
+        {activeSection === 'community' && (
+          <div className="space-y-6 lg:space-y-8">
+            <CommunitySection
+              posts={filteredPosts}
+              isOwner={isOwner}
+              showAll={true}
+              owner={config.owner}
+            />
+          </div>
+        )}
 
-                {/* <GuestbookSection
-                  entries={guestbookData}
-                  onNavigateToSection={onNavigateToSection}
-                /> */}
-              </>
-            )}
+        {activeSection === 'peermap' && (
+          <div className="space-y-6 lg:space-y-8">
+            <div>
+              피어몰
+            </div>
+          </div>
+        )}
 
-            {activeSection === 'products' && (
-              <ProductContentSection
-                isOwner={isOwner}
-                products={filteredProducts}
-                currentView={currentView}
-                setCurrentView={setCurrentView}
-                handleShowProductForm={handleShowProductForm}
-                showAll={true}
-                onDetailView={handleProductDetailView}
-              />
-            )}
+        {/* {activeSection === 'following' && (
+          <div className="space-y-6 lg:space-y-8">
+            <FollowingSection
+              following={followingPeermalls}
+            />
+          </div>
+        )}
 
-            {activeSection === 'community' && (
-              <CommunitySection
-                posts={filteredPosts}
-                isOwner={isOwner}
-                showAll={true}
-                owner={config.owner}
-              />
-            )}
+        {activeSection === 'guestbook' && (
+          <div className="space-y-6 lg:space-y-8">
+            <GuestbookSection
+              entries={guestbookData}
+              showAll={true}
+            />
+          </div>
+        )} */}
 
-            {activeSection === 'following' && (
-              <FollowingSection
-                following={followingPeermalls}
-              />
-            )}
-
-            {activeSection === 'guestbook' && (
-              <GuestbookSection
-                entries={guestbookData}
-                showAll={true}
-              />
-            )}
-
-            {activeSection === 'settings' && (
-              <BasicInfoSection config={config} />
-            )}
-          </>
-        </div>
+        {activeSection === 'settings' && (
+          <div className="space-y-6 lg:space-y-8">
+            <BasicInfoSection config={config} />
+          </div>
+        )}
       </div>
     </div>
   );

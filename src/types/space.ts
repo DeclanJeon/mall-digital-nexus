@@ -318,6 +318,7 @@ export type SectionType =
   | 'hero'
   | 'content'
   | 'community'
+  | 'peermap'
   | 'about'
   | 'products'
   | 'productDetail'

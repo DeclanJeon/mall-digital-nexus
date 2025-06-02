@@ -1,7 +1,11 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { MapPin } from 'lucide-react';
+<<<<<<< HEAD
 import EcosystemMap from '@/components/map/EcosystemMap';
+=======
+import EcosystemMap from '@/components/EcosystemMap';
+>>>>>>> feature_declan
 
 interface PeerSpaceMapModalProps {
   showMapModal: boolean;

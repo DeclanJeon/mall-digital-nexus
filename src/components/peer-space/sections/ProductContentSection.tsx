@@ -13,7 +13,7 @@ interface ProductContentSectionProps {
   handleShowProductForm: () => void;
   onNavigateToSection?: (section: string) => void;
   showAll?: boolean;
-  onDetailView?: (productId: string | number) => void;
+  onDetailView?: (productKey: string | number) => void;
 }
 
 const ProductContentSection: React.FC<ProductContentSectionProps> = ({
@@ -31,8 +31,8 @@ const ProductContentSection: React.FC<ProductContentSectionProps> = ({
 
   const displayedProducts = showAll ? products : products.slice(0, 8);
 
-  const handleProductClick = (productId: string) => {
-    onDetailView?.(productId);
+  const handleProductClick = (productKey: string) => {
+    onDetailView?.(productKey);
   };
 
   return (
@@ -103,11 +103,7 @@ const ProductContentSection: React.FC<ProductContentSectionProps> = ({
         ) : (
           <div className="text-center py-8">
             <p className="text-gray-500">등록된 제품이 없습니다.</p>
-            {isOwner && (
-              <Button onClick={handleShowProductForm} className="mt-2">
-                첫 제품 등록하기
-              </Button>
-            )}
+            
           </div>
         )}
         

@@ -1,26 +1,26 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { BookmarkItem } from '@/components/navigation/SearchAndFilterBar';
-import PeermallGrid from '@/components/peermall-features/PeermallGrid';
-import HashtagFilter, { HashtagFilterOption, PeermallType } from '@/components/navigation/HashtagFilter';
-import FavoriteServicesSection from '@/components/feature-sections/FavoriteServicesSection';
-import EcosystemMap from '@/components/map/EcosystemMap';
-import CommunityHighlights from '@/components/CommunityHighlights';
-import CreatePeermall from '@/components/peermall-features/CreatePeermall';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import EcosystemMap from '@/components/EcosystemMap';
+import { zGenDesignTokens } from '@/styles/designTokens';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeModal } from '@/components/peer-space/modals/QRCodeModal';
 import { 
   ChevronRight, ShoppingBag, Sparkles, Map, Users, Heart, Star, Phone, MessageSquare, 
   Navigation, RefreshCw, Filter, Grid, List, Store, Search, Eye, LayoutGrid, 
   Image, BookOpen, Calendar, MapPin, ThumbsUp, MessageCircle, Share2, Bookmark,
-  ChevronLeft, Settings, Maximize2, Minimize2, RotateCcw, Newspaper, Clock, TrendingUp
+  ChevronLeft, Settings, Maximize2, Minimize2, RotateCcw, Newspaper, Clock, TrendingUp,
+  Zap, Rocket, Compass, Globe, Target, Layers, ArrowRight, Play, Pause, Volume2,
+  VolumeX, MoreHorizontal, Plus, Minus, X, Check, AlertCircle, Info, ChevronDown,
+  ChevronUp, ExternalLink, Download, Upload, Copy, Edit, Trash2, Archive,
+  Bell, BellOff, Lock, Unlock, Sun, Moon, Wifi, WifiOff, Battery, Bluetooth,
+  Menu
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { peermallStorage, Peermall } from '@/services/storage/peermallStorage';
 import { useToast } from '@/hooks/use-toast';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import SearchAndFilterBar from '@/components/navigation/SearchAndFilterBar';
 import { getAllPeerMallList } from '@/services/peerMallService';
@@ -29,6 +29,9 @@ import productService from '@/services/productService';
 import { Product } from '@/types/product';
 import ProductGrid from '@/components/shopping/products/ProductGrid';
 import CommunityFeed from '@/components/community/CommunityFeed';
+import MainHeroSection from '@/components/peer-space/sections/MainHeroSection';
+import { HashtagFilterOption, PeermallType } from '@/components/navigation/HashtagFilter';
+import FavoriteServicesSection from '@/components/feature-sections/FavoriteServicesSection';
 
 interface Location {
   lat: number;
@@ -37,8 +40,8 @@ interface Location {
   title: string;
 }
 
-// 🎨 뷰어 모드 타입 정의 - 뉴스 모드 추가
-type ViewMode = 'grid' | 'list' | 'gallery' | 'blog' | 'magazine' | 'timeline' | 'news';
+// 🎨 Z세대 감성의 뷰어 모드 타입
+type ViewMode = 'grid' | 'list' | 'cards';
 
 // 🎯 섹션별 뷰어 상태 타입
 interface SectionViewModes {
@@ -47,156 +50,44 @@ interface SectionViewModes {
   products: ViewMode;
 }
 
-// 🎨 프리미엄 디자인 토큰 - 미래지향적 Z세대 감성
-const designTokens = {
-  colors: {
-    primary: {
-      50: '#f8fafc',
-      100: '#f1f5f9', 
-      200: '#e2e8f0',
-      300: '#cbd5e1',
-      500: '#64748b',
-      600: '#475569',
-      700: '#334155',
-      900: '#0f172a'
-    },
-    accent: {
-      50: '#f0f9ff',
-      100: '#e0f2fe',
-      500: '#0ea5e9',
-      600: '#0284c7',
-      700: '#0369a1'
-    },
-    success: {
-      50: '#f0fdf4',
-      100: '#dcfce7',
-      500: '#22c55e',
-      600: '#16a34a'
-    },
-    warning: {
-      50: '#fffbeb',
-      100: '#fef3c7',
-      500: '#f59e0b',
-      600: '#d97706'
-    },
-    // 🌈 Z세대 감성 그라디언트 확장
-    gradients: {
-      fire: 'from-orange-500 via-red-500 to-pink-600',
-      ocean: 'from-blue-500 via-cyan-500 to-teal-600',
-      forest: 'from-green-400 via-emerald-500 to-teal-600',
-      sunset: 'from-purple-500 via-pink-500 to-rose-600',
-      galaxy: 'from-indigo-600 via-purple-600 to-pink-600',
-      slate: 'from-slate-500 via-gray-600 to-zinc-700',
-      neon: 'from-cyan-400 via-blue-500 to-purple-600',
-      aurora: 'from-green-300 via-blue-500 to-purple-600',
-      news: 'from-red-500 via-orange-500 to-yellow-500'
-    }
-  },
-  typography: {
-    hero: 'text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent',
-    heading: 'text-xl font-semibold text-gray-900',
-    subheading: 'text-lg font-medium text-gray-800',
-    body: 'text-sm text-gray-600',
-    caption: 'text-xs text-gray-500'
-  },
-  spacing: {
-    section: 'mb-12',
-    card: 'p-6',
-    cardGap: 'gap-6',
-    element: 'mb-4'
-  },
-  elevation: {
-    card: 'shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300',
-    feature: 'shadow-lg border-0 backdrop-blur-sm',
-    interactive: 'hover:shadow-xl hover:scale-[1.02] transition-all duration-300 ease-out',
-    glass: 'backdrop-blur-xl bg-white/80 border border-white/20 shadow-2xl'
-  },
-  animations: {
-    fadeIn: {
-      initial: { opacity: 0, y: 20 },
-      animate: { opacity: 1, y: 0 },
-      transition: { duration: 0.5, ease: "easeOut" }
-    },
-    slideIn: {
-      initial: { opacity: 0, x: -30 },
-      animate: { opacity: 1, x: 0 },
-      transition: { duration: 0.4, ease: "easeOut" }
-    },
-    scaleIn: {
-      initial: { opacity: 0, scale: 0.9 },
-      animate: { opacity: 1, scale: 1 },
-      transition: { duration: 0.3, ease: "easeOut" }
-    }
-  }
-};
-
-// 🎨 확장된 뷰 모드 옵션 정의 - 뉴스 모드 추가
+// 🎨 확장된 뷰 모드 옵션 - 모바일 최적화
 const viewModeOptions = [
   { 
     value: 'grid' as ViewMode, 
     label: '그리드', 
     icon: Grid, 
-    description: '카드 형태로 깔끔하게',
+    description: '깔끔한 카드 레이아웃',
     gradient: 'from-blue-500 to-cyan-500',
-    bestFor: '빠른 탐색'
+    bestFor: '빠른 탐색',
+    emoji: '📱'
   },
+  // { 
+  //   value: 'cards' as ViewMode, 
+  //   label: '카드', 
+  //   icon: Layers, 
+  //   description: '인스타그램 스타일',
+  //   gradient: 'from-pink-500 to-rose-500',
+  //   bestFor: '시각적 임팩트',
+  //   emoji: '💳'
+  // },
   { 
     value: 'list' as ViewMode, 
     label: '리스트', 
     icon: List, 
-    description: '상세 정보와 함께',
+    description: '상세 정보 중심',
     gradient: 'from-green-500 to-emerald-500',
-    bestFor: '정보 중심'
-  },
-  { 
-    value: 'gallery' as ViewMode, 
-    label: '갤러리', 
-    icon: Image, 
-    description: '이미지 중심으로',
-    gradient: 'from-purple-500 to-pink-500',
-    bestFor: '시각적 탐색'
-  },
-  { 
-    value: 'news' as ViewMode, 
-    label: '뉴스', 
-    icon: Newspaper, 
-    description: '뉴스 매거진 스타일',
-    gradient: 'from-red-500 to-orange-500',
-    bestFor: '뉴스 형태'
-  },
-  { 
-    value: 'blog' as ViewMode, 
-    label: '블로그', 
-    icon: BookOpen, 
-    description: '스토리텔링 방식',
-    gradient: 'from-orange-500 to-red-500',
-    bestFor: '깊이 있는 내용'
-  },
-  { 
-    value: 'magazine' as ViewMode, 
-    label: '매거진', 
-    icon: LayoutGrid, 
-    description: '매거진 레이아웃',
-    gradient: 'from-indigo-500 to-purple-500',
-    bestFor: '프리미엄 경험'
-  },
-  { 
-    value: 'timeline' as ViewMode, 
-    label: '타임라인', 
-    icon: Calendar, 
-    description: '시간순 배열',
-    gradient: 'from-teal-500 to-blue-500',
-    bestFor: '시간 기반 탐색'
+    bestFor: '정보 중심',
+    emoji: '📋'
   }
 ];
 
-// 🎯 미니멀한 아이콘 뷰어 모드 선택 컴포넌트
-const SectionViewModeSelector = ({ 
+// 🎯 모바일 최적화 뷰어 모드 선택 컴포넌트
+const MobileOptimizedViewModeSelector = ({ 
   currentMode, 
   onModeChange, 
   sectionTitle,
   itemCount,
-  compact = false 
+  compact = true 
 }: {
   currentMode: ViewMode;
   onModeChange: (mode: ViewMode) => void;
@@ -205,240 +96,65 @@ const SectionViewModeSelector = ({
   compact?: boolean;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showTooltip, setShowTooltip] = useState<string | null>(null);
-
   const currentOption = viewModeOptions.find(opt => opt.value === currentMode);
 
-  if (compact) {
-    return (
-      <div className="relative flex items-center space-x-1">
-        {/* 🎨 현재 모드 표시 아이콘 */}
-        <div className="flex items-center space-x-1 px-2 py-1 bg-white/80 rounded-lg border border-gray-200 backdrop-blur-sm">
-          {currentOption && (
-            <currentOption.icon className="w-4 h-4 text-gray-600" />
-          )}
-          <span className="text-xs text-gray-600 font-medium hidden sm:inline">
-            {currentOption?.label}
+  return (
+    <div className="relative">
+      {/* 🚀 모바일 친화적 컴팩트 모드 */}
+      <div className="flex items-center space-x-2">
+        {/* 현재 모드 표시 - 모바일 최적화 */}
+        <motion.div 
+          className="flex items-center space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-lg sm:rounded-xl shadow-sm"
+          whileHover={{ scale: 1.02 }}
+        >
+          <div className={`p-1 rounded-md bg-gradient-to-r ${currentOption?.gradient}`}>
+            {currentOption && <currentOption.icon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />}
+          </div>
+          <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:inline">
+            {currentOption?.emoji} {currentOption?.label}
           </span>
-        </div>
+          <Badge className="bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30 text-xs px-1.5 py-0.5">
+            {itemCount}
+          </Badge>
+        </motion.div>
 
-        {/* 🎯 뷰 모드 아이콘들 */}
+        {/* 뷰 모드 선택 버튼들 - 모바일 최적화 */}
         <div className="flex items-center space-x-1">
-          {viewModeOptions.slice(0, 4).map((option) => {
+          {viewModeOptions.map((option, index) => {
             const IconComponent = option.icon;
             const isActive = currentMode === option.value;
             
             return (
-              <div key={option.value} className="relative">
-                <motion.button
-                  onClick={() => onModeChange(option.value)}
-                  onMouseEnter={() => setShowTooltip(option.value)}
-                  onMouseLeave={() => setShowTooltip(null)}
-                  className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200",
-                    isActive 
-                      ? `bg-gradient-to-r ${option.gradient} text-white shadow-sm` 
-                      : "bg-white/60 hover:bg-white/80 text-gray-500 hover:text-gray-700 border border-gray-200/50"
-                  )}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <IconComponent className="w-4 h-4" />
-                </motion.button>
-
-                {/* 🏷️ 툴팁 */}
-                <AnimatePresence>
-                  {showTooltip === option.value && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 5, scale: 0.9 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 5, scale: 0.9 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap z-50"
-                    >
-                      {option.label}
-                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-900"></div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+              <motion.button
+                key={option.value}
+                onClick={() => onModeChange(option.value)}
+                className={cn(
+                  "relative w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-300",
+                  isActive 
+                    ? `bg-gradient-to-r ${option.gradient} shadow-lg` 
+                    : "bg-white/60 dark:bg-gray-800/60 hover:bg-white/80 dark:hover:bg-gray-700/80 border border-gray-200/50 dark:border-gray-600/30"
+                )}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <IconComponent className={cn(
+                  "w-3 h-3 sm:w-4 sm:h-4 transition-colors duration-300",
+                  isActive ? "text-white" : "text-gray-600 dark:text-gray-400"
+                )} />
+              </motion.button>
             );
           })}
-
-          {/* 🔧 더 많은 옵션 버튼 */}
-          {viewModeOptions.length > 4 && (
-            <div className="relative">
-              <motion.button
-                onClick={() => setIsExpanded(!isExpanded)}
-                onMouseEnter={() => setShowTooltip('more')}
-                onMouseLeave={() => setShowTooltip(null)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/60 hover:bg-white/80 text-gray-500 hover:text-gray-700 border border-gray-200/50 transition-all duration-200"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Settings className="w-4 h-4" />
-              </motion.button>
-
-              {/* 더 많은 옵션 툴팁 */}
-              <AnimatePresence>
-                {showTooltip === 'more' && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 5, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 5, scale: 0.9 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap z-50"
-                  >
-                    더 많은 옵션
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-900"></div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* 확장 메뉴 */}
-              <AnimatePresence>
-                {isExpanded && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute top-full right-0 mt-2 z-50 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-lg shadow-xl p-2 min-w-[200px]"
-                  >
-                    <div className="grid grid-cols-1 gap-1">
-                      {viewModeOptions.slice(4).map((option) => {
-                        const IconComponent = option.icon;
-                        const isActive = currentMode === option.value;
-                        
-                        return (
-                          <motion.button
-                            key={option.value}
-                            onClick={() => {
-                              onModeChange(option.value);
-                              setIsExpanded(false);
-                            }}
-                            className={cn(
-                              "p-2 rounded-lg transition-all duration-200 text-left flex items-center space-x-2",
-                              isActive 
-                                ? "bg-blue-50 border border-blue-200 text-blue-700" 
-                                : "hover:bg-gray-50 text-gray-700"
-                            )}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            <div className={cn(
-                              "p-1 rounded transition-all duration-200",
-                              isActive 
-                                ? `bg-gradient-to-r ${option.gradient} text-white` 
-                                : "bg-gray-100 text-gray-600"
-                            )}>
-                              <IconComponent className="w-3 h-3" />
-                            </div>
-                            <span className="text-xs font-medium">
-                              {option.label}
-                            </span>
-                          </motion.button>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          )}
         </div>
-      </div>
-    );
-  }
-
-  // 확장형 뷰어 (기존 유지하되 더 컴팩트하게)
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-medium text-gray-700 flex items-center space-x-2">
-            <Eye className="w-4 h-4" />
-            <span>보기 방식</span>
-          </h3>
-          <p className="text-xs text-gray-500 mt-1">
-            {sectionTitle} · {itemCount}개 · <span className="font-medium">{currentOption?.label}</span>
-          </p>
-        </div>
-        
-        {/* 🔄 초기화 아이콘 버튼 */}
-        <motion.button
-          onClick={() => onModeChange('grid')}
-          className="w-7 h-7 rounded-lg flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-all duration-200"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          title="그리드 뷰로 초기화"
-        >
-          <RotateCcw className="w-3 h-3" />
-        </motion.button>
-      </div>
-      
-      {/* 🎨 미니멀한 아이콘 그리드 */}
-      <div className="flex flex-wrap gap-2">
-        {viewModeOptions.map((option) => {
-          const IconComponent = option.icon;
-          const isActive = currentMode === option.value;
-          
-          return (
-            <div key={option.value} className="relative">
-              <motion.button
-                onClick={() => onModeChange(option.value)}
-                onMouseEnter={() => setShowTooltip(option.value)}
-                onMouseLeave={() => setShowTooltip(null)}
-                className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group relative overflow-hidden",
-                  isActive 
-                    ? `bg-gradient-to-r ${option.gradient} text-white shadow-lg` 
-                    : "bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-700 border-2 border-gray-200 hover:border-gray-300"
-                )}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <IconComponent className="w-5 h-5 relative z-10" />
-                
-                {/* 활성 상태 배경 효과 */}
-                {isActive && (
-                  <motion.div
-                    className="absolute inset-0 bg-white/20"
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                )}
-              </motion.button>
-
-              {/* 🏷️ 호버 툴팁 */}
-              <AnimatePresence>
-                {showTooltip === option.value && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 5, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 5, scale: 0.9 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap z-50 shadow-lg"
-                  >
-                    <div className="text-center">
-                      <div className="font-medium">{option.label}</div>
-                      <div className="text-gray-300 text-xs">{option.bestFor}</div>
-                    </div>
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-900"></div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          );
-        })}
       </div>
     </div>
   );
 };
 
-// 🎨 향상된 뷰어 모드별 렌더링 컴포넌트 - 뉴스 모드 추가
-const UniversalViewRenderer = ({ 
+// 🎨 모바일 최적화 뷰어 렌더러
+const MobileOptimizedViewRenderer = ({ 
   items, 
   viewMode, 
   type,
@@ -455,636 +171,290 @@ const UniversalViewRenderer = ({
 }) => {
   const navigate = useNavigate();
 
-  const renderPeermallItem = (mall: Peermall, className?: string) => (
-    <PeermallCard
-      {...mall}
-      isPopular={mall.featured}
-      isFamilyCertified={mall.certified}
-      isRecommended={mall.recommended}
-      onShowQrCode={onShowQrCode || (() => {})}
-      onOpenMap={onOpenMap || (() => {})}
-      className={className}
-    />
-  );
-
-  const renderProductItem = (product: Product, className?: string) => (
-    <div 
-      className={cn("cursor-pointer", className)}
-      onClick={() => onDetailView?.(product.productKey)}
-    >
-      <Card className={`${designTokens.elevation.interactive} h-full`}>
-        <CardContent className="p-4">
-          <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden">
-            {product.imageUrl ? (
-              <img 
-                src={product.imageUrl} 
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <ShoppingBag className="w-8 h-8 text-gray-400" />
-              </div>
-            )}
-          </div>
-          <h3 className="font-medium text-gray-900 mb-1 line-clamp-2">
-            {product.name}
-          </h3>
-          <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-            {product.description}
-          </p>
-          <div className="flex items-center justify-between">
-            <span className="text-lg font-bold text-blue-600">
-              ₩{product.price?.toLocaleString()}
-            </span>
-            <Badge variant="outline" className="text-xs">
-              {product.peerMallName}
-            </Badge>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  // 📰 뉴스 스타일 아이템 렌더링
-  const renderNewsItem = (item: Peermall | Product, isMain: boolean = false, className?: string) => {
+  // 🎯 기본 아이템 렌더러 - 모바일 최적화
+  const renderBaseItem = (item: Peermall | Product, variant: 'card' | 'list' | 'grid' = 'grid') => {
     const isProduct = type === 'product';
     const title = isProduct ? (item as Product).name : (item as Peermall).peerMallName;
     const description = isProduct ? (item as Product).description : (item as Peermall).description;
     const imageUrl = isProduct 
       ? (item as Product).imageUrl 
       : (item as Peermall).profileImage || (item as Peermall).bannerImage;
-    const tags = isProduct ? [(item as Product).peerMallName] : (item as Peermall).tags || [];
-    const date = (item as Peermall).createdAt || new Date().toISOString();
-    const likes = (item as Peermall).likes || 0;
-    const views = (item as Peermall).views || Math.floor(Math.random() * 1000);
-    
-    // 🎯 고유 ID 생성 - 더 안전한 방법
     const itemId = isProduct ? (item as Product).productKey : (item as Peermall).peerMallKey || (item as Peermall).id;
+    const price = isProduct ? (item as Product).price : null;
+    const rating = !isProduct ? (item as Peermall).rating || 0 : null;
 
-    return (
-      <motion.div
-        className={cn(
-          "group cursor-pointer bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100",
-          isMain && "shadow-lg hover:shadow-xl",
-          className
-        )}
-        onClick={() => {
-          if (isProduct) {
-            onDetailView?.((item as Product).productKey);
-          } else {
-            navigate(`/space/${(item as Peermall).peerMallName}?mk=${(item as Peermall).peerMallKey}`);
-          }
-        }}
-        whileHover={{ y: -2, scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
-        layout
-      >
-        {/* 🖼️ 이미지 영역 - 향상된 비주얼 */}
-        <div className={cn(
-          "relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200",
-          isMain ? "aspect-[16/9]" : "aspect-[4/3]"
-        )}>
-          {imageUrl ? (
-            <img 
-              src={imageUrl} 
-              alt={title}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
-              loading="lazy"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-              {isProduct ? (
+    const handleClick = () => {
+      if (isProduct) {
+        onDetailView?.((item as Product).productKey);
+      } else {
+        navigate(`/space/${(item as Peermall).peerMallName}?mk=${(item as Peermall).peerMallKey}`);
+      }
+    };
+
+    // 📱 카드 스타일 - 모바일 최적화
+    if (variant === 'card') {
+      return (
+        <motion.div
+          key={itemId}
+          className="group relative bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer border border-gray-100 dark:border-gray-800"
+          onClick={handleClick}
+          whileHover={{ y: -4, scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+          layout
+        >
+          {/* 🖼️ 이미지 영역 - 모바일 최적화 */}
+          <div className="relative aspect-[16/10] sm:aspect-[4/3] overflow-hidden">
+            {imageUrl ? (
+              <img 
+                src={imageUrl} 
+                alt={title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-blue-900/20 flex items-center justify-center">
                 <div className="text-center">
-                  <ShoppingBag className="w-12 h-12 text-blue-400 mx-auto mb-2" />
-                  <span className="text-xs text-blue-600 font-medium">상품 이미지</span>
+                  {isProduct ? (
+                    <ShoppingBag className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-2" />
+                  ) : (
+                    <Store className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-2" />
+                  )}
+                  <span className="text-xs sm:text-sm text-gray-500 font-medium">
+                    {isProduct ? '상품 이미지' : '피어몰'}
+                  </span>
                 </div>
-              ) : (
-                <div className="text-center">
-                  <Store className="w-12 h-12 text-indigo-400 mx-auto mb-2" />
-                  <span className="text-xs text-indigo-600 font-medium">피어몰</span>
-                </div>
-              )}
-            </div>
-          )}
-          
-          {/* 🌈 그라디언트 오버레이 - 더 세련되게 */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
-          {/* 🏷️ 상단 배지들 */}
-          <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
-            <div className="flex flex-wrap gap-1">
-              {isMain && (
-                <Badge className="bg-red-500 hover:bg-red-600 text-white border-0 text-xs px-2 py-1 shadow-lg">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  헤드라인
-                </Badge>
-              )}
-              {isProduct && (
-                <Badge className="bg-green-500 hover:bg-green-600 text-white border-0 text-xs px-2 py-1 shadow-lg">
-                  <ShoppingBag className="w-3 h-3 mr-1" />
-                  상품
-                </Badge>
-              )}
-            </div>
-            
-            {/* 📊 실시간 통계 */}
-            <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <div className="flex items-center space-x-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-1">
-                <Eye className="w-3 h-3 text-white" />
-                <span className="text-white text-xs font-medium">{views.toLocaleString()}</span>
-              </div>
-              {!isProduct && likes > 0 && (
-                <div className="flex items-center space-x-1 bg-red-500/80 backdrop-blur-sm rounded-full px-2 py-1">
-                  <Heart className="w-3 h-3 text-white" />
-                  <span className="text-white text-xs font-medium">{likes}</span>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* 🏷️ 하단 태그 및 제목 영역 */}
-          <div className="absolute bottom-3 left-3 right-3">
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mb-2">
-                {tags.slice(0, isMain ? 3 : 2).map((tag, index) => (
-                  <Badge 
-                    key={`tag-${itemId}-${tag}-${index}`} // ✅ 완전 고유한 key
-                    variant="secondary" 
-                    className="text-xs bg-white/25 text-white border-white/30 backdrop-blur-sm hover:bg-white/35 transition-colors"
-                  >
-                    {tag.startsWith('#') ? tag : `#${tag}`}
-                  </Badge>
-                ))}
-                {tags.length > (isMain ? 3 : 2) && (
-                  <Badge 
-                    key={`more-tags-${itemId}`}
-                    variant="secondary" 
-                    className="text-xs bg-white/25 text-white border-white/30 backdrop-blur-sm"
-                  >
-                    +{tags.length - (isMain ? 3 : 2)}
-                  </Badge>
-                )}
               </div>
             )}
             
-            {/* 🎯 메인 아이템의 제목 */}
-            {isMain && (
-              <div className="space-y-2">
-                <h2 className="text-white font-bold text-xl line-clamp-2 mb-1 drop-shadow-lg">
-                  {title}
-                </h2>
-                {description && (
-                  <p className="text-white/90 text-sm line-clamp-2 drop-shadow">
-                    {description}
-                  </p>
+            {/* 상단 배지 */}
+            <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
+              <div className="flex flex-wrap gap-1 sm:gap-2">
+                {!isProduct && (item as Peermall).featured && (
+                  <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 text-xs px-2 py-1 shadow-lg">
+                    <Sparkles className="w-2 h-2 sm:w-3 sm:h-3 mr-1" />
+                    인기
+                  </Badge>
                 )}
+                {isProduct && (
+                  <Badge className="bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0 text-xs px-2 py-1 shadow-lg">
+                    <ShoppingBag className="w-2 h-2 sm:w-3 sm:h-3 mr-1" />
+                    상품
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {/* 하단 정보 */}
+            {rating !== null && rating > 0 && (
+              <div className="absolute bottom-3 left-3">
+                <div className="flex items-center space-x-1 bg-black/20 backdrop-blur-sm rounded-full px-2 py-1">
+                  <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                  <span className="text-white text-xs font-medium">{rating.toFixed(1)}</span>
+                </div>
               </div>
             )}
           </div>
 
-          {/* 🎨 호버 시 액션 버튼들 */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-            <div className="flex items-center space-x-2">
-              <motion.button
-                className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // 공유 기능
-                }}
-              >
-                <Share2 className="w-4 h-4" />
-              </motion.button>
-              <motion.button
-                className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // 북마크 기능
-                }}
-              >
-                <Bookmark className="w-4 h-4" />
-              </motion.button>
-            </div>
-          </div>
-        </div>
-
-        {/* 📝 콘텐츠 영역 - 더 세련된 레이아웃 */}
-        <div className="p-4 space-y-3">
-          {/* 📰 제목 영역 */}
-          {!isMain && (
-            <div className="space-y-2">
-              <h3 className="font-bold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors leading-tight">
+          {/* 📝 콘텐츠 영역 - 모바일 최적화 */}
+          <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+            <div>
+              <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-white line-clamp-2">
                 {title}
               </h3>
               {description && (
-                <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
+                <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mt-2 leading-relaxed">
                   {description}
                 </p>
               )}
             </div>
-          )}
-          
-          {/* 🏷️ 카테고리 및 태그 (메인이 아닌 경우) */}
-          {!isMain && tags.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {tags.slice(0, 2).map((tag, index) => (
-                <Badge 
-                  key={`content-tag-${itemId}-${tag}-${index}`} // ✅ 고유 key
-                  variant="outline" 
-                  className="text-xs text-gray-600 border-gray-300 hover:bg-gray-50 transition-colors"
-                >
-                  {tag.startsWith('#') ? tag : `#${tag}`}
-                </Badge>
-              ))}
-            </div>
-          )}
-
-          {/* 📊 메타 정보 - 향상된 디자인 */}
-          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-            <div className="flex items-center space-x-4">
-              {/* 📅 날짜 */}
-              <div className="flex items-center space-x-1 text-gray-500">
-                <Clock className="w-3 h-3" />
-                <span className="text-xs font-medium">
-                  {new Date(date).toLocaleDateString('ko-KR', {
-                    month: 'short',
-                    day: 'numeric'
-                  })}
-                </span>
-              </div>
-              
-              {/* 👁️ 조회수 */}
-              <div className="flex items-center space-x-1 text-gray-500">
-                <Eye className="w-3 h-3" />
-                <span className="text-xs font-medium">{views.toLocaleString()}</span>
-              </div>
-              
-              {/* ❤️ 좋아요 (피어몰만) */}
-              {!isProduct && likes > 0 && (
-                <div className="flex items-center space-x-1 text-red-500">
-                  <Heart className="w-3 h-3" />
-                  <span className="text-xs font-medium">{likes}</span>
+            
+            {/* 가격 및 액션 */}
+            <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
+              {price !== null ? (
+                <div>
+                  <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    ₩{price.toLocaleString()}
+                  </span>
                 </div>
+              ) : (
+                <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+                  <Eye className="w-3 h-3" />
+                  <span>{Math.floor(Math.random() * 1000)}</span>
+                </div>
+              )}
+              
+              <motion.button
+                className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium shadow-lg"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClick();
+                }}
+              >
+                <span className="flex items-center space-x-1">
+                  <span>{isProduct ? '구매' : '보기'}</span>
+                  <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                </span>
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+      );
+    }
+
+    // 📱 리스트 스타일 - 모바일 최적화
+    if (variant === 'list') {
+      return (
+        <motion.div
+          key={itemId}
+          className="group relative p-3 sm:p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 hover:shadow-md cursor-pointer transition-all duration-300"
+          onClick={handleClick}
+          whileHover={{ scale: 1.01, x: 4 }}
+          whileTap={{ scale: 0.99 }}
+        >
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+              {imageUrl ? (
+                <img src={imageUrl} alt={title} className="w-full h-full object-cover" loading="lazy" />
+              ) : (
+                isProduct ? <ShoppingBag className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" /> : <Store className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
               )}
             </div>
             
-            {/* 💰 가격 (상품만) */}
-            {isProduct && (
-              <div className="flex items-center space-x-1">
-                <span className="text-lg font-bold text-blue-600">
-                  ₩{(item as Product).price?.toLocaleString()}
-                </span>
-              </div>
-            )}
-            
-            {/* 🏪 피어몰명 (상품인 경우) */}
-            {isProduct && (
-              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                {(item as Product).peerMallName}
-              </Badge>
-            )}
-          </div>
-
-          {/* 🎯 추가 액션 버튼들 (메인 아이템만) */}
-          {isMain && (
-            <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-              <div className="flex items-center space-x-2">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="text-xs h-7 px-3"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // 더 보기 기능
-                  }}
-                >
-                  <ChevronRight className="w-3 h-3 mr-1" />
-                  더 보기
-                </Button>
-              </div>
-              
-              <div className="flex items-center space-x-1">
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className="w-7 h-7 p-0 text-gray-500 hover:text-red-500"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // 좋아요 기능
-                  }}
-                >
-                  <Heart className="w-3 h-3" />
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className="w-7 h-7 p-0 text-gray-500 hover:text-blue-500"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // 공유 기능
-                  }}
-                >
-                  <Share2 className="w-3 h-3" />
-                </Button>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white line-clamp-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                {title}
+              </h4>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-1 mt-1">
+                {description}
+              </p>
+              <div className="flex items-center justify-between mt-2">
+                <div className="flex items-center space-x-2 text-xs text-gray-500">
+                  <Clock className="w-3 h-3" />
+                  <span>방금 전</span>
+                </div>
+                {price !== null && (
+                  <span className="text-sm sm:text-base font-bold text-blue-600">
+                    ₩{price.toLocaleString()}
+                  </span>
+                )}
               </div>
             </div>
-          )}
-        </div>
+            
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover:text-purple-600 transition-colors flex-shrink-0" />
+          </div>
+        </motion.div>
+      );
+    }
 
-        {/* 🌟 특별 효과: 호버 시 글로우 */}
-        <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-400/0 via-purple-400/0 to-pink-400/0 group-hover:from-blue-400/10 group-hover:via-purple-400/10 group-hover:to-pink-400/10 transition-all duration-500 pointer-events-none" />
+    // 📱 그리드 스타일 - 모바일 최적화 (기본)
+    return (
+      <motion.div
+        key={itemId}
+        className="group relative bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-500 cursor-pointer border border-gray-100 dark:border-gray-800"
+        onClick={handleClick}
+        whileHover={{ y: -2, scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+      >
+        {isProduct ? (
+          <div className="p-3 sm:p-6">
+            <div className="aspect-square bg-gray-50 dark:bg-gray-800 rounded-lg sm:rounded-xl mb-3 sm:mb-4 overflow-hidden">
+              {imageUrl ? (
+                <img src={imageUrl} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <ShoppingBag className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" />
+                </div>
+              )}
+            </div>
+            <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white mb-2 line-clamp-2">{title}</h3>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{description}</p>
+            <div className="flex items-center justify-between">
+              <span className="text-base sm:text-xl font-bold text-blue-600">₩{price?.toLocaleString()}</span>
+              <Badge variant="outline" className="text-xs">{(item as Product).peerMallName}</Badge>
+            </div>
+          </div>
+        ) : (
+          <PeermallCard
+            {...(item as Peermall)}
+            isPopular={(item as Peermall).featured}
+            isFamilyCertified={(item as Peermall).certified}
+            isRecommended={(item as Peermall).recommended}
+            onShowQrCode={onShowQrCode || (() => {})}
+            onOpenMap={onOpenMap || (() => {})}
+            className="border-0 shadow-none"
+          />
+        )}
       </motion.div>
     );
   };
 
-
-  const renderItem = (item: Peermall | Product, className?: string) => {
-    if (type === 'peermall') {
-      return renderPeermallItem(item as Peermall, className);
-    } else {
-      return renderProductItem(item as Product, className);
-    }
-  };
-
-  // 🎯 그리드 뷰
-  if (viewMode === 'grid') {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {items.map((item, index) => (
-          <motion.div
-            key={item.id || (item as Product).productKey}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-
->
-            {renderItem(item)}
-          </motion.div>
-        ))}
-      </div>
-    );
-  }
-
-  // 📋 리스트 뷰
-  if (viewMode === 'list') {
-    return (
-      <div className="space-y-4">
-        {items.map((item, index) => (
-          <motion.div
-            key={item.id || (item as Product).productKey}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.03 }}
-          >
-            {renderItem(item, "w-full")}
-          </motion.div>
-        ))}
-      </div>
-    );
-  }
-
-  // 🖼️ 갤러리 뷰
-  if (viewMode === 'gallery') {
-    return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        {items.map((item, index) => (
-          <motion.div
-            key={item.id || (item as Product).productKey}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: index * 0.02 }}
-            className="aspect-square"
-          >
-            {renderItem(item, "h-full")}
-          </motion.div>
-        ))}
-      </div>
-    );
-  }
-
-  // 📰 뉴스 뷰 - 새로 추가된 레이아웃
-  if (viewMode === 'news') {
-    if (items.length === 0) return null;
-
-    const mainItem = items[0];
-    const subItems = items.slice(1, 5);
-    const listItems = items.slice(5);
-
-    return (
-      <div className="space-y-6">
-        {/* 🌟 헤드라인 섹션 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* 메인 뉴스 */}
-          <div className="lg:col-span-2">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              {renderNewsItem(mainItem, true, "h-full")}
-            </motion.div>
-          </div>
-
-          {/* 서브 뉴스들 */}
-          <div className="space-y-4">
-            {subItems.map((item, index) => (
-              <motion.div
-                key={item.id || (item as Product).productKey}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 + 0.2 }}
-              >
-                {renderNewsItem(item, false)}
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* 📊 통계 및 카테고리 바 */}
-        <div className="flex items-center justify-between py-4 border-t border-b border-gray-200">
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <TrendingUp className="w-4 h-4" />
-              <span>총 {items.length}개 항목</span>
-            </div>
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <Clock className="w-4 h-4" />
-              <span>실시간 업데이트</span>
-            </div>
-          </div>
-          
-          {/* 페이지 번호 표시 */}
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-500">1/4</span>
-            <div className="flex space-x-1">
-              <button className="w-6 h-6 bg-blue-500 text-white text-xs rounded flex items-center justify-center">
-                1
-              </button>
-              <button className="w-6 h-6 bg-gray-200 text-gray-600 text-xs rounded flex items-center justify-center hover:bg-gray-300">
-                2
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* 📋 리스트 섹션 */}
-        {listItems.length > 0 && (
-          <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-              <List className="w-5 h-5" />
-              <span>더 많은 {type === 'peermall' ? '피어몰' : '상품'}</span>
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {listItems.map((item, index) => (
-                <motion.div
-                  key={item.id || (item as Product).productKey}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 + 0.5 }}
-                  className="flex space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                  onClick={() => {
-                    if (type === 'product') {
-                      onDetailView?.((item as Product).productKey);
-                    } else {
-                      navigate(`/space/${(item as Peermall).peerMallName}?mk=${(item as Peermall).peerMallKey}`);
-                    }
-                  }}
-                >
-                  <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
-                    {((type === 'product' && (item as Product).imageUrl) || 
-                      (type === 'peermall' && ((item as Peermall).profileImage || (item as Peermall).bannerImage))) ? (
-                      <img 
-                        src={type === 'product' ? (item as Product).imageUrl : (item as Peermall).profileImage || (item as Peermall).bannerImage} 
-                        alt={type === 'product' ? (item as Product).name : (item as Peermall).peerMallName}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        {type === 'product' ? (
-                          <ShoppingBag className="w-6 h-6 text-gray-400" />
-                        ) : (
-                          <Store className="w-6 h-6 text-gray-400" />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-gray-900 line-clamp-1 mb-1">
-                      {type === 'product' ? (item as Product).name : (item as Peermall).peerMallName}
-                    </h4>
-                    <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                      {type === 'product' ? (item as Product).description : (item as Peermall).description}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2 text-xs text-gray-500">
-                        <Clock className="w-3 h-3" />
-                        <span>{new Date((item as Peermall).createdAt || new Date()).toLocaleDateString('ko-KR')}</span>
-                      </div>
-                      {type === 'product' && (
-                        <span className="text-sm font-semibold text-blue-600">
-                          ₩{(item as Product).price?.toLocaleString()}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // 📝 블로그 뷰
-  if (viewMode === 'blog') {
-    return (
-      <div className="space-y-8">
-        {items.map((item, index) => (
-          <motion.div
-            key={item.id || (item as Product).productKey}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            {renderItem(item, "w-full max-w-4xl mx-auto")}
-          </motion.div>
-        ))}
-      </div>
-    );
-  }
-
-  // 📰 매거진 뷰
-  if (viewMode === 'magazine') {
-    return (
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {items.map((item, index) => {
-          const isLarge = index % 5 === 0;
-          const isMedium = index % 3 === 0 && !isLarge;
-          
-          return (
-            <motion.div
-              key={item.id || (item as Product).productKey}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className={cn(
-                isLarge ? "lg:col-span-8" :
-                isMedium ? "lg:col-span-6" :
-                "lg:col-span-4"
-              )}
-            >
-              {renderItem(item, cn(
-                "h-full",
-                isLarge && "min-h-[400px]",
-                isMedium && "min-h-[300px]"
-              ))}
-            </motion.div>
-          );
-        })}
-      </div>
-    );
-  }
-
-  // ⏰ 타임라인 뷰
-  if (viewMode === 'timeline') {
-    return (
-      <div className="relative">
-        <div className="absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500"></div>
-        <div className="space-y-8">
+  // 🎯 뷰 모드별 렌더링 - 모바일 최적화
+  switch (viewMode) {
+    case 'cards':
+      return (
+        <motion.div 
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+          variants={zGenDesignTokens.animations.staggerChildren}
+          initial="initial"
+          animate="animate"
+        >
           {items.map((item, index) => (
             <motion.div
               key={item.id || (item as Product).productKey}
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="relative flex items-start space-x-6"
+              variants={zGenDesignTokens.animations.fadeInUp}
+              transition={{ delay: index * 0.05 }}
             >
-              <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
-                {index + 1}
-              </div>
-              <div className="flex-1 min-w-0">
-                {renderItem(item)}
-              </div>
+              {renderBaseItem(item, 'card')}
+            </motion.div>
+          ))}
+        </motion.div>
+      );
+
+    case 'list':
+      return (
+        <div className="space-y-3 sm:space-y-4">
+          {items.map((item, index) => (
+            <motion.div
+              key={item.id || (item as Product).productKey}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.03 }}
+            >
+              {renderBaseItem(item, 'list')}
             </motion.div>
           ))}
         </div>
-      </div>
-    );
-  }
+      );
 
-  return null;
+    default: // grid
+      return (
+        <motion.div 
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6"
+          variants={zGenDesignTokens.animations.staggerChildren}
+          initial="initial"
+          animate="animate"
+        >
+          {items.map((item, index) => (
+            <motion.div
+              key={item.id || (item as Product).productKey}
+              variants={zGenDesignTokens.animations.fadeInUp}
+              transition={{ delay: index * 0.03 }}
+            >
+              {renderBaseItem(item, 'grid')}
+            </motion.div>
+          ))}
+        </motion.div>
+      );
+  }
 };
 
+// 🚀 메인 컴포넌트 - 완전히 새로운 모바일 최적화 레이아웃
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { scrollY } = useScroll();
   
   // 🎯 기본 상태 관리
   const [peermalls, setPeermalls] = useState<Peermall[]>([]);
@@ -1107,13 +477,26 @@ const Index = () => {
   const [originPeerMalls, setOriginPeerMalls] = useState<Peermall[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // 🎨 섹션별 뷰어 모드 상태 관리
   const [sectionViewModes, setSectionViewModes] = useState<SectionViewModes>({
-    newMalls: 'grid',
+    newMalls: 'cards',
     allMalls: 'grid',
-    products: 'grid'
+    products: 'cards'
   });
+
+  // 📱 모바일 감지
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // 🎯 섹션별 뷰어 모드 변경 핸들러
   const handleSectionViewModeChange = useCallback((section: keyof SectionViewModes, mode: ViewMode) => {
@@ -1122,31 +505,31 @@ const Index = () => {
       [section]: mode
     }));
     
-    // 로컬 스토리지에 저장하여 사용자 선호도 기억
     localStorage.setItem(`viewMode_${section}`, mode);
-  }, []);
+    
+    toast({
+      title: "🎨 뷰 모드 변경됨",
+      description: `${section === 'newMalls' ? '신규 피어몰' : section === 'allMalls' ? '전체 피어몰' : '상품'} 뷰가 변경되었습니다.`,
+      duration: 2000,
+    });
+  }, [toast]);
 
-  // 🔍 검색 핸들러
+  // 기존 핸들러들 유지...
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
-
     if(query === '') {
       setPeermalls(originPeerMalls);
       return;
     }
-
     if(originPeerMalls.length === 0) {
       setOriginPeerMalls(peermalls);
     }
-
     const searchedPeerMalls = peermalls.filter(peerMall => 
       peerMall.peerMallName.includes(query)
-    )
-
+    );
     setPeermalls(searchedPeerMalls);
-  }, [peermalls, originPeerMalls, filteredMalls]);
+  }, [peermalls, originPeerMalls]);
 
-  // 📖 북마크 핸들러
   const handleBookmarkToggle = useCallback((itemId: string) => {
     setBookmarks(prev => {
       const isBookmarked = prev.some(bookmark => bookmark.id === itemId);
@@ -1168,31 +551,17 @@ const Index = () => {
     setBookmarks(prev => prev.filter(bookmark => bookmark.id !== id));
   }, []);
 
-  // 🗺️ 지도 핸들러
   const handleOpenMap = useCallback((location: Location) => {
     setSelectedLocation(location);
     setIsMapOpen(true);
   }, []);
 
-  const handleCloseMap = useCallback(() => setIsMapOpen(false), []);
-
-  // 📱 내 피어몰 관련 핸들러
-  const handleOpenMySpaces = useCallback(() => setIsMySpacesOpen(true), []);
-  const handleCloseMySpaces = useCallback(() => setIsMySpacesOpen(false), []);
-
-  const handleSelectSpace = useCallback((id: string) => {
-    handleCloseMySpaces();
-    navigate(`/space/${id}`);
-  }, [navigate, handleCloseMySpaces]);
-
-  // 📱 QR 코드 핸들러
   const handleShowPeermallQrCode = useCallback((peerMallKey: string, peerMallName: string) => {
     setQrCodeUrl(`${window.location.origin}/space/${peerMallName}?mk=${peerMallKey}`);
     setQrModalTitle(`${peerMallName} QR 코드`);
     setQrModalOpen(true);
   }, []);
 
-  // 🛍️ 제품 상세보기 핸들러
   const handleProductDetailView = useCallback((productKey: string) => {
     const product = products.find(p => p.productKey === productKey);
     if (product && product.peerMallKey) {
@@ -1202,7 +571,6 @@ const Index = () => {
     }
   }, [products, navigate]);
 
-  // 🔄 새로고침 핸들러
   const handleRefresh = useCallback(async () => {
     try {
       setRefreshing(true);
@@ -1231,6 +599,13 @@ const Index = () => {
     const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
     setIsLoggedIn(userLoggedIn);
     
+    // 다크모드 설정 확인
+    const darkMode = localStorage.getItem('darkMode') === 'true';
+    setIsDarkMode(darkMode);
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    }
+    
     // 저장된 뷰어 모드 설정 복원
     const savedNewMallsMode = localStorage.getItem('viewMode_newMalls') as ViewMode;
     const savedAllMallsMode = localStorage.getItem('viewMode_allMalls') as ViewMode;
@@ -1238,9 +613,9 @@ const Index = () => {
     
     if (savedNewMallsMode || savedAllMallsMode || savedProductsMode) {
       setSectionViewModes({
-        newMalls: savedNewMallsMode || 'grid',
+        newMalls: savedNewMallsMode || 'cards',
         allMalls: savedAllMallsMode || 'grid',
-        products: savedProductsMode || 'grid'
+        products: savedProductsMode || 'cards'
       });
     }
     
@@ -1270,6 +645,30 @@ const Index = () => {
 
     loadInitialData();
   }, [toast]);
+
+  // 📊 통계 및 데이터 계산
+  const stats = useMemo(() => ({
+    totalMalls: peermalls.length,
+    myMalls: mySpaces.length,
+    totalRating: peermalls.reduce((sum, mall) => sum + (mall.rating || 0), 0),
+    avgRating: peermalls.length > 0 ? (Number(peermalls.reduce((sum, mall) => sum + (mall.rating || 0), 0) / peermalls.length)).toFixed(1) : '0.0',
+    totalLikes: peermalls.reduce((sum, mall) => sum + (mall.likes || 0), 0),
+    totalFollowers: peermalls.reduce((sum, mall) => sum + (mall.followers || 0), 0),
+    totalProducts: products.length,
+    avgPrice: products.length > 0 ? Math.round(products.reduce((sum, product) => {
+      const price = typeof product.price === 'string' ? parseFloat(product.price) || 0 : product.price || 0;
+      return sum + price;
+    }, 0) / products.length) : 0
+  }), [peermalls, mySpaces, products]);
+  
+  // ✨ 신규 피어몰 계산
+  const newestMalls = useMemo(() => [...peermalls]
+    .sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    })
+    .slice(0, isMobile ? 4 : 8), [peermalls, isMobile]);
 
   // 📄 페이지네이션
   const getDisplayedProducts = useCallback(() => {
@@ -1330,25 +729,6 @@ const Index = () => {
     console.log('✅ 필터링 완료:', filtered.length, '개');
   }, [peermalls]);
 
-  // 📊 통계 및 데이터 계산
-  const stats = {
-    totalMalls: peermalls.length,
-    myMalls: mySpaces.length,
-    totalRating: peermalls.reduce((sum, mall) => sum + (mall.rating || 0), 0),
-    avgRating: peermalls.length > 0 ? (Number(peermalls.reduce((sum, mall) => sum + (mall.rating || 0), 0) / peermalls.length)).toFixed(1) : '0.0',
-    totalLikes: peermalls.reduce((sum, mall) => sum + (mall.likes || 0), 0),
-    totalFollowers: peermalls.reduce((sum, mall) => sum + (mall.followers || 0), 0)
-  };
-  
-  // ✨ 신규 피어몰 계산
-  const newestMalls = [...peermalls]
-    .sort((a, b) => {
-      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return dateB - dateA;
-    })
-    .slice(0, 8);
-
   // 🗺️ 지도용 위치 데이터
   const allLocations = peermalls.map(mall => ({
     lat: mall.lat,
@@ -1362,111 +742,154 @@ const Index = () => {
       p => p.lat === location.lat && p.lng === location.lng
     );
     
-    if (peermall) {
-      // 상세 보기 로직 (필요시 구현)
-      const path = `/space/${peermall['peerMallName']}?mk=${peermall['peerMallKey']}`;
-      window.open(path, '_blank');
-    }
-  }, [peermalls, navigate]);
+    // if (peermall) {
+    //   const path = `/space/${peermall['peerMallName']}?mk=${peermall['peerMallKey']}`;
+    //   window.open(path, '_blank');
+    // }
+  }, [peermalls]);
 
-  // 로딩 상태 렌더링
+  // 로딩 상태 렌더링 - 모바일 최적화
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 dark:from-gray-900 dark:via-purple-900/20 dark:to-black flex items-center justify-center p-4">
         <motion.div
           className="text-center"
-          {...designTokens.animations.scaleIn}
+          {...zGenDesignTokens.animations.scaleIn}
         >
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
-            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-purple-600 rounded-full animate-spin animate-reverse mx-auto" />
+          <div className="relative mb-6">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto" />
+            <div className="absolute inset-0 w-12 h-12 sm:w-16 sm:h-16 border-4 border-transparent border-r-purple-600 rounded-full animate-spin animate-reverse mx-auto" />
           </div>
-          <h2 className={designTokens.typography.heading}>피어몰 로딩 중...</h2>
-          <p className={designTokens.typography.caption}>잠시만 기다려주세요 ✨</p>
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">피어몰 로딩 중...</h2>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">잠시만 기다려주세요 ✨</p>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="container min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
-      <main className="px-4 py-8">
-        {/* 🌟 즐겨찾기 서비스 섹션 */}
+    <div className={cn(
+      "min-h-screen transition-all duration-500",
+      isDarkMode 
+        ? "bg-gradient-to-br from-gray-900 via-purple-900/20 to-black" 
+        : "bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20"
+    )}>
+      {/* 🎯 메인 콘텐츠 - 모바일 최적화 */}
+      <main className="relative z-10 px-3 sm:px-4 py-4 sm:py-8 lg:py-16" id="explore-section">
+        
+        {/* 🌟 즐겨찾기 서비스 섹션 - 모바일 최적화 */}
         {isLoggedIn && (
           <motion.section 
-            className={designTokens.spacing.section}
-            {...designTokens.animations.slideIn}
+            className="mb-6 sm:mb-8 lg:mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
           >
-            <Card className={`${designTokens.elevation.feature} bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100`}>
-              <CardContent className={designTokens.spacing.card}>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-2">
-                    <Heart className="w-5 h-5 text-red-500" />
-                    <h2 className={designTokens.typography.heading}>
-                      나만의 즐겨찾기
-                    </h2>
+            <div className="max-w-7xl mx-auto">
+              <Card className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-100 dark:border-blue-800/30 backdrop-blur-sm">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg sm:rounded-xl flex items-center justify-center">
+                        <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                          나만의 즐겨찾기
+                        </h2>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
+                          자주 사용하는 서비스들을 빠르게 접근하세요
+                        </p>
+                      </div>
+                    </div>
+                    <Badge className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800 text-xs">
+                      개인화됨
+                    </Badge>
                   </div>
-                  <Badge className="bg-red-50 text-red-700 border-red-200">
-                    개인화됨
-                  </Badge>
-                </div>
-                <FavoriteServicesSection />
-              </CardContent>
-            </Card>
+                  <FavoriteServicesSection />
+                </CardContent>
+              </Card>
+            </div>
           </motion.section>
         )}
 
-        {/* 🔍 검색 및 필터 바 */}
+        {/* 🔍 검색 및 필터 바 - 모바일 최적화 */}
         <motion.section 
-          className="mb-8"
-          {...designTokens.animations.fadeIn}
+          className="mb-6 sm:mb-8 lg:mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <SearchAndFilterBar
-            hashtags={hashtagOptions}
-            peermallTypeOptions={peermallTypeOptions}
-            bookmarks={bookmarks}
-            onSearchChange={handleSearchChange}
-            onFilterChange={handleFilterChange}
-            onBookmarkToggle={handleBookmarkToggle}
-            onBookmarkRemove={handleBookmarkRemove}
-          />
+          <div className="max-w-7xl mx-auto">
+            <Card className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-100 dark:border-blue-800/30 backdrop-blur-sm">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-3 sm:space-y-0">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg sm:rounded-xl flex items-center justify-center">
+                      <Search className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                        스마트 검색 & 필터 🔍
+                      </h3>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
+                        원하는 피어몰과 상품을 빠르게 찾아보세요
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <SearchAndFilterBar
+                  hashtags={hashtagOptions}
+                  peermallTypeOptions={peermallTypeOptions}
+                  bookmarks={bookmarks}
+                  onSearchChange={handleSearchChange}
+                  onFilterChange={handleFilterChange}
+                  onBookmarkToggle={handleBookmarkToggle}
+                  onBookmarkRemove={handleBookmarkRemove}
+                />
+              </CardContent>
+            </Card>
+          </div>
         </motion.section>
 
-        {/* 📊 메인 콘텐츠 - 개선된 레이아웃 */}
-        <div className="space-y-8">
+        {/* 📊 메인 콘텐츠 컨테이너 - 모바일 최적화 */}
+        <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 lg:space-y-16">
           
-          {/* 🎯 상단 섹션: 신규 피어몰 + 피어맵 */}
-          <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* 🎯 상단 섹션: 신규 피어몰 + 피어맵 - 모바일 스택 레이아웃 */}
+          <section className="grid grid-cols-1 xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
             
-            {/* ✨ 신규 피어몰 섹션 - 뷰어 모드 적용 */}
+            {/* ✨ 신규 피어몰 섹션 - 모바일 최적화 */}
             <motion.div 
-              className="xl:col-span-2"
-              {...designTokens.animations.fadeIn} 
-              transition={{ delay: 0.2 }}
+              className="xl:col-span-3"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
             >
-              <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-green-50 to-emerald-50 border-green-100 h-full`}>
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-green-100 rounded-lg">
-                        <Sparkles className="w-5 h-5 text-green-600" />
+              <Card className="bg-gradient-to-br from-green-50/80 to-emerald-50/80 dark:from-green-900/20 dark:to-emerald-900/20 border-green-100 dark:border-green-800/30 backdrop-blur-sm h-full">
+                <CardContent className="p-4 sm:p-6 lg:p-8 h-full flex flex-col">
+                  {/* 헤더 - 모바일 최적화 */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 lg:mb-8 space-y-3 sm:space-y-0">
+                    <div className="flex items-center space-x-3 sm:space-x-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                        <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                       </div>
                       <div>
-                        <h2 className={designTokens.typography.heading}>
+                        <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
                           ✨ 신규 피어몰
                         </h2>
-                        <p className={`${designTokens.typography.caption} mt-1`}>
-                          따끈따끈한 새로운 피어몰들
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
+                          따끈따끈한 새로운 피어몰들을 만나보세요
                         </p>
                       </div>
                     </div>
                     
-                    {/* 🎨 미니멀한 컨트롤 영역 */}
-                    <div className="flex items-center space-x-3">
-                      <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200 text-xs px-2 py-1">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
+                      <Badge className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 text-xs px-2 py-1">
                         {newestMalls.length}개
                       </Badge>
-                      <SectionViewModeSelector
+                      <MobileOptimizedViewModeSelector
                         currentMode={sectionViewModes.newMalls}
                         onModeChange={(mode) => handleSectionViewModeChange('newMalls', mode)}
                         sectionTitle="신규 피어몰"
@@ -1475,72 +898,84 @@ const Index = () => {
                       />
                     </div>
                   </div>
-                </CardHeader>
-                
-                <CardContent className="pt-0">
-                  {newestMalls.length > 0 ? (
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={sectionViewModes.newMalls}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <UniversalViewRenderer
-                          items={newestMalls}
-                          viewMode={sectionViewModes.newMalls}
-                          type="peermall"
-                          onOpenMap={handleOpenMap}
-                          onShowQrCode={handleShowPeermallQrCode}
-                        />
-                      </motion.div>
-                    </AnimatePresence>
-                  ) : (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Sparkles className="w-8 h-8 text-green-500" />
+                  
+                  {/* 콘텐츠 - 모바일 최적화 */}
+                  <div className="flex-1 min-h-0">
+                    {newestMalls.length > 0 ? (
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={sectionViewModes.newMalls}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.3 }}
+                          className="h-full overflow-y-auto pr-1 -mr-1"
+                        >
+                          <MobileOptimizedViewRenderer
+                            items={newestMalls}
+                            viewMode={sectionViewModes.newMalls}
+                            type="peermall"
+                            onOpenMap={handleOpenMap}
+                            onShowQrCode={handleShowPeermallQrCode}
+                          />
+                        </motion.div>
+                      </AnimatePresence>
+                    ) : (
+                      <div className="h-full flex items-center justify-center">
+                        <div className="text-center p-4">
+                          <motion.div 
+                            className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6"
+                            animate={{ scale: [1, 1.05, 1] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          >
+                            <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-green-500" />
+                          </motion.div>
+                          <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
+                            새로운 피어몰을 기다리고 있어요
+                          </h3>
+                          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 max-w-xs sm:max-w-md mx-auto">
+                            지금 바로 피어몰을 만들어 첫 번째 신규 피어몰이 되어보세요! ✨
+                          </p>
+                        </div>
                       </div>
-                      <h3 className={`${designTokens.typography.subheading} text-gray-700 mb-2`}>
-                        새로운 피어몰을 기다리고 있어요
-                      </h3>
-                      <p className={designTokens.typography.caption}>
-                        지금 바로 피어몰을 만들어 첫 번째 신규 피어몰이 되어보세요! ✨
-                      </p>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
 
-            {/* 🗺️ 피어맵 */}
+            {/* 🗺️ 피어맵 - 모바일 최적화 */}
             <motion.div 
-              {...designTokens.animations.fadeIn} 
-              transition={{ delay: 0.3 }}
+              className="xl:col-span-2"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
             >
-              <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-100 h-full min-h-[400px]`}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <Map className="w-5 h-5 text-blue-600" />
+              <Card className="bg-gradient-to-br from-blue-50/80 to-cyan-50/80 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-100 dark:border-blue-800/30 backdrop-blur-sm h-full min-h-[300px] sm:min-h-[400px] xl:min-h-[600px]">
+                <CardContent className="p-4 sm:p-6 h-full flex flex-col">
+                  {/* 헤더 - 모바일 최적화 */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg sm:rounded-xl flex items-center justify-center">
+                        <Map className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       </div>
                       <div>
-                        <h3 className={designTokens.typography.subheading}>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
                           🗺️ 피어맵
                         </h3>
-                        <p className={`${designTokens.typography.caption} mt-1`}>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
                           피어몰 위치 탐색
                         </p>
                       </div>
                     </div>
-                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                      {allLocations.length}개 위치
+                    <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 text-xs px-2 py-1">
+                      {allLocations.length}개
                     </Badge>
                   </div>
-                </CardHeader>
-                <CardContent className="p-0 flex-1">
-                  <div className="h-[350px] overflow-hidden rounded-b-lg">
+                  
+                  {/* 지도 영역 - 모바일 최적화 */}
+                  <div className="flex-1 min-h-0 rounded-lg sm:rounded-xl overflow-hidden">
                     <EcosystemMap onLocationSelect={handleLocationSelect} />
                   </div>
                 </CardContent>
@@ -1548,170 +983,167 @@ const Index = () => {
             </motion.div>
           </section>
 
-          {/* 🎯 중간 섹션: 전체 피어몰 + 커뮤니티 피드 */}
-          <section className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-            
-            {/* 🏢 전체 피어몰 섹션 - 뷰어 모드 적용 */}
-            <motion.div 
-              className="xl:col-span-3"
-              {...designTokens.animations.fadeIn} 
-              transition={{ delay: 0.4 }}
-            >
-              <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-slate-50 to-gray-50 border-slate-200 h-full min-h-[600px] flex flex-col`}>
-                <CardHeader className="pb-4 flex-shrink-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-slate-100 rounded-lg">
-                        <Store className="w-5 h-5 text-slate-600" />
-                      </div>
-                      <div>
-                        <h2 className={designTokens.typography.heading}>
-                          🏢 전체 피어몰
-                        </h2>
-                        <p className={`${designTokens.typography.caption} mt-1`}>
-                          모든 피어몰을 다양한 방식으로 탐색해보세요
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* 🎨 미니멀한 컨트롤 영역 */}
-                    <div className="flex items-center space-x-3">
-                      <Badge variant="secondary" className="bg-slate-100 text-slate-700 border-slate-200 text-xs px-2 py-1">
-                        총 {peermalls.length}개
-                      </Badge>
-                      
-                      {/* 새로고침 아이콘 버튼 */}
-                      <motion.button
-                        onClick={handleRefresh}
-                        disabled={refreshing}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/60 hover:bg-white/80 text-gray-500 hover:text-gray-700 border border-gray-200/50 transition-all duration-200 disabled:opacity-50"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        title="새로고침"
-                      >
-                        <RefreshCw className={cn("w-4 h-4", refreshing && "animate-spin")} />
-                      </motion.button>
-                      
-                      <SectionViewModeSelector
-                        currentMode={sectionViewModes.allMalls}
-                        onModeChange={(mode) => handleSectionViewModeChange('allMalls', mode)}
-                        sectionTitle="전체 피어몰"
-                        itemCount={peermalls.length}
-                        compact={true}
-                      />
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="pt-0 flex-1 flex flex-col overflow-hidden">
-                  {peermalls.length > 0 ? (
-                    <div className="space-y-4 flex-1 flex flex-col">
-                      {/* 🔍 검색 결과 정보 */}
-                      {searchQuery && (
-                        <div className="flex items-center space-x-2 text-sm text-slate-600 bg-blue-50 p-3 rounded-lg border border-blue-100 flex-shrink-0">
-                          <Search className="w-4 h-4" />
-                          <span>
-                            '<strong>{searchQuery}</strong>' 검색 결과: {peermalls.length}개
-                          </span>
-                        </div>
-                      )}
-                      
-                      {/* 🏷️ 활성 필터 표시 */}
-                      {(selectedHashtags.length > 0 && !selectedHashtags.includes('전체')) && (
-                        <div className="flex items-center space-x-2 text-sm text-slate-600 bg-gray-50 p-3 rounded-lg border border-gray-100 flex-shrink-0">
-                          <Filter className="w-4 h-4" />
-                          <span>활성 필터:</span>
-                          <div className="flex flex-wrap gap-1">
-                            {selectedHashtags.map(tag => (
-                              <Badge key={tag} variant="outline" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* 🎯 향상된 피어몰 뷰 렌더러 - 스크롤 가능한 영역 */}
-                      <div className="flex-1 overflow-y-auto pr-2 -mr-2">
-                        <AnimatePresence mode="wait">
-                          <motion.div
-                            key={sectionViewModes.allMalls}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <UniversalViewRenderer
-                              items={peermalls}
-                              viewMode={sectionViewModes.allMalls}
-                              type="peermall"
-                              onOpenMap={handleOpenMap}
-                              onShowQrCode={handleShowPeermallQrCode}
-                            />
-                          </motion.div>
-                        </AnimatePresence>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex-1 flex items-center justify-center">
-                      <div className="text-center py-8">
-                        <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                          <Store className="w-10 h-10 text-slate-400" />
-                        </div>
-                        <h3 className={`${designTokens.typography.subheading} text-gray-700 mb-3`}>
-                          {searchQuery ? '검색 결과가 없습니다' : '아직 피어몰이 없어요'}
-                        </h3>
-                        <p className={`${designTokens.typography.caption} mb-6 max-w-md mx-auto`}>
-                          {searchQuery 
-                            ? `'${searchQuery}'에 대한 검색 결과를 찾을 수 없습니다. 다른 키워드로 검색해보세요.`
-                            : '첫 번째 피어몰을 만들어 커뮤니티를 시작해보세요! 당신의 아이디어가 새로운 연결을 만들어낼 거예요.'
-                          }
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* 🌟 커뮤니티 피드 - 높이 일관성 적용 */}
-            <motion.div 
-              className="h-full min-h-[600px]"
-              {...designTokens.animations.fadeIn} 
-              transition={{ delay: 0.5 }}
-            >
-              <div className="h-full">
-                <CommunityFeed />
-              </div>
-            </motion.div>
-          </section>
-
-        </div>
-
-        {/* 🛍️ 전체 상품 보기 섹션 - 뷰어 모드 적용 */}
-        <section className="grid grid-cols-1 gap-6 p-4 md:p-6 mt-12">
-          <motion.div {...designTokens.animations.fadeIn} transition={{ delay: 0.6 }}>
-            <Card className={`${designTokens.elevation.feature} bg-gradient-to-br from-green-50 to-emerald-50 border-green-100`}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <ShoppingBag className="w-6 h-6 text-green-600" />
+          {/* 🏢 전체 피어몰 섹션 - 모바일 최적화 */}
+          <motion.section 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <Card className="bg-gradient-to-br from-slate-50/80 to-gray-50/80 dark:from-slate-900/80 dark:to-gray-900/80 border-slate-100 dark:border-slate-800/30 backdrop-blur-sm">
+              <CardContent className="p-4 sm:p-6 lg:p-8">
+                {/* 헤더 - 모바일 최적화 */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 lg:mb-8 space-y-3 sm:space-y-0">
+                  <div className="flex items-center space-x-3 sm:space-x-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-slate-600 to-gray-600 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                      <Store className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     </div>
                     <div>
-                      <h2 className={designTokens.typography.heading}>
+                      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
+                        🏢 전체 피어몰
+                      </h2>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
+                        모든 피어몰을 다양한 방식으로 탐색해보세요
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <Badge className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 text-xs px-2 py-1">
+                      총 {peermalls.length}개
+                    </Badge>
+                    
+                    <motion.button
+                      onClick={handleRefresh}
+                      disabled={refreshing}
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center bg-white/60 dark:bg-gray-800/60 hover:bg-white/80 dark:hover:bg-gray-700/80 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-200/50 dark:border-gray-700/50 transition-all duration-200 disabled:opacity-50"
+                      whileHover={{ scale: 1.05, rotate: 180 }}
+                      whileTap={{ scale: 0.95 }}
+                      title="새로고침"
+                    >
+                      <RefreshCw className={cn("w-3 h-3 sm:w-4 sm:h-4", refreshing && "animate-spin")} />
+                    </motion.button>
+                    
+                    <MobileOptimizedViewModeSelector
+                      currentMode={sectionViewModes.allMalls}
+                      onModeChange={(mode) => handleSectionViewModeChange('allMalls', mode)}
+                      sectionTitle="전체 피어몰"
+                      itemCount={peermalls.length}
+                      compact={true}
+                    />
+                  </div>
+                </div>
+                
+                {/* 콘텐츠 - 모바일 최적화 */}
+                {peermalls.length > 0 ? (
+                  <div className="space-y-4 sm:space-y-6">
+                    {/* 검색 결과 정보 - 모바일 최적화 */}
+                    {searchQuery && (
+                      <motion.div 
+                        className="flex items-center space-x-2 sm:space-x-3 text-xs sm:text-sm text-slate-600 dark:text-slate-400 bg-blue-50/80 dark:bg-blue-900/20 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-blue-100 dark:border-blue-800/30"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                      >
+                        <Search className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <span className="flex-1 min-w-0">
+                          '<strong className="text-blue-600 dark:text-blue-400">{searchQuery}</strong>' 검색 결과: {peermalls.length}개
+                        </span>
+                      </motion.div>
+                    )}
+                    
+                    {/* 활성 필터 표시 - 모바일 최적화 */}
+                    {(selectedHashtags.length > 0 && !selectedHashtags.includes('전체')) && (
+                      <motion.div 
+                        className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 text-xs sm:text-sm text-slate-600 dark:text-slate-400 bg-gray-50/80 dark:bg-gray-800/50 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-700/30"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <Filter className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span>활성 필터:</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1 sm:gap-2">
+                          {selectedHashtags.map(tag => (
+                            <Badge key={tag} variant="outline" className="text-xs bg-white dark:bg-gray-800">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                    
+                    {/* 피어몰 뷰 렌더러 - 모바일 최적화 */}
+                    <AnimatePresence mode="wait">
+<motion.div
+                        key={sectionViewModes.allMalls}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <MobileOptimizedViewRenderer
+                          items={peermalls}
+                          viewMode={sectionViewModes.allMalls}
+                          type="peermall"
+                          onOpenMap={handleOpenMap}
+                          onShowQrCode={handleShowPeermallQrCode}
+                        />
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 sm:py-12 lg:py-16">
+                    <motion.div 
+                      className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6"
+                      animate={{ scale: [1, 1.05, 1], rotate: [0, 2, -2, 0] }}
+                      transition={{ duration: 3, repeat: Infinity }}
+                    >
+                      <Store className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-slate-400" />
+                    </motion.div>
+                    <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
+                      {searchQuery ? '검색 결과가 없습니다' : '아직 피어몰이 없어요'}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 max-w-xs sm:max-w-md mx-auto mb-4 sm:mb-6">
+                      {searchQuery 
+                        ? `'${searchQuery}'에 대한 검색 결과를 찾을 수 없습니다. 다른 키워드로 검색해보세요.`
+                        : '첫 번째 피어몰을 만들어 커뮤니티를 시작해보세요! 당신의 아이디어가 새로운 연결을 만들어낼 거예요.'
+                      }
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.section>
+
+          {/* 🛍️ 전체 상품 보기 섹션 - 모바일 최적화 */}
+          <motion.section 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <Card className="bg-gradient-to-br from-green-50/80 to-emerald-50/80 dark:from-green-900/20 dark:to-emerald-900/20 border-green-100 dark:border-green-800/30 backdrop-blur-sm">
+              <CardContent className="p-4 sm:p-6 lg:p-8">
+                {/* 헤더 - 모바일 최적화 */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 lg:mb-8 space-y-3 sm:space-y-0">
+                  <div className="flex items-center space-x-3 sm:space-x-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                      <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
                         🛍️ 전체 상품 보기
                       </h2>
-                      <p className={`${designTokens.typography.caption} mt-1`}>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
                         피어몰에 등록된 모든 상품들을 만나보세요
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200 text-xs px-2 py-1">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <Badge className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 text-xs px-2 py-1">
                       {products.length}개 상품
                     </Badge>
-                    <SectionViewModeSelector
+                    <MobileOptimizedViewModeSelector
                       currentMode={sectionViewModes.products}
                       onModeChange={(mode) => handleSectionViewModeChange('products', mode)}
                       sectionTitle="전체 상품"
@@ -1720,21 +1152,20 @@ const Index = () => {
                     />
                   </div>
                 </div>
-              </CardHeader>
-              
-              <CardContent>
+                
+                {/* 콘텐츠 - 모바일 최적화 */}
                 {products.length > 0 ? (
-                  <>
+                  <div className="space-y-6 sm:space-y-8">
                     <AnimatePresence mode="wait">
                       <motion.div
                         key={sectionViewModes.products}
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
+                        exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <UniversalViewRenderer
-                          items={products}
+                        <MobileOptimizedViewRenderer
+                          items={getDisplayedProducts()}
                           viewMode={sectionViewModes.products}
                           type="product"
                           onDetailView={handleProductDetailView}
@@ -1742,74 +1173,114 @@ const Index = () => {
                       </motion.div>
                     </AnimatePresence>
                     
-                    {/* 페이지네이션 컨트롤 */}
+                    {/* 페이지네이션 - 모바일 최적화 */}
                     {totalPages > 1 && (
-                      <div className="flex justify-center mt-8 space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handlePageChange(currentPage - 1)}
-                          disabled={currentPage === 1}
-                          className="w-10 h-10 p-0"
-                        >
-                          <ChevronLeft className="w-5 h-5" />
-                        </Button>
-                        
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                          let pageNum;
-                          if (totalPages <= 5) {
-                            pageNum = i + 1;
-                          } else if (currentPage <= 3) {
-                            pageNum = i + 1;
-                          } else if (currentPage >= totalPages - 2) {
-                            pageNum = totalPages - 4 + i;
-                          } else {
-                            pageNum = currentPage - 2 + i;
-                          }
+                      <motion.div 
+                        className="flex justify-center mt-8 sm:mt-12"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <div className="flex items-center space-x-1 sm:space-x-2">
+                          <motion.button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center bg-white/60 dark:bg-gray-800/60 hover:bg-white/80 dark:hover:bg-gray-700/80 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-200/50 dark:border-gray-700/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            whileHover={{ scale: currentPage === 1 ? 1 : 1.05 }}
+                            whileTap={{ scale: currentPage === 1 ? 1 : 0.95 }}
+                          >
+                            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                          </motion.button>
                           
-                          return (
-                            <Button
-                              key={pageNum}
-                              variant={currentPage === pageNum ? "default" : "outline"}
-                              size="sm"
-                              className={`w-10 h-10 p-0 ${currentPage === pageNum ? 'font-bold' : ''}`}
-                              onClick={() => handlePageChange(pageNum)}
-                            >
-                              {pageNum}
-                            </Button>
-                          );
-                        })}
-                        
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handlePageChange(currentPage + 1)}
-                          disabled={currentPage === totalPages}
-                          className="w-10 h-10 p-0"
-                        >
-                          <ChevronRight className="w-5 h-5" />
-                        </Button>
-                      </div>
+                          {/* 페이지 번호들 - 모바일 최적화 */}
+                          {Array.from({ length: Math.min(isMobile ? 3 : 5, totalPages) }, (_, i) => {
+                            let pageNum;
+                            const maxVisible = isMobile ? 3 : 5;
+                            
+                            if (totalPages <= maxVisible) {
+                              pageNum = i + 1;
+                            } else if (currentPage <= Math.ceil(maxVisible / 2)) {
+                              pageNum = i + 1;
+                            } else if (currentPage >= totalPages - Math.floor(maxVisible / 2)) {
+                              pageNum = totalPages - maxVisible + 1 + i;
+                            } else {
+                              pageNum = currentPage - Math.floor(maxVisible / 2) + i;
+                            }
+                            
+                            const isActive = currentPage === pageNum;
+                            
+                            return (
+                              <motion.button
+                                key={pageNum}
+                                onClick={() => handlePageChange(pageNum)}
+                                className={cn(
+                                  "w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center font-semibold text-sm sm:text-base transition-all duration-200",
+                                  isActive 
+                                    ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25" 
+                                    : "bg-white/60 dark:bg-gray-800/60 hover:bg-white/80 dark:hover:bg-gray-700/80 text-gray-700 dark:text-gray-300 border border-gray-200/50 dark:border-gray-700/50"
+                                )}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                {pageNum}
+                              </motion.button>
+                            );
+                          })}
+                          
+                          <motion.button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center bg-white/60 dark:bg-gray-800/60 hover:bg-white/80 dark:hover:bg-gray-700/80 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-200/50 dark:border-gray-700/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            whileHover={{ scale: currentPage === totalPages ? 1 : 1.05 }}
+                            whileTap={{ scale: currentPage === totalPages ? 1 : 0.95 }}
+                          >
+                            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                          </motion.button>
+                        </div>
+                      </motion.div>
                     )}
-                  </>
+                  </div>
                 ) : (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <ShoppingBag className="w-8 h-8 text-green-500" />
-                    </div>
-                    <h3 className={`${designTokens.typography.subheading} text-gray-700 mb-2`}>
+                  <div className="text-center py-8 sm:py-12 lg:py-16">
+                    <motion.div 
+                      className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6"
+                      animate={{ scale: [1, 1.05, 1], rotate: [0, 5, -5, 0] }}
+                      transition={{ duration: 4, repeat: Infinity }}
+                    >
+                      <ShoppingBag className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-green-500" />
+                    </motion.div>
+                    <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
                       등록된 상품이 없습니다
                     </h3>
-                    <p className={designTokens.typography.caption}>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
                       첫 번째 상품을 등록해보세요! 🛍️
                     </p>
                   </div>
                 )}
               </CardContent>
             </Card>
-          </motion.div>
-        </section>
+          </motion.section>
+        </div>
       </main>
+
+      {/* 🚀 플로팅 액션 버튼 - 모바일 최적화 */}
+      <motion.div
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 lg:bottom-8 lg:right-8 z-50"
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1 }}
+      >
+        <motion.button
+          className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full shadow-2xl hover:shadow-purple-500/25 flex items-center justify-center"
+          whileHover={{ scale: 1.1, rotate: 360 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        >
+          <Rocket className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
+        </motion.button>
+      </motion.div>
 
       {/* 📱 QR 코드 모달 */}
       <QRCodeModal
@@ -1818,6 +1289,28 @@ const Index = () => {
         url={qrCodeUrl}
         title={qrModalTitle}
       />
+
+      {/* 🌙 다크모드 토글 - 모바일 최적화 (선택사항) */}
+      {/* <motion.div
+        className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50"
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1.2 }}
+      >
+        <motion.button
+          onClick={toggleDarkMode}
+          className={cn(
+            "w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg backdrop-blur-sm",
+            isDarkMode 
+              ? "bg-yellow-500/90 text-white shadow-yellow-500/25" 
+              : "bg-gray-800/90 text-white shadow-gray-800/25"
+          )}
+          whileHover={{ scale: 1.1, rotate: 180 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          {isDarkMode ? <Sun className="w-5 h-5 sm:w-6 sm:h-6" /> : <Moon className="w-5 h-5 sm:w-6 sm:h-6" />}
+        </motion.button>
+      </motion.div> */}
     </div>
   );
 };

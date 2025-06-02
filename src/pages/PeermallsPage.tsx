@@ -269,15 +269,6 @@ const PeerMallPage = () => {
                   <Filter className="h-4 w-4" />
                   필터
                 </Button>
-
-                {/* 피어몰 만들기 버튼 */}
-                <Button 
-                  onClick={() => setCreateModalOpen(true)}
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  피어몰 만들기
-                </Button>
               </div>
             </div>
 

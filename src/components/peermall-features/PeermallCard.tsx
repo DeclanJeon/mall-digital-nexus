@@ -110,15 +110,20 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
     }
   }, [peerMallKey, onShowQrCode, peerMallName, toast]);
 
-  // 통화하기
+  // 🎯 통화하기 - 모달만 열기로 수정
   const handleQuickCall = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // 바로 모달만 열기
     setIsCallModalOpen(true);
-
-    //const url = `https://peerterra.com/one/channel/${peerMallName}?mk=${peerMallKey}`;
-    //window.open(url, '_blank');
-  }, [owner, peerMallKey, peerMallName]);
+    
+    toast({
+      title: "📞 통화 준비",
+      description: `${peerMallName}과의 통화를 준비합니다.`,
+      duration: 2000,
+    });
+  }, [peerMallName, toast]);
 
   // 메시지 보내기
   const handleQuickMessage = useCallback((e: React.MouseEvent) => {
@@ -195,7 +200,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="w-6 h-6 p-0 hover:bg-gray-100 rounded-full"
+                    className="w-6 h-6 p-0 hover:bg-green-100 rounded-full"
                     onClick={handleQuickCall}
                     title="통화하기"
                   >
@@ -206,7 +211,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-6 h-6 p-0 hover:bg-gray-100 rounded-full"
+                    className="w-6 h-6 p-0 hover:bg-blue-100 rounded-full"
                     onClick={handleQuickMessage}
                     title="메시지 보내기"
                   >
@@ -250,7 +255,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
         </Card>
       </motion.div>
 
-      {/* 🎮 통화 모달 */}
+      {/* 🎯 CallModal - location 데이터 더 풍부하게 전달 */}
       <CallModal 
         open={isCallModalOpen}
         owner={ownerName}
@@ -262,12 +267,11 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
           email: email,
           phone: email,
           imageUrl: displayImageUrl,
-          trustScore: 4.8, 
+          trustScore: rating || 4.8, // 실제 rating 사용
           responseTime: '즉시',
           isOnline: true
         }} 
       />
-      
       {/* 메시지 모달 */}
       <EnhancedMessageModal
         messageModalOpen={isMessageModalOpen}
