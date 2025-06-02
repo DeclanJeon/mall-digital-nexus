@@ -85,6 +85,8 @@ const PeerSpace = () => {
       try {
         const peermallData = await getPeerMallData(address, peerMallKey);
 
+        console.log(peermallData)
+
         if (!peermallData) {
           toast({
             title: '피어몰을 찾을 수 없습니다',
@@ -94,8 +96,7 @@ const PeerSpace = () => {
           navigate('/');
           return;
         }
-        setPeermall(peermallData);
-
+        
         // 🔥 수정: 피어몰 데이터를 기반으로 PeerSpace 설정 생성
         const defaultConfig: PeerMallConfig = {
           id: peermallData.id,
@@ -110,7 +111,7 @@ const PeerSpace = () => {
           followers: peermallData.followers || 0,
           recommendations: peermallData.likes || 0,
           badges: [],
-          sections: ['home', 'products', 'community', 'following', 'guestbook'],
+          sections: ['space', 'products', 'community', 'following', 'guestbook', 'settings'],
           createdAt: peermallData.createdAt,
           peerMallKey: peermallData.peerMallKey,
           peerMallName: peermallData.peerMallName,
@@ -118,27 +119,9 @@ const PeerSpace = () => {
           ownerName: peermallData.ownerName,
         };
 
-        // 2. Load peer space configuration using storage utility
-        let config = getPeerSpaceConfig(address);
-        if (!config) {
-          config = defaultConfig;
-          savePeerSpaceConfig(address, config);
-        }
-        else {
-          // 🔥 피어몰 데이터가 업데이트된 경우 설정도 동기화
-          config = {
-            ...config,
-            title: peermallData.title,
-            owner: peermallData.owner,
-            description: peermallData.description,
-            profileImage: peermallData.imageUrl,
-            followers: peermallData.followers || config.followers || 0,
-            recommendations: peermallData.likes || config.recommendations || 0
-          };
-          savePeerSpaceConfig(address, config);
-        }
-
-        setConfig(config);
+        setPeermall(peermallData);
+        savePeerSpaceConfig(address, defaultConfig);
+        setConfig(defaultConfig);
 
         // 3. Listen for peermall updates
         const handlePeermallUpdate = (peermalls: Peermall[]) => {
@@ -217,8 +200,11 @@ const PeerSpace = () => {
   };
 
   // ProductCard의 onDetailView prop으로 전달될 함수
-  const handleDetailView = (productId: string | number) => {
-    navigate(`/space/${address}/product/${productId}`);
+  const handleDetailView = (productKey: string | number) => {
+
+    console.log("Detail View : ", peerMallKey, productKey)
+
+    navigate(`/space/${address}/product?mk=${peerMallKey}&pk=${productKey}`);
   };
 
   if (isLoading) {

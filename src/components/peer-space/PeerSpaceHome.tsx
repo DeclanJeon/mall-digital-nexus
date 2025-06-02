@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { Content, ContentType, PeerMallConfig, SectionType } from '@/types/space';
+import { Content, PeerMallConfig, SectionType } from '@/types/space';
 import { Peermall } from '@/types/peermall';
 import { 
   Heart, 
@@ -70,16 +69,7 @@ import productService from '@/services/productService';
 import { Product } from '@/types/product';
 import { Post } from '@/types/post';
 
-interface PeerSpaceHomeProps {
-  isOwner: boolean;
-  address: string;
-  config: PeerMallConfig;
-  peermall: Peermall | null;
-  onUpdateConfig: (updatedConfig: PeerMallConfig) => void;
-  activeSection: SectionType;
-  onNavigateToSection: (section: SectionType) => void;
-  onDetailView?: (productId: string | number) => void;
-}
+import { PeerSpaceHomeProps } from '@/types/space';
 
 
 // 🎯 데이터 변환 함수 분리
@@ -137,6 +127,8 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   const [posts, setPosts] = useState<Content[]>([]);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true); // or false, depending on your default
+
   const [currentView, setCurrentView] = useState<'list' | 'blog' | 'grid-small' | 'grid-medium' | 'grid-large' | 'masonry'>('list');
   const [sections, setSections] = useState<SectionType[]>(
     getSectionOrder(address, config.sections)
@@ -159,6 +151,11 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
        
       try {
         console.log('🔄 데이터 로딩 시작...', { address, peerMallKey });
+
+        console.log(isOwner, 
+  address,
+  config,
+  peermall)
         
         // 🎯 API 한 번만 호출!
         const loadedProductsResponse = await productService.getProductList(address, peerMallKey);

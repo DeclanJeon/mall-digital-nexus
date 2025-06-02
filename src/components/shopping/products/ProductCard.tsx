@@ -124,8 +124,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }, 1000);
   };
 
-  const handleDetailView = () => {
-    onDetailView && onDetailView(productKey);
+  const handleDetailView = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 이벤트 버블링 방지
+    console.log('🔍 ProductCard에서 상세보기 호출:', productKey);
+    onDetailView?.(productKey); // ✅ 한 번만 호출
   };
 
   return (
@@ -210,37 +212,25 @@ const ProductCard: React.FC<ProductCardProps> = ({
               {name}
             </h3>
             
-            {viewMode !== 'list' && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-6 w-6 -mt-1">
-                    <MoreVertical className="h-3 w-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleDetailView}>
-                    <Eye className="mr-2 h-4 w-4" />
-                    상세 보기
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handlePurchase}>
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    구매하기
-                  </DropdownMenuItem>
-                  {seller && onAddFriend && (
-                    <DropdownMenuItem onClick={handleAddFriend} disabled={friendStatus !== 'idle'}>
-                      {friendStatus === 'adding' ? (
-                        <MoreVertical className="mr-2 h-4 w-4 animate-spin" />
-                      ) : friendStatus === 'added' ? (
-                        <Check className="mr-2 h-4 w-4 text-green-500" />
-                      ) : (
-                        <UserPlus className="mr-2 h-4 w-4" />
-                      )}
-                      {friendStatus === 'adding' ? '친구 추가 중...' : friendStatus === 'added' ? '친구 추가됨' : '판매자와 친구 맺기'}
+              {viewMode !== 'list' && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 -mt-1">
+                      <MoreVertical className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleDetailView}> {/* ✅ 단일 핸들러 */}
+                      <Eye className="mr-2 h-4 w-4" />
+                      상세 보기
                     </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+                    <DropdownMenuItem onClick={handlePurchase}>
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      구매하기
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
           </div>
 
           {/* 피어몰 이름 뱃지 추가 */}
@@ -272,7 +262,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
-              <div className="flex items-center">
+              {/* <div className="flex items-center">
                 {[...Array(5)].map((_, i) => {
                   const uniqueKey = `star-${i}-${rating}`;
                   return (
@@ -285,8 +275,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     />
                   );
                 })}
-              </div>
-              <span className="text-xs text-gray-500">({reviewCount})</span>
+              </div> */}
+              {/* <span className="text-xs text-gray-500">({reviewCount})</span> */}
             </div>
             
             {cardSize === 'large' && (

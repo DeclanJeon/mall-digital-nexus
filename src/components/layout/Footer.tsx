@@ -9,7 +9,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
             <h2 className="text-xl font-bold mb-4">
-              <span className="text-accent-100">Peer</span>mall
+              <span className="text-accent-100">Peer</span>Mall
             </h2>
             <p className="text-sm text-gray-300 mb-4">
               'Peer'(귀족, 동료)와 'Mall'(쇼핑 장소)의 합성어로, 귀한 고객들이 품격 있게 사거나 팔 수 있는 사이트입니다.

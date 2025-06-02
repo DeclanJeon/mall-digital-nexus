@@ -91,3 +91,11 @@ export interface ProductGridProps {
   searchQuery?: string;
   onDetailView?: (productKey: string | number) => void;
 }
+
+export interface ProductDetailComponentProps {
+  product: Product;
+  peerMallName: string;
+  peerMallKey: string;
+  onBack: () => void;
+  isOwner?: boolean;
+}

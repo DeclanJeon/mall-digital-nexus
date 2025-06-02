@@ -74,9 +74,6 @@ const saveInquiries = (allInquiries: Inquiry[]) => {
 
 const ProductDetailPage: React.FC = () => { 
   const { address } = useParams<{ address: string }>();
-
-  console.log(address)
-
   const [ searchParams ] = useSearchParams();
   const peerMallKey = searchParams.get('mk');
   const productKey = searchParams.get('pk');
@@ -514,7 +511,7 @@ const ProductDetailPage: React.FC = () => {
                   </div>
 
                   {/* 할인가 표시 */}
-                  {product.discountPrice && product.discountPrice > 0 && (
+                  {product.discountPrice && Number(product.discountPrice) > 0 && (
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-lg text-gray-500 line-through">
                         {formatPrice(product.discountPrice)}원

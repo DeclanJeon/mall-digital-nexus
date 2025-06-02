@@ -7,7 +7,7 @@ import { Filter, Grid, LayoutGrid, ShoppingBag, ArrowRight, ArrowLeft, X } from 
 import { Button } from '@/components/ui/button';
 import { Peermall } from './PeerSpace';
 import { QRCodeModal } from '@/components/peer-space/modals/QRCodeModal';
-import ShoppingFilter from '@/components/shopping/products/ShoppingFilter';
+import ShoppingFilter from '@/components/features/ShoppingFilter';
 import CategoryNav from '@/components/CategoryNav';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -23,14 +23,7 @@ import { getProducts, saveProduct } from '@/services/storage/productStorage';
 import { STORAGE_KEYS } from '@/utils/storage/constants';
 import { Product } from '@/types/product';
 import productService from '@/services/productService';
-
-interface ShoppingFilters {
-  categories: string[];
-  priceRange: number[];
-  rating: number | null;
-  status: string[];
-  searchQuery: string;
-}
+import { ShoppingFilters } from '@/types/search';
 
 const ITEMS_PER_PAGE = 8;
 
@@ -427,6 +420,7 @@ const Shopping = () => {
                         }}
                       />
                     )}
+                    
                     {hasMoreProducts && filteredProducts.length > 0 && (
                       <Button
                         variant="outline"

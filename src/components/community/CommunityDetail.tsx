@@ -285,7 +285,10 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ community }) => {
       tags: selectedTags,
       isNotice,
       channelId: selectedChannel,
-      communityId: community.id
+      communityId: community.id,
+      description: "",
+      peerMallName: "",
+      peerMallKey: ""
     };
 
     // Save to localStorage
