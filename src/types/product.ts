@@ -7,6 +7,7 @@ export interface Product {
   name: string;
   title: string; // name과 중복되지만 호환성 유지용
   owner: string;
+  email: string;
   description: string;
   price: number | string; // 데이터베이스와 일치
   currency: string; // 화폐 단위 추가
@@ -26,6 +27,7 @@ export interface Product {
   isRecommended?: boolean;
   isCertified?: boolean;
   saleUrl?: string;
+  brandUrl?: string;
 
   // 🎯 새로 추가된 필드들
   stock?: string | number; // 재고 수량

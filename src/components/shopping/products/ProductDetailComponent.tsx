@@ -156,6 +156,7 @@ interface RelatedProduct {
   price: number;
   discountPrice?: number;
   imageUrl: string;
+  email: string;
   rating: number;
   reviewCount: number;
   isNew?: boolean;
@@ -361,13 +362,12 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   // **🎯 탭 상태 관리**
   const [activeTab, setActiveTab] = useState<TabType>('details');
-  
   const [showQRCodeModal, setShowQRCodeModal] = useState(false);
 
-  
   // 🎯 통화 모달 상태
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
   
@@ -402,6 +402,11 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
     }
     return ['/placeholder-product.jpg'];
   }, [product.imageUrl]);
+
+  useEffect(() => {
+    const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+    setIsLoggedIn(userLoggedIn);
+  }, [])
 
   // **🎯 연관 상품 목 데이터**
   const relatedProducts: RelatedProduct[] = React.useMemo(() => [
@@ -612,21 +617,6 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
       user: "김구매자",
       date: "2025-05-28",
       isAnswered: true
-    },
-    {
-      id: 2,
-      question: "A/S는 어떻게 받을 수 있나요?",
-      answer: "구매 후 1년간 무료 A/S를 제공합니다. 피어몰 고객센터로 연락주시면 안내해드리겠습니다.",
-      user: "이고객",
-      date: "2025-05-25",
-      isAnswered: true
-    },
-    {
-      id: 3,
-      question: "색상 옵션이 더 있나요?",
-      user: "박문의",
-      date: "2025-05-29",
-      isAnswered: false
     }
   ]);
 
@@ -634,8 +624,9 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
   const callModalData = {
     title: peerMallName,
     owner: product.owner || '피어몰 운영자',
-    phone: '+82-10-1234-5678',
-    imageUrl: productImages[0],
+    phone: product.email || '+82-10-1234-5678',
+    email: product.email,
+    imageUrl: product.imageUrl,
     trustScore: 4.8,
     responseTime: '평균 2시간',
     isOnline: true
@@ -666,8 +657,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
 
   // **🎯 상담 신청 제출**
   const handleConsultationSubmit = async () => {
-    const isLoggedIn = true;
-    
+    debugger;
     if (!isLoggedIn) {
       toast({
         title: "로그인이 필요합니다",
@@ -677,10 +667,18 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
       return;
     }
 
-    if (!consultationContent.trim() || !consultationSubject.trim()) {
+    // if (!consultationContent.trim() || !consultationSubject.trim()) {
+    //   toast({
+    //     title: "내용을 입력해주세요",
+    //     description: "상담 제목과 내용을 모두 입력해주세요.",
+    //     variant: "destructive"
+    //   });
+    //   return;
+    // }
+    if (!consultationSubject.trim()) {
       toast({
-        title: "내용을 입력해주세요",
-        description: "상담 제목과 내용을 모두 입력해주세요.",
+        title: "제목목을 입력해주세요",
+        description: "상담 제목을 모두 입력해주세요.",
         variant: "destructive"
       });
       return;
@@ -689,11 +687,11 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
     setIsSubmittingConsultation(true);
 
     try {
+      ///고객상담 부분
       const consultationData = {
         productId: product.id,
         productName: product.name,
         subject: consultationSubject,
-        content: consultationContent,
         customerEmail: 'customer@example.com',
         sellerEmail: 'seller@example.com',
         timestamp: new Date().toISOString()
@@ -796,7 +794,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
             ) : (
               <div className="prose max-w-none">
                 <p className="text-slate-600 leading-relaxed whitespace-pre-wrap" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-{ product.description || "아직 상세 설명이 등록되지 않았습니다." }
+                  { product.description || "아직 상세 설명이 등록되지 않았습니다." }
                 </p>
               </div>    
             )}
@@ -850,7 +848,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
                   <div>
                     <p className="text-xs text-slate-500">등록일</p>
                     <p className="font-medium text-slate-900">
-                      {new Date(product.date).toLocaleDateString()}
+                      {product.date}
                     </p>
                   </div>
                 </div>
@@ -912,6 +910,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
   );
 
   const renderRelatedTab = () => (
+    //현재 피어몰내 판매중인 다른 상품품들
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -925,7 +924,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
                 <Grid3X3 className="h-5 w-5 text-blue-600" />
-                연관 상품
+                {product.name} 내에서 판매중인 다른 상품들
               </h3>
               <Badge variant="secondary" className="bg-slate-100 text-slate-700">
                 {filteredRelatedProducts.length}개
@@ -1366,10 +1365,10 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
               <CardContent className="p-0">
                 <div className="relative group">
                   <div className="aspect-square bg-slate-100 overflow-hidden">
-                    {isGifImage(productImages[selectedImageIndex]) ? (
+                    {isGifImage(product.imageUrl) ? (
                       <div className="relative w-full h-full">
                         <img
-                          src={productImages[selectedImageIndex]}
+                          src={product.imageUrl}
                           alt={product.name}
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
 
@@ -1394,7 +1393,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
                       </div>
                     ) : (
                       <img
-                        src={productImages[selectedImageIndex]}
+                        src={product.imageUrl}
                         alt={product.name}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         onError={(e) => {
@@ -1443,16 +1442,16 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
                       )}
                     </div>
 
-                    {productImages.length > 1 && (
+                    {/* {productImages.length > 1 && (
                       <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
                         <Badge variant="outline" className="bg-black/50 text-white border-white/20">
                           {selectedImageIndex + 1} / {productImages.length}
                         </Badge>
                       </div>
-                    )}
+                    )} */}
                   </div>
                   
-                  {productImages.length > 1 && (
+                  {/* {productImages.length > 1 && (
                     <>
                       <Button
                         variant="ghost"
@@ -1473,7 +1472,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
                         <ChevronRight className="h-4 w-4" />
                       </Button>
                     </>
-                  )}
+                  )} */}
                 </div>
               </CardContent>
             </Card>
@@ -1627,6 +1626,16 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
                   {product.stock && Number(product.stock) <= 0 ? '품절' : '구매하기'}
                 </Button>
               )}
+              {/* 브랜드 홈페이지 방문 버튼 */}
+              {product.brandUrl && (
+                <Button
+                  className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 text-base rounded-lg transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center"
+                  onClick={() => window.open(product.brandUrl, '_blank')}
+                >
+                  <Globe className="h-5 w-5 mr-2" />
+                  브랜드 홈페이지 방문
+                </Button>
+              )}
 
               <Dialog open={isConsultationModalOpen} onOpenChange={setIsConsultationModalOpen}>
                 <DialogTrigger asChild>
@@ -1636,7 +1645,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
                     style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
-                    상담하기
+                    고객상담
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
@@ -1788,16 +1797,16 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
               },
               { 
                 key: 'related', 
-                label: '연관제품', 
+                label: `${product.name} 내에서 판매중인 다른 상품들`, 
                 icon: Grid3X3,
                 description: '추천 상품 보기'
-              },
-              { 
-                key: 'qna', 
-                label: 'Q&A', 
-                icon: HelpCircle,
-                description: '질문과 답변'
-              },
+              }
+              // { 
+              //   key: 'qna', 
+              //   label: 'Q&A', 
+              //   icon: HelpCircle,
+              //   description: '질문과 답변'
+              // },
             ].map((tab) => (
               <Button
                 key={tab.key}

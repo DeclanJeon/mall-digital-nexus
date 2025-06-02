@@ -57,7 +57,8 @@ const transformApiProductToProduct = (apiProduct: any, address: string, config: 
   id: apiProduct.productKey || '',
   name: apiProduct.name || '',
   title: apiProduct.name || '',
-  owner: address,
+  owner: apiProduct.owner,
+  email: apiProduct.email,
   description: apiProduct.description || '',
   price: apiProduct.price || 0,
   currency: 'KRW',
@@ -76,11 +77,12 @@ const transformApiProductToProduct = (apiProduct: any, address: string, config: 
   isRecommended: apiProduct.isRecommended || false,
   isCertified: apiProduct.isCertified || false,
   saleUrl: apiProduct.saleUrl || '',
-  create_date: apiProduct.create_date || new Date().toISOString(),
+  brandUrl: apiProduct.brandUrl || '',
+  create_date: apiProduct.createdAt || new Date().toISOString(),
   update_date: apiProduct.update_date || new Date().toISOString(),
   type: 'Product',
   peerSpaceAddress: address,
-  date: apiProduct.create_date || new Date().toISOString(),
+  date: apiProduct.createdAt || new Date().toISOString(),
   likes: apiProduct.likes || 0,
   comments: apiProduct.comments || 0,
   views: apiProduct.views || 0,
@@ -132,7 +134,6 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       
       try {
         const loadedProductsResponse = await productService.getProductList(address, peerMallKey);
-        
         if (loadedProductsResponse && loadedProductsResponse.productList) {
           const transformedProducts = loadedProductsResponse.productList.map((apiProduct: any) => 
             transformApiProductToProduct(apiProduct, address, config, peerMallKey || '')
