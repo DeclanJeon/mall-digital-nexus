@@ -16,6 +16,7 @@ import {
   MessageSquare,
   PhoneOff
 } from 'lucide-react';
+import userService from '@/services/userService';
 
 interface CallModalProps {
   open: boolean;
@@ -26,6 +27,7 @@ interface CallModalProps {
     title: string;
     owner?: string;
     phone?: string;
+    email?: string;
     imageUrl?: string;
     trustScore?: number;
     responseTime?: string;
@@ -46,9 +48,10 @@ const CallModal: React.FC<CallModalProps> = ({
   // 🎯 통화 시작 핸들러
   const handleStartCall = useCallback(() => {
     setCallStatus('calling');
+    const url = `https://peerterra.com/one/channel/${location.title}?mk=${peerMallKey}`;
     
     // 실제 통화 연결 시뮬레이션
-    const timerId = setTimeout(() => {
+    const timerId = setTimeout(async () => {
       setCallStatus('connected');
       
       // 통화 시간 카운터 시작
@@ -56,9 +59,31 @@ const CallModal: React.FC<CallModalProps> = ({
         setCallDuration(prev => prev + 1);
       }, 1000);
 
+      await userService.requestCall(location.email, url);
+
       // 새 창에서 통화 페이지 열기
-      const url = `https://peerterra.com/one/channel/${owner}?mk=${peerMallKey}`;
-      window.open(url, '_blank');
+      const childWindow = window.open(url, '_blank');
+
+      if (childWindow) {
+        // 주기적으로 자식 창의 닫힘 여부 확인
+        const checkChildClosed = setInterval(() => {
+          if (childWindow.closed) {
+            
+            handleEndCall();
+    
+            // 더 이상 확인하지 않도록 setInterval을 해제합니다.
+            clearInterval(checkChildClosed);
+          }
+        }, 1000);
+    
+        // 선택 사항: 부모 창이 먼저 닫히거나 페이지가 이동될 경우 setInterval을 정리
+        window.addEventListener('beforeunload', () => {
+          clearInterval(checkChildClosed);
+        });
+      } else {
+        console.error('팝업이 차단되었거나 새 창을 열 수 없습니다.');
+        alert('팝업이 차단되었거나 새 창을 열 수 없습니다. 팝업 차단을 해제해주세요.');
+      }
       
       // 컴포넌트 언마운트 시 타이머 정리
       return () => clearInterval(timer);
@@ -96,7 +121,7 @@ const CallModal: React.FC<CallModalProps> = ({
               </div>
               <div>
                 <span className="bg-gradient-to-r from-green-600 to-emerald-700 bg-clip-text text-transparent font-bold text-lg">
-                  피어Tie 통화하기
+                  피어몰 전화
                 </span>
                 <p className="text-sm text-gray-500 font-normal">
                   {location.title}
@@ -140,7 +165,7 @@ const CallModal: React.FC<CallModalProps> = ({
                 )}
                 {location.phone && (
                   <p className="text-sm font-mono text-green-700 mt-1">
-                    📞 {location.phone}
+                    📞 {location.email}
                   </p>
                 )}
               </div>
@@ -242,7 +267,7 @@ const CallModal: React.FC<CallModalProps> = ({
                   className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all h-12"
                 >
                   <Phone className="w-5 h-5 mr-2" />
-                  음성 통화
+                  통화 하기
                 </Button>
               </div>
             )}
