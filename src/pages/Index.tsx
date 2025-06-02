@@ -622,7 +622,6 @@ const Index = () => {
     const loadInitialData = async () => {
       try {
         setIsLoading(true);
-        console.log('🔄 초기 데이터 로드 시작...');
         
         const allPeermalls = await getAllPeerMallList();
         const allProducts = await productService.getAllProductList();
@@ -630,7 +629,6 @@ const Index = () => {
         setPeermalls(allPeermalls);
         setProducts(allProducts);
         
-        console.log('✅ 초기 데이터 로드 완료');
       } catch (error) {
         console.error('❌ 초기 데이터 로드 오류:', error);
         toast({
@@ -645,21 +643,6 @@ const Index = () => {
 
     loadInitialData();
   }, [toast]);
-
-  // 📊 통계 및 데이터 계산
-  const stats = useMemo(() => ({
-    totalMalls: peermalls.length,
-    myMalls: mySpaces.length,
-    totalRating: peermalls.reduce((sum, mall) => sum + (mall.rating || 0), 0),
-    avgRating: peermalls.length > 0 ? (Number(peermalls.reduce((sum, mall) => sum + (mall.rating || 0), 0) / peermalls.length)).toFixed(1) : '0.0',
-    totalLikes: peermalls.reduce((sum, mall) => sum + (mall.likes || 0), 0),
-    totalFollowers: peermalls.reduce((sum, mall) => sum + (mall.followers || 0), 0),
-    totalProducts: products.length,
-    avgPrice: products.length > 0 ? Math.round(products.reduce((sum, product) => {
-      const price = typeof product.price === 'string' ? parseFloat(product.price) || 0 : product.price || 0;
-      return sum + price;
-    }, 0) / products.length) : 0
-  }), [peermalls, mySpaces, products]);
   
   // ✨ 신규 피어몰 계산
   const newestMalls = useMemo(() => [...peermalls]

@@ -20,6 +20,7 @@ import CommunityBoardHeader from './board/components/CommunityBoardHeader';
 import CommunityBoardFooter from './board/components/CommunityBoardFooter';
 import PostDisplay from './board/components/PostDisplay';
 import CommunityBoardHelpTips from './board/components/CommunityBoardHelpTips';
+import { getDefaultChannelsIcon } from '@/utils/storageUtils'; 
 
 interface CommunityBoardProps {
   zoneName: string;
@@ -42,6 +43,7 @@ const CommunityBoard: React.FC<CommunityBoardProps> = ({
     isQRDialogOpen,
     isChannelDialogOpen,
     posts,
+    filteredPosts,
     channels,
     viewMode,
     isLoading,
@@ -68,14 +70,17 @@ const CommunityBoard: React.FC<CommunityBoardProps> = ({
     handleChannelDelete,
     toggleFilter,
     dismissHelpTips,
+    handleTabClick
   } = useCommunityBoardLogic({ 
     communityId, 
     initialPosts: propPosts, 
     zoneName, 
     onPostClick // 🔥 훅에 onPostClick 전달
   });
+  processedPosts;
 
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const channelsIcon = getDefaultChannelsIcon();
 
   return (
     <div className="h-full">
@@ -104,26 +109,27 @@ const CommunityBoard: React.FC<CommunityBoardProps> = ({
         <div className="border-b flex flex-col md:flex-row justify-between items-center px-6 py-2 bg-gray-50">
           <Tabs 
             value={activeTab} 
-            onValueChange={setActiveTab} 
+            onValueChange={setActiveTab}
             className="space-y-1 md:space-y-0 w-full md:w-auto"
           >
             <TabsList className="h-9 bg-gray-100 w-full md:w-auto overflow-x-auto flex-nowrap justify-start md:justify-center">
-              <TabsTrigger value="all" className="text-sm h-7">
+              <TabsTrigger value="all" className="text-sm h-7" onClick={() => handleTabClick('all')}>
                 <span className="mr-1">🔍</span>
                 전체글
               </TabsTrigger>
               
-              {channels.map((channel) => (
+              {channels.map((channel, idx) => (
                 <TabsTrigger 
                   key={channel.id} 
-                  value={channel.id} 
+                  value={channel.name} 
                   className="text-sm h-7 whitespace-nowrap"
                   style={{ 
                     borderBottom: activeTab === channel.id ? `2px solid ${channel.color}` : undefined,
                     color: activeTab === channel.id ? channel.color : undefined 
                   }}
+                  onClick={() => handleTabClick(channel.id)}
                 >
-                  <span className="mr-1">{channel.icon}</span>
+                  <span className="mr-1">{channelsIcon[idx].icon}</span>
                   {channel.name}
                 </TabsTrigger>
               ))}
@@ -188,7 +194,7 @@ const CommunityBoard: React.FC<CommunityBoardProps> = ({
         </div>
                 
         <PostDisplay
-          posts={processedPosts}
+          posts={filteredPosts.length > 0 ? filteredPosts : processedPosts}
           viewMode={viewMode}
           isLoading={isLoading}
           searchQuery={searchQuery}

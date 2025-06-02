@@ -30,17 +30,16 @@ export const useAuth = (): AuthHook => {
   // 컴포넌트 마운트 시 localStorage에서 인증 상태 확인
   useEffect(() => {
     try {
-      const loggedIn = localStorage.getItem('userLoggedIn') === 'true';
-      const email = localStorage.getItem('userEmail');
-      const accessToken = localStorage.getItem('accessToken');
-      const refreshToken = localStorage.getItem('refreshToken');
+      // const loggedIn = localStorage.getItem('userLoggedIn') === 'true';
+      // const email = localStorage.getItem('userEmail');
+      // const accessToken = localStorage.getItem('accessToken');
+      // const refreshToken = localStorage.getItem('refreshToken');
 
-      console.log(email, accessToken, refreshToken)
 
-      if (loggedIn && email) {
-        setUser({ email, accessToken, refreshToken });
-        setIsAuthenticated(true);
-      }
+      // if (loggedIn && email) {
+      //   setUser({ email, accessToken, refreshToken });
+      //   setIsAuthenticated(true);
+      // }
     } catch (error) {
       console.error("Error reading auth status from localStorage", error);
       // localStorage 접근 불가 시 기본값으로 처리

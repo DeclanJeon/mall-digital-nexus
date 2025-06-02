@@ -477,6 +477,47 @@ export const saveEventToLocalStorage = (event: CommunityMapEvent): void => {
   }
 };
 
+export const getDefaultChannelsIcon = (): Channel[] => {
+  return [
+    {
+      id: 'notice',
+      name: '공지사항',
+      icon: '📢',
+      description: '중요 소식',
+      color: '#6366f1',
+      communityId: 'global',
+    },
+    {
+      id: 'free',
+      name: '자유게시판',
+      description: '자유로운 대화와 토론',
+      icon: '💬',
+      communityId: 'global',
+    },
+    {
+      id: 'qna',
+      name: '질문과 답변',
+      description: '질문하고 답변하는 공간',
+      icon: '❓',
+      communityId: 'global',
+    },
+    {
+      id: 'event',
+      name: '이벤트',
+      description: '진행중인 이벤트 소식',
+      icon: '🎉',
+      communityId: 'global',
+    },
+    {
+      id: 'share',
+      name: '공유',
+      description: '정보와 자료 공유',
+      icon: '🔗',
+      communityId: 'global',
+    },
+  ];
+};
+
 const getDefaultChannels = (): Channel[] => {
   return [
     {

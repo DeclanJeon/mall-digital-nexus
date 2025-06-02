@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 // API 기본 URL
+//const API_BASE_URL = 'https://api.peermall.com/v1/users';
 const API_BASE_URL = 'http://localhost:9393/v1/users';
 
 // API 호출을 위한 axios 인스턴스 생성
@@ -8,6 +9,7 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
 });
+let accessToken;
 
 // 인증번호 발송 함수
 const sendNumber = async (
@@ -19,6 +21,28 @@ const sendNumber = async (
       // OTP 값이 문자열인지 확인
       const otp = String(response.data.otp || '');
       return { success: true, otp };
+    }
+    return { success: false };
+  } catch (error) {
+    console.error('Error sending verification code:', error);
+    return { success: false };
+  }
+};
+
+const requestCall = async (
+  ownerEmail: string,
+  url: string
+): Promise<{ success: boolean }> => {
+  try {
+    accessToken = getAccessToken();
+
+    const response = await api.post('/requestCall', { ownerEmail, url }, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      },
+    });
+    if (response.status === 200 && response.data.success) {
+      return { success: true };
     }
     return { success: false };
   } catch (error) {
@@ -50,7 +74,7 @@ const login = async (
 
 const getUserInfo = async (): Promise<any> => {
   try {
-    const accessToken = getAccessToken();
+    accessToken = getAccessToken();
 
     const response = await api.get(`/userInfo`, {
       headers: {
@@ -82,7 +106,8 @@ const userService = {
   login,
   getUserInfo,
   updateUserInfo,
-  getAccessToken
+  getAccessToken,
+  requestCall
 };
 
 export default userService;

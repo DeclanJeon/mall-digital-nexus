@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from "@/components/ui/use-toast";
 
 // Lazy imports
 const MapSelectorDialog = lazy(() => import('@/components/peermall-features/MapSelectorDialog'));
@@ -63,7 +63,8 @@ import { Progress } from '@/components/ui/progress';
 
 // API & Types
 import { getPeermallByAddress, updatePeermall } from '@/api';
-import { PeermallFormData } from '@/types/peermall';
+import { Peermall, PeermallFormData } from '@/types/peermall';
+import { getPeerMallData, updatePeerMall } from '@/services/peerMallService';
 
 // **스키마 정의**
 const settingsSchema = z.object({
@@ -72,6 +73,8 @@ const settingsSchema = z.object({
   ownerName: z.string().min(1, { message: '대표자 이름을 입력해주세요' }),
   email: z.string().email({ message: '유효한 이메일을 입력해주세요' }),
   imageUrl: z.string().optional(),
+  imageKey: z.string().optional(),
+  imageId: z.string().optional(),
   hashtags: z.string().optional(),
   mapAddress: z.string().optional(),
 });
@@ -83,6 +86,7 @@ const PeerSpaceSettings: React.FC = () => {
   const { address } = useParams<{ address: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // **상태 관리**
   const [isSaving, setIsSaving] = useState(false);
@@ -95,16 +99,10 @@ const PeerSpaceSettings: React.FC = () => {
     address: string;
   } | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-
   const [searchParams] = useSearchParams();
   const peerMallKey = searchParams.get('mk');
-
-  // **데이터 페칭**
-  const { data: peermall, isLoading, error } = useQuery({
-    queryKey: ['peermall', address],
-    queryFn: () => getPeermallByAddress(address || ''),
-    enabled: !!address,
-  });
+  const [peerMall, setPeerMall] = useState<Peermall | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // **폼 설정**
   const form = useForm<SettingsFormData>({
@@ -115,6 +113,8 @@ const PeerSpaceSettings: React.FC = () => {
       ownerName: '',
       email: '',
       imageUrl: '',
+      imageKey: '',
+      imageId: '',
       hashtags: '',
       mapAddress: '',
     },
@@ -123,28 +123,32 @@ const PeerSpaceSettings: React.FC = () => {
 
   // **데이터 바인딩**
   useEffect(() => {
-    if (peermall) {
-      const hashtags = peermall.tags?.join(', ') || '';
-      
-      form.reset({
-        name: peermall.name || '',
-        description: peermall.description || '',
-        ownerName: peermall.ownerName || '',
-        email: peermall.email || '',
-        imageUrl: peermall.imageUrl || '',
-        hashtags: hashtags,
-        mapAddress: peermall.location?.address || '',
-      });
+    setIsLoading(true);
 
-      if (peermall.location?.lat && peermall.location?.lng) {
-        setMapLocation({
-          lat: peermall.location.lat,
-          lng: peermall.location.lng,
-          address: peermall.location.address || '',
-        });
-      }
+    const loadPeerMall = async () => {
+      const loadedPeerMall = await getPeerMallData(address, peerMallKey);
+      setPeerMall(loadedPeerMall);
+      setIsLoading(false);
+    };
+
+    loadPeerMall();
+  }, [address, peerMallKey]);
+
+  useEffect(() => {
+    if (peerMall) {
+      form.reset({
+        name: peerMall.peerMallName,
+        description: peerMall.description,
+        ownerName: peerMall.ownerName,
+        email: peerMall.email,
+        imageUrl: peerMall.imageUrl,
+        imageKey: peerMall.imageKey,
+        imageId: peerMall.imageId,
+        hashtags: peerMall.hashtags,
+        mapAddress: peerMall.peerMallAddress,
+      });
     }
-  }, [peermall, form]);
+  }, [peerMall]);
 
   // **폼 변경 감지**
   useEffect(() => {
@@ -162,7 +166,7 @@ const PeerSpaceSettings: React.FC = () => {
   const saveMutation = useMutation({
     mutationFn: async (data: SettingsFormData) => {
       if (!address) throw new Error('주소가 없습니다');
-      
+
       const formData = new FormData();
       
       Object.entries(data).forEach(([key, value]) => {
@@ -179,8 +183,10 @@ const PeerSpaceSettings: React.FC = () => {
       if (imageFile) {
         formData.append('image', imageFile);
       }
+      formData.append('originName', address);
+      formData.append('peerMallKey', peerMallKey);
 
-      return updatePeermall(address, formData);
+      return await updatePeerMall(formData);
     },
     onSuccess: () => {
       toast({
@@ -215,6 +221,10 @@ const PeerSpaceSettings: React.FC = () => {
     setIsSaving(true);
     try {
       await saveMutation.mutateAsync(form.getValues());
+      toast({
+        title: '설정이 저장되었습니다! 🎉',
+        description: '변경사항이 성공적으로 적용되었습니다.',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -313,7 +323,7 @@ const PeerSpaceSettings: React.FC = () => {
   }
 
   // **에러 상태**
-  if (error || !peermall) {
+  if (!peerMall) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 flex items-center justify-center">
         <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 backdrop-blur-sm">
@@ -363,14 +373,14 @@ const PeerSpaceSettings: React.FC = () => {
               <Separator orientation="vertical" className="h-6" />
               <div className="flex items-center space-x-3">
                 <Avatar className="h-10 w-10 ring-2 ring-white shadow-md">
-                  <AvatarImage src={peermall.imageUrl} alt={peermall.name} />
+                  <AvatarImage src={peerMall.imageUrl} alt={peerMall.name} />
                   <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white font-bold">
-                    {peermall.name?.charAt(0)?.toUpperCase() || 'P'}
+                    {peerMall.name?.charAt(0)?.toUpperCase() || 'P'}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <h1 className="text-lg font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                    {peermall.name} 설정
+                    {peerMall.name} 설정
                   </h1>
                   <p className="text-sm text-gray-500">@{address}</p>
                 </div>
@@ -776,7 +786,8 @@ const PeerSpaceSettings: React.FC = () => {
                                     {mapLocation.address}
                                   </div>
                                   <div className="text-xs text-green-600 font-mono">
-                                    위도: {mapLocation.lat.toFixed(6)} | 경도: {mapLocation.lng.toFixed(6)}
+                                    {/* //위도: {mapLocation.lat.toFixed(6)} | 경도: {mapLocation.lng.toFixed(6)} */}
+                                    위도: {mapLocation.lat} | 경도: {mapLocation.lng}
                                   </div>
                                 </div>
                                 <Button

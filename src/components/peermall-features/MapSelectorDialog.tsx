@@ -28,9 +28,9 @@ export const MapSelectorDialog: React.FC<MapSelectorDialogProps> = ({
   } | null>(null);
 
   // handleLocationSelect를 useCallback으로 감싸기
-  const handleLocationSelect = useCallback((location: { lat: number; lng: number; address: string }) => {
+  const handleLocationSelect = useCallback((location) => {
     setSelectedLocation(location);
-  }, []); // 의존성 배열이 비어있으므로, setSelectedLocation은 항상 동일한 참조를 가짐
+  }, []);
 
   // handleConfirm도 useCallback으로 감싸기
   const handleConfirm = useCallback(() => {

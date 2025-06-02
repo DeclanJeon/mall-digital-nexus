@@ -3,7 +3,7 @@ import React from 'react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { X, Map as MapIcon } from 'lucide-react';
-import EcosystemMap from '@/components/EcosystemMap';
+import EcosystemMap from '@/components/map/EcosystemMap';
 
 interface Location {
   lat: number;

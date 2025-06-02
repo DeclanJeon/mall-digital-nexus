@@ -14,6 +14,7 @@ import axios from 'axios';
 import { Peermall } from '@/types/peermall';
 import userService from './userService';
 
+//const API_BASE_URL = 'https://api.peermall.com/v1/peerMalls';
 const API_BASE_URL = 'http://localhost:9393/v1/peerMalls';
 let accessToken;
 
@@ -56,38 +57,6 @@ export interface PeerMall {
   createdAt: string; // 생성 시간
   updatedAt: string; // 최종 수정 시간
 }
-
-// 피어몰 생성
-export const createPeerSpace = async (
-  peerMall: Omit<PeerMall, 'createdAt' | 'updatedAt'>
-): Promise<string> => {
-  const now = new Date().toISOString();
-
-  // 주소가 없으면 자동 생성
-  const address = peerMall.address || `peer-${uuidv4().substring(0, 8)}`;
-
-  const newPeerMall: PeerMall = {
-    ...peerMall,
-    address,
-    followers: peerMall.followers || 0,
-    recommendations: peerMall.recommendations || 0,
-    badges: peerMall.badges || [],
-    sections: peerMall.sections || [
-      'hero',
-      'content',
-      'community',
-      'events',
-      'infoHub',
-      'trust',
-      'relatedMalls',
-    ],
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  await add<PeerMall>(STORES.PEER_SPACES, newPeerMall);
-  return address;
-};
 
 export const createPeerMall = async (formData: FormData): Promise<any> => {
   try {
@@ -182,5 +151,21 @@ export const getMyFavoriteService = async (): Promise<any> => {
   } catch (error) {
     console.error('Error sending verification code:', error);
     return { success: false };
+  }
+};
+
+export const updatePeerMall = async (formData: FormData): Promise<any> => {
+  try {
+    accessToken = userService.getAccessToken();
+
+    const response = await api.post(`/updatePeerMall`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    throw error.response.data;
   }
 };

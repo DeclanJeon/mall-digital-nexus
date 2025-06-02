@@ -131,10 +131,7 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
       if (!address) return;
       
       try {
-        console.log('🔄 데이터 로딩 시작...', { address, peerMallKey });
-        
         const loadedProductsResponse = await productService.getProductList(address, peerMallKey);
-        console.log('📦 API 응답 원본:', loadedProductsResponse);
         
         if (loadedProductsResponse && loadedProductsResponse.productList) {
           const transformedProducts = loadedProductsResponse.productList.map((apiProduct: any) => 
@@ -142,13 +139,10 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
           );
           
           setProducts(transformedProducts);
-          console.log('✅ 변환된 products:', transformedProducts);
         } else {
-          console.warn('⚠️ API 응답에 productList가 없습니다:', loadedProductsResponse);
           setProducts([]);
         }
       } catch (error) {
-        console.error('❌ 데이터 로딩 오류:', error);
         setProducts([]);
       }
     };

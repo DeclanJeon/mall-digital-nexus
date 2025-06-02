@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import userService from "@/services/userService";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +23,11 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [generatedOtp, setGeneratedOtp] = useState('');
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const emailRef = useRef(email);
+  useEffect(() => {
+    emailRef.current = email;
+  }, [email]);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,10 +107,6 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setIsLoading(true);
 
     try {
-      console.log('입력된 OTP:', otpValue);
-      console.log('생성된 OTP:', generatedOtp);
-      console.log('이메일:', email);
-
       if (otpValue === generatedOtp) {
         let loginRes;
         
@@ -122,7 +123,6 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         if (loginRes.success) {
           // 로컬 스토리지에 로그인 정보 저장
           localStorage.setItem('userLoggedIn', 'true');
-          localStorage.setItem('userEmail', email);
           
           // 일반 사용자만 토큰 저장
           if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
@@ -149,7 +149,6 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
           // 로컬 스토리지에 사용자 정보 저장
           localStorage.setItem('userLoggedIn', 'true');
-          localStorage.setItem('userEmail', user.email);
           
           // 사용자 목록 업데이트
           const users = JSON.parse(localStorage.getItem('USERS') || '[]');
@@ -160,8 +159,6 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           } else {
             users.push(user);
           }
-          
-          localStorage.setItem('USERS', JSON.stringify(users));
 
           // 성공 콜백 또는 네비게이션
           if (loginRes.success) {
@@ -197,13 +194,12 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setIsLoading(false);
   };
 
-  const handleResendCode = async () => {
+  const handleResendCode = async (currentEmail: string) => {
     setIsLoading(true);
-    
     try {
       let success, otp;
       
-      if (email.trim().toLowerCase() === ADMIN_EMAIL) {
+      if (currentEmail.trim().toLowerCase() === ADMIN_EMAIL) {
         // 관리자는 동일한 고정 OTP 재발송
         success = true;
         otp = "111111";
@@ -214,19 +210,19 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         });
       } else {
         // 일반 사용자는 새로운 OTP 발송
-        const result = await userService.sendNumber(email);
+        const result = await userService.sendNumber(currentEmail);
         success = result.success;
         otp = result.otp;
-        
+
         if (success) {
           toast({
             title: "인증코드 재발송 완료",
-            description: `${email}로 새 인증코드를 발송했습니다.`,
+            description: `${currentEmail}로 새 인증코드를 발송했습니다.`,
           });
         } else {
           toast({
             title: "인증코드 재발송 실패",
-            description: `${email}로 새 인증코드 발송에 실패했습니다. 다시 시도해주세요.`,
+            description: `${currentEmail}로 새 인증코드 발송에 실패했습니다. 다시 시도해주세요.`,
             variant: "destructive"
           });
         }
@@ -266,7 +262,7 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-[#333333] mb-3">
             <span className="text-[#3F51B5]">Peer</span>
-            <span className="text-[#757de8]">mall</span>
+            <span className="text-[#757de8]">Mall</span>
           </h1>
           <p className="text-[#5c5c5c] text-lg">
             피어몰에 오신 것을 환영합니다
@@ -345,7 +341,7 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   <Button
                     variant="outline"
                     className="w-full h-11 border-[#cccccc] text-[#5c5c5c] hover:bg-[#f5f5f5] hover:border-[#3F51B5] transition-all duration-200"
-                    onClick={handleResendCode}
+                    onClick={() => handleResendCode(email)}
                     disabled={isLoading}
                   >
                     인증코드 재발송
@@ -413,7 +409,7 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       type="button"
                       variant="outline"
                       className="h-11 border-[#cccccc] text-[#5c5c5c] hover:bg-[#f5f5f5] hover:border-[#3F51B5] transition-all duration-200"
-                      onClick={handleResendCode}
+                      onClick={() => handleResendCode(email)}
                       disabled={isLoading}
                     >
                       재발송

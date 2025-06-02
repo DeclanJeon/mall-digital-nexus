@@ -26,7 +26,6 @@ class PeermallEventManager {
 
   notifyListeners(): void {
     const peermalls = storage.get<Peermall[]>('PEERMALLS') || [];
-    console.log('🔔 피어몰 데이터 변경 알림:', peermalls.length, '개');
     
     this.listeners.forEach(listener => {
       try {
@@ -51,7 +50,6 @@ export const peermallStorage = {
 // 모든 피어몰 가져오기
   getAll(): Peermall[] {
     const peermalls = storage.get<Peermall[]>('PEERMALLS') || [];
-    console.log('📦 전체 피어몰 조회:', peermalls.length, '개');
     return peermalls;
   },
 
@@ -64,18 +62,6 @@ export const peermallStorage = {
     
     const peermalls = this.getAll();
     const found = peermalls.find((p: Peermall) => p.id === id);
-    if (found) {
-      console.log(`🔍 피어몰 발견 (ID: ${id}):`, {
-        title: found.title,
-        owner: found.owner,
-        category: found.category
-      });
-    } else {
-      console.warn(`❌ 피어몰을 찾을 수 없습니다 (ID: ${id}). 사용 가능한 ID들:`, 
-        peermalls.map((p: Peermall) => p.id)
-      );
-    }
-    
     return found;
   },
 
@@ -83,7 +69,6 @@ export const peermallStorage = {
   getByCategory(category: string): Peermall[] {
     const peermalls = this.getAll();
     const filtered = peermalls.filter((p: Peermall) => p.category === category);
-    console.log(`📂 카테고리별 조회 (${category}):`, filtered.length, '개');
     return filtered;
   },
 
@@ -141,11 +126,9 @@ export const peermallStorage = {
         // 기존 피어몰 업데이트 (createdAt 유지)
         newPeermall.createdAt = peermalls[existingIndex].createdAt;
         peermalls[existingIndex] = newPeermall;
-        console.log('✅ 피어몰 업데이트:', newPeermall.title);
       } else {
         // 새 피어몰 추가
         peermalls.push(newPeermall);
-        console.log('🆕 새 피어몰 추가:', newPeermall.title);
       }
 
       // 스토리지에 저장
@@ -204,8 +187,6 @@ export const peermallStorage = {
 
       storage.set('PEERMALLS', peermalls);
       setTimeout(() => eventManager.notifyListeners(), 0);
-      
-      console.log(`💖 좋아요 업데이트 (${id}): ${currentLikes} → ${newLikes}`);
       return true;
     } catch (error) {
       console.error('❌ 좋아요 업데이트 오류:', error);
@@ -235,8 +216,6 @@ export const peermallStorage = {
 
       storage.set('PEERMALLS', peermalls);
       setTimeout(() => eventManager.notifyListeners(), 0);
-      
-      console.log(`👥 팔로워 업데이트 (${id}): ${currentFollowers} → ${newFollowers}`);
       return true;
     } catch (error) {
       console.error('❌ 팔로워 업데이트 오류:', error);
@@ -262,7 +241,6 @@ export const peermallStorage = {
       }
 
       storage.set('PEERMALLS', filteredPeermalls);
-      console.log(`🗑️ 피어몰 삭제 완료 (ID: ${id})`);
       
       // 이벤트 발생
       setTimeout(() => eventManager.notifyListeners(), 0);
@@ -289,7 +267,6 @@ export const peermallStorage = {
 
       if (deletedCount > 0) {
         storage.set('PEERMALLS', filteredPeermalls);
-        console.log(`🗑️ ${deletedCount}개 피어몰 일괄 삭제 완료`);
         setTimeout(() => eventManager.notifyListeners(), 0);
       }
 
@@ -304,7 +281,6 @@ export const peermallStorage = {
   clear(): void {
     try {
       storage.set('PEERMALLS', []);
-      console.log('🧹 피어몰 스토리지 초기화 완료');
       setTimeout(() => eventManager.notifyListeners(), 0);
     } catch (error) {
       console.error('❌ 피어몰 스토리지 초기화 오류:', error);
@@ -384,7 +360,6 @@ export const peermallStorage = {
       const validatedData = importData.data.map((item: any) => this.normalizeData(item));
       
       storage.set('PEERMALLS', validatedData);
-      console.log(`📥 데이터 가져오기 완료: ${validatedData.length}개`);
       
       setTimeout(() => eventManager.notifyListeners(), 0);
       return true;
@@ -398,5 +373,4 @@ export const peermallStorage = {
 // 개발 환경에서 디버깅용 전역 객체 노출
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   (window as any).peermallStorage = peermallStorage;
-  console.log('🔧 개발 모드: window.peermallStorage 사용 가능');
 }
