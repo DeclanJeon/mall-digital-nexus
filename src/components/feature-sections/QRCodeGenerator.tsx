@@ -13,7 +13,7 @@ const QRCodeGenerator = () => {
         <div className="max-w-4xl mx-auto">
           {/* Ensure heading color matches */}
           <div className="flex justify-between items-center mb-10"> 
-            <h1 className="text-3xl font-bold text-white">QR 코드 생성</h1>
+            {/* <h1 className="text-3xl font-bold text-white">QR 코드 생성</h1> */}
           </div>
 
           <QRCodeGeneratorForm /> 

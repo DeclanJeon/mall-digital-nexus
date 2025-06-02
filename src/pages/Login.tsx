@@ -266,7 +266,7 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-[#333333] mb-3">
             <span className="text-[#3F51B5]">Peer</span>
-            <span className="text-[#757de8]">mall</span>
+            <span className="text-[#757de8]">Mall</span>
           </h1>
           <p className="text-[#5c5c5c] text-lg">
             피어몰에 오신 것을 환영합니다

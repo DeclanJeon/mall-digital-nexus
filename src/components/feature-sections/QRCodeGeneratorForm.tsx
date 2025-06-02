@@ -401,7 +401,7 @@ const QRCodeGeneratorForm = () => {
           <Button 
             onClick={() => setActiveTab('create')} 
             variant={activeTab === 'create' ? 'default' : 'outline'}
-            className="rounded-r-none"
+            className="rounded-md"
           >
             QR 생성
           </Button>
