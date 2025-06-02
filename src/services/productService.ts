@@ -2,8 +2,7 @@ import axios from 'axios';
 import userService from './userService';
 import { Product as ProductType } from '@/types/product';
 
-//const API_BASE_URL = 'https://api.peermall.com/v1/products';
-const API_BASE_URL = 'http://localhost:9393/v1/products';
+const API_BASE_URL = 'https://api.peermall.com/v1/products';
 const accessToken = userService.getAccessToken();
 
 const api = axios.create({

@@ -13,8 +13,7 @@ import { v4 as uuidv4 } from 'uuid'; // UUID 생성 라이브러리
 import axios from 'axios';
 import userService from './userService';
 
-//const API_BASE_URL = 'https://api.peermall.com/v1/communities';
-const API_BASE_URL = 'http://localhost:9393/v1/communities';
+const API_BASE_URL = 'https://api.peermall.com/v1/communities';
 const accessToken = userService.getAccessToken();
 
 const api = axios.create({
