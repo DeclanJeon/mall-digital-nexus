@@ -273,7 +273,8 @@ const Header = () => {
           >
             QR코드 만들기
           </Link>
-          <div className="px-2">
+          {isLoggedIn &&
+            <div className="px-2">
               <Button
                 onClick={() => {
                   if (isLoggedIn) {
@@ -289,6 +290,7 @@ const Header = () => {
                 <span className="relative z-10">피어몰 만들기 ✨</span>
               </Button>
             </div>
+          }
         </nav>
       </div>
 
@@ -318,19 +320,21 @@ const Header = () => {
               >
                 QR코드 만들기
               </Link>
-              <button
-                onClick={() => {
-                  if (isLoggedIn) {
-                    handleCreateModalOpen();
-                  } else {
-                    handleLogin();
-                  }
-                  setIsMenuOpen(false);
-                }}
-                className="py-4 px-4 text-left text-blue-600 hover:text-blue-700 hover:bg-blue-50/80 rounded-xl transition-all duration-200 font-medium"
-              >
-                피어몰 만들기 ✨
-              </button>
+              {isLoggedIn &&
+                <button
+                  onClick={() => {
+                    if (isLoggedIn) {
+                      handleCreateModalOpen();
+                    } else {
+                      handleLogin();
+                    }
+                    setIsMenuOpen(false);
+                  }}
+                  className="py-4 px-4 text-left text-blue-600 hover:text-blue-700 hover:bg-blue-50/80 rounded-xl transition-all duration-200 font-medium"
+                >
+                  피어몰 만들기 ✨
+                </button>
+              }
 
               {isLoggedIn ? (
                 <>
