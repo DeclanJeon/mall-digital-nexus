@@ -30,7 +30,7 @@ import ProductGrid from '@/components/shopping/products/ProductGrid';
 import CommunityFeed from '@/components/community/CommunityFeed';
 import MainHeroSection from '@/components/peer-space/sections/MainHeroSection';
 import { HashtagFilterOption, PeermallType } from '@/components/navigation/HashtagFilter';
-import FavoriteServicesSection from '@/components/features/FavoriteServicesSection';
+import FavoriteServicesSection from '@/components/feature-sections/FavoriteServicesSection';
 
 interface Location {
   lat: number;
@@ -63,69 +63,69 @@ const viewModeOptions = [
     bestFor: '빠른 탐색',
     emoji: '📱'
   },
-  { 
-    value: 'cards' as ViewMode, 
-    label: '카드', 
-    icon: Layers, 
-    description: '인스타그램 스타일',
-    gradient: 'from-pink-500 to-rose-500',
-    bestFor: '시각적 임팩트',
-    emoji: '💳'
-  },
-  { 
-    value: 'mosaic' as ViewMode, 
-    label: '모자이크', 
-    icon: LayoutGrid, 
-    description: '핀터레스트 느낌',
-    gradient: 'from-purple-500 to-indigo-500',
-    bestFor: '창의적 탐색',
-    emoji: '🎨'
-  },
-  { 
-    value: 'story' as ViewMode, 
-    label: '스토리', 
-    icon: Play, 
-    description: '스토리 형태',
-    gradient: 'from-orange-500 to-red-500',
-    bestFor: '몰입감',
-    emoji: '📚'
-  },
-  { 
-    value: 'list' as ViewMode, 
-    label: '리스트', 
-    icon: List, 
-    description: '상세 정보 중심',
-    gradient: 'from-green-500 to-emerald-500',
-    bestFor: '정보 중심',
-    emoji: '📋'
-  },
-  { 
-    value: 'gallery' as ViewMode, 
-    label: '갤러리', 
-    icon: Image, 
-    description: '이미지 중심',
-    gradient: 'from-purple-500 to-pink-500',
-    bestFor: '시각적 탐색',
-    emoji: '🖼️'
-  },
-  { 
-    value: 'news' as ViewMode, 
-    label: '뉴스', 
-    icon: Newspaper, 
-    description: '뉴스피드 스타일',
-    gradient: 'from-red-500 to-orange-500',
-    bestFor: '실시간 업데이트',
-    emoji: '📰'
-  },
-  { 
-    value: 'timeline' as ViewMode, 
-    label: '타임라인', 
-    icon: Calendar, 
-    description: '시간순 정렬',
-    gradient: 'from-teal-500 to-blue-500',
-    bestFor: '시간 기반',
-    emoji: '⏰'
-  }
+  // { 
+  //   value: 'cards' as ViewMode, 
+  //   label: '카드', 
+  //   icon: Layers, 
+  //   description: '인스타그램 스타일',
+  //   gradient: 'from-pink-500 to-rose-500',
+  //   bestFor: '시각적 임팩트',
+  //   emoji: '💳'
+  // },
+  // { 
+  //   value: 'mosaic' as ViewMode, 
+  //   label: '모자이크', 
+  //   icon: LayoutGrid, 
+  //   description: '핀터레스트 느낌',
+  //   gradient: 'from-purple-500 to-indigo-500',
+  //   bestFor: '창의적 탐색',
+  //   emoji: '🎨'
+  // },
+  // { 
+  //   value: 'story' as ViewMode, 
+  //   label: '스토리', 
+  //   icon: Play, 
+  //   description: '스토리 형태',
+  //   gradient: 'from-orange-500 to-red-500',
+  //   bestFor: '몰입감',
+  //   emoji: '📚'
+  // },
+  // { 
+  //   value: 'list' as ViewMode, 
+  //   label: '리스트', 
+  //   icon: List, 
+  //   description: '상세 정보 중심',
+  //   gradient: 'from-green-500 to-emerald-500',
+  //   bestFor: '정보 중심',
+  //   emoji: '📋'
+  // },
+  // { 
+  //   value: 'gallery' as ViewMode, 
+  //   label: '갤러리', 
+  //   icon: Image, 
+  //   description: '이미지 중심',
+  //   gradient: 'from-purple-500 to-pink-500',
+  //   bestFor: '시각적 탐색',
+  //   emoji: '🖼️'
+  // },
+  // { 
+  //   value: 'news' as ViewMode, 
+  //   label: '뉴스', 
+  //   icon: Newspaper, 
+  //   description: '뉴스피드 스타일',
+  //   gradient: 'from-red-500 to-orange-500',
+  //   bestFor: '실시간 업데이트',
+  //   emoji: '📰'
+  // },
+  // { 
+  //   value: 'timeline' as ViewMode, 
+  //   label: '타임라인', 
+  //   icon: Calendar, 
+  //   description: '시간순 정렬',
+  //   gradient: 'from-teal-500 to-blue-500',
+  //   bestFor: '시간 기반',
+  //   emoji: '⏰'
+  // }
 ];
 
 // 🎯 미래지향적 뷰어 모드 선택 컴포넌트
@@ -438,6 +438,7 @@ const NextGenViewRenderer = ({
     if (variant === 'card') {
       return (
         <motion.div
+          key={itemId}
           className={cn(
             "group relative bg-gradient-to-br from-white/80 to-white/40 dark:from-gray-900/80 dark:to-gray-800/40 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 rounded-2xl overflow-hidden cursor-pointer",
             zGenDesignTokens.effects.floating,
@@ -1323,7 +1324,7 @@ const Index = () => {
               </div>
               
               {/* 다크모드 토글 */}
-              <motion.button
+              {/* <motion.button
                 onClick={toggleDarkMode}
                 className={cn(
                   "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300",
@@ -1335,7 +1336,7 @@ const Index = () => {
                 whileTap={{ scale: 0.9 }}
               >
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </motion.button>
+              </motion.button> */}
             </div>
             
             <SearchAndFilterBar
@@ -1634,13 +1635,6 @@ const Index = () => {
                               : '첫 번째 피어몰을 만들어 커뮤니티를 시작해보세요! 당신의 아이디어가 새로운 연결을 만들어낼 거예요.'
                             }
                           </p>
-                          <motion.button
-                            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
-                            whileHover={{ scale: 1.05, y: -2 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            {searchQuery ? '검색 초기화' : '피어몰 만들기'}
-                          </motion.button>
                         </div>
                       </div>
                     )}
@@ -1798,13 +1792,6 @@ const Index = () => {
                     <p className="text-gray-600 dark:text-gray-400 mb-6">
                       첫 번째 상품을 등록해보세요! 🛍️
                     </p>
-                    <motion.button
-                      className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      상품 등록하기
-                    </motion.button>
                   </div>
                 )}
               </div>

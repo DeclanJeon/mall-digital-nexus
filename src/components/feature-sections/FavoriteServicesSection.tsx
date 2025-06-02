@@ -76,7 +76,7 @@ const extractOpenGraphData = async (url: string): Promise<OpenGraphData> => {
 };
 
 const FavoriteServicesSection: React.FC = () => {
-  const [services, setServices] = useState<FavoriteService[]>();
+  const [services, setServices] = useState<FavoriteService[]>([]); // ✅ 빈 배열로 초기화
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingServices, setLoadingServices] = useState<Set<string>>(new Set());
