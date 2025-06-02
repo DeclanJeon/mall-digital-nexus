@@ -85,8 +85,6 @@ const PeerSpace = () => {
       try {
         const peermallData = await getPeerMallData(address, peerMallKey);
 
-        console.log(peermallData)
-
         if (!peermallData) {
           toast({
             title: '피어몰을 찾을 수 없습니다',

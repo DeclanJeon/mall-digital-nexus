@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from "@/components/ui/use-toast";
 
 // Lazy imports
 const MapSelectorDialog = lazy(() => import('@/components/peermall-features/MapSelectorDialog'));
@@ -86,6 +86,7 @@ const PeerSpaceSettings: React.FC = () => {
   const { address } = useParams<{ address: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // **상태 관리**
   const [isSaving, setIsSaving] = useState(false);
@@ -220,6 +221,10 @@ const PeerSpaceSettings: React.FC = () => {
     setIsSaving(true);
     try {
       await saveMutation.mutateAsync(form.getValues());
+      toast({
+        title: '설정이 저장되었습니다! 🎉',
+        description: '변경사항이 성공적으로 적용되었습니다.',
+      });
     } finally {
       setIsSaving(false);
     }
