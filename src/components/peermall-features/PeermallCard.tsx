@@ -80,20 +80,6 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
   // 기본 이미지 URL 처리
   const displayImageUrl = imageLocation ? imageLocation : (imageUrl || "/placeholder-shop.jpg");
 
-  // 좋아요 토글
-  const toggleLike = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const newIsLiked = !isLiked;
-    setIsLiked(newIsLiked);
-    
-    // 좋아요 수 업데이트
-    setCurrentLikes(prev => newIsLiked ? prev + 1 : Math.max(0, prev - 1));
-    
-    // TODO: 서버에 좋아요 상태 저장
-  }, [isLiked]);
-
   // QR 코드 표시
   const showQrCode = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -236,19 +222,6 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
                   <User className="h-4 w-4 mr-1" />
                   <span>{ownerName}</span>
                 </div>
-                
-                {/* 좋아요 버튼 */}
-                <button
-                  onClick={toggleLike}
-                  className="flex items-center gap-1 hover:text-red-500 transition-colors"
-                  title={isLiked ? "좋아요 취소" : "좋아요"}
-                >
-                  <Heart className={cn(
-                    "h-4 w-4 transition-colors",
-                    isLiked ? "fill-red-500 text-red-500" : "text-gray-400 hover:text-red-400"
-                  )} />
-                  <span className={isLiked ? "text-red-500" : ""}>{currentLikes}</span>
-                </button>
               </div>
             </CardContent>
           </Link>
