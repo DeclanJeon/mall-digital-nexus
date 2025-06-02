@@ -12,10 +12,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea'; 
 import { getCommentList, registerComment } from '@/services/communityService';
 
-// 임시 사용자 정보 (실제 앱에서는 인증 컨텍스트 등을 사용)
-const TEMP_IS_LOGGED_IN = true; // 예시: 사용자가 로그인했다고 가정
-const TEMP_CURRENT_USER_EMAIL = "user@example.com"; // 예시: 로그인한 사용자 이메일
-
 const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
   isOwner,
   config,
@@ -36,11 +32,14 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
   const [editableNickname, setEditableNickname] = useState(""); // 닉네임 입력 상태
 
   // 임시 로그인 상태 및 사용자 정보
-  const [isLoggedIn, setIsLoggedIn] = useState(TEMP_IS_LOGGED_IN);
-  const [currentUserEmail, setCurrentUserEmail] = useState(TEMP_CURRENT_USER_EMAIL);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUserEmail, setCurrentUserEmail] = useState(null);
 
   // 로그인 상태 또는 사용자 이메일 변경 시 editableNickname 초기화
   useEffect(() => {
+    const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+    setIsLoggedIn(userLoggedIn);
+
     if (isLoggedIn && currentUserEmail) {
       setEditableNickname(currentUserEmail.split('@')[0]);
     } else {
@@ -100,7 +99,7 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
 
   const handleSharePost = () => {
     if (!selectedPost) return;
-    const url = `${window.location.origin}/space/${config.id}/community/post/${selectedPost.id}`;
+    const url = `${window.location.origin}/space/${config.peerMallName}/community/post/${selectedPost.id}`;
     navigator.clipboard.writeText(url);
     toast({
       title: "링크가 복사되었습니다",
@@ -316,7 +315,7 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
                 <div className="px-8 py-6 bg-gray-50 border-t">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Button 
+                      {/* <Button 
                         variant="outline" 
                         size="sm" 
                         onClick={handleLikePost}
@@ -324,7 +323,7 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
                       >
                         <Heart className="h-4 w-4" />
                         추천 ({selectedPost.likes})
-                      </Button>
+                      </Button> */}
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -415,33 +414,35 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
                     )}
                   </div>
 
-                  <div className="border-t pt-6">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-3">댓글 작성하기</h3>
-                    <div className="mb-4">
-                      {/* <label htmlFor="editableNickname" className="block text-sm font-medium text-gray-700 mb-1">
-                        닉네임 {isLoggedIn ? `(기본: ${currentUserEmail?.split('@')[0]}, 수정 가능)` : "(익명으로 작성됩니다)"}
-                      </label>
-                      <Input 
-                        type="text" 
-                        id="editableNickname" 
-                        value={editableNickname} 
-                        onChange={(e) => setEditableNickname(e.target.value)} 
-                        placeholder={isLoggedIn ? "닉네임 수정 가능" : "닉네임을 입력하세요"}
-                        className="w-full md:w-1/2"
-                      /> */}
+                  {isLoggedIn &&
+                    <div className="border-t pt-6">
+                      <h3 className="text-lg font-semibold text-gray-700 mb-3">댓글 작성하기</h3>
+                      <div className="mb-4">
+                        {/* <label htmlFor="editableNickname" className="block text-sm font-medium text-gray-700 mb-1">
+                          닉네임 {isLoggedIn ? `(기본: ${currentUserEmail?.split('@')[0]}, 수정 가능)` : "(익명으로 작성됩니다)"}
+                        </label>
+                        <Input 
+                          type="text" 
+                          id="editableNickname" 
+                          value={editableNickname} 
+                          onChange={(e) => setEditableNickname(e.target.value)} 
+                          placeholder={isLoggedIn ? "닉네임 수정 가능" : "닉네임을 입력하세요"}
+                          className="w-full md:w-1/2"
+                        /> */}
+                      </div>
+                      <Textarea 
+                        value={newComment} 
+                        onChange={(e) => setNewComment(e.target.value)} 
+                        placeholder="따뜻한 댓글을 남겨주세요."
+                        rows={4}
+                        className="mb-4"
+                      />
+                      <Button onClick={handleAddComment} className="flex items-center gap-2">
+                        <Send className="h-4 w-4" />
+                        댓글 등록
+                      </Button>
                     </div>
-                    <Textarea 
-                      value={newComment} 
-                      onChange={(e) => setNewComment(e.target.value)} 
-                      placeholder="따뜻한 댓글을 남겨주세요."
-                      rows={4}
-                      className="mb-4"
-                    />
-                    <Button onClick={handleAddComment} className="flex items-center gap-2">
-                      <Send className="h-4 w-4" />
-                      댓글 등록
-                    </Button>
-                  </div>
+                  }
                 </div>
               </div>
             </div>

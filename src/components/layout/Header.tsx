@@ -114,7 +114,6 @@ const Header = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('userLoggedIn');
-    localStorage.removeItem('userEmail');
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     setIsLoggedIn(false);
@@ -274,22 +273,24 @@ const Header = () => {
           >
             QR코드 만들기
           </Link>
-          <div className="px-2">
-            <Button
-              onClick={() => {
-                if (isAuthenticated) {
-                  handleCreateModalOpen();
-                } else {
-                  handleLogin();
-                }
-              }}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden group"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <Store className="mr-2 h-5 w-5" />
-              <span className="relative z-10">피어몰 만들기 ✨</span>
-            </Button>
-          </div>
+          {isLoggedIn &&
+            <div className="px-2">
+              <Button
+                onClick={() => {
+                  if (isLoggedIn) {
+                    handleCreateModalOpen();
+                  } else {
+                    handleLogin();
+                  }
+                }}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden group"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <Store className="mr-2 h-5 w-5" />
+                <span className="relative z-10">피어몰 만들기 ✨</span>
+              </Button>
+            </div>
+          }
         </nav>
       </div>
 
@@ -321,7 +322,7 @@ const Header = () => {
               </Link>
               <button
                 onClick={() => {
-                  if (isAuthenticated) {
+                  if (isLoggedIn) {
                     handleCreateModalOpen();
                   } else {
                     handleLogin();
