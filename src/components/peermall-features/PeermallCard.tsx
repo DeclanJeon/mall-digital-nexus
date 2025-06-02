@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, memo } from "react";
+import React, { useState, useCallback, useEffect, memo, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { peermallStorage, Peermall } from "@/services/storage/peermallStorage";
 import { 
@@ -71,6 +71,10 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
   const [isSending, setIsSending] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  
+  // 🔥 모달 닫힘 처리를 위한 ref와 상태
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [isModalInteracting, setIsModalInteracting] = useState(false);
 
   // 이미지 에러 핸들링
   const handleImageError = useCallback(() => {
@@ -96,13 +100,13 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
     }
   }, [peerMallKey, onShowQrCode, peerMallName, toast]);
 
-  // 🎯 통화하기 - 모달만 열기로 수정
+  // 🎯 통화하기
   const handleQuickCall = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // 바로 모달만 열기
     setIsCallModalOpen(true);
+    setIsModalInteracting(true); // 🔥 모달 상호작용 시작
     
     toast({
       title: "📞 통화 준비",
@@ -116,7 +120,58 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
     e.preventDefault();
     e.stopPropagation();
     setIsMessageModalOpen(true);
+    setIsModalInteracting(true); // 🔥 모달 상호작용 시작
   }, []);
+
+  // 🔥 핵심! 모달 닫기 핸들러 - 완전한 이벤트 차단
+  const handleCallModalClose = useCallback((open: boolean) => {
+    if (!open) {
+      setIsCallModalOpen(false);
+      
+      // 🔥 모달 닫힘 후 잠깐 대기하여 클릭 이벤트 완전 차단
+      setTimeout(() => {
+        setIsModalInteracting(false);
+      }, 200); // 200ms 대기로 모든 클릭 이벤트 차단
+    } else {
+      setIsModalInteracting(true);
+    }
+  }, []);
+
+  // 🔥 메시지 모달 닫기 핸들러
+  const handleMessageModalClose = useCallback((open: boolean) => {
+    setIsMessageModalOpen(open);
+    if (!open) {
+      setTimeout(() => {
+        setIsModalInteracting(false);
+      }, 200);
+    } else {
+      setIsModalInteracting(true);
+    }
+  }, []);
+
+  // 🔥 전역 클릭 이벤트 캐처 - 모달이 열려있을 때 카드 클릭 방지
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      if (isModalInteracting && cardRef.current?.contains(e.target as Node)) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      }
+    };
+
+    if (isModalInteracting) {
+      // 캡처링 단계에서 이벤트 차단
+      document.addEventListener('click', handleGlobalClick, true);
+      document.addEventListener('mousedown', handleGlobalClick, true);
+      document.addEventListener('mouseup', handleGlobalClick, true);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleGlobalClick, true);
+      document.removeEventListener('mousedown', handleGlobalClick, true);
+      document.removeEventListener('mouseup', handleGlobalClick, true);
+    };
+  }, [isModalInteracting]);
 
   useEffect(() => {
     if (initialLikes !== undefined) {
@@ -127,6 +182,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
   return (
     <>
       <motion.div
+        ref={cardRef} // 🔥 ref 추가
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -135,7 +191,17 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
         <Card className="h-full overflow-hidden transition-shadow duration-300 hover:shadow-lg">
           {/* 이미지 영역 */}
           <div className="relative aspect-video bg-gray-100 overflow-hidden">
-            <Link to={`/space/${peerMallName}?mk=${peerMallKey}`} target="_blank" className="block h-full">
+            <Link 
+              to={`/space/${peerMallName}?mk=${peerMallKey}`} 
+              target="_blank" 
+              className="block h-full"
+              onClick={(e) => {
+                if (isModalInteracting) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
+            >
               <img
                 src={displayImageUrl}
                 alt={peerMallName}
@@ -158,97 +224,123 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
               )}
               {isRecommended && (
                 <Badge variant="secondary" className="bg-green-500 text-white">
-                  <Award className="w-3 h-3 mr-1" /> 추천
+                  <Award className="w-3 w-3 mr-1" /> 추천
                 </Badge>
               )}
             </div>
           </div>
           
           {/* 내용 영역 */}
-          <Link to={`/space/${peerMallName}?mk=${peerMallKey}`} target="_blank" className="block">
-            <CardContent className="p-4">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-lg line-clamp-1">{peerMallName}</h3>
-                {/* 🎯 액션 버튼들을 여기로 이동 - 우측 상단 타이틀 옆 */}
-                <div className="flex items-center gap-1 ml-2">
-                  {/* QR 코드 버튼 */}
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="w-6 h-6 p-0 hover:bg-gray-100 rounded-full"
-                    onClick={showQrCode}
-                    title="QR 코드 보기"
-                  >
-                    <QrCode className="h-3 w-3 text-gray-600" />
-                  </Button>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-start mb-2">
+              {/* 제목 링크 */}
+              <Link 
+                to={`/space/${peerMallName}?mk=${peerMallKey}`} 
+                target="_blank" 
+                className="flex-1 mr-2"
+                onClick={(e) => {
+                  if (isModalInteracting) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }}
+              >
+                <h3 className="font-semibold text-lg line-clamp-1 hover:text-blue-600 transition-colors">
+                  {peerMallName}
+                </h3>
+              </Link>
+              
+              {/* 액션 버튼들 */}
+              <div className="flex items-center gap-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-6 h-6 p-0 hover:bg-gray-100 rounded-full"
+                  onClick={showQrCode}
+                  title="QR 코드 보기"
+                >
+                  <QrCode className="h-3 w-3 text-gray-600" />
+                </Button>
 
-                  {/* 통화 버튼 */}
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="w-6 h-6 p-0 hover:bg-green-100 rounded-full"
-                    onClick={handleQuickCall}
-                    title="통화하기"
-                  >
-                    <Phone className="h-3 w-3 text-green-600" />
-                  </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-6 h-6 p-0 hover:bg-green-100 rounded-full"
+                  onClick={handleQuickCall}
+                  title="통화하기"
+                >
+                  <Phone className="h-3 w-3 text-green-600" />
+                </Button>
 
-                  {/* 메시지 버튼 */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-6 h-6 p-0 hover:bg-blue-100 rounded-full"
-                    onClick={handleQuickMessage}
-                    title="메시지 보내기"
-                  >
-                    <MessageSquare className="h-3 w-3 text-blue-600" />
-                  </Button>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-6 h-6 p-0 hover:bg-blue-100 rounded-full"
+                  onClick={handleQuickMessage}
+                  title="메시지 보내기"
+                >
+                  <MessageSquare className="h-3 w-3 text-blue-600" />
+                </Button>
               </div>
-              
-              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{description}</p>
-              
-              <div className="flex flex-wrap gap-1 mb-3">
-                {tags.slice(0, 3).map((tag) => (
-                  <Badge key={tag} variant="outline" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
+            </div>
+            
+            {/* 설명 링크 */}
+            <Link 
+              to={`/space/${peerMallName}?mk=${peerMallKey}`} 
+              target="_blank"
+              className="block mb-3"
+              onClick={(e) => {
+                if (isModalInteracting) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
+            >
+              <p className="text-sm text-gray-600 line-clamp-2 hover:text-gray-800 transition-colors">
+                {description}
+              </p>
+            </Link>
+            
+            <div className="flex flex-wrap gap-1 mb-3">
+              {tags.slice(0, 3).map((tag) => (
+                <Badge key={tag} variant="outline" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+            
+            <div className="flex items-center justify-between text-sm text-gray-500">
+              <div className="flex items-center">
+                <User className="h-4 w-4 mr-1" />
+                <span>{ownerName}</span>
               </div>
-              
-              {/* 🎯 하단 정보 및 좋아요 버튼 */}
-              <div className="flex items-center justify-between text-sm text-gray-500">
-                <div className="flex items-center">
-                  <User className="h-4 w-4 mr-1" />
-                  <span>{ownerName}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Link>
+            </div>
+          </CardContent>
         </Card>
       </motion.div>
 
-      {/* 🎯 CallModal - location 데이터 더 풍부하게 전달 */}
+      {/* 🔥 CallModal */}
       <CallModal 
         open={isCallModalOpen}
         owner={ownerName}
         peerMallKey={peerMallKey}
-        onOpenChange={setIsCallModalOpen}
+        onOpenChange={handleCallModalClose}
         location={{
           title: peerMallName,
           owner: ownerName,
           email: email,
           phone: email,
           imageUrl: displayImageUrl,
-          trustScore: rating || 4.8, // 실제 rating 사용
+          trustScore: rating || 4.8,
           responseTime: '즉시',
           isOnline: true
         }} 
       />
-      {/* 메시지 모달 */}
+      
+      {/* 🔥 메시지 모달 */}
       <EnhancedMessageModal
         messageModalOpen={isMessageModalOpen}
-        setMessageModalOpen={setIsMessageModalOpen}
+        setMessageModalOpen={handleMessageModalClose} // 🔥 새로운 핸들러 사용
         owner={owner}
         email={email}
         title={title}

@@ -202,30 +202,26 @@ export const LocationPopup = ({
               <div className="grid grid-cols-4 gap-1.5 pt-1">
                 
                 {/* 통화 */}
-                {isAuthenticated && (
-                  <motion.button
-                    onClick={() => handleOpenCallModal(selectedLocation)}
-                    className="w-full h-8 bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center group"
-                    whileHover={{ scale: 1.05, y: -1 }}
-                    whileTap={{ scale: 0.95 }}
-                    title="화상통화"
-                  >
-                    <Phone className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                  </motion.button>
-                )}
-                
-                {/* 메시지 */}
-                {isAuthenticated && (
-                  <motion.button
-                    onClick={() => handleOpenMessageModal(selectedLocation)}
-                    className="w-full h-8 bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center group"
-                    whileHover={{ scale: 1.05, y: -1 }}
-                    whileTap={{ scale: 0.95 }}
-                    title="메시지"
-                  >
-                    <MessageSquare className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                  </motion.button>
-                )}
+                <motion.button
+                  onClick={() => handleOpenCallModal(selectedLocation)}
+                  className="w-full h-8 bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center group"
+                  whileHover={{ scale: 1.05, y: -1 }}
+                  whileTap={{ scale: 0.95 }}
+                  title="화상통화"
+                >
+                  <Phone className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                </motion.button>
+              
+              {/* 메시지 */}
+                <motion.button
+                  onClick={() => handleOpenMessageModal(selectedLocation)}
+                  className="w-full h-8 bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center group"
+                  whileHover={{ scale: 1.05, y: -1 }}
+                  whileTap={{ scale: 0.95 }}
+                  title="메시지"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                </motion.button>
                 
                 {/* 방문하기 */}
                 <motion.button

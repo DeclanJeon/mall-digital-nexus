@@ -273,8 +273,7 @@ const Header = () => {
           >
             QR코드 만들기
           </Link>
-          {isLoggedIn &&
-            <div className="px-2">
+          <div className="px-2">
               <Button
                 onClick={() => {
                   if (isLoggedIn) {
@@ -290,7 +289,6 @@ const Header = () => {
                 <span className="relative z-10">피어몰 만들기 ✨</span>
               </Button>
             </div>
-          }
         </nav>
       </div>
 
