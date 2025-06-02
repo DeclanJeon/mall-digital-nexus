@@ -1477,7 +1477,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                     
                     <TabsContent value="details" className="space-y-4">
                       {/* **🎯 간단 설명** */}
-                      <FormField
+                      {/* <FormField
                         control={form.control}
                         name="description"
                         render={({ field }) => (
@@ -1497,9 +1497,9 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                               Rich Editor에서 작성한 내용이 우선적으로 사용됩니다.
                             </FormDescription>
                             <FormMessage />
-</FormItem >
+                        </FormItem >
                         )}
-                      />
+                      /> */}
 
                       {/* **🎯 제조사/유통사** */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1554,23 +1554,29 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                               <Grid className="h-4 w-4 text-purple-600" />
                               카테고리
                             </FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="카테고리를 선택하세요" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {PRODUCT_CATEGORIES.map((category) => (
-                                  <SelectItem key={category.id} value={category.id.toString()}>
-                                    <div className="flex items-center gap-2">
-                                      <span>{category.icon}</span>
-                                      <span>{category.name}</span>
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="카테고리를 선택하세요" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                {/* 🚀 portal을 body에 렌더링해서 z-index 문제 완전 해결! */}
+                                <SelectContent 
+                                  className="z-[9999]" 
+                                  position="popper"
+                                  side="bottom"
+                                  align="start"
+                                >
+                                  {PRODUCT_CATEGORIES.map((category) => (
+                                    <SelectItem key={category.id} value={category.id.toString()}>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-base">{category.icon}</span>
+                                        <span className="font-medium">{category.name}</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             <FormMessage />
                           </FormItem>
                         )}

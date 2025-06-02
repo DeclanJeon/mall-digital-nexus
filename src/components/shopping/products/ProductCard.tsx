@@ -36,9 +36,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   onAddFriend,
   onDetailView,
   productKey,
-  create_date = new Date().toISOString(), // Default value
+  create_date = new Date().toISOString(),
 }) => {
-  // Use id as productId if not provided
   const effectiveProductId = productId || id?.toString();
   
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -50,6 +49,26 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   const navigate = useNavigate();
   const { address } = useParams();
+
+  // 텍스트에서 코드 블록이나 특수 문자 제거하는 함수
+  const sanitizeText = (text: string) => {
+    if (!text) return '';
+    
+    // 코드 블록, 특수 문자, HTML 태그 등을 제거
+    return text
+      .replace(/```[\s\S]*?```/g, '') // 코드 블록 제거
+      .replace(/`[^`]*`/g, '') // 인라인 코드 제거
+      .replace(/<[^>]*>/g, '') // HTML 태그 제거
+      .replace(/[{}[\]]/g, '') // 중괄호, 대괄호 제거
+      .replace(/\s+/g, ' ') // 연속된 공백을 하나로
+      .trim();
+  };
+
+  // 피어몰 이름 길이 제한 함수
+  const truncatePeerMallName = (name: string, maxLength: number = 12) => {
+    if (!name) return '';
+    return name.length > maxLength ? `${name.substring(0, maxLength)}...` : name;
+  };
 
   const getCardClasses = () => {
     if (viewMode === 'list') {
@@ -82,17 +101,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   const handlePurchase = () => {
-
     console.log('🛒 구매하기 클릭 - saleUrl:', saleUrl);
 
     if (saleUrl && saleUrl.trim() !== '') {
-      // URL이 http/https로 시작하지 않으면 추가
       const targetUrl = saleUrl.startsWith('http') ? saleUrl : `https://${saleUrl}`;
       console.log('🔗 이동할 URL:', targetUrl);
       window.open(targetUrl, '_blank', 'noopener,noreferrer');
     } else {
       console.warn('⚠️ 판매 URL이 없습니다.');
-      // 사용자에게 알림 표시
       alert('판매 링크가 설정되지 않았습니다.');
     }
   };
@@ -129,6 +145,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
     onDetailView?.(productKey); // ✅ 한 번만 호출
   };
 
+  // 정제된 설명 텍스트
+  const cleanDescription = sanitizeText(description);
+
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.02 }}
@@ -149,56 +168,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
               alt={name}
               className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
             />
-            
-            {/* 호버 오버레이 */}
-            {/* <AnimatePresence>
-              {isHovered && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 bg-black/20 flex items-center justify-center"
-                >
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="flex gap-2"
-                  >
-                    <Button size="sm" variant="secondary" className="rounded-full bg-white/90 hover:bg-white" onClick={handleDetailView}>
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Button size="sm" variant="secondary" className="rounded-full bg-white/90 hover:bg-white">
-                      <ShoppingCart className="w-4 h-4" />
-                    </Button>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence> */}
-            
-            {/* 찜하기 버튼 */}
-            {/* <motion.button 
-              className={cn(
-                'absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full',
-                'shadow-lg hover:shadow-xl transition-all duration-200',
-                isWishlisted ? 'text-red-500 bg-red-50' : 'text-gray-600 hover:text-red-400'
-              )}
-              onClick={toggleWishlist}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <Heart 
-                className={cn('w-4 h-4', isWishlisted && 'fill-red-500')} 
-              />
-            </motion.button> */}
-
-            {/* 할인 뱃지 */}
-            {/* {discountPrice && (
-              <div className="absolute top-3 left-3">
-                <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold">
-                  {Math.round(((price - discountPrice) / price) * 100)}% OFF
-                </Badge>
-              </div>
-            )} */}
           </div>
         </CardHeader>
 
@@ -211,31 +180,35 @@ const ProductCard: React.FC<ProductCardProps> = ({
               {name}
             </h3>
             
-              {viewMode !== 'list' && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 -mt-1">
-                      <MoreVertical className="h-3 w-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={handleDetailView}> {/* ✅ 단일 핸들러 */}
-                      <Eye className="mr-2 h-4 w-4" />
-                      상세 보기
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handlePurchase}>
-                      <ShoppingCart className="mr-2 h-4 w-4" />
-                      구매하기
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+            {viewMode !== 'list' && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-6 w-6 -mt-1">
+                    <MoreVertical className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleDetailView}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    상세 보기
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handlePurchase}>
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    구매하기
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
-          {/* 피어몰 이름 뱃지 추가 */}
+          {/* 피어몰 이름 뱃지 - 길이 제한 적용 */}
           {peerSpaceAddress && (
-            <Badge variant="outline" className="mb-2 text-xs text-gray-600 border-gray-300">
-              {peerSpaceAddress}
+            <Badge 
+              variant="outline" 
+              className="mb-2 text-xs text-gray-600 border-gray-300 max-w-fit"
+              title={peerSpaceAddress} // 전체 이름을 툴팁으로 표시
+            >
+              {truncatePeerMallName(peerSpaceAddress)}
             </Badge>
           )}
 
@@ -255,27 +228,18 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </span>
           </div>
 
-          {cardSize !== 'small' && (
-            <p className="text-sm text-gray-600 mb-3 line-clamp-2">{description}</p>
+          {/* 상품 설명 - 코드 제거 및 2줄 제한 */}
+          {cardSize !== 'small' && cleanDescription && (
+            <div className="mb-3">
+              <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                {cleanDescription}
+              </p>
+            </div>
           )}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
-              {/* <div className="flex items-center">
-                {[...Array(5)].map((_, i) => {
-                  const uniqueKey = `star-${i}-${rating}`;
-                  return (
-                    <Star
-                      key={uniqueKey}
-                      className={cn(
-                        "w-3 h-3",
-                        i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
-                      )}
-                    />
-                  );
-                })}
-              </div> */}
-              {/* <span className="text-xs text-gray-500">({reviewCount})</span> */}
+              {/* 평점 관련 코드는 주석 처리된 상태 유지 */}
             </div>
             
             {cardSize === 'large' && (
