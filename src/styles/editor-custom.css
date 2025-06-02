@@ -85,3 +85,10 @@
     flex-wrap: wrap;
   }
 }
+
+.empty-editor::before {
+  content: attr(data-placeholder);
+  color: #a0a0a0; /* Adjust color as needed */
+  pointer-events: none;
+  display: block;
+}

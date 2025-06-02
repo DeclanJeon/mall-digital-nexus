@@ -236,9 +236,10 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
 
   return (
     <>
-      {/* 🖥️ 데스크톱 사이드바 */}
-      <aside className={cn("hidden lg:block w-64 bg-white border-r border-gray-200 h-screen sticky top-16 overflow-y-auto", className)}>
-        <div className="p-6">
+      {/* 🖥️ 데스크톱 사이드바 - **🎯 Flexbox로 레이아웃 개선** */}
+      <aside className={cn("hidden lg:flex lg:flex-col w-64 bg-white border-r border-gray-200 h-screen sticky top-16", className)}>
+        {/* **🎯 메인 콘텐츠 영역 (flex-1로 남은 공간 차지)** */}
+        <div className="flex-1 p-6 overflow-y-auto">
           {/* 메인 네비게이션 */}
           <nav className="space-y-2 mb-8">
             {showDefaultMenus && defaultMenuItems.map((item) => {
@@ -304,20 +305,22 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
               )}
             </div>
           )}
-
-          {/* 홈 버튼 */}
-          {showHomeButton && (
-            <div className="border-t pt-4 mt-4">
-              <button 
-                onClick={handleGoHome}
-                className="w-full flex items-center justify-center space-x-2 px-3 py-3 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200 hover:scale-[1.02]"
-              >
-                <Home className="w-4 h-4" />
-                <span className="text-sm font-medium">메인으로</span>
-              </button>
-            </div>
-          )}
         </div>
+
+        {/* **🎯 하단 고정 홈 버튼 영역** */}
+        {showHomeButton && (
+          <div className="border-t border-gray-200 p-4 bg-gray-50/50">
+            <button 
+              onClick={handleGoHome}
+              className="w-full flex items-center justify-center space-x-3 px-4 py-4 text-gray-600 hover:text-gray-800 hover:bg-white rounded-xl transition-all duration-200 hover:scale-[1.02] hover:shadow-sm border border-transparent hover:border-gray-200 group"
+            >
+              <div className="p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 shadow-sm group-hover:shadow-md transition-all duration-200">
+                <Home className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-base font-semibold">메인으로</span> {/* **🎯 폰트 크기 증가: text-sm -> text-base, font-medium -> font-semibold** */}
+            </button>
+          </div>
+        )}
       </aside>
 
       {/* 📱 모바일 하단 네비게이션 바 */}
@@ -373,11 +376,11 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
       {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={toggleMobileMenu}>
           <div 
-            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[80vh] overflow-y-auto"
+            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[80vh] overflow-hidden flex flex-col" /* **🎯 flex-col 추가** */
             onClick={(e) => e.stopPropagation()}
           >
             {/* 헤더 */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0"> {/* **🎯 flex-shrink-0 추가** */}
               <h3 className="text-lg font-bold text-gray-900">메뉴</h3>
               <button 
                 onClick={toggleMobileMenu}
@@ -387,71 +390,77 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
               </button>
             </div>
 
-            {/* 메뉴 콘텐츠 */}
-            <div className="p-6 space-y-4">
-              {/* 모든 네비게이션 아이템들 */}
-              {showDefaultMenus && defaultMenuItems.map((item) => {
-                const isActive = activeSection === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={item.onClick}
-                    className={cn(
-                      "w-full flex items-center space-x-4 p-4 rounded-xl transition-all duration-200",
-                      isActive 
-                        ? "bg-blue-50 text-blue-600 border border-blue-200" 
-                        : "hover:bg-gray-50"
+            {/* **🎯 메뉴 콘텐츠 - 스크롤 가능한 영역** */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-6 space-y-4">
+                {/* 모든 네비게이션 아이템들 */}
+                {showDefaultMenus && defaultMenuItems.map((item) => {
+                  const isActive = activeSection === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={item.onClick}
+                      className={cn(
+                        "w-full flex items-center space-x-4 p-4 rounded-xl transition-all duration-200",
+                        isActive 
+                          ? "bg-blue-50 text-blue-600 border border-blue-200" 
+                          : "hover:bg-gray-50"
+                      )}
+                    >
+                      <div className={cn("p-3 rounded-xl shadow-sm", item.color)}>
+                        <item.icon className="h-5 w-5 text-white" />
+                      </div>
+                      <span className="font-medium text-lg">{item.label}</span>
+                    </button>
+                  );
+                })}
+
+                {/* 구분선 */}
+                <div className="border-t border-gray-200 my-4"></div>
+
+                {/* 설정/메시지 */}
+                {showSettingsMenu && (
+                  <div className="space-y-3">
+                    {isOwner ? (
+                      <button 
+                        onClick={handleSettings}
+                        className="w-full flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-all duration-200"
+                      >
+                        <div className="p-3 rounded-xl bg-gradient-to-r from-gray-500 to-gray-600 shadow-sm">
+                          <Settings className="h-5 w-5 text-white" />
+                        </div>
+                        <span className="font-medium text-lg">피어몰 관리</span>
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={handleMessage}
+                        className="w-full flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-all duration-200"
+                      >
+                        <div className="p-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 shadow-sm">
+                          <Mail className="h-5 w-5 text-white" />
+                        </div>
+                        <span className="font-medium text-lg">메시지 보내기</span>
+                      </button>
                     )}
-                  >
-                    <div className={cn("p-3 rounded-xl shadow-sm", item.color)}>
-                      <item.icon className="h-5 w-5 text-white" />
-                    </div>
-                    <span className="font-medium text-lg">{item.label}</span>
-                  </button>
-                );
-              })}
+                  </div>
+                )}
+              </div>
+            </div>
 
-              {/* 구분선 */}
-              <div className="border-t border-gray-200 my-4"></div>
-
-              {/* 설정/메시지 */}
-              {showSettingsMenu && (
-                <div className="space-y-3">
-                  {isOwner ? (
-                    <button 
-                      onClick={handleSettings}
-                      className="w-full flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-all duration-200"
-                    >
-                      <div className="p-3 rounded-xl bg-gradient-to-r from-gray-500 to-gray-600 shadow-sm">
-                        <Settings className="h-5 w-5 text-white" />
-                      </div>
-                      <span className="font-medium text-lg">피어몰 관리</span>
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={handleMessage}
-                      className="w-full flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-all duration-200"
-                    >
-                      <div className="p-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 shadow-sm">
-                        <Mail className="h-5 w-5 text-white" />
-                      </div>
-                      <span className="font-medium text-lg">메시지 보내기</span>
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* 홈 버튼 */}
-              {showHomeButton && (
+            {/* **🎯 하단 고정 홈 버튼 영역 (모바일)** */}
+            {showHomeButton && (
+              <div className="border-t border-gray-200 p-4 bg-gray-50/80 flex-shrink-0"> {/* **🎯 flex-shrink-0으로 고정** */}
                 <button 
                   onClick={handleGoHome}
-                  className="w-full flex items-center justify-center space-x-3 p-4 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200"
+                  className="w-full flex items-center justify-center space-x-4 p-4 text-gray-600 hover:text-gray-800 hover:bg-white rounded-xl transition-all duration-200 hover:scale-[1.02] hover:shadow-sm border border-transparent hover:border-gray-200 group"
                 >
-                  <Home className="w-5 h-5" />
-                  <span className="font-medium text-lg">메인으로</span>
+                  <div className="p-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 shadow-sm group-hover:shadow-md transition-all duration-200">
+                    <Home className="w-6 h-6 text-white" /> {/* **🎯 모바일에서 아이콘 크기 증가** */}
+                  </div>
+                  <span className="font-bold text-xl">메인으로</span> {/* **🎯 모바일에서 폰트 크기 더 크게: text-lg -> text-xl, font-medium -> font-bold** */}
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       )}

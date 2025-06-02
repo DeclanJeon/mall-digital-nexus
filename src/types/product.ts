@@ -72,6 +72,7 @@ export interface Product {
   comments: number; // Content 인터페이스와의 호환성
   views: number; // Content 인터페이스와의 호환성
   saves: number; // Content 인터페이스와의 호환성
+  richContent?: string; // เพิ่มบรรทัดนี้
 }
 
 // 🎯 상품 옵션 인터페이스
