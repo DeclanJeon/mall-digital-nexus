@@ -44,7 +44,8 @@ const CallModal: React.FC<CallModalProps> = ({
   const [callDuration, setCallDuration] = useState(0);
 
   // 🎯 통화 시작 핸들러 - 모달에서 통화 버튼 클릭 시에만 새 창 열기
-  const handleStartCall = useCallback(() => {
+  const handleStartCall = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
     setCallStatus('calling');
     
     // 실제 통화 연결 시뮬레이션
@@ -154,7 +155,7 @@ const CallModal: React.FC<CallModalProps> = ({
                 )}
                 
                 {/* 🌟 신뢰도 및 응답 시간 표시 */}
-                <div className="flex items-center space-x-3 mt-2">
+                {/* <div className="flex items-center space-x-3 mt-2">
                   {location.trustScore && (
                     <div className="flex items-center space-x-1">
                       <Star className="w-3 h-3 text-yellow-500 fill-current" />
@@ -171,7 +172,7 @@ const CallModal: React.FC<CallModalProps> = ({
                       </span>
                     </div>
                   )}
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
