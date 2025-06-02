@@ -5,12 +5,13 @@ import {
   Plus, ExternalLink, Globe, Clock, ArrowRight, Loader2, Heart, TrendingUp, 
   Grid3X3, List, LayoutGrid, Eye, Star, Bookmark, Share2, MoreHorizontal,
   Zap, Users, Calendar, Award, Filter, Settings, Maximize2, Minimize2,
-  Image, BookOpen, Layers, Sparkles, Crown, Shield, Activity
+  Image, BookOpen, Layers, Sparkles, Crown, Shield, Activity, Pin, PinOff,
+  X, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import AddServiceModal from '@/components/feature-sections/AddServiceModal';
+import AddServiceModal from '@/components/features/AddServiceModal';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -126,6 +127,7 @@ const extractOpenGraphData = async (url: string): Promise<OpenGraphData> => {
 
 const FavoriteServices: React.FC = () => {
   const [services, setServices] = useState<FavoriteService[]>([
+    // ... 기존 서비스 데이터 (동일)
     {
       id: 1,
       name: "Notion",
@@ -254,7 +256,11 @@ const FavoriteServices: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('medium');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingServices, setLoadingServices] = useState<Set<string>>(new Set());
+  
+  // 🎯 뷰 모드 패널 상태 개선
   const [showViewModePanel, setShowViewModePanel] = useState(false);
+  const [isViewModePinned, setIsViewModePinned] = useState(false); // 핀 상태 추가
+  
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'usage' | 'recent' | 'name' | 'rating'>('usage');
   const swiperRef = useRef<any>(null);
@@ -274,7 +280,7 @@ const FavoriteServices: React.FC = () => {
     layout: string;
   }
 
-  // 🎨 뷰 모드별 설정
+  // 🎨 뷰 모드별 설정 (기존과 동일)
   const viewConfig: Record<ViewMode, ViewConfig> = {
     compact: {
       containerClass: 'space-x-4',
@@ -395,10 +401,10 @@ const FavoriteServices: React.FC = () => {
     }
   };
 
-  // 현재 뷰 모드에 따른 설정 가져오기 (타입 안전하게)
+  // 현재 뷰 모드에 따른 설정 가져오기
   const currentConfig = viewConfig[viewMode];
 
-  // 🎯 카테고리별 색상 매핑
+  // 🎯 카테고리별 색상 매핑 (기존과 동일)
   const categoryColors = {
     productivity: 'from-blue-500 to-indigo-600',
     design: 'from-purple-500 to-pink-600',
@@ -408,7 +414,7 @@ const FavoriteServices: React.FC = () => {
     entertainment: 'from-pink-500 to-rose-600'
   };
 
-  // 🔄 서비스 정렬
+  // 🔄 서비스 정렬 (기존과 동일)
   const sortedServices = React.useMemo(() => {
     let filtered = selectedCategory 
       ? services.filter(s => s.category === selectedCategory)
@@ -429,6 +435,26 @@ const FavoriteServices: React.FC = () => {
       }
     });
   }, [services, selectedCategory, sortBy]);
+
+  // 🎯 뷰 모드 선택 핸들러 개선
+  const handleViewModeSelect = (selectedViewMode: ViewMode) => {
+    setViewMode(selectedViewMode);
+    // 핀이 되어있지 않으면 패널 닫기
+    if (!isViewModePinned) {
+      setShowViewModePanel(false);
+    }
+  };
+
+  // 🎯 뷰 모드 패널 토글
+  const toggleViewModePanel = () => {
+    setShowViewModePanel(!showViewModePanel);
+  };
+
+  // 🎯 핀 토글
+  const togglePin = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 이벤트 버블링 방지
+    setIsViewModePinned(!isViewModePinned);
+  };
 
   const handleServiceClick = (service: FavoriteService, e: React.MouseEvent) => {
     e.preventDefault();
@@ -533,7 +559,104 @@ const FavoriteServices: React.FC = () => {
     return date.toLocaleDateString();
   };
 
-  // 🎨 서비스 카드 렌더링 함수
+  // 🎨 서비스 카드 렌더링 함수들 (기존과 동일하므로 생략...)
+  // renderServiceCard 함수는 기존과 동일
+
+  // 🎨 향상된 서비스 추가 카드 - 플로팅 버튼 스타일로 변경
+  const renderFloatingAddButton = () => (
+    <motion.div
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+      className="fixed bottom-8 right-8 z-50"
+    >
+      <Button
+        onClick={() => setIsModalOpen(true)}
+        size="lg"
+        className={cn(
+          "w-4 h-10 rounded-full shadow-2xl border-0 ",
+          "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500",
+          "hover:from-blue-600 hover:via-purple-600 hover:to-pink-600",
+          "transform hover:scale-110 active:scale-95",
+          "transition-all duration-300",
+          "group relative overflow-hidden"
+        )}
+      >
+        {/* 배경 애니메이션 */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
+        {/* 아이콘 */}
+        {loadingServices.size > 0 ? (
+          <Loader2 className="w-8 h-8 text-white animate-spin" />
+        ) : (
+          <Plus className="w-8 h-8 text-white group-hover:rotate-90 transition-transform duration-300" />
+        )}
+        
+        {/* 글로우 효과 */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-pink-400 opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300" />
+      </Button>
+      
+      {/* 툴팁 */}
+      <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+        <div className="bg-gray-900 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap">
+          새 서비스 추가
+          <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  // 🎨 인라인 서비스 추가 카드 (기존 방식 유지)
+  const renderInlineAddServiceCard = () => (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: sortedServices.length * 0.05 }}
+      className="group cursor-pointer"
+      onClick={() => setIsModalOpen(true)}
+    >
+      <Card className={cn(
+        currentConfig.cardWidth,
+        currentConfig.cardHeight,
+        "border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 transition-all duration-300 bg-gray-50/50"
+      )}>
+        <CardContent className="h-full flex flex-col items-center justify-center space-y-3 p-4">
+          <div className={cn(
+            viewMode === 'compact' ? 'w-8 h-8' : viewMode === 'medium' ? 'w-10 h-10' : 'w-12 h-12',
+            "rounded-xl flex items-center justify-center transition-all duration-300 bg-blue-100 group-hover:bg-blue-200 group-hover:scale-110"
+          )}>
+            {loadingServices.size > 0 ? (
+              <Loader2 className={cn(
+                viewMode === 'compact' ? 'w-4 h-4' : viewMode === 'medium' ? 'w-5 h-5' : 'w-6 h-6',
+                "text-blue-600 animate-spin"
+              )} />
+            ) : (
+              <Plus className={cn(
+                viewMode === 'compact' ? 'w-4 h-4' : viewMode === 'medium' ? 'w-5 h-5' : 'w-6 h-6',
+                "text-blue-600"
+              )} />
+            )}
+          </div>
+          
+          <div className="text-center space-y-1">
+            <h3 className={cn(
+              currentConfig.titleSize,
+              "font-medium text-gray-900 group-hover:text-blue-600 transition-colors"
+            )}>
+              {viewMode === 'compact' ? '추가' : '새 서비스 추가'}
+            </h3>
+            {viewMode !== 'compact' && (
+              <p className="text-xs text-gray-600">
+                URL 입력으로 자동 추가
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+
+  // 기존 renderServiceCard 함수는 그대로 유지하되, 갤러리, 리스트, 타임라인, 매거진 등의 구현도 동일하게 유지
   const renderServiceCard = (service: FavoriteService, index: number) => {
     const categoryGradient = categoryColors[service.category as keyof typeof categoryColors] || 'from-gray-500 to-gray-600';
 
@@ -567,7 +690,6 @@ const FavoriteServices: React.FC = () => {
               )}
               
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              
               <div className="absolute bottom-0 left-0 right-0 p-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                 <h3 className="font-bold text-sm line-clamp-1 mb-1">{service.name}</h3>
                 <div className="flex items-center justify-between text-xs">
@@ -723,7 +845,7 @@ const FavoriteServices: React.FC = () => {
                     </div>
                     
                     <p className="text-sm text-gray-600 line-clamp-1 mb-2">
-                      { service.description }
+                      {service.description}
                     </p>
                     
                     <div className="flex items-center justify-between">
@@ -800,16 +922,10 @@ const FavoriteServices: React.FC = () => {
                     추천
                   </Badge>
                 )}
-                {service.isPopular && (
+                {service.isTrending && (
                   <Badge className="bg-red-500/90 backdrop-blur-sm text-white text-xs px-2 py-1">
                     <TrendingUp className="w-3 h-3 mr-1" />
                     인기
-                  </Badge>
-                )}
-                {service.isPopular && (
-                  <Badge className="bg-blue-500/90 backdrop-blur-sm text-white text-xs px-2 py-1">
-                    <Shield className="w-3 h-3 mr-1" />
-                    인증
                   </Badge>
                 )}
               </div>
@@ -966,11 +1082,6 @@ const FavoriteServices: React.FC = () => {
                       <TrendingUp className="w-2.5 h-2.5" />
                     </Badge>
                   )}
-                  {service.isPopular && (
-                    <Badge className="bg-blue-500 text-white text-xs px-1.5 py-0.5">
-                      <Shield className="w-2.5 h-2.5" />
-                    </Badge>
-                  )}
                 </div>
 
                 {/* 외부 링크 아이콘 */}
@@ -1040,76 +1151,41 @@ const FavoriteServices: React.FC = () => {
     );
   };
 
-  // 🎨 서비스 추가 카드
-  const renderAddServiceCard = () => (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: sortedServices.length * 0.05 }}
-      className="group cursor-pointer"
-      onClick={() => setIsModalOpen(true)}
-    >
-      <Card className={cn(
-        currentConfig.cardWidth,
-        currentConfig.cardHeight,
-        "border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 transition-all duration-300 bg-gray-50/50"
-      )}>
-        <CardContent className="h-full flex flex-col items-center justify-center space-y-3 p-4">
-          <div className={cn(
-            viewMode === 'compact' ? 'w-8 h-8' : viewMode === 'medium' ? 'w-10 h-10' : 'w-12 h-12',
-            "rounded-xl flex items-center justify-center transition-all duration-300 bg-blue-100 group-hover:bg-blue-200 group-hover:scale-110"
-          )}>
-            {loadingServices.size > 0 ? (
-              <Loader2 className={cn(
-                viewMode === 'compact' ? 'w-4 h-4' : viewMode === 'medium' ? 'w-5 h-5' : 'w-6 h-6',
-                "text-blue-600 animate-spin"
-              )} />
-            ) : (
-              <Plus className={cn(
-                viewMode === 'compact' ? 'w-4 h-4' : viewMode === 'medium' ? 'w-5 h-5' : 'w-6 h-6',
-                "text-blue-600"
-              )} />
-            )}
-          </div>
-          
-          <div className="text-center space-y-1">
-            <h3 className={cn(
-              currentConfig.titleSize,
-              "font-medium text-gray-900 group-hover:text-blue-600 transition-colors"
-            )}>
-              {viewMode === 'compact' ? '추가' : '새 서비스 추가'}
-            </h3>
-            {viewMode !== 'compact' && (
-              <p className="text-xs text-gray-600">
-                URL 입력으로 자동 추가
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-
   return (
-    <section className="space-y-6">
+    <section className="space-y-6 relative">
       {/* 🎨 향상된 헤더 */}
       <div className="flex flex-col space-y-4">
         {/* 상단 통계 및 컨트롤 */}
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-between">
+          {/* 왼쪽: 통계 정보 */}
+          <div className="flex items-center space-x-4">
+            <div className="text-sm text-gray-600">
+              총 <span className="font-semibold text-gray-900">{services.length}개</span> 서비스
+            </div>
+            {selectedCategory && (
+              <Badge variant="outline" className="text-xs">
+                {selectedCategory} 필터 적용
+              </Badge>
+            )}
+          </div>
 
-          {/* 뷰 모드 선택 */}
+          {/* 오른쪽: 뷰 모드 선택 */}
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowViewModePanel(!showViewModePanel)}
-              className="flex items-center gap-2 bg-white hover:bg-gray-50 border-gray-200"
+              onClick={toggleViewModePanel}
+              className={cn(
+                "flex items-center gap-2 bg-white hover:bg-gray-50 border-gray-200 transition-all duration-300",
+                showViewModePanel && "bg-blue-50 border-blue-300 text-blue-700"
+              )}
             >
               <Eye className="w-4 h-4" />
               <span className="hidden sm:inline">뷰 모드</span>
               <Badge variant="secondary" className="text-xs">
                 {viewModeOptions.find(v => v.value === viewMode)?.label}
               </Badge>
+              {showViewModePanel ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </Button>
           </div>
         </div>
@@ -1126,9 +1202,9 @@ const FavoriteServices: React.FC = () => {
                   size="sm"
                   onClick={() => setSelectedCategory(category === 'all' ? null : category)}
                   className={cn(
-                    "text-xs h-7 px-3",
+                    "text-xs h-7 px-3 transition-all duration-300",
                     selectedCategory === (category === 'all' ? null : category) && 
-                    `bg-gradient-to-r ${categoryColors[category as keyof typeof categoryColors] || 'from-gray-500 to-gray-600'} text-white`
+                    `bg-gradient-to-r ${categoryColors[category as keyof typeof categoryColors] || 'from-gray-500 to-gray-600'} text-white hover:opacity-90`
                   )}
                 >
                   {category === 'all' ? '전체' : category}
@@ -1143,7 +1219,7 @@ const FavoriteServices: React.FC = () => {
             <select 
               value={sortBy} 
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="text-sm border border-gray-200 rounded-lg px-2 py-1 bg-white"
+              className="text-sm border border-gray-200 rounded-lg px-2 py-1 bg-white hover:border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
             >
               <option value="usage">사용량순</option>
               <option value="recent">최근순</option>
@@ -1153,44 +1229,123 @@ const FavoriteServices: React.FC = () => {
           </div>
         </div>
 
-        {/* 뷰 모드 패널 */}
+        {/* 🎯 개선된 뷰 모드 패널 */}
         <AnimatePresence>
           {showViewModePanel && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white border border-gray-200 rounded-xl p-4 shadow-lg"
+              initial={{ opacity: 0, height: 0, y: -10 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -10 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="bg-white border border-gray-200 rounded-xl p-4 shadow-lg relative overflow-hidden"
             >
-              <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3">
-                {viewModeOptions.map((option) => {
+              {/* 배경 그라데이션 */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50" />
+              
+              {/* 헤더 */}
+              <div className="relative flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <Eye className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">뷰 모드 선택</h3>
+                    <p className="text-xs text-gray-600">원하는 레이아웃을 선택하세요</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {/* 핀 버튼 */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={togglePin}
+                    className={cn(
+                      "w-8 h-8 p-0 transition-all duration-300",
+                      isViewModePinned 
+                        ? "bg-blue-100 text-blue-600 hover:bg-blue-200" 
+                        : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                    )}
+                    title={isViewModePinned ? "패널 고정 해제" : "패널 고정"}
+                  >
+                    {isViewModePinned ? <Pin className="w-4 h-4" /> : <PinOff className="w-4 h-4" />}
+                  </Button>
+                  
+                  {/* 닫기 버튼 */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowViewModePanel(false)}
+                    className="w-8 h-8 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* 뷰 모드 옵션들 */}
+              <div className="relative grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3">
+                {viewModeOptions.map((option, index) => {
                   const IconComponent = option.icon;
                   const isActive = viewMode === option.value;
                   
                   return (
                     <motion.button
                       key={option.value}
-                      onClick={() => {
-                        setViewMode(option.value);
-                        setShowViewModePanel(false);
-                      }}
+                      onClick={() => handleViewModeSelect(option.value)}
                       className={cn(
-                        "p-3 rounded-xl border-2 transition-all duration-300 text-center",
+                        "p-3 rounded-xl border-2 transition-all duration-300 text-center relative overflow-hidden",
                         "transform hover:scale-105 active:scale-95",
                         isActive
                           ? `bg-gradient-to-br ${option.gradient} text-white border-white/30 shadow-lg scale-105`
                           : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                       )}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
                       whileHover={{ y: -2 }}
                       whileTap={{ y: 0 }}
                     >
-                      <IconComponent className="w-6 h-6 mx-auto mb-2" />
-                      <div className="text-xs font-semibold mb-1">{option.label}</div>
-                      <div className="text-xs opacity-80">{option.description}</div>
+                      {/* 활성 상태 글로우 효과 */}
+                      {isActive && (
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-xl" />
+                      )}
+                      
+                      <div className="relative">
+                        <IconComponent className="w-6 h-6 mx-auto mb-2" />
+                        <div className="text-xs font-semibold mb-1">{option.label}</div>
+                        <div className="text-xs opacity-80">{option.description}</div>
+                        
+                        {/* 선택된 옵션 체크마크 */}
+                        {isActive && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-md"
+                          >
+                            <div className="w-2 h-2 bg-green-500 rounded-full" />
+                          </motion.div>
+                        )}
+                      </div>
                     </motion.button>
                   );
                 })}
+              </div>
+
+              {/* 하단 정보 */}
+              <div className="relative mt-4 pt-3 border-t border-gray-200">
+                <div className="flex items-center justify-between text-xs text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-3 h-3" />
+                    <span>현재 뷰: <strong>{viewModeOptions.find(v => v.value === viewMode)?.label}</strong></span>
+                  </div>
+                  {isViewModePinned && (
+                    <div className="flex items-center gap-1 text-blue-600">
+                      <Pin className="w-3 h-3" />
+                      <span>패널 고정됨</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           )}
@@ -1221,22 +1376,23 @@ const FavoriteServices: React.FC = () => {
                 </SwiperSlide>
               ))}
               
+              {/* 인라인 추가 버튼 (스와이퍼용) */}
               <SwiperSlide style={{ width: 'auto' }}>
-                {renderAddServiceCard()}
+                {renderInlineAddServiceCard()}
               </SwiperSlide>
             </Swiper>
 
             {/* 네비게이션 버튼 */}
             {currentConfig.slidesPerView !== undefined && sortedServices.length > (currentConfig.slidesPerView as number) && (
               <>
-                <button className="swiper-button-prev-custom absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-10 h-10 bg-white rounded-full shadow-xl border border-gray-200 flex items-center justify-center transition-all duration-300 hover:shadow-2xl hover:scale-110 hover:bg-gray-50">
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button className="swiper-button-prev-custom absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-10 h-10 bg-white rounded-full shadow-xl border border-gray-200 flex items-center justify-center transition-all duration-300 hover:shadow-2xl hover:scale-110 hover:bg-gray-50 group">
+                  <svg className="w-4 h-4 text-gray-600 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
                 
-                <button className="swiper-button-next-custom absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-10 h-10 bg-white rounded-full shadow-xl border border-gray-200 flex items-center justify-center transition-all duration-300 hover:shadow-2xl hover:scale-110 hover:bg-gray-50">
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button className="swiper-button-next-custom absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-10 h-10 bg-white rounded-full shadow-xl border border-gray-200 flex items-center justify-center transition-all duration-300 hover:shadow-2xl hover:scale-110 hover:bg-gray-50 group">
+                  <svg className="w-4 h-4 text-gray-600 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
@@ -1249,7 +1405,7 @@ const FavoriteServices: React.FC = () => {
         {viewMode === 'grid' && (
           <div className={currentConfig.containerClass}>
             {sortedServices.map((service, index) => renderServiceCard(service, index))}
-            {renderAddServiceCard()}
+            {renderInlineAddServiceCard()}
           </div>
         )}
 
@@ -1257,7 +1413,7 @@ const FavoriteServices: React.FC = () => {
         {viewMode === 'list' && (
           <div className={currentConfig.containerClass}>
             {sortedServices.map((service, index) => renderServiceCard(service, index))}
-            {renderAddServiceCard()}
+            {renderInlineAddServiceCard()}
           </div>
         )}
 
@@ -1265,32 +1421,131 @@ const FavoriteServices: React.FC = () => {
         {viewMode === 'gallery' && (
           <div className={currentConfig.containerClass}>
             {sortedServices.map((service, index) => renderServiceCard(service, index))}
-            {renderAddServiceCard()}
+            {renderInlineAddServiceCard()}
           </div>
         )}
 
         {/* 타임라인 레이아웃 */}
         {viewMode === 'timeline' && (
-          <div className={currentConfig.containerClass}>
-            {sortedServices.map((service, index) => renderServiceCard(service, index))}
+          <div className="relative">
+            <div className={currentConfig.containerClass}>
+              {sortedServices.map((service, index) => renderServiceCard(service, index))}
+            </div>
+            
+            {/* 타임라인용 별도 추가 버튼 */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: sortedServices.length * 0.1 }}
+              className="relative mt-6"
+            >
+              {/* 타임라인 라인 연장 */}
+              <div className="absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-pink-500 to-transparent"></div>
+              
+              {/* 타임라인 포인트 */}
+              <div className="absolute left-6 top-6 w-4 h-4 bg-gradient-to-br from-pink-500 to-red-600 rounded-full border-4 border-white shadow-lg"></div>
+              
+              <div className="ml-16">
+                {renderInlineAddServiceCard()}
+              </div>
+            </motion.div>
           </div>
         )}
 
         {/* 매거진 레이아웃 */}
         {viewMode === 'magazine' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sortedServices.map((service, index) => renderServiceCard(service, index))}
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sortedServices.map((service, index) => renderServiceCard(service, index))}
+            </div>
+            
+            {/* 매거진용 특별 추가 카드 */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: sortedServices.length * 0.1 }}
+              className="group cursor-pointer"
+              onClick={() => setIsModalOpen(true)}
+            >
+              <Card className="w-full h-48 border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 transition-all duration-300 bg-gray-50/50">
+                <CardContent className="h-full flex flex-col items-center justify-center space-y-4 p-6">
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 bg-gradient-to-br from-blue-100 to-purple-100 group-hover:from-blue-200 group-hover:to-purple-200 group-hover:scale-110">
+                    {loadingServices.size > 0 ? (
+                      <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                    ) : (
+                      <Plus className="w-8 h-8 text-blue-600 group-hover:rotate-90 transition-transform duration-300" />
+                    )}
+                  </div>
+                  
+                  <div className="text-center space-y-2">
+                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                      새로운 서비스 발견하기
+                    </h3>
+                    <p className="text-sm text-gray-600 max-w-md">
+                      URL을 입력하면 자동으로 서비스 정보를 가져와 컬렉션에 추가합니다
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Zap className="w-3 h-3" />
+                    <span>빠른 추가</span>
+                    <div className="w-1 h-1 bg-gray-400 rounded-full" />
+                    <Globe className="w-3 h-3" />
+                    <span>자동 인식</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         )}
       </div>
 
-      {/* 서비스 추가 모달 */}
+      {/* 🎨 플로팅 추가 버튼 - 모든 뷰 모드에서 사용 가능 */}
+      {renderFloatingAddButton()}
+
+      {/* 🎨 향상된 서비스 추가 모달 */}
       <AddServiceModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAddExternalService={handleAddExternalService}
         onAddInternalServices={handleAddInternalServices}
       />
+
+      {/* 🎨 빈 상태 처리 */}
+      {sortedServices.length === 0 && selectedCategory && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center py-12"
+        >
+          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
+            <Filter className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            {selectedCategory} 카테고리에 서비스가 없습니다
+          </h3>
+          <p className="text-gray-600 mb-4">
+            다른 카테고리를 선택하거나 새로운 서비스를 추가해보세요
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setSelectedCategory(null)}
+              className="flex items-center gap-2"
+            >
+              <ArrowRight className="w-4 h-4" />
+              전체 보기
+            </Button>
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+            >
+              <Plus className="w-4 h-4" />
+              서비스 추가
+            </Button>
+          </div>
+        </motion.div>
+      )}
     </section>
   );
 };

@@ -37,11 +37,6 @@ const isOwner = true;
         <main className="flex-1 p-4">
           {children}
         </main>
-        
-        <RightSideBar
-          customSections={sections}
-          showLocationSection={true}
-        />
       </div>
     </div>
   );

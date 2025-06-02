@@ -1,16 +1,18 @@
 // components/LeftSideBar.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
-import { Home, FileText, MessageSquare, Users, Mail, Settings } from 'lucide-react';
+import { Home, Package, MessageSquare, Users, Mail, Settings, Sparkles, Star, Calendar } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { SectionType } from '@/types/space';
 import { PeerSpaceHomeProps } from '@/types/space';
+import { cn } from '@/lib/utils';
 
 // SectionType에서 사용할 값들
 const SECTIONS = {
   SPACE: 'space',
   PRODUCTS: 'products',
-  COMMUNITY: 'community'
+  COMMUNITY: 'community',
+  MAP : 'peermap'
 } as const;
 
 type SectionKey = keyof typeof SECTIONS;
@@ -23,6 +25,7 @@ interface MenuItem {
   path: string;
   onClick: () => void;
   isActive?: boolean;
+  color: string;
 }
 
 interface LeftSideBarProps {
@@ -65,15 +68,13 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
       if (!address) return;
       
       try {
-        // localStorage에서 설정 정보 가져오기
         const savedConfig = localStorage.getItem(`peer_mall_config_${address}`);
         if (savedConfig) {
           const parsedConfig = JSON.parse(savedConfig);
           setConfig(parsedConfig);
         } else {
-          // 기본 설정
           setConfig({
-            peerMallName: '피어몰',
+            peerMallName: address,
             peerNumber: address?.slice(0, 8) + '...',
             profileImage: null
           });
@@ -81,7 +82,7 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
       } catch (error) {
         console.error('피어몰 설정 로드 실패:', error);
         setConfig({
-          peerMallName: '피어몰',
+          peerMallName: address,
           peerNumber: '알 수 없음',
           profileImage: null
         });
@@ -91,46 +92,70 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
     loadPeerMallConfig();
   }, [address]);
 
-  // 🎯 기본 메뉴 아이템들
+  // 🎯 기본 메뉴 아이템들 (원본 Sidebar 스타일 적용)
   const defaultMenuItems: MenuItem[] = [
     {
       id: SECTIONS.SPACE,
-      label: '홈',
+      label: '피어 홈',
       icon: Home,
       path: `/space/${address}?mk=${peerMallKey}`,
-      onClick: () => handleNavigation(SECTIONS.SPACE)
+      onClick: () => handleNavigation(SECTIONS.SPACE),
+      color: 'bg-blue-500'
     },
     {
       id: SECTIONS.PRODUCTS,
-      label: '제품',
-      icon: FileText,
+      label: '제품 갤러리',
+      icon: Package,
       path: `/space/${address}/product?mk=${peerMallKey}`,
-      onClick: () => handleNavigation(SECTIONS.PRODUCTS)
+      onClick: () => handleNavigation(SECTIONS.PRODUCTS),
+      color: 'bg-green-500'
     },
     {
       id: SECTIONS.COMMUNITY,
       label: '커뮤니티',
       icon: MessageSquare,
       path: `/space/${address}/community?mk=${peerMallKey}`,
-      onClick: () => handleNavigation(SECTIONS.COMMUNITY)
+      onClick: () => handleNavigation(SECTIONS.COMMUNITY),
+      color: 'bg-purple-500'
+    },
+    {
+      id: SECTIONS.MAP,
+      label: '피어맵',
+      icon: MessageSquare,
+      path: `/space/${address}/peermap?mk=${peerMallKey}`,
+      onClick: () => handleNavigation(SECTIONS.MAP),
+      color: 'bg-yellow-500'
     }
+  ];
+
+  // 🎯 퀵 액션들 (원본 Sidebar의 Quick Actions 스타일)
+  const quickActions = [
+    { icon: Star, label: '즐겨찾기', count: 5, action: () => handleQuickAction('favorites') },
+    { icon: Calendar, label: '이벤트', count: 2, action: () => handleQuickAction('events') },
+    { icon: Users, label: '팔로워', count: 12, action: () => handleQuickAction('followers') },
   ];
 
   // 🎯 네비게이션 처리
   const handleNavigation = (section: SectionValue) => {
     setActiveSection(section);
     
-    // 커스텀 이벤트 발생 (외부에서 필요시 리스닝 가능)
     window.dispatchEvent(new CustomEvent('peerSpaceNavigation', {
       detail: { section, address, peerMallKey }
     }));
 
-    // URL 업데이트
     if (section === 'space') {
       navigate(`/space/${address}${peerMallKey ? `?mk=${peerMallKey}` : ''}`);
     } else {
       navigate(`/space/${address}/${section}${peerMallKey ? `?mk=${peerMallKey}` : ''}`);
     }
+  };
+
+  // 🎯 퀵 액션 처리
+  const handleQuickAction = (action: string) => {
+    toast({
+      title: `${action} 기능 🚀`,
+      description: '곧 출시될 예정이에요!',
+    });
   };
 
   // 🎯 메시지 보내기
@@ -144,7 +169,6 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
       return;
     }
 
-    // 메시지 모달 열기 이벤트
     window.dispatchEvent(new CustomEvent('openMessageModal', {
       detail: { recipientAddress: address, peerMallName: config?.peerMallName }
     }));
@@ -165,16 +189,7 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
       });
       return;
     }
-    navigate(`/space/${address}/settings`);
-  };
-
-  // 소유자 메뉴 토글 함수
-  const toggleOwnerMenu = () => {
-    // isOwner is now controlled by parent component
-    // You can call onNavigateToSection if needed
-    if (onNavigateToSection) {
-      onNavigateToSection(isOwner ? 'space' : 'settings');
-    }
+    navigate(`/space/${address}/settings?mk=${peerMallKey}`);
   };
 
   // 🎯 홈으로 가기
@@ -182,136 +197,164 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
     navigate('/');
   };
 
-  // 로딩 중이거나 설정이 없으면 스켈레톤 표시
+  // 로딩 스켈레톤
   if (!config) {
     return (
-      <div className={`w-64 bg-white shadow-md fixed left-0 top-0 h-full z-20 ${className}`}>
-        <div className="flex flex-col h-full animate-pulse">
-          <div className="p-4 border-b">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-200"></div>
-              <div className="flex flex-col gap-2">
-                <div className="h-4 bg-gray-200 rounded w-24"></div>
-                <div className="h-3 bg-gray-200 rounded w-16"></div>
-              </div>
+      <aside className={cn("w-64 bg-white border-r border-gray-200 h-screen sticky top-16 overflow-y-auto", className)}>
+        <div className="p-6 animate-pulse">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="w-12 h-12 bg-gray-200 rounded-xl"></div>
+            <div className="flex-1">
+              <div className="h-4 bg-gray-200 rounded mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded w-20"></div>
             </div>
           </div>
-          <div className="flex-1 p-3 space-y-2">
+          <div className="space-y-2">
             {[1, 2, 3].map(i => (
-              <div key={i} className="h-10 bg-gray-200 rounded-lg"></div>
+              <div key={i} className="h-12 bg-gray-200 rounded-xl"></div>
             ))}
           </div>
         </div>
-      </div>
+      </aside>
     );
   }
 
   return (
-    <div className={`w-64 bg-white shadow-md fixed left-0 top-0 h-full z-20 ${className}`}>
-      <div className="flex flex-col h-full">
-        {/* 로고 영역 */}
-        <div className="p-4 border-b">
-          <Link to={`/space/${address}`} className="flex items-center gap-3 hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors duration-200">
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
-              {config.profileImage ? (
-                <img 
-                  src={config.profileImage} 
-                  alt="Space logo" 
-                  className="w-full h-full object-cover" 
-                />
-              ) : (
-                <span className="font-bold text-blue-500">
-                  {config.peerMallName.charAt(0)}
-                </span>
-              )}
+    <aside className={cn("w-64 bg-white border-r border-gray-200 h-screen sticky top-16 overflow-y-auto", className)}>
+      <div className="p-6">
+        {/* 피어몰 프로필 영역 */}
+        {/* <div className="mb-8">
+          <Link 
+            to={`/space/${address}?mk=${peerMallKey}`} 
+            className="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 transition-all group"
+          >
+            <div className="relative">
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center overflow-hidden">
+                {config.profileImage ? (
+                  <img 
+                    src={config.profileImage} 
+                    alt="Space logo" 
+                    className="w-full h-full object-cover" 
+                  />
+                ) : (
+                  <Sparkles className="h-6 w-6 text-white" />
+                )}
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
             </div>
-            <div className="flex flex-col">
-              <h3 className="font-bold text-sm truncate max-w-[180px]">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-gray-900 truncate group-hover:text-purple-600 transition-colors">
                 {config.peerMallName}
               </h3>
               <span className="text-xs text-gray-500">{config.peerNumber}</span>
             </div>
           </Link>
-        </div>
+        </div> */}
 
-        {/* 메뉴 영역 */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3">
-          <ul className="space-y-2">
-            {/* 기본 메뉴들 */}
-            {showDefaultMenus && defaultMenuItems.map((item) => (
-              <li key={item.id}>
-                <button 
-                  onClick={item.onClick}
-                  className={`w-full flex items-center p-2 rounded-lg transition-all duration-200 ${
-                    activeSection === item.id 
-                      ? 'bg-blue-50 text-blue-600 shadow-sm' 
-                      : 'hover:bg-gray-100 hover:shadow-sm'
-                  }`}
-                >
-                  <item.icon className="w-5 h-5 mr-3" />
-                  <span>{item.label}</span>
-                </button>
-              </li>
-            ))}
-
-            {/* 커스텀 메뉴들 */}
-            {customMenuItems.map((item, index) => (
-              <li key={`custom-${index}`}>
-                <button 
-                  onClick={item.onClick}
-                  className={`w-full flex items-center p-2 rounded-lg transition-all duration-200 ${
-                    item.isActive 
-                      ? 'bg-blue-50 text-blue-600 shadow-sm' 
-                      : 'hover:bg-gray-100 hover:shadow-sm'
-                  }`}
-                >
-                  <item.icon className="w-5 h-5 mr-3" />
-                  <span>{item.label}</span>
-                </button>
-              </li>
-            ))}
-            
-            {/* 설정/메시지 영역 */}
-            {showSettingsMenu && (
-              <li className="pt-4 mt-4 border-t">
-                {isOwner ? (
-                  <button 
-                    onClick={handleSettings}
-                    className="w-full flex items-center p-2 rounded-lg hover:bg-gray-100 hover:shadow-sm transition-all duration-200"
-                  >
-                    <Settings className="w-5 h-5 mr-3" />
-                    <span>내 피어몰 관리</span>
-                  </button>
-                ) : (
-                  <button 
-                    onClick={handleMessage} 
-                    className="w-full flex items-center p-2 rounded-lg hover:bg-gray-100 hover:shadow-sm transition-all duration-200"
-                  >
-                    <MessageSquare className="w-5 h-5 mr-3" />
-                    <span>메시지 보내기</span>
-                  </button>
+        {/* 메인 네비게이션 */}
+        <nav className="space-y-2 mb-8">
+          {showDefaultMenus && defaultMenuItems.map((item) => {
+            const isActive = activeSection === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={item.onClick}
+                className={cn(
+                  "w-full flex items-center space-x-3 px-3 py-2 rounded-xl transition-all hover:bg-gray-50",
+                  isActive && "bg-blue-50 text-blue-600 border border-blue-200"
                 )}
-              </li>
-            )}
-          </ul>
-        </nav>
-
-        {/* 하단 홈 버튼 */}
-        {showHomeButton && (
-          <div className="border-t p-4">
-            <div className="flex items-center justify-center"> 
-              <button 
-                onClick={handleGoHome}
-                className="text-gray-500 hover:text-gray-700 flex items-center gap-2 hover:bg-gray-50 rounded-lg px-3 py-2 transition-all duration-200"
               >
-                <Home className="w-4 h-4" />
-                <span>홈으로 가기</span>
+                <div className={cn("p-2 rounded-lg", item.color)}>
+                  <item.icon className="h-4 w-4 text-white" />
+                </div>
+                <span className="font-medium">{item.label}</span>
               </button>
-            </div>
+            );
+          })}
+
+          {/* 커스텀 메뉴들 */}
+          {customMenuItems.map((item, index) => (
+            <button
+              key={`custom-${index}`}
+              onClick={item.onClick}
+              className={cn(
+                "w-full flex items-center space-x-3 px-3 py-2 rounded-xl transition-all hover:bg-gray-50",
+                item.isActive && "bg-blue-50 text-blue-600 border border-blue-200"
+              )}
+            >
+              <div className={cn("p-2 rounded-lg", item.color)}>
+                <item.icon className="h-4 w-4 text-white" />
+              </div>
+              <span className="font-medium">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+        
+        {/* 퀵 액션 영역 */}
+        {/* <div className="mb-8">
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            Quick Actions
+          </h3>
+          <div className="space-y-2">
+            {quickActions.map((action) => (
+              <button
+                key={action.label}
+                onClick={action.action}
+                className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex items-center space-x-3">
+                  <action.icon className="h-4 w-4 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-700">{action.label}</span>
+                </div>
+                <span className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs px-2 py-1 rounded-full">
+                  {action.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div> */}
+
+        {/* 설정/메시지 영역 */}
+        {showSettingsMenu && (
+          <div className="border-t pt-4">
+            {isOwner ? (
+              <button 
+                onClick={handleSettings}
+                className="w-full flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition-all"
+              >
+                <div className="p-2 rounded-lg bg-gray-500">
+                  <Settings className="h-4 w-4 text-white" />
+                </div>
+                <span className="font-medium">피어몰 관리</span>
+              </button>
+            ) : (
+              <button 
+                onClick={handleMessage}
+                className="w-full flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition-all"
+              >
+                <div className="p-2 rounded-lg bg-orange-500">
+                  <Mail className="h-4 w-4 text-white" />
+                </div>
+                <span className="font-medium">메시지 보내기</span>
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* 홈 버튼 */}
+        {showHomeButton && (
+          <div className="border-t pt-4 mt-4">
+            <button 
+              onClick={handleGoHome}
+              className="w-full flex items-center justify-center space-x-2 px-3 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-all"
+            >
+              <Home className="w-4 h-4" />
+              <span className="text-sm font-medium">메인으로</span>
+            </button>
           </div>
         )}
       </div>
-    </div>
+    </aside>
   );
 };
 

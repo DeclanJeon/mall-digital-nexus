@@ -248,17 +248,8 @@ const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
-      {/* 왼쪽 사이드바 */}
-      {/* <LeftSideBar /> */}
-
       {/* 메인 콘텐츠 영역 */}
       <div className="ml-64 flex-1">
-        {/* 상단 검색 영역 */}
-        {/* <PeerSpaceHeader
-          isOwner={isOwner}
-          onSearchChange={setSearchQuery} // 선택적으로만 전달
-        /> */}
-
         <div className="flex p-6">
           {/* 메인 콘텐츠 영역 */}
           <div className="flex-1 pr-6">
@@ -324,12 +315,6 @@ const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
               </>
             )}
           </div>
-
-          {/* 오른쪽 사이드바 */}
-          {/* <RightSidebar
-            customSections={sections}
-            showLocationSection={true}
-          /> */}
         </div>
       </div>
       

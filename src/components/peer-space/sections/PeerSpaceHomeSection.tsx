@@ -87,10 +87,10 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
           <>
             {activeSection === 'space' && (
               <>
-                {/* <HeroSection
+                <HeroSection
                   slides={heroSlides}
                   badges={config.badges}
-                /> */}
+                />
 
                 <PeerSpaceContentSection
                   isOwner={isOwner}

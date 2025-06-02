@@ -30,7 +30,7 @@ import ProductGrid from '@/components/shopping/products/ProductGrid';
 import CommunityFeed from '@/components/community/CommunityFeed';
 import MainHeroSection from '@/components/peer-space/sections/MainHeroSection';
 import { HashtagFilterOption, PeermallType } from '@/components/navigation/HashtagFilter';
-import FavoriteServicesSection from '@/components/peer-space/sections/FavoriteServicesSection';
+import FavoriteServicesSection from '@/components/features/FavoriteServicesSection';
 
 interface Location {
   lat: number;
@@ -1264,7 +1264,27 @@ const Index = () => {
         
         {/* 🌟 즐겨찾기 서비스 섹션 */}
         {isLoggedIn && (
-          <FavoriteServicesSection />
+           <motion.section 
+            className={zGenDesignTokens.spacing.section}
+            {...zGenDesignTokens.animations.fadeInUp}
+          >
+            <Card className={`container ${zGenDesignTokens.effects.glass} bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100`}>
+              <CardContent className={zGenDesignTokens.spacing.card}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <Heart className="w-5 h-5 text-red-500" />
+                    <h2 className={zGenDesignTokens.typography.title}>
+                      나만의 즐겨찾기
+                    </h2>
+                  </div>
+                  <Badge className="bg-red-50 text-red-700 border-red-200">
+                    개인화됨
+                  </Badge>
+                </div>
+                <FavoriteServicesSection />
+              </CardContent>
+            </Card>
+          </motion.section>
         )}
 
         {/* 🔍 검색 및 필터 바 - 향상된 디자인 */}

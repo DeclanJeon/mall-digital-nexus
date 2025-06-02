@@ -221,24 +221,6 @@ const AppContent = () => {
           <PeerSpace />
         </PeerSpaceLayout>
       } />
-
-      <Route path="/space/:address/product/*" element={
-        <PeerSpaceContentLayout>
-          <PeerSpace />
-        </PeerSpaceContentLayout>
-      } />
-
-      <Route path="/space/:address/community/*" element={
-        <PeerSpaceContentLayout>
-          <PeerSpace />
-        </PeerSpaceContentLayout>
-      } />
-
-      <Route path="/space/:address/settings/*" element={
-        <PeerSpaceContentLayout>
-          <PeerSpaceSettings />
-        </PeerSpaceContentLayout>
-      } />
       
       <Route path="/*" element={
         <MainLayout>
