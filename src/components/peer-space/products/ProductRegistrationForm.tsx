@@ -268,7 +268,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   return (
     <div className={`border rounded-lg overflow-hidden ${className}`}>
       {/* **🎯 에디터 툴바** */}
-      <div className="border-b bg-gray-50 p-2 flex items-center gap-1 flex-wrap">
+      {/* <div className="border-b bg-gray-50 p-2 flex items-center gap-1 flex-wrap">
         <div className="flex items-center gap-1 mr-2">
           <ToolbarButton
             onClick={() => applyFormat('bold')}
@@ -356,7 +356,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             {isPreviewMode ? "편집" : "미리보기"}
           </Button>
         </div>
-      </div>
+      </div> */}
 
       {/* **🎯 에디터 영역** */}
       {isPreviewMode ? (
@@ -393,7 +393,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
       )}
 
       {/* **🎯 에디터 하단 정보** */}
-      <div className="border-t bg-gray-50 px-4 py-2 text-xs text-gray-500 flex items-center justify-between">
+      {/* <div className="border-t bg-gray-50 px-4 py-2 text-xs text-gray-500 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <span>✨ 다른 곳에서 복사한 서식이 그대로 유지됩니다</span>
           <span>📋 Ctrl+V로 붙여넣기</span>
@@ -402,7 +402,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <Sparkles className="h-3 w-3" />
           <span>Rich Text Editor</span>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
@@ -452,18 +452,18 @@ const productSchema = z.object({
   richContent: z.string().default(''),
   categoryId: z.string().default(''),
   tags: z.array(z.string()).default([]),
+  stock: z.string().default(''),
+  options: z.array(z.object({
+    name: z.string(),
+    values: z.array(z.string())
+  })).default([{ name: '', values: [''] }]), // changed from optional to required
+  isPublic: z.boolean().default(true),
   peerMallName: z.string().default(''),
   peerMallKey: z.string().default(''),
   isBestSeller: z.boolean().default(false),
   isNew: z.boolean().default(true),
   isRecommended: z.boolean().default(false),
   isCertified: z.boolean().default(false),
-  stock: z.string().default(''),
-  options: z.array(z.object({
-    name: z.string(),
-    values: z.array(z.string())
-  })).default([]),
-  isPublic: z.boolean().default(true)
 });
 
 export type ProductFormValues = z.infer<typeof productSchema>;
@@ -493,7 +493,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [productTags, setProductTags] = useState<string[]>([]);
-  const [options, setOptions] = useState<{name: string, values: string[]}[]>([]);
+  const [options, setOptions] = useState<{name: string, values: string[]}[]>([{ name: '', values: [''] }]); // changed from optional to required
   const [optionName, setOptionName] = useState<string>("");
   const [optionValues, setOptionValues] = useState<string>("");
   const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
@@ -524,7 +524,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       categoryId: "",
       tags: [],
       stock: "",
-      options: [],
+      options: [{ name: '', values: [''] }], // changed from optional to required
       isPublic: true,
       peerMallName: "",
       peerMallKey: "",
@@ -733,7 +733,10 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       distributor: formValues.distributor || '',
       manufacturer: formValues.manufacturer || '',
       stock: formValues.stock || '',
-      options: formValues.options || [],
+      options: (formValues.options || []).map(option => ({
+        name: option.name || '',
+        values: option.values || [],
+      })),
       create_date: now,
       update_date: now,
     };
@@ -766,7 +769,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
       setPreviewImages(['']);
       setQrCodeUrl(null);
       setProductTags([]);
-      setOptions([]);
+      setOptions([{ name: '', values: [''] }]); // changed from optional to required
       setRichContent('');
       setActiveTab("basic");
       setCurrentImageIndex(0);
@@ -801,7 +804,9 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
         }
       }
     });
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [form]);
 
   useEffect(() => {
@@ -827,7 +832,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                 <p className="text-sm text-gray-500">피어몰에 새로운 상품을 등록해보세요</p>
               </div>
             </div>
-            <TooltipProvider>
+            {/* <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -844,7 +849,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                   <p>{isPreviewMode ? "상품 정보 편집으로 돌아가기" : "상품 미리보기 확인하기"}</p>
                 </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
+            </TooltipProvider> */}
           </div>
         </div>
 
@@ -1194,7 +1199,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                       </div>
 
                       {/* **🎯 할인가** */}
-                      <FormField
+                      {/* <FormField
                         control={form.control}
                         name="discountPrice"
                         render={({ field }) => (
@@ -1217,7 +1222,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                             <FormMessage />
                           </FormItem>
                         )}
-                      />
+                      /> */}
 
                       {/* **🎯 다중 이미지 입력** */}
                       <div className="space-y-4">
@@ -1226,7 +1231,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                             <Layers className="h-4 w-4 text-purple-600" />
                             상품 이미지 ({imageUrls.filter(url => url.trim()).length}/10)
                           </FormLabel>
-                          <Button
+                          {/* <Button
                             type="button"
                             variant="outline"
                             size="sm"
@@ -1236,7 +1241,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                           >
                             <Plus className="h-3 w-3 mr-1" />
                             이미지 추가
-                          </Button>
+                          </Button> */}
                         </div>
                         
                         <div className="space-y-3">
@@ -1270,7 +1275,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                           ))}
                         </div>
                         
-                        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+                        {/* <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
                           <CardContent className="p-4">
                             <div className="flex items-start gap-3">
                               <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
@@ -1287,7 +1292,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                               </div>
                             </div>
                           </CardContent>
-                        </Card>
+                        </Card> */}
                       </div>
 
                       {/* **🎯 태그** */}
@@ -1345,9 +1350,9 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                               <FileText className="h-5 w-5 text-purple-600" />
                               상품 상세 설명
                             </FormLabel>
-                            <FormDescription className="mt-1">
+                            {/* <FormDescription className="mt-1">
                               다른 사이트나 문서에서 복사한 내용을 붙여넣으면 서식이 그대로 유지됩니다.
-                            </FormDescription>
+                            </FormDescription> */}
                           </div>
                           <Badge variant="outline" className="bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 border-purple-200">
                             <Sparkles className="h-3 w-3 mr-1" />
@@ -1364,7 +1369,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                         />
 
                         {/* 빠른 템플릿 버튼들 */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                           <Button
                             type="button"
                             variant="outline"
@@ -1446,10 +1451,10 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                           >
                             💡 사용법
                           </Button>
-                        </div>
+                        </div> */}
 
                         {/* 복사 붙여넣기 도움말 */}
-                        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+                        {/* <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
                           <CardContent className="p-4">
                             <div className="flex items-start gap-3">
                               <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
@@ -1466,7 +1471,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                               </div>
                             </div>
                           </CardContent>
-                        </Card>
+                        </Card> */}
                       </div>
                     </TabsContent>
                     
@@ -1540,7 +1545,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                       </div>
 
                       {/* **🎯 카테고리** */}
-                      <FormField
+                        <FormField
                         control={form.control}
                         name="categoryId"
                         render={({ field }) => (
@@ -1572,7 +1577,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                       />
 
                       {/* **🎯 상품 옵션** */}
-                      <div className="space-y-4">
+                      {/* <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <FormLabel className="flex items-center gap-2">
                             <Package className="h-4 w-4 text-indigo-600" />
@@ -1583,7 +1588,6 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                           </Badge>
                         </div>
 
-                        {/* 등록된 옵션 목록 */}
                         {options.length > 0 && (
                           <div className="space-y-2">
                             {options.map((option, index) => (
@@ -1614,7 +1618,6 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                           </div>
                         )}
 
-                        {/* 새 옵션 추가 */}
                         <Card className="p-4 border-dashed border-2 border-gray-300">
                           <div className="space-y-3">
                             <Input
@@ -1640,10 +1643,10 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                             </Button>
                           </div>
                         </Card>
-                      </div>
+                      </div> */}
 
                       {/* **🎯 상품 상태 설정** */}
-                      <Card className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+                      {/* <Card className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
                         <CardContent className="p-0">
                           <h3 className="font-semibold mb-3 flex items-center gap-2">
                             <Crown className="h-4 w-4 text-purple-600" />
@@ -1692,10 +1695,10 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                             </div>
                           </div>
                         </CardContent>
-                      </Card>
+                      </Card> */}
 
                       {/* **🎯 공개 설정** */}
-                      <Card className="p-4">
+                      {/* <Card className="p-4">
                         <CardContent className="p-0">
                           <div className="flex items-center justify-between">
                             <div>
@@ -1713,7 +1716,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                             />
                           </div>
                         </CardContent>
-                      </Card>
+                      </Card> */}
                     </TabsContent>
                   </Tabs>
 
@@ -1738,7 +1741,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                           </>
                         )}
                       </Button>
-                      <Button 
+                      {/* <Button 
                         type="button" 
                         variant="outline" 
                         onClick={togglePreview}
@@ -1748,7 +1751,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                       >
                         <Eye className="mr-2 h-4 w-4" />
                         미리보기
-                      </Button>
+                      </Button> */}
                     </div>
                   </div>
                 </form>
@@ -2019,7 +2022,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                 </Card>
 
                 {/* 등록 상태 요약 */}
-                <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+                {/* <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
                   <CardContent className="p-4">
                     <h3 className="font-semibold mb-2 flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-600" />
@@ -2056,7 +2059,7 @@ const ProductRegistrationForm: React.FC<ProductRegistrationFormProps> = ({
                       </div>
                     </div>
                   </CardContent>
-                </Card>
+                </Card> */}
               </div>
             </div>
           </div>

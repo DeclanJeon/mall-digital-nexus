@@ -18,9 +18,9 @@ interface EmojiCategory {
   emojiCount: number;
 }
 
-export const fetchEmojiCategories = async (): Promise<string[]> => {
+export const fetchEmojiCategories = async (accessKey: string): Promise<string[]> => {
   try {
-    const response = await fetch(`${BASE_URL}/categories?access_key=${API_KEY}`);
+    const response = await fetch(`https://cors-anywhere.herokuapp.com/https://emoji-api.com/categories?access_key=${accessKey}`);
     if (!response.ok) {
       throw new Error('이모지 카테고리를 불러오는데 실패했습니다.');
     }
@@ -36,7 +36,7 @@ export const fetchEmojiCategories = async (): Promise<string[]> => {
 
 export const fetchEmojisByCategory = async (category: string): Promise<Emoji[]> => {
   try {
-    const response = await fetch(`${BASE_URL}/categories/${category}?access_key=${API_KEY}`);
+    const response = await fetch(`https://cors-anywhere.herokuapp.com/${BASE_URL}/categories/${category}?access_key=${API_KEY}`);
     if (!response.ok) {
       throw new Error('이모지를 불러오는데 실패했습니다.');
     }

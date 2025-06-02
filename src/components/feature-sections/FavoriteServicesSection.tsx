@@ -222,23 +222,13 @@ const FavoriteServicesSection: React.FC = () => {
           {Array.isArray(services) && services.map((service) => (
             <SwiperSlide key={service.id} style={{ width: 'auto' }}>
               <Card 
-                className="w-80 cursor-pointer group hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-gray-300"
+                className="w-80 h-[320px] cursor-pointer group hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-gray-300 flex flex-col"
                 onClick={(e) => handleServiceClick(service, e)}
               >
-                <CardContent className="p-0">
-                  {/* 썸네일 섹션 - Open Graph 이미지 우선 사용 */}
-                  <div className="relative h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-lg overflow-hidden">
-                    {/* {service.ogData?.image || service.thumbnailUrl ? (
-                      <img 
-                        src={service.ogData?.image || service.thumbnailUrl} 
-                        alt={service.ogData?.title || service.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                        }}
-                      /> */}
-                      {service.serviceLink ? (
+                <CardContent className="p-0 flex flex-col h-full">
+                  {/* 썸네일 섹션 - 고정 높이 */}
+                  <div className="relative h-40 bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-lg overflow-hidden flex-shrink-0">
+                    {service.serviceLink ? (
                       <img 
                         src={service.serviceLink}
                         alt={service.serviceName}
@@ -264,19 +254,19 @@ const FavoriteServicesSection: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* 사이트명 배지 (Open Graph siteName 사용) */}
+                    {/* 사이트명 배지 */}
                     <div className="absolute bottom-3 left-3">
-                      <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-xs px-2 py-1">
+                      <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-xs px-2 py-1 max-w-[200px] truncate">
                         {service.serviceName}
                       </Badge>
                     </div>
                   </div>
 
-                  {/* 콘텐츠 섹션 */}
-                  <div className="p-4 space-y-3">
-                    {/* 헤더 */}
-                    <div className="flex items-start space-x-3">
-                      {/* 파비콘 - Open Graph favicon 우선 사용 */}
+                  {/* 콘텐츠 섹션 - 나머지 공간 차지 */}
+                  <div className="p-4 flex flex-col flex-grow">
+                    {/* 헤더 - 고정 높이 */}
+                    <div className="flex items-start space-x-3 mb-3">
+                      {/* 파비콘 */}
                       <div className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
                         {service.iconUrl ? (
                           <img 
@@ -293,12 +283,19 @@ const FavoriteServicesSection: React.FC = () => {
                         )}
                       </div>
 
-                      {/* 서비스 정보 - Open Graph 데이터 우선 사용 */}
+                      {/* 서비스 정보 - 고정 높이 */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                        <h3 className="font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors text-base leading-tight">
                           {service.serviceName}
                         </h3>
-                        <p className="text-sm text-gray-600 line-clamp-2 mt-1">
+                        <p className="text-sm text-gray-600 mt-1 leading-tight" 
+                           style={{
+                             display: '-webkit-box',
+                             WebkitLineClamp: 2,
+                             WebkitBoxOrient: 'vertical',
+                             overflow: 'hidden',
+                             height: '2.5rem' // 2줄 고정 높이
+                           }}>
                           {service.description}
                         </p>
                       </div>
@@ -306,17 +303,17 @@ const FavoriteServicesSection: React.FC = () => {
 
                     {/* Open Graph 타입 표시 */}
                     {service.ogData?.type && (
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 mb-3">
                         <Badge variant="outline" className="text-xs px-2 py-0.5">
                           {service.ogData.type}
                         </Badge>
                       </div>
                     )}
 
-                    {/* 푸터 */}
-                    <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+                    {/* 푸터 - 하단 고정 */}
+                    <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100 mt-auto">
                       <div className="flex items-center space-x-3">
-                          <span>{service.usageCount}회 사용</span>
+                        <span>{service.usageCount || 0}회 사용</span>
                         {service.lastUsed && (
                           <div className="flex items-center space-x-1">
                             <Clock className="w-3 h-3" />
@@ -333,9 +330,9 @@ const FavoriteServicesSection: React.FC = () => {
             </SwiperSlide>
           ))}
 
-          {/* 서비스 추가 버튼 */}
+          {/* 서비스 추가 버튼 - 동일한 크기 */}
           <SwiperSlide style={{ width: 'auto' }}>
-            <Card className="w-80 h-[280px] border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 transition-all duration-300 group cursor-pointer">
+            <Card className="w-80 h-[320px] border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 transition-all duration-300 group cursor-pointer">
               <CardContent 
                 className="h-full flex flex-col items-center justify-center space-y-4 p-6"
                 onClick={() => setIsModalOpen(true)}
@@ -348,18 +345,18 @@ const FavoriteServicesSection: React.FC = () => {
                   )}
                 </div>
                 
-                <div className="text-center space-y-1">
-                  <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                <div className="text-center space-y-2">
+                  <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors text-lg">
                     새 서비스 추가
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 leading-relaxed">
                     URL을 입력하면 Open Graph로<br />
                     자동으로 정보를 가져옵니다
                   </p>
                 </div>
 
                 {loadingServices.size > 0 && (
-                  <div className="flex items-center space-x-2 text-blue-600">
+                  <div className="flex items-center space-x-2 text-blue-600 mt-4">
                     <span className="text-sm">Open Graph 정보 수집 중...</span>
                   </div>
                 )}
@@ -369,8 +366,7 @@ const FavoriteServicesSection: React.FC = () => {
         </Swiper>
 
         {/* 네비게이션 버튼 */}
-        {/* {services.length > 2 && ( */}
-        {Array.isArray(services) && (
+        {Array.isArray(services) && services.length > 0 && (
           <>
             <button className="swiper-button-prev-custom absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:shadow-xl transition-shadow duration-300">
               <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
