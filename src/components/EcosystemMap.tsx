@@ -246,14 +246,13 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
     
     try {
       const peermalls = await getAllPeerMallList();
-      console.log('원본 피어몰 데이터:', peermalls);
 
       const mappedLocations = peermalls
         .filter(peermall => {
           const hasLocation = (peermall.lat && peermall.lng);
           
           if (!hasLocation) {
-            console.warn('위치 정보 없는 피어몰:', peermall.peerMallName || peermall.peerMallKey);
+            
           }
           
           return hasLocation;
@@ -263,17 +262,11 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
           const lng = peermall.lng;
           
           if (!lat || !lng || isNaN(Number(lat)) || isNaN(Number(lng))) {
-            console.warn('잘못된 좌표:', { title: peermall.peerMallName, lat, lng });
             return null;
           }
 
           // 🚀 개선된 이메일 추출
           const extractedEmail = extractEmail(peermall);
-          
-          // 🚀 이메일 정보 로깅
-          if (extractedEmail) {
-            console.log(`📧 ${peermall.peerMallName} 이메일:`, extractedEmail);
-          }
 
           const tags = peermall.tags || ['쇼핑', '서비스', '로컬'];
           
@@ -292,10 +285,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
         })
         .filter(Boolean);
       
-      console.log('매핑된 위치 데이터:', mappedLocations);
-      
       const emailCount = mappedLocations.filter(loc => loc?.email).length;
-      console.log(`📊 이메일 정보가 있는 피어몰: ${emailCount}/${mappedLocations.length}개`);
       
       setLocations(mappedLocations as MapLocation[]);
       
@@ -349,14 +339,8 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
   // 프리미엄 마커 업데이트
   useEffect(() => {
     if (!mapInstance.current || locations.length === 0) {
-      console.log('지도 인스턴스 또는 위치 데이터 없음:', { 
-        hasMap: !!mapInstance.current, 
-        locationCount: locations.length 
-      });
       return;
     }
-    
-    console.log('마커 업데이트 시작:', locations);
     
     // 기존 마커 제거
     mapInstance.current.eachLayer(layer => {
@@ -373,7 +357,6 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
                             Math.abs(Number(loc.lng)) <= 180;
       
       if (!hasValidCoords) {
-        console.warn('잘못된 좌표 데이터:', loc);
         return false;
       }
 
@@ -400,8 +383,6 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
         marker.addTo(mapInstance.current!);
         
         marker.on('click', (e) => {
-          // console.log('마커 클릭됨:', loc.peerMallName, '이메일:', loc.email);
-          // console.log(loc)
           e.originalEvent.stopPropagation()
           mapInstance.current?.setView([lat, lng], 15);
           setSelectedLocation(loc);
