@@ -103,11 +103,7 @@ const ProductContentSection: React.FC<ProductContentSectionProps> = ({
         ) : (
           <div className="text-center py-8">
             <p className="text-gray-500">등록된 제품이 없습니다.</p>
-            {isOwner && (
-              <Button onClick={handleShowProductForm} className="mt-2">
-                첫 제품 등록하기
-              </Button>
-            )}
+            
           </div>
         )}
         

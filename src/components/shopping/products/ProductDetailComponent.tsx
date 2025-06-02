@@ -509,7 +509,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
           <div className="flex space-x-2 mb-8 overflow-x-auto">
             {[
               { key: 'description', label: '상품상세', icon: Info },
-              { key: 'consultation', label: '상담하기', icon: Phone },
+              // { key: 'consultation', label: '상담하기', icon: Phone },
               { key: 'qna', label: 'Q&A', icon: HelpCircle },
             ].map((tab) => (
               <Button

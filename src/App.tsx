@@ -228,8 +228,8 @@ const AppContent = () => {
             <Route path="/" element={<Index />} />
             <Route path="/products" element={<Shopping />} />
             <Route path="/peermalls" element={<PeermallsPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/my-info" element={<MyInfoPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/my-info" element={<MyInfoPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </MainLayout>

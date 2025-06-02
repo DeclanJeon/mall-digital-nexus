@@ -351,7 +351,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                     : '첫 번째 멋진 제품을 등록해보세요!'
                   }
                 </p>
-                {isAuthenticated && !searchQuery && selectedCategory === '전체' && (
+                {/* {isAuthenticated && !searchQuery && selectedCategory === '전체' && (
                   <Button 
                     onClick={handleShowProductForm} 
                     className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium px-8 py-3 rounded-full hover:scale-105 transition-all duration-300"
@@ -359,7 +359,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                     <Sparkles className="w-4 h-4 mr-2" />
                     첫 제품 등록하기
                   </Button>
-                )}
+                )} */}
               </div>
             </CustomCard>
           </motion.div>
