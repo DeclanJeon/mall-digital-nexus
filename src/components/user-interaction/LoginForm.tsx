@@ -41,7 +41,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     try {
       // 관리자 이메일인 경우 고정 OTP 사용, 일반 사용자는 랜덤 OTP
       let success, otp;
-      
+
       if (email.trim().toLowerCase() === ADMIN_EMAIL) {
         // 관리자는 고정 OTP 사용하지만 정상 프로세스 진행
         success = true;
@@ -108,7 +108,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         if (loginRes.success) {
           // 로컬 스토리지에 로그인 정보 저장
           localStorage.setItem('userLoggedIn', 'true');
-          localStorage.setItem('userEmail', email);
           if (loginRes.accessToken) localStorage.setItem('accessToken', loginRes.accessToken);
           if (loginRes.refreshToken) localStorage.setItem('refreshToken', loginRes.refreshToken);
 
@@ -401,13 +400,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             </div>
             
             {/* 관리자 힌트 */}
-            <div className="text-center">
+            {/* <div className="text-center">
               <div className="inline-flex items-center gap-2 px-3 py-2 bg-[#dedeff] border border-[#3F51B5] rounded-lg">
                 <span className="text-xs text-[#333333]">
                   💡 관리자 테스트: <span className="font-mono font-bold text-[#3F51B5]">admin@peermall.com</span>
                 </span>
               </div>
-            </div>
+            </div> */}
           </CardFooter>
         </Card>
       </div>

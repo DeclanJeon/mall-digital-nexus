@@ -447,13 +447,13 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             </div>
             
             {/* 관리자 힌트 */}
-            <div className="text-center">
+            {/* <div className="text-center">
               <div className="inline-flex items-center gap-2 px-3 py-2 bg-[#dedeff] border border-[#3F51B5] rounded-lg">
                 <span className="text-xs text-[#333333]">
                   💡 관리자 테스트: <span className="font-mono font-bold text-[#3F51B5]">admin@peermall.com</span>
                 </span>
               </div>
-            </div>
+            </div> */}
           </CardFooter>
         </Card>
       </div>

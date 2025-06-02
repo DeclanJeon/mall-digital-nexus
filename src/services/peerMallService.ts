@@ -143,50 +143,33 @@ export const getAllPeerMallList = async (): Promise<any> => {
   }
 };
 
-// 사용자가 소유한 피어몰 목록 조회
-export const getUserPeerSpaces = async (
-  ownerPeerId: string
-): Promise<PeerMall[]> => {
-  return await getByIndex<PeerMall>(
-    STORES.PEER_SPACES,
-    'by_owner',
-    ownerPeerId
-  );
-};
-
-// 모든 피어몰 목록 조회
-export const getAllPeerSpaces = async (): Promise<PeerMall[]> => {
-  return await getAll<PeerMall>(STORES.PEER_SPACES);
-};
-
-// 피어몰 업데이트
-export const updatePeerSpace = async (
-  address: string,
-  updates: Partial<PeerMall>
-): Promise<boolean> => {
-  const peerSpace = await getPeerMallList();
-
-  if (!peerSpace) {
-    return false;
-  }
-
-  const updatedPeerSpace: PeerMall = {
-    ...peerSpace,
-    ...updates,
-    updatedAt: new Date().toISOString(),
-  };
-
-  await update<PeerMall>(STORES.PEER_SPACES, updatedPeerSpace);
-  return true;
-};
-
-// 피어몰 삭제
-export const deletePeerSpace = async (address: string): Promise<boolean> => {
+export const registerMyFavoriteService = async (data: Object ): Promise<any> => {
   try {
-    await remove(STORES.PEER_SPACES, address);
-    return true;
+    const response = await api.post(`/registerMyFavoriteService`, data, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    throw error.response.data;
+  }
+}
+
+export const getMyFavoriteService = async (): Promise<any> => {
+  try {
+      const response = await api.get('/getMyFavoriteService', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        },
+      });
+
+    if (response.status === 200 && response.data.success) {
+      return response.data.myFavoriteService;
+    }
+    return { success: false };
   } catch (error) {
-    console.error('피어몰 삭제 오류:', error);
-    return false;
+    console.error('Error sending verification code:', error);
+    return { success: false };
   }
 };

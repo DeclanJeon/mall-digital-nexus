@@ -986,7 +986,8 @@ const Index = () => {
     const searchedPeerMalls = peermalls.filter(peerMall => 
       peerMall.peerMallName.includes(query)
     );
-    setFilteredMalls(searchedPeerMalls);
+    setPeermalls(searchedPeerMalls);
+
   }, [peermalls, originPeerMalls, filteredMalls]);
 
   const handleBookmarkToggle = useCallback((itemId: string) => {
@@ -1209,6 +1210,12 @@ const Index = () => {
     const peermall = peermalls.find(
       p => p.lat === location.lat && p.lng === location.lng
     );
+    
+    if (peermall) {
+      // 상세 보기 로직 (필요시 구현)
+      const path = `/space/${peermall['peerMallName']}?mk=${peermall['peerMallKey']}`;
+      window.open(path, '_blank');
+    }
   }, [peermalls, navigate]);
 
   // 🌙 다크모드 토글
