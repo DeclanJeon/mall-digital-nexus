@@ -111,7 +111,7 @@ const PeerSpace = () => {
           followers: peermallData.followers || 0,
           recommendations: peermallData.likes || 0,
           badges: [],
-          sections: ['space', 'products', 'community', 'following', 'guestbook', 'settings'],
+          sections: [activeSection],
           createdAt: peermallData.createdAt,
           peerMallKey: peermallData.peerMallKey,
           peerMallName: peermallData.peerMallName,
@@ -166,6 +166,8 @@ const PeerSpace = () => {
       setActiveSection('products');
     } else if (path.includes('/community')) {
       setActiveSection('community');
+    } else if (path.includes('/peermap')) {
+      setActiveSection('peermap');
     } else if (path.includes('/following')) {
       setActiveSection('following');
     } else if (path.includes('/guestbook')) {

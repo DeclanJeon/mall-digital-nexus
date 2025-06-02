@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
-import { Home, Package, MessageSquare, Users, Mail, Settings, Sparkles, Star, Calendar, Menu, X } from 'lucide-react';
+import { Home, Package, MessageSquare, Users, Mail, Settings, Sparkles, Star, Calendar, Menu, X, Map } from 'lucide-react'; // 🗺️ Map 아이콘 추가
 import { toast } from '@/hooks/use-toast';
 import { SectionType } from '@/types/space';
 import { PeerSpaceHomeProps } from '@/types/space';
@@ -92,21 +92,13 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
     loadPeerMallConfig();
   }, [address]);
 
-  // 🎯 기본 메뉴 아이템들
+  // 🎯 기본 메뉴 아이템들 - 피어맵 아이콘 수정
   const defaultMenuItems: MenuItem[] = [
-    // {
-    //   id: SECTIONS.SPACE,
-    //   label: '피어 홈',
-    //   icon: Home,
-    //   path: `/space/${address}?mk=${peerMallKey}`,
-    //   onClick: () => handleNavigation(SECTIONS.SPACE),
-    //   color: 'bg-gradient-to-r from-blue-500 to-blue-600'
-    // },
     {
       id: SECTIONS.PRODUCTS,
       label: '제품 갤러리',
       icon: Package,
-      path: `/space/${address}/product?mk=${peerMallKey}`,
+      path: `/space/${address}/products?mk=${peerMallKey}`, // 🔧 URL 수정
       onClick: () => handleNavigation(SECTIONS.PRODUCTS),
       color: 'bg-gradient-to-r from-green-500 to-green-600'
     },
@@ -121,29 +113,30 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
     {
       id: SECTIONS.MAP,
       label: '피어맵',
-      icon: MessageSquare,
+      icon: Map, // 🗺️ 올바른 아이콘 사용
       path: `/space/${address}/peermap?mk=${peerMallKey}`,
       onClick: () => handleNavigation(SECTIONS.MAP),
-      color: 'bg-gradient-to-r from-yellow-500 to-yellow-600'
+      color: 'bg-gradient-to-r from-blue-500 to-indigo-600' // 🎨 색상 변경
     }
-  ];
-
-  // 🎯 퀵 액션들
-  const quickActions = [
-    { icon: Star, label: '즐겨찾기', count: 5, action: () => handleQuickAction('favorites') },
-    { icon: Calendar, label: '이벤트', count: 2, action: () => handleQuickAction('events') },
-    { icon: Users, label: '팔로워', count: 12, action: () => handleQuickAction('followers') },
   ];
 
   // 🎯 네비게이션 처리
   const handleNavigation = (section: SectionValue) => {
+    console.log('🚀 네비게이션:', section); // 디버깅용
     setActiveSection(section);
-    setIsMobileMenuOpen(false); // 모바일에서 메뉴 선택 시 닫기
+    setIsMobileMenuOpen(false);
     
+    // 🎯 부모 컴포넌트에 섹션 변경 알림
+    if (onNavigateToSection) {
+      onNavigateToSection(section as SectionType);
+    }
+    
+    // 🎯 커스텀 이벤트 발송
     window.dispatchEvent(new CustomEvent('peerSpaceNavigation', {
       detail: { section, address, peerMallKey }
     }));
 
+    // 🎯 URL 업데이트
     if (section === 'space') {
       navigate(`/space/${address}${peerMallKey ? `?mk=${peerMallKey}` : ''}`);
     } else {

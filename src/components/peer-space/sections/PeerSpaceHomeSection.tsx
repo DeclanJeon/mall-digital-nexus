@@ -9,13 +9,15 @@ import CommunitySection from './CommunitySection';
 import GuestbookSection from './GuestbookSection';
 import FollowingSection from './FollowingSection';
 import PeerSpaceContentSection from './PeerSpaceContentSection';
+import EcosystemMap from '@/components/EcosystemMap';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import PeerSpaceMapSection from './PeerSpaceMapSection';
 
 interface PeerSpaceHomeSectionProps {
   isOwner: boolean;
   address: string;
   config: PeerMallConfig;
-  activeSection: 'space' | 'products' | 'community' | 'following' | 'guestbook' | 'settings';
+  activeSection: 'space' | 'products' | 'community' | 'following' | 'guestbook' | 'settings' | 'peermap'; // 🚀 peermap 추가
   products: Content[];
   posts: Content[];
   searchQuery: string;
@@ -48,6 +50,15 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
 
   const handleProductDetailView = (productKey: string | number) => {
     onDetailView(productKey);
+  };
+
+  // 🗺️ 피어맵에서 위치 선택 시 처리 함수
+  const handleLocationSelect = (location: any) => {
+    console.log('🚀 선택된 피어몰:', location);
+    // 선택된 피어몰로 이동하는 로직을 여기에 추가할 수 있습니다
+    if (location.peerMallKey) {
+      navigate(`/space/${location.peerMallKey}?mk=${location.peerMallKey}`);
+    }
   };
 
   const filteredProducts = useMemo(() =>
@@ -124,7 +135,15 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
           </div>
         )}
 
-        {activeSection === 'following' && (
+        {activeSection === 'peermap' && (
+          <div className="space-y-6 lg:space-y-8">
+            <div>
+              피어몰
+            </div>
+          </div>
+        )}
+
+        {/* {activeSection === 'following' && (
           <div className="space-y-6 lg:space-y-8">
             <FollowingSection
               following={followingPeermalls}
@@ -139,7 +158,7 @@ const PeerSpaceHomeSection: React.FC<PeerSpaceHomeSectionProps> = ({
               showAll={true}
             />
           </div>
-        )}
+        )} */}
 
         {activeSection === 'settings' && (
           <div className="space-y-6 lg:space-y-8">

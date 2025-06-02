@@ -4,39 +4,12 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { Content, PeerMallConfig, SectionType } from '@/types/space';
 import { Peermall } from '@/types/peermall';
+import { MapLocation } from '@/types/map';
 import ProductDetailComponent from '@/components/shopping/products/ProductDetailComponent';
 import { 
-  Heart, 
   MessageSquare, 
   Share2, 
   QrCode, 
-  Settings, 
-  Home, 
-  FileText, 
-  Users, 
-  LogOut,
-  User,
-  Mail,
-  Clock,
-  Bell,
-  MapPin,
-  Search,
-  ChevronRight,
-  Bookmark,
-  Grid2X2,
-  List,
-  Star,
-  CalendarDays,
-  Image,
-  Phone,
-  UserPlus,
-  ChevronLeft,
-  ChevronUp,
-  ChevronDown,
-  X,
-  ArrowUp,
-  Map,
-  Menu
 } from 'lucide-react';
 import { ContentFormValues } from './forms/AddContentForm';
 import { usePeerSpaceTabs } from '@/hooks/usePeerSpaceTabs';
@@ -74,6 +47,8 @@ import LeftSideBar from '@/components/peer-space/layout/LeftSideBar';
 import RightSideBar from '@/components/peer-space/layout/RightSideBar';
 import RightSidebar from '@/components/peer-space/layout/RightSideBar';
 import { cn } from '@/lib/utils';
+import PeerSpaceMapSection from './sections/PeerSpaceMapSection';
+import EcosystemMap from '../EcosystemMap';
 
 // 🎯 데이터 변환 함수
 const transformApiProductToProduct = (apiProduct: any, address: string, config: PeerMallConfig, peerMallKey: string): Product => ({
@@ -203,6 +178,12 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
     setShowMapModal(true);
   };
 
+  const handleLocationSelect = (location: MapLocation) => {
+    setSearchQuery(location.title);
+    setShowMapModal(false); // Close map modal after selection
+    // Optionally navigate to a section or trigger a search
+  };
+
   const handleQRGenerate = () => setShowQRModal(true);
   const handleShowProductForm = () => setShowProductForm(true);
   const handleShowSettings = () => {
@@ -249,13 +230,6 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
     <div className="min-h-screen bg-gray-50 text-gray-900">
       {/* 🎯 레이아웃 컨테이너 */}
       <div className="flex min-h-screen">
-        {/* 🖥️ 데스크톱 사이드바 */}
-        {/* <LeftSideBar 
-          isOwner={isOwner}
-          onNavigateToSection={onNavigateToSection}
-          className="hidden lg:block"
-        /> */}
-
         {/* 🎯 메인 콘텐츠 영역 */}
         <main className={cn(
           "flex-1 transition-all duration-300",
@@ -354,7 +328,64 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                         posts={posts}
                         filteredPosts={filteredPosts}
                       />
-                    )}
+                      )}
+                      
+                      {activeSection === 'peermap' && (
+                    <div className="space-y-6 lg:space-y-8">
+                      <div className="bg-white rounded-2xl shadow-lg border border-gray-200/60 overflow-hidden">
+                        {/* 🎨 피어맵 헤더 */}
+                        <div className="p-6 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-gray-200/60">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+                                <span className="text-2xl">🗺️</span>
+                              </div>
+                              <div>
+                                <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                                  피어맵
+                                </h2>
+                                <p className="text-gray-600 font-medium">
+                                  전 세계 피어몰을 지도에서 탐험해보세요 ✨
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 🗺️ 피어맵 컴포넌트 */}
+                        <div className="h-[600px] lg:h-[700px] relative">
+                          <EcosystemMap 
+                            onLocationSelect={handleLocationSelect}
+                            isFullscreen={false}
+                          />
+                        </div>
+
+                        {/* 🎯 하단 정보 */}
+                        <div className="p-4 bg-gradient-to-r from-slate-50 to-gray-50 border-t border-gray-200/60">
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center space-x-4 text-gray-600">
+                              <div className="flex items-center space-x-1">
+                                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+                                <span className="font-medium">실시간 업데이트</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                                <span className="font-medium">인증된 피어몰</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                                <span className="font-medium">추천 피어몰</span>
+                              </div>
+                            </div>
+                            
+                            <div className="text-gray-500 font-medium">
+                              🎯 클릭하여 피어몰 상세보기
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+    </div>
+        )}
                     
                     {activeSection === 'following' && (
                       <PeerSpaceFollowingSection />
@@ -376,9 +407,6 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
             </div>
           </div>
         </main>
-
-        {/* 🖥️ 데스크톱 우측 사이드바 */}
-        {/* <RightSideBar className="hidden xl:block" /> */}
       </div>
       
       {/* 🎯 모달들 */}
@@ -410,10 +438,6 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
         />
       )}
       
-      <PeerSpaceMapModal 
-        showMapModal={showMapModal} 
-        setShowMapModal={setShowMapModal} 
-      />
     </div>
   );
 };

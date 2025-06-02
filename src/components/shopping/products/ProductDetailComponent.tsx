@@ -48,11 +48,21 @@ import {
   User,
   Mail,
   FileText,
-  ArrowRight
+  ArrowRight,
+  Factory,
+  Building2,
+  Tag,
+  Globe,
+  DollarSign,
+  PhoneCall,
+  Video,
+  Zap
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ProductDetailComponentProps } from '@/types/product';
 import { cn } from '@/lib/utils';
+import CallModal from '@/components/features/CallModal'; // 통화 모달 import
+import { toast } from '@/hooks/use-toast';
 
 // 피어몰 디자인 토큰
 const peerMallTokens = {
@@ -61,7 +71,8 @@ const peerMallTokens = {
     secondary: 'from-pink-500 via-rose-500 to-red-500',
     accent: 'from-cyan-400 via-blue-500 to-indigo-600',
     success: 'from-green-500 to-emerald-500',
-    warning: 'from-yellow-500 to-orange-500'
+    warning: 'from-yellow-500 to-orange-500',
+    call: 'from-green-500 via-emerald-500 to-teal-500'
   },
   effects: {
     glass: 'backdrop-blur-xl bg-white/10 dark:bg-gray-900/20 border border-white/20 dark:border-gray-700/30',
@@ -94,6 +105,9 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
   const [isImageZoomed, setIsImageZoomed] = useState(false);
   const [activeTab, setActiveTab] = useState<'description' | 'consultation' | 'qna' | 'inquiry'>('description');
   const [showQRCode, setShowQRCode] = useState(false);
+  
+  // 🎯 통화 모달 상태 추가
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
   
   // 상담/문의 관련 상태
   const [consultationMessage, setConsultationMessage] = useState('');
@@ -149,6 +163,17 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
     trustLevel: 7
   };
 
+  // 🎯 통화 모달 데이터
+  const callModalData = {
+    title: peerMallName,
+    owner: product.owner || '피어몰 운영자',
+    phone: '+82-10-1234-5678', // 실제로는 피어몰 데이터에서 가져와야 함
+    imageUrl: product.imageUrl,
+    trustScore: 4.8,
+    responseTime: '평균 2시간',
+    isOnline: true
+  };
+
   // 상담 메시지 전송
   const handleConsultationSend = () => {
     if (consultationMessage.trim()) {
@@ -156,6 +181,54 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
       console.log('상담 메시지 전송:', consultationMessage);
       setConsultationMessage('');
       // 성공 피드백 표시
+    }
+  };
+
+  const handleCopyLink = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    try {
+
+      const shareData = {
+        title: product.name,
+        text: `${product.name} - ₩${finalPrice.toLocaleString()}`,
+        url: window.location.href
+      };
+
+      console.log(shareData)
+
+      // 클립보드에 복사
+        await navigator.clipboard.writeText(window.location.href);
+
+        console.log('링크가 복사되었습니다! 📋');
+        
+        // 토스트 알림 표시 (toast가 있다면)
+        toast({
+          title: "링크가 복사되었습니다! 📋",
+          description: "클립보드에 상품 링크가 복사되었습니다.",
+        });
+      
+      alert("링크가 복사되었습니다! 📋")
+    } catch (error) {
+      console.error('공유 실패:', error);
+      
+      // 폴백: 수동 복사
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: "링크가 복사되었습니다! 📋",
+          description: "클립보드에 상품 링크가 복사되었습니다.",
+        });
+      } catch (clipboardError) {
+        // 최종 폴백: 텍스트 선택
+        const textArea = document.createElement('textarea');
+        textArea.value = window.location.href;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        alert('링크가 클립보드에 복사되었습니다!');
+      }
     }
   };
 
@@ -237,6 +310,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
             <Button 
               variant="ghost" 
               size="icon"
+              onClick={handleCopyLink}
               className="hover:bg-white/20 dark:hover:bg-gray-800/20 transition-all duration-300"
             >
               <Share2 className="h-5 w-5 text-gray-500 hover:text-purple-400" />
@@ -293,6 +367,30 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
                         </Badge>
                       </div>
                     )}
+
+                    {/* 🎯 새로운 상품 상태 뱃지들 */}
+                    <div className="absolute bottom-4 left-4 flex flex-col gap-2">
+                      {product.isNew && (
+                        <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold px-2 py-1 text-xs shadow-lg">
+                          NEW ✨
+                        </Badge>
+                      )}
+                      {product.isBestSeller && (
+                        <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold px-2 py-1 text-xs shadow-lg">
+                          BEST 👑
+                        </Badge>
+                      )}
+                      {product.isRecommended && (
+                        <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold px-2 py-1 text-xs shadow-lg">
+                          추천 ⭐
+                        </Badge>
+                      )}
+                      {product.isCertified && (
+                        <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold px-2 py-1 text-xs shadow-lg">
+                          인증 🛡️
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   
                   {/* 이미지 네비게이션 */}
@@ -387,45 +485,86 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
           >
             {/* 제품명 및 기본 정보 */}
             <div className="space-y-6">
-              {/* <div className="flex items-center gap-3 flex-wrap">
-                <Badge 
-                  variant="outline" 
-                  className="bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-300"
-                >
-                  {product.category || '일반'}
-                </Badge>
-                <div className="flex items-center gap-2 text-sm text-gray-500">
+              {/* 🎯 카테고리 및 메타 정보 */}
+              <div className="flex items-center gap-3 flex-wrap">
+                {product.category && (
+                  <Badge 
+                    variant="outline" 
+                    className="bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-300"
+                  >
+                    {product.category}
+                  </Badge>
+                )}
+                {/* <div className="flex items-center gap-2 text-sm text-gray-500">
                   <Eye className="h-3 w-3" />
-                  <span>조회 {Math.floor(Math.random() * 1000) + 100}</span>
-                </div>
+                  <span>조회 {product.views || Math.floor(Math.random() * 1000) + 100}</span>
+                </div> */}
                 <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <TrendingUp className="h-3 w-3" />
-                  <span>인기 상품</span>
+                  <Calendar className="h-3 w-3" />
+                  <span>{new Date(product.date).toLocaleDateString()}</span>
                 </div>
-              </div> */}
+              </div>
               
               <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white leading-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
                 {product.name}
               </h1>
               
-              {/* <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-5 w-5 transition-all duration-200 ${
-                        i < Math.floor(product.rating || 4.5)
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'text-gray-300'
-                      }`}
-                    />
-                  ))}
-                  <span className="text-sm text-gray-600 dark:text-gray-400 ml-2" style={{ fontFamily: "'Inter', sans-serif" }}>
-                    {product.rating || 4.5} ({product.reviewCount || 0}개 리뷰)
-                  </span>
+              {/* 🎯 평점 정보 (있는 경우) */}
+              {/* {product.rating && product.rating > 0 && (
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-5 w-5 transition-all duration-200 ${
+                          i < Math.floor(product.rating || 0)
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                    <span className="text-sm text-gray-600 dark:text-gray-400 ml-2" style={{ fontFamily: "'Inter', sans-serif" }}>
+                      {product.rating} ({product.reviewCount || 0}개 리뷰)
+                    </span>
+                  </div>
                 </div>
-              </div> */}
+              )} */}
             </div>
+
+            {/* 🎯 제조사/유통사 정보 */}
+            {(product.manufacturer || product.distributor) && (
+              <Card className={cn(
+                "p-4 border-0",
+                peerMallTokens.effects.glass
+              )}>
+                <CardContent className="p-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {product.manufacturer && (
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                          <Factory className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">제조사</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">{product.manufacturer}</p>
+                        </div>
+                      </div>
+                    )}
+                    {product.distributor && (
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-green-500 to-teal-500 flex items-center justify-center">
+                          <Building2 className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">유통사</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">{product.distributor}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* 태그 */}
             {product.tags && product.tags.length > 0 && (
@@ -442,13 +581,72 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
               </div>
             )}
 
-            {/* 구매 옵션 */}
+            {/* 🎯 가격 정보 카드 */}
             <Card className={cn(
               "p-6 border-0",
               peerMallTokens.effects.glass
             )}>
-              <CardContent className="p-0 space-y-6">
+              <CardContent className="p-0 space-y-4">
+                {/* 가격 표시 */}
+                <div className="space-y-2">
+                  {discountPrice && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg text-gray-500 line-through">
+                        ₩{originalPrice.toLocaleString()}
+                      </span>
+                      <Badge className={cn(
+                        "bg-gradient-to-r",
+                        peerMallTokens.colors.secondary,
+                        "text-white font-bold"
+                      )}>
+                        -{discountPercent}% 할인
+                      </Badge>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-3xl font-black bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                        ₩{finalPrice.toLocaleString()}
+                      </span>
+                      <span className="text-gray-500">{product.currency || 'KRW'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 🎯 재고 정보 */}
+                {/* {product.stock && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Package className="h-4 w-4 text-green-600" />
+                    <span className="text-gray-600">재고: {product.stock}개</span>
+                  </div>
+                )} */}
+
                 <Separator className="bg-gradient-to-r from-purple-200 to-blue-200 dark:from-purple-700 dark:to-blue-700" />
+                
+                {/* 🎯 수량 선택 */}
+                {/* <div className="flex items-center justify-between">
+                  <span className="font-semibold text-gray-900 dark:text-white">수량</span>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      disabled={quantity <= 1}
+                      className="h-8 w-8"
+                    >
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                    <span className="w-12 text-center font-semibold">{quantity}</span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="h-8 w-8"
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div> */}
                 
                 <div className="flex items-center justify-between text-xl font-bold">
                   <span className="text-gray-900 dark:text-white" style={{ fontFamily: "'Inter', sans-serif" }}>총 금액</span>
@@ -459,7 +657,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
               </CardContent>
             </Card>
 
-            {/* 구매 버튼 */}
+            {/* 🎯 구매 및 상담 버튼 */}
             <div className="space-y-4">
               {product.saleUrl ? (
                 <Button 
@@ -496,6 +694,39 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
                 </>
               )}
             </div>
+
+            {/* 🎯 피어몰 정보 카드 */}
+            <Card className={cn(
+              "p-6 border-0",
+              peerMallTokens.effects.glass
+            )}>
+              <CardContent className="p-0">
+                <div className="flex items-center gap-4">
+                  <div className={cn(
+                    "w-16 h-16 rounded-2xl bg-gradient-to-r",
+                    peerMallTokens.colors.primary,
+                    "flex items-center justify-center text-white font-bold text-xl shadow-lg"
+                  )}>
+                    {peerMallName.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+                      {peerMallName}
+                    </h3>
+                    
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsCallModalOpen(true)}
+                    className="flex items-center gap-2 hover:bg-green-50 dark:hover:bg-green-900/20 border-green-200 dark:border-green-700"
+                  >
+                    <Phone className="h-4 w-4 text-green-600" />
+                    <span className="hidden sm:inline">상담</span>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         </div>
 
@@ -509,7 +740,6 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
           <div className="flex space-x-2 mb-8 overflow-x-auto">
             {[
               { key: 'description', label: '상품상세', icon: Info },
-              // { key: 'consultation', label: '상담하기', icon: Phone },
               { key: 'qna', label: 'Q&A', icon: HelpCircle },
             ].map((tab) => (
               <Button
@@ -549,111 +779,81 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
                   "p-8 border-0",
                   peerMallTokens.effects.glass
                 )}>
-                  <CardContent className="p-0">
-                    <div className="prose max-w-none">
-                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap text-lg" style={{ fontFamily: "'Inter', sans-serif" }}>
-                        {product.description || "아직 상세 설명이 등록되지 않았습니다."}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {activeTab === 'consultation' && (
-                <Card className={cn(
-                  "p-8 border-0",
-                  peerMallTokens.effects.glass
-                )}>
                   <CardContent className="p-0 space-y-6">
-                    <div className="text-center space-y-4">
-                      <div className={cn(
-                        "w-16 h-16 mx-auto rounded-2xl bg-gradient-to-r",
-                        peerMallTokens.colors.primary,
-                        "flex items-center justify-center"
-                      )}>
-                        <Phone className="h-8 w-8 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2" style={{ fontFamily: "'Inter', sans-serif" }}>
-                          실시간 상담하기
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400" style={{ fontFamily: "'Inter', sans-serif" }}>
-                          제품에 대해 궁금한 점이 있으시면 언제든 상담해주세요
+                    {/* 🎯 상품 설명 */}
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2" style={{ fontFamily: "'Inter', sans-serif" }}>
+                        <Info className="h-5 w-5 text-purple-600" />
+                        상품 설명
+                      </h3>
+                      <div className="prose max-w-none">
+                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap text-lg" style={{ fontFamily: "'Inter', sans-serif" }}>
+                          {product.description || "아직 상세 설명이 등록되지 않았습니다."}
                         </p>
                       </div>
                     </div>
 
-                    {/* 판매자 정보 */}
-                    <div className={cn(
-                      "p-4 rounded-xl",
-                      peerMallTokens.effects.glass
-                    )}>
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className={cn(
-                          "w-12 h-12 rounded-xl bg-gradient-to-r",
-                          peerMallTokens.colors.primary,
-                          "flex items-center justify-center text-white font-bold"
-                        )}>
-                          {peerMallName.charAt(0).toUpperCase()}
+                    {/* 🎯 상품 옵션 (등록 폼에서 추가한 옵션들) */}
+                    {product.options && product.options.length > 0 && (
+                      <div>
+                        <Separator className="my-6" />
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2" style={{ fontFamily: "'Inter', sans-serif" }}>
+                          <Package className="h-5 w-5 text-blue-600" />
+                          상품 옵션
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {product.options.map((option, index) => (
+                            <div key={index} className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">{option.name}</h4>
+                              <div className="flex flex-wrap gap-2">
+                                {option.values.map((value, valueIndex) => (
+                                  <Badge key={valueIndex} variant="outline" className="bg-white dark:bg-gray-700">
+                                    {value}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900 dark:text-white" style={{ fontFamily: "'Inter', sans-serif" }}>
-                            {peerMallName}
-                          </h4>
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                            <span>온라인 • 평균 응답시간 {trustMetrics.responseTime}</span>
+                      </div>
+                    )}
+
+                    {/* 🎯 배송 및 교환/반품 정보 */}
+                    {/* <div>
+                      <Separator className="my-6" />
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2" style={{ fontFamily: "'Inter', sans-serif" }}>
+                        <Truck className="h-5 w-5 text-green-600" />
+                        배송 및 교환/반품 안내
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Truck className="h-4 w-4 text-green-600" />
+                            <span className="font-semibold text-green-800 dark:text-green-300">무료배송</span>
                           </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 상담 메시지 입력 */}
-                    <div className="space-y-4">
-                      <Textarea
-                        placeholder="상담하고 싶은 내용을 입력해주세요..."
-                        value={consultationMessage}
-                        onChange={(e) => setConsultationMessage(e.target.value)}
-                        className="min-h-[120px] resize-none border-purple-200 dark:border-purple-700 focus:border-purple-400 dark:focus:border-purple-500"
-                        style={{ fontFamily: "'Inter', sans-serif" }}
-                      />
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-500">
-                          {consultationMessage.length}/500
-                        </span>
-                        <Button
-                          onClick={handleConsultationSend}
-                          disabled={!consultationMessage.trim()}
-                          className={cn(
-                            "bg-gradient-to-r",
-                            peerMallTokens.colors.primary,
-                            "text-white font-semibold px-6 py-2 rounded-xl"
-                          )}
-                          style={{ fontFamily: "'Inter', sans-serif" }}
-                        >
-                          <Send className="h-4 w-4 mr-2" />
-                          상담 요청하기
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* 상담 안내 */}
-                    {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                      {[
-                        { icon: Clock, title: "빠른 응답", desc: "평균 2시간 내 답변" },
-                        { icon: Shield, title: "안전한 상담", desc: "P2P 암호화 통신" },
-                        { icon: MessageCircle, title: "전문 상담", desc: "제품 전문가와 직접 상담" }
-                      ].map((item, index) => (
-                        <div key={index} className="text-center p-4 rounded-xl bg-white/50 dark:bg-gray-800/50">
-                          <item.icon className="h-6 w-6 mx-auto mb-2 text-purple-600" />
-                          <h5 className="font-semibold text-gray-900 dark:text-white text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
-                            {item.title}
-                          </h5>
-                          <p className="text-xs text-gray-600 dark:text-gray-400" style={{ fontFamily: "'Inter', sans-serif" }}>
-                            {item.desc}
+                          <p className="text-sm text-green-700 dark:text-green-400">
+                            30,000원 이상 구매시<br />전국 무료배송
                           </p>
                         </div>
-                      ))}
+                        <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                          <div className="flex items-center gap-2 mb-2">
+                            <RefreshCw className="h-4 w-4 text-blue-600" />
+                            <span className="font-semibold text-blue-800 dark:text-blue-300">교환/반품</span>
+                          </div>
+                          <p className="text-sm text-blue-700 dark:text-blue-400">
+                            구매 후 7일 이내<br />무료 교환/반품
+                          </p>
+                        </div>
+                        <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Shield className="h-4 w-4 text-purple-600" />
+                            <span className="font-semibold text-purple-800 dark:text-purple-300">품질보증</span>
+                          </div>
+                          <p className="text-sm text-purple-700 dark:text-purple-400">
+                            정품 보장 및<br />A/S 지원
+                          </p>
+                        </div>
+                      </div>
                     </div> */}
                   </CardContent>
                 </Card>
@@ -826,42 +1026,17 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
         </motion.div>
 
         {/* 플로팅 액션 버튼 */}
-        <motion.div 
-          className="fixed bottom-8 right-8 z-50"
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 1, type: "spring", stiffness: 200 }}
-        >
-          <div className="flex flex-col gap-3">
-            <Button
-              size="icon"
-              className={cn(
-                "w-14 h-14 rounded-full bg-gradient-to-r",
-                peerMallTokens.colors.primary,
-                "hover:shadow-2xl hover:shadow-purple-500/25 text-white transition-all duration-300 transform hover:scale-110"
-              )}
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            >
-              <ArrowLeft className="h-6 w-6 rotate-90" />
-            </Button>
-            <Button
-              size="icon"
-              className={cn(
-                "w-14 h-14 rounded-full",
-                peerMallTokens.effects.glass,
-                "hover:shadow-xl transition-all duration-300 transform hover:scale-110"
-              )}
-              onClick={() => setIsWishlisted(!isWishlisted)}
-            >
-              <Heart className={`h-6 w-6 transition-all duration-300 ${
-                isWishlisted 
-                  ? 'fill-red-500 text-red-500' 
-                  : 'text-gray-500'
-              }`} />
-            </Button>
-          </div>
-        </motion.div>
+        
       </motion.div>
+
+      {/* 🎯 통화 모달 */}
+      <CallModal
+        open={isCallModalOpen}
+        onOpenChange={setIsCallModalOpen}
+        owner={product.owner || 'unknown'}
+        peerMallKey={peerMallKey}
+        location={callModalData}
+      />
     </div>
   );
 };

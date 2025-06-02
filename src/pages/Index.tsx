@@ -61,15 +61,15 @@ const viewModeOptions = [
     bestFor: '빠른 탐색',
     emoji: '📱'
   },
-  { 
-    value: 'cards' as ViewMode, 
-    label: '카드', 
-    icon: Layers, 
-    description: '인스타그램 스타일',
-    gradient: 'from-pink-500 to-rose-500',
-    bestFor: '시각적 임팩트',
-    emoji: '💳'
-  },
+  // { 
+  //   value: 'cards' as ViewMode, 
+  //   label: '카드', 
+  //   icon: Layers, 
+  //   description: '인스타그램 스타일',
+  //   gradient: 'from-pink-500 to-rose-500',
+  //   bestFor: '시각적 임팩트',
+  //   emoji: '💳'
+  // },
   { 
     value: 'list' as ViewMode, 
     label: '리스트', 

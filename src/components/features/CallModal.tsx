@@ -43,7 +43,7 @@ const CallModal: React.FC<CallModalProps> = ({
   const [callStatus, setCallStatus] = useState<'idle' | 'calling' | 'connected' | 'ended'>('idle');
   const [callDuration, setCallDuration] = useState(0);
 
-  // 🎯 통화 시작 핸들러
+  // 🎯 통화 시작 핸들러 - 모달에서 통화 버튼 클릭 시에만 새 창 열기
   const handleStartCall = useCallback(() => {
     setCallStatus('calling');
     
@@ -51,15 +51,15 @@ const CallModal: React.FC<CallModalProps> = ({
     const timerId = setTimeout(() => {
       setCallStatus('connected');
       
+      // 🚀 여기서 새 창 열기 - 사용자가 실제 통화 버튼을 눌렀을 때만!
+      const url = `https://peerterra.com/one/channel/${owner}?mk=${peerMallKey}`;
+      window.open(url, '_blank');
+      
       // 통화 시간 카운터 시작
       const timer = setInterval(() => {
         setCallDuration(prev => prev + 1);
       }, 1000);
 
-      // 새 창에서 통화 페이지 열기
-      const url = `https://peerterra.com/one/channel/${owner}?mk=${peerMallKey}`;
-      window.open(url, '_blank');
-      
       // 컴포넌트 언마운트 시 타이머 정리
       return () => clearInterval(timer);
     }, 2000);
@@ -78,6 +78,15 @@ const CallModal: React.FC<CallModalProps> = ({
     }, 2000);
   }, [onOpenChange]);
 
+  // 🎯 모달 닫기 시 상태 초기화
+  const handleModalClose = useCallback((open: boolean) => {
+    if (!open) {
+      setCallStatus('idle');
+      setCallDuration(0);
+    }
+    onOpenChange(open);
+  }, [onOpenChange]);
+
   // 🕐 통화 시간 포맷터
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -86,7 +95,7 @@ const CallModal: React.FC<CallModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleModalClose}>
       <DialogContent className="sm:max-w-[400px] border-0 shadow-2xl bg-gradient-to-br from-white to-blue-50 z-[1001]">
         <DialogHeader className="space-y-4">
           <DialogTitle className="flex items-center justify-between">
@@ -143,6 +152,26 @@ const CallModal: React.FC<CallModalProps> = ({
                     📞 {location.phone}
                   </p>
                 )}
+                
+                {/* 🌟 신뢰도 및 응답 시간 표시 */}
+                <div className="flex items-center space-x-3 mt-2">
+                  {location.trustScore && (
+                    <div className="flex items-center space-x-1">
+                      <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                      <span className="text-xs text-gray-600 font-medium">
+                        {location.trustScore.toFixed(1)}
+                      </span>
+                    </div>
+                  )}
+                  {location.responseTime && (
+                    <div className="flex items-center space-x-1">
+                      <Clock className="w-3 h-3 text-blue-500" />
+                      <span className="text-xs text-gray-600">
+                        응답: {location.responseTime}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -158,9 +187,16 @@ const CallModal: React.FC<CallModalProps> = ({
                 className="text-center space-y-4"
               >
                 <div className="text-gray-600">
-                  <Phone className="w-16 h-16 mx-auto mb-3 text-green-500" />
-                  <p className="text-lg font-semibold">통화 준비 완료</p>
-                  <p className="text-sm">버튼을 눌러 통화를 시작하세요</p>
+                  <motion.div
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <Phone className="w-16 h-16 mx-auto mb-3 text-green-500" />
+                  </motion.div>
+                  <p className="text-lg font-semibold">통화 준비 완료 ✨</p>
+                  <p className="text-sm text-gray-500">
+                    아래 버튼을 눌러 {location.title}과 통화를 시작하세요
+                  </p>
                 </div>
               </motion.div>
             )}
@@ -185,8 +221,8 @@ const CallModal: React.FC<CallModalProps> = ({
                   </div>
                 </div>
                 <div className="text-green-700">
-                  <p className="text-lg font-semibold">연결 중...</p>
-                  <p className="text-sm">잠시만 기다려주세요</p>
+                  <p className="text-lg font-semibold">연결 중... 📞</p>
+                  <p className="text-sm">새 창에서 통화가 시작됩니다</p>
                 </div>
               </motion.div>
             )}
@@ -208,9 +244,12 @@ const CallModal: React.FC<CallModalProps> = ({
                   </motion.div>
                 </div>
                 <div className="text-green-700">
-                  <p className="text-lg font-semibold">통화 중</p>
+                  <p className="text-lg font-semibold">통화 중 🎉</p>
                   <p className="text-2xl font-mono font-bold text-green-600">
                     {formatDuration(callDuration)}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    새 창에서 통화가 진행됩니다
                   </p>
                 </div>
               </motion.div>
@@ -226,8 +265,11 @@ const CallModal: React.FC<CallModalProps> = ({
               >
                 <PhoneOff className="w-16 h-16 mx-auto text-gray-500" />
                 <div className="text-gray-600">
-                  <p className="text-lg font-semibold">통화 종료</p>
+                  <p className="text-lg font-semibold">통화 종료 👋</p>
                   <p className="text-sm">통화 시간: {formatDuration(callDuration)}</p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    좋은 대화였습니다!
+                  </p>
                 </div>
               </motion.div>
             )}
@@ -237,24 +279,28 @@ const CallModal: React.FC<CallModalProps> = ({
           <div className="space-y-3">
             {callStatus === 'idle' && (
               <div className="grid grid-cols-1 gap-3">
-                <Button
-                  onClick={handleStartCall}
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all h-12"
-                >
-                  <Phone className="w-5 h-5 mr-2" />
-                  음성 통화
-                </Button>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    onClick={handleStartCall}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all h-12"
+                  >
+                    <Phone className="w-5 h-5 mr-2" />
+                    음성 통화 시작하기 🚀
+                  </Button>
+                </motion.div>
               </div>
             )}
 
             {(callStatus === 'calling' || callStatus === 'connected') && (
-              <Button
-                onClick={handleEndCall}
-                className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all h-12"
-              >
-                <PhoneOff className="w-5 h-5 mr-2" />
-                통화 종료
-              </Button>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button
+                  onClick={handleEndCall}
+                  className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all h-12"
+                >
+                  <PhoneOff className="w-5 h-5 mr-2" />
+                  통화 종료
+                </Button>
+              </motion.div>
             )}
           </div>
 
@@ -262,12 +308,13 @@ const CallModal: React.FC<CallModalProps> = ({
           <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
             <h4 className="font-semibold text-blue-800 text-sm mb-2 flex items-center gap-2">
               <Zap className="w-4 h-4" />
-              통화 팁
+              통화 팁 💡
             </h4>
             <ul className="text-xs text-blue-700 space-y-1">
-              <li>• 조용한 곳에서 통화해주세요</li>
-              <li>• 궁금한 점을 미리 정리해두세요</li>
-              <li>• 예의를 지켜 대화해주세요</li>
+              <li>• 조용한 곳에서 통화해주세요 🤫</li>
+              <li>• 궁금한 점을 미리 정리해두세요 📝</li>
+              <li>• 예의를 지켜 대화해주세요 🙏</li>
+              <li>• 통화는 새 창에서 열립니다 🪟</li>
             </ul>
           </div>
         </div>
