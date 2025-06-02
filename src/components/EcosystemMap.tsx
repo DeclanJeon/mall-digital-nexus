@@ -1001,7 +1001,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
       </AnimatePresence>
 
       {/* 📱 모바일 최적화 FAB - 더 작게 */}
-      <motion.div 
+      {/* <motion.div 
         className="absolute bottom-3 right-3 z-[1000] md:hidden"
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -1013,7 +1013,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
         >
           {showControls ? <ChevronUp className="h-5 w-5" /> : <Settings className="h-5 w-5" />}
         </Button>
-      </motion.div>
+      </motion.div> */}
 
       {/* 🎮 통화 모달 */}
       <CallModal

@@ -236,7 +236,7 @@ const Shopping = () => {
     <div className="min-h-screen bg-gray-50">
       <main className="flex-grow">
         {/* Hero Carousel Section */}
-        <Carousel className="relative" opts={{ loop: true }}>
+        {/* <Carousel className="relative" opts={{ loop: true }}>
           <CarouselContent>
             {heroSlides.map((slide) => (
               <CarouselItem key={slide.id}>
@@ -285,7 +285,7 @@ const Shopping = () => {
               ></div>
             ))}
           </div>
-        </Carousel>
+        </Carousel> */}
 
         <div className="container mx-auto px-4 py-6">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

@@ -174,7 +174,7 @@ const PeerMallPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 🎯 히어로 캐러셀 */}
-      <Carousel className="relative" opts={{ loop: true }}>
+      {/* <Carousel className="relative" opts={{ loop: true }}>
         <CarouselContent>
           {heroSlides.map((slide) => (
             <CarouselItem key={slide.id}>
@@ -215,7 +215,7 @@ const PeerMallPage = () => {
           <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-md z-10" />
           <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-md z-10" />
         </div>
-      </Carousel>
+      </Carousel> */}
 
       {/* 🎯 메인 컨텐츠 */}
       <div className="container mx-auto px-4 py-8">

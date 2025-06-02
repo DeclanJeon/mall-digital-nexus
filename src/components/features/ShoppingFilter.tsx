@@ -230,7 +230,7 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
         <div className="space-y-2">
           <div className="flex items-center gap-1 text-sm font-medium text-gray-700">
             <Hash className="h-4 w-4" />
-            인기 해시태그
+            해시태그
           </div>
           <div className="flex flex-wrap gap-1">
             {popularHashtags.map(hashtag => {
@@ -279,7 +279,7 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
       
       {/* 필터 아코디언 */}
       <Accordion type="multiple" defaultValue={["category", "price", "rating", "status"]}>
-        <AccordionItem value="category">
+        {/* <AccordionItem value="category">
           <AccordionTrigger>카테고리</AccordionTrigger>
           <AccordionContent>
             <div className="grid grid-cols-2 gap-2">
@@ -300,7 +300,7 @@ const ShoppingFilter = ({ onFilterChange, initialFilters }: ShoppingFilterProps)
               ))}
             </div>
           </AccordionContent>
-        </AccordionItem>
+        </AccordionItem> */}
         
         {/* <AccordionItem value="price">
           <AccordionTrigger>가격 범위</AccordionTrigger>
