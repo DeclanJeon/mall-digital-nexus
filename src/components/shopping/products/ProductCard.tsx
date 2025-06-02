@@ -126,7 +126,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleDetailView = (e: React.MouseEvent) => {
     e.stopPropagation(); // 이벤트 버블링 방지
-    console.log('🔍 ProductCard에서 상세보기 호출:', productKey);
     onDetailView?.(productKey); // ✅ 한 번만 호출
   };
 
