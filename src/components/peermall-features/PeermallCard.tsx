@@ -116,8 +116,8 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
     e.stopPropagation();
     setIsCallModalOpen(true);
 
-    const url = `https://peerterra.com/one/channel/${peerMallName}?mk=${peerMallKey}`;
-    window.open(url, '_blank');
+    // const url = `https://peerterra.com/one/channel/${peerMallName}?mk=${peerMallKey}`;
+    // window.open(url, '_blank');
   }, [owner, peerMallKey, peerMallName]);
 
   // 메시지 보내기
@@ -249,7 +249,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
           </Link>
         </Card>
       </motion.div>
-      
+
       {/* 메시지 모달 */}
       <EnhancedMessageModal
         messageModalOpen={isMessageModalOpen}
@@ -260,6 +260,16 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
         displayImageUrl={displayImageUrl}
         imageError={imageError}
       />
+
+      {/* 통화 모달 */}
+      <CallModal
+        open={isCallModalOpen}
+        onOpenChange={setIsCallModalOpen}
+        owner={owner}
+        peerMallKey={peerMallKey}
+        location={''}
+      />
+
     </>
   );
 });

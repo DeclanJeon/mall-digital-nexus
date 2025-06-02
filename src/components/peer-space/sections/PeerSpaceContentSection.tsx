@@ -211,7 +211,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                 </div>
 
                 {/* 정렬 옵션 */}
-                <div>
+                {/* <div>
                   <h4 className="font-semibold mb-3 text-gray-700">정렬</h4>
                   <div className="flex flex-wrap gap-2">
                     {sortOptions.map((option) => (
@@ -228,7 +228,7 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
                       </Badge>
                     ))}
                   </div>
-                </div>
+                </div> */}
               </div>
             </CustomCard>
           </motion.div>

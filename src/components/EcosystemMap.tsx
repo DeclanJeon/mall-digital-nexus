@@ -399,10 +399,10 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
 
         marker.addTo(mapInstance.current!);
         
-        marker.on('click', () => {
-          console.log('마커 클릭됨:', loc.title, '이메일:', loc.email);
-          console.log(loc)
-
+        marker.on('click', (e) => {
+          // console.log('마커 클릭됨:', loc.peerMallName, '이메일:', loc.email);
+          // console.log(loc)
+          e.originalEvent.stopPropagation()
           mapInstance.current?.setView([lat, lng], 15);
           setSelectedLocation(loc);
           setSelectedLocationForAction(loc);
@@ -532,18 +532,19 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
   // 통화 모달 열기 함수
   const handleOpenCallModal = useCallback((location: MapLocation) => {
     setSelectedLocationForAction(location);
-    const url = `https://peerterra.com/one/channel/${location.peerMallName}?mk=${location.peerMallKey}`;
-    window.open(url, '_blank');
+    setCallModalOpen(true);
+    // const url = `https://peerterra.com/one/channel/${location.peerMallName}?mk=${location.peerMallKey}`;
+    // window.open(url, '_blank');
   }, []);
 
   // 메시지 모달 열기 함수
   const handleOpenMessageModal = useCallback((location: MapLocation) => {
-    console.log('🚀 메시지 모달 열기:', {
-      title: location.title,
-      email: location.email,
-      owner: location.owner,
-      hasEmail: !!location.email
-    });
+    // console.log('🚀 메시지 모달 열기:', {
+    //   title: location.title,
+    //   email: location.email,
+    //   owner: location.owner,
+    //   hasEmail: !!location.email
+    // });
     
     setSelectedLocationForAction(location);
     setMessageModalOpen(true);

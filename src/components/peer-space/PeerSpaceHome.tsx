@@ -35,12 +35,11 @@ import {
   ChevronDown,
   X,
   ArrowUp,
-  Map
+  Map,
+  Menu
 } from 'lucide-react';
-// import { getPeerSpaceContents } from '@/utils/peerSpaceStorage';
 import { ContentFormValues } from './forms/AddContentForm';
 import { usePeerSpaceTabs } from '@/hooks/usePeerSpaceTabs';
-// import { add } from '@/utils/indexedDBService';
 import EmptyState from './ui/EmptyState';
 import BadgeSelector from './ui/BadgeSelector';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -69,15 +68,14 @@ import { peermallStorage } from '@/services/storage/peermallStorage';
 import productService from '@/services/productService';
 import { Product } from '@/types/product';
 import { Post } from '@/types/post';
-
 import { PeerSpaceHomeProps } from '@/types/space';
 import PeerSpaceHeader from '@/components/peer-space/layout/PeerSpaceHeader';
 import LeftSideBar from '@/components/peer-space/layout/LeftSideBar';
 import RightSideBar from '@/components/peer-space/layout/RightSideBar';
 import RightSidebar from '@/components/peer-space/layout/RightSideBar';
+import { cn } from '@/lib/utils';
 
-
-// 🎯 데이터 변환 함수 분리
+// 🎯 데이터 변환 함수
 const transformApiProductToProduct = (apiProduct: any, address: string, config: PeerMallConfig, peerMallKey: string): Product => ({
   productId: apiProduct.productKey || '',
   productKey: apiProduct.productKey || '',
@@ -131,10 +129,11 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
   const [products, setProducts] = useState<Product[]>([]);
   const [posts, setPosts] = useState<Content[]>([]);
   const [showProductDetail, setShowProductDetail] = useState(false);
-const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [showSidebar, setShowSidebar] = useState(true); // or false, depending on your default
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [currentView, setCurrentView] = useState<'list' | 'blog' | 'grid-small' | 'grid-medium' | 'grid-large' | 'masonry'>('list');
   const [sections, setSections] = useState<SectionType[]>(
@@ -148,36 +147,31 @@ const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
   const [showWidgets, setShowWidgets] = useState(true);
   const [showMapModal, setShowMapModal] = useState(false);
-  const [ searchParams ] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const peerMallKey = searchParams.get('mk');
 
+  // 🎯 데이터 로딩
   useEffect(() => {
-
-     const loadAllData = async () => {
-       if (!address) return;
-       
+    const loadAllData = async () => {
+      if (!address) return;
+      
       try {
         console.log('🔄 데이터 로딩 시작...', { address, peerMallKey });
         
-        // 🎯 API 한 번만 호출!
         const loadedProductsResponse = await productService.getProductList(address, peerMallKey);
         console.log('📦 API 응답 원본:', loadedProductsResponse);
         
         if (loadedProductsResponse && loadedProductsResponse.productList) {
-          // 🔥 데이터 변환
           const transformedProducts = loadedProductsResponse.productList.map((apiProduct: any) => 
             transformApiProductToProduct(apiProduct, address, config, peerMallKey || '')
           );
           
           setProducts(transformedProducts);
           console.log('✅ 변환된 products:', transformedProducts);
-          console.log('🔍 첫 번째 제품의 productKey:', transformedProducts[0]?.productKey);
         } else {
           console.warn('⚠️ API 응답에 productList가 없습니다:', loadedProductsResponse);
           setProducts([]);
         }
-        
-        
       } catch (error) {
         console.error('❌ 데이터 로딩 오류:', error);
         setProducts([]);
@@ -185,16 +179,16 @@ const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     };
 
     loadAllData();
-
   }, [address, config.sections]);
 
+  // 🎯 이벤트 핸들러들
   const handleProductDetailView = (productKey: string | number) => {
-      const product = products.find(p => p.productKey === productKey || p.id === productKey);
-      if (product) {
-        setSelectedProduct(product);
-        setShowProductDetail(true);
-      }
-    };
+    const product = products.find(p => p.productKey === productKey || p.id === productKey);
+    if (product) {
+      setSelectedProduct(product);
+      setShowProductDetail(true);
+    }
+  };
 
   const handleBackFromDetail = () => {
     setShowProductDetail(false);
@@ -212,15 +206,12 @@ const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const handleQRGenerate = () => setShowQRModal(true);
   const handleShowProductForm = () => setShowProductForm(true);
   const handleShowSettings = () => {
-    // 설정 모달을 표시하는 로직
     setShowSettingsModal(true);
   };
 
   const handleShare = () => {
-    // 현재 페이지 URL 복사
     const currentUrl = window.location.href;
     
-    // 클립보드에 복사
     navigator.clipboard.writeText(currentUrl)
       .then(() => {
         toast({
@@ -237,89 +228,166 @@ const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
         });
       });
   };
+
   const filteredPosts = posts.filter(post => 
     post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     post.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (!address) {
-    return <div className="container mx-auto p-6"><EmptyState title="404 - 피어몰을 찾을 수 없습니다" description="올바른 피어몰 주소인지 확인해주세요." /></div>;
+    return (
+      <div className="container mx-auto p-6">
+        <EmptyState 
+          title="404 - 피어몰을 찾을 수 없습니다" 
+          description="올바른 피어몰 주소인지 확인해주세요." 
+        />
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
-      {/* 메인 콘텐츠 영역 */}
-      <div className="ml-64 flex-1">
-        <div className="flex p-6">
-          {/* 메인 콘텐츠 영역 */}
-          <div className="flex-1 pr-6">
+      {/* 🎯 레이아웃 컨테이너 */}
+      <div className="flex min-h-screen">
+        {/* 🖥️ 데스크톱 사이드바 */}
+        {/* <LeftSideBar 
+          isOwner={isOwner}
+          onNavigateToSection={onNavigateToSection}
+          className="hidden lg:block"
+        /> */}
 
-            {showProductDetail && selectedProduct ? (
-              <ProductDetailComponent
-                product={selectedProduct}
-                peerMallName={config.peerMallName}
-                peerMallKey={peerMallKey || ''}
-                onBack={handleBackFromDetail}
-                isOwner={isOwner}
-              />) : (
-              <>
-                {activeSection === 'space' && (
-                  <PeerSpaceHomeSection
-                    isOwner={isOwner}
-                    address={address}
-                    products={products}
-                    config={config}
-                    onNavigateToSection={onNavigateToSection}
-                    posts={posts}
-                    searchQuery={searchQuery}
-                    setSearchQuery={setSearchQuery}
-                    currentView={currentView}
-                    setCurrentView={setCurrentView}
-                    handleShowProductForm={handleShowProductForm}
-                    activeSection={activeSection}
-                    onDetailView={handleProductDetailView}
-                  />
-                )}
-                {activeSection === 'products' && (
-                  <PeerSpaceContentSection
-                    isOwner={isOwner}
-                    address={address}
-                    config={config}
-                    products={products}
-                    currentView={currentView}
-                    setCurrentView={setCurrentView}
-                    handleShowProductForm={handleShowProductForm}
-                    onDetailView={handleProductDetailView}
-                  />
-                )}
-                {activeSection === 'community' && (
-                  <PeerSpaceCommunitySection
-                    isOwner={isOwner}
-                    config={config}
-                    posts={posts}
-                    filteredPosts={filteredPosts}
-                  />
-                )}
-                {activeSection === 'following' && (
-                  <PeerSpaceFollowingSection />
-                )}
-                {activeSection === 'guestbook' && (
-                  <PeerSpaceGuestbookSection />
-                )}
-                {activeSection === 'settings' && (
-                  <BasicInfoSection
-                    config={config}
-                    peermall={peermall}
-                  />
-                )}
-              </>
-            )}
+        {/* 🎯 메인 콘텐츠 영역 */}
+        <main className={cn(
+          "flex-1 transition-all duration-300",
+          "lg:ml-0", // 데스크톱에서는 사이드바가 이미 공간을 차지함
+          "pb-20 lg:pb-0" // 모바일에서는 하단 네비게이션 공간 확보
+        )}>
+          {/* 📱 모바일 헤더 */}
+          <div className="lg:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-200">
+            <div className="flex items-center justify-between p-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">
+                    {config.peerMallName?.charAt(0) || 'P'}
+                  </span>
+                </div>
+                <div>
+                  <h1 className="font-bold text-gray-900 text-sm">
+                    {config.peerMallName}
+                  </h1>
+                  <p className="text-xs text-gray-500">
+                    {address?.slice(0, 8)}...
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleShare}
+                  className="p-2"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleQRGenerate}
+                  className="p-2"
+                >
+                  <QrCode className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
+
+          {/* 🎯 콘텐츠 영역 */}
+          <div className="flex-1">
+            <div className="p-4 lg:p-6">
+              <div className="max-w-full">
+                {showProductDetail && selectedProduct ? (
+                  <ProductDetailComponent
+                    product={selectedProduct}
+                    peerMallName={config.peerMallName}
+                    peerMallKey={peerMallKey || ''}
+                    onBack={handleBackFromDetail}
+                    isOwner={isOwner}
+                  />
+                ) : (
+                  <div className="space-y-6">
+                    {activeSection === 'space' && (
+                      <PeerSpaceHomeSection
+                        isOwner={isOwner}
+                        address={address}
+                        products={products}
+                        config={config}
+                        onNavigateToSection={onNavigateToSection}
+                        posts={posts}
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
+                        currentView={currentView}
+                        setCurrentView={setCurrentView}
+                        handleShowProductForm={handleShowProductForm}
+                        activeSection={activeSection}
+                        onDetailView={handleProductDetailView}
+                      />
+                    )}
+                    
+                    {activeSection === 'products' && (
+                      <PeerSpaceContentSection
+                        isOwner={isOwner}
+                        address={address}
+                        config={config}
+                        products={products}
+                        currentView={currentView}
+                        setCurrentView={setCurrentView}
+                        handleShowProductForm={handleShowProductForm}
+                        onDetailView={handleProductDetailView}
+                      />
+                    )}
+                    
+                    {activeSection === 'community' && (
+                      <PeerSpaceCommunitySection
+                        isOwner={isOwner}
+                        config={config}
+                        posts={posts}
+                        filteredPosts={filteredPosts}
+                      />
+                    )}
+                    
+                    {activeSection === 'following' && (
+                      <PeerSpaceFollowingSection />
+                    )}
+                    
+                    {activeSection === 'guestbook' && (
+                      <PeerSpaceGuestbookSection />
+                    )}
+                    
+                    {activeSection === 'settings' && (
+                      <BasicInfoSection
+                        config={config}
+                        peermall={peermall}
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </main>
+
+        {/* 🖥️ 데스크톱 우측 사이드바 */}
+        {/* <RightSideBar className="hidden xl:block" /> */}
       </div>
       
-      {/* 모달 렌더링 */}
-      <PeerSpaceQRModal showQRModal={showQRModal} setShowQRModal={setShowQRModal} address={address} />
+      {/* 🎯 모달들 */}
+      <PeerSpaceQRModal 
+        showQRModal={showQRModal} 
+        setShowQRModal={setShowQRModal} 
+        address={address} 
+      />
+      
       <PeerSpaceProductFormModal 
         showProductForm={showProductForm} 
         setShowProductForm={setShowProductForm} 
@@ -329,6 +397,7 @@ const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
         products={products} 
         contents={contents} 
       />
+      
       {isOwner && (
         <PeerSpaceSettingsModal 
           showSettingsModal={showSettingsModal} 
@@ -340,7 +409,11 @@ const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
           setHiddenSections={setHiddenSections} 
         />
       )}
-      <PeerSpaceMapModal showMapModal={showMapModal} setShowMapModal={setShowMapModal} />
+      
+      <PeerSpaceMapModal 
+        showMapModal={showMapModal} 
+        setShowMapModal={setShowMapModal} 
+      />
     </div>
   );
 };

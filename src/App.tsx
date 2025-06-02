@@ -228,6 +228,7 @@ const AppContent = () => {
             <Route path="/" element={<Index />} />
             <Route path="/products" element={<Shopping />} />
             <Route path="/peermalls" element={<PeermallsPage />} />
+            <Route path="/create-qrcode" element={<QRCodeGenerator />} />
             <Route path="/login" element={<Login />} />
             <Route path="/my-info" element={<MyInfoPage />} />
             <Route path="*" element={<NotFound />} />

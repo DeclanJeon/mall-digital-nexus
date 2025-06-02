@@ -135,7 +135,7 @@ const PeerSpaceHeader = ({
                 <Share2 className="h-5 w-5" />
               </Button>
               
-              {isOwner && (
+              {/* {isOwner && (
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -145,10 +145,10 @@ const PeerSpaceHeader = ({
                 >
                   <Settings className="h-5 w-5" />
                 </Button>
-              )}
+              )} */}
               
               {/* 프로필 아바타 */}
-              <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full"></div>
+              {/* <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full"></div> */}
             </div>
           </div>
         </div>

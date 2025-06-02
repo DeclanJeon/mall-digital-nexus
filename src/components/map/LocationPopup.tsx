@@ -230,7 +230,8 @@ export const LocationPopup = ({
                 {/* 방문하기 */}
                 <motion.button
                   onClick={() => {
-                    navigate(`/space/${selectedLocation.peerMallName}?mk=${selectedLocation.peerMallKey}`);
+                    const url = `/space/${selectedLocation.peerMallName}?mk=${selectedLocation.peerMallKey}`;
+                    window.open(url, '_blank');
                   }}
                   className="w-full h-8 bg-gradient-to-br from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center group"
                   whileHover={{ scale: 1.05, y: -1 }}
@@ -258,62 +259,7 @@ export const LocationPopup = ({
               {/* 🎯 서브 액션 버튼들 */}
               <div className="flex items-center justify-between pt-1 border-t border-gray-100">
                 
-                {/* 인터랙션 버튼들 */}
-                <div className="flex items-center gap-1">
-                  <motion.button
-                    onClick={() => setIsLiked(!isLiked)}
-                    className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
-                      isLiked 
-                        ? 'bg-red-100 text-red-600' 
-                        : 'bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500'
-                    }`}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    title="좋아요"
-                  >
-                    <Heart className={`h-2.5 w-2.5 ${isLiked ? 'fill-current' : ''}`} />
-                  </motion.button>
-                  
-                  <motion.button
-                    onClick={() => setIsBookmarked(!isBookmarked)}
-                    className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
-                      isBookmarked 
-                        ? 'bg-yellow-100 text-yellow-600' 
-                        : 'bg-gray-100 text-gray-500 hover:bg-yellow-50 hover:text-yellow-500'
-                    }`}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    title="북마크"
-                  >
-                    <Bookmark className={`h-2.5 w-2.5 ${isBookmarked ? 'fill-current' : ''}`} />
-                  </motion.button>
-                  
-                  <motion.button
-                    className="w-6 h-6 rounded-full bg-gray-100 text-gray-500 hover:bg-blue-50 hover:text-blue-500 flex items-center justify-center transition-all duration-200"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    title="공유"
-                  >
-                    <Share2 className="h-2.5 w-2.5" />
-                  </motion.button>
-                </div>
-
-                {/* 태그 미니 표시 */}
-                {selectedLocation.tags && selectedLocation.tags.length > 0 && (
-                  <div className="flex items-center gap-1">
-                    <Badge 
-                      variant="secondary" 
-                      className="text-xs bg-gray-50 text-gray-600 border-gray-200 px-1.5 py-0.5 h-4"
-                    >
-                      #{selectedLocation.tags[0]}
-                    </Badge>
-                    {selectedLocation.tags.length > 1 && (
-                      <span className="text-xs text-gray-400 font-medium">
-                        +{selectedLocation.tags.length - 1}
-                      </span>
-                    )}
-                  </div>
-                )}
+                
 
                 {/* 확장 버튼 */}
                 <motion.button
@@ -361,10 +307,10 @@ export const LocationPopup = ({
 
                     {/* 메타 정보 */}
                     <div className="flex items-center justify-between text-xs text-gray-500">
-                      <div className="flex items-center gap-1">
+                      {/* <div className="flex items-center gap-1">
                         <Eye className="w-2.5 h-2.5" />
                         <span>{Math.floor(Math.random() * 1000)} 조회</span>
-                      </div>
+                      </div> */}
                       <div className="flex items-center gap-1">
                         <Clock className="w-2.5 h-2.5" />
                         <span>방금 전</span>

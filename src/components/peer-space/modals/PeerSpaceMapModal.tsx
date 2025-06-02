@@ -1,7 +1,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { MapPin } from 'lucide-react';
-import EcosystemMap from '@/components/map/EcosystemMap';
+import EcosystemMap from '@/components/EcosystemMap';
 
 interface PeerSpaceMapModalProps {
   showMapModal: boolean;
