@@ -14,6 +14,7 @@ import ServicePage from "./pages/Service";
 import MyInfoPage from "./pages/MyInfoPage";
 import CustomerSupport from "./pages/CustomerSupport";
 import PeermallsPage from "./pages/PeermallsPage";
+import PeerSpaceSettings from "./pages/PeerSpaceSettings";
 
 // PeerSpace related
 import PeerSpace from "./pages/PeerSpace";
@@ -32,6 +33,11 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   return (
     <Routes>
+      <Route path="/space/:address/settings/*" element={
+        <PeerSpaceLayout>
+          <PeerSpaceSettings />
+        </PeerSpaceLayout>
+      } />
       <Route path="/space/:address/*" element={
         <PeerSpaceLayout>
           <PeerSpace />
@@ -47,6 +53,7 @@ const AppContent = () => {
             <Route path="/create-qrcode" element={<QRCodeGenerator />} />
             <Route path="/login" element={<Login />} />
             <Route path="/my-info" element={<MyInfoPage />} />
+            <Route path="/settings/*" element={<PeerSpaceSettings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </MainLayout>
