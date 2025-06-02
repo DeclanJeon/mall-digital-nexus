@@ -1478,37 +1478,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
               </CardContent>
             </Card>
             
-            {productImages.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {productImages.map((image, index) => (
-                  <motion.button
-                    key={index}
-                    className={cn(
-                      "flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-300 relative",
-                      selectedImageIndex === index 
-                        ? "border-blue-500 shadow-sm" 
-                        : "border-slate-200 hover:border-slate-300"
-                    )}
-                    onClick={() => setSelectedImageIndex(index)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <img
-                      src={image}
-                      alt={`${product.name} ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                    {isGifImage(image) && (
-                      <div className="absolute bottom-1 right-1">
-                        <Badge className="bg-blue-500 text-white text-xs px-1 py-0">
-                          GIF
-                        </Badge>
-                      </div>
-                    )}
-                  </motion.button>
-                ))}
-              </div>
-            )}
+            
           </motion.div>
 
           {/* **🎯 제품 정보 섹션 - 미니멀 스타일** */}
@@ -1628,31 +1598,6 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
                 )}
 
                 <Separator className="bg-slate-200" />
-                
-                {/* <div className="flex items-center justify-between">
-                  <span className="font-medium text-slate-900">수량</span>
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      disabled={quantity <= 1}
-                      className="h-8 w-8 border-slate-300"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <span className="w-12 text-center font-medium">{quantity}</span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setQuantity(quantity + 1)}
-                      disabled={product.stock ? Number(product.stock) <= quantity : false}
-                      className="h-8 w-8 border-slate-300"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div> */}
                 
                 <div className="flex items-center justify-between text-xl font-bold">
                   <span className="text-slate-900" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>총 금액</span>

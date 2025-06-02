@@ -141,9 +141,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   const handleDetailView = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    console.log('🔍 ProductCard에서 상세보기 호출:', productKey);
-    onDetailView?.(productKey);
+    e.stopPropagation(); // 이벤트 버블링 방지
+    onDetailView?.(productKey); // ✅ 한 번만 호출
   };
 
   // 정제된 설명 텍스트
