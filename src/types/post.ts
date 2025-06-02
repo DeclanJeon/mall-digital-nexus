@@ -13,7 +13,7 @@ export interface Post {
   isNotice?: boolean;
   isPinned?: boolean;
   imageUrl?: string;
-  richContent?: string; // HTML 전체 내용 (상세 보기용)
+  postRichContent?: string; // HTML 전체 내용 (상세 보기용)
   processedContent?: string; // For content with embedded media
   slug?: string; // URL-friendly identifier for the post
   viewCount?: number; // Track number of views
