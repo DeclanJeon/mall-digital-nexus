@@ -289,11 +289,11 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
 
                 <div className="p-8">
                   <div className="prose max-w-none">
-                    {selectedPost.richContent ? (
+                    {selectedPost.postRichContent ? (
                       <div 
                         className="post-content text-gray-700 leading-relaxed" 
                         dangerouslySetInnerHTML={{ 
-                          __html: processContentWithMediaEmbeds(selectedPost.richContent)
+                          __html: processContentWithMediaEmbeds(selectedPost.postRichContent)
                         }}
                       />
                     ) : (

@@ -321,7 +321,8 @@ const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({
                       />
                     )}
                     
-                    {activeSection === 'community' && (
+                    {activeSection === 'community' && 
+                    (
                       <PeerSpaceCommunitySection
                         isOwner={isOwner}
                         config={config}
