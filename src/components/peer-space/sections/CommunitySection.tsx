@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Content } from '@/types/space';
 import { FileText, Heart, MessageSquare, User } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface CommunitySectionProps {
   isOwner: boolean;
@@ -24,13 +25,28 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({
 
   return (
     <section className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
-      <div className="p-6 border-b flex justify-between items-center">
-        <h2 className="text-xl font-bold">커뮤니티</h2>
+      
+      <div className="p-6 border-b bg-gradient-to-r from-purple-50/80 via-violet-50/80 to-indigo-50/80 flex justify-between items-center">
+        <div className="flex items-center space-x-4">
+          <motion.div 
+            className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 via-violet-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-500/25"
+            whileHover={{ rotate: 5, scale: 1.05 }}
+          >
+            <MessageSquare className="w-6 h-6 text-white" /> {/* 💬 통일된 아이콘 */}
+          </motion.div>
+          <div>
+            <h2 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 bg-clip-text text-transparent">
+              💬 커뮤니티
+            </h2>
+            <p className="text-gray-600 font-medium text-sm">소통과 나눔의 공간</p>
+          </div>
+        </div>
         {!showAll && posts.length > 3 && (
           <Button 
             variant="outline" 
             size="sm" 
             onClick={() => onNavigateToSection?.('community')}
+            className="hover:bg-purple-50 hover:border-purple-200 hover:text-purple-600"
           >
             더 보기
           </Button>

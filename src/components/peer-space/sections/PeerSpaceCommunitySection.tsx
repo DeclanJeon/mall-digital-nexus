@@ -10,6 +10,7 @@ import CommunityBoard from '@/components/community/CommunityBoard';
 import { CommunityStats, PeerSpaceCommunitySectionProps } from '@/types/community';
 import { Input } from '@/components/ui/input'; 
 import { Textarea } from '@/components/ui/textarea'; 
+import { motion } from 'framer-motion';
 
 // 임시 사용자 정보 (실제 앱에서는 인증 컨텍스트 등을 사용)
 const TEMP_IS_LOGGED_IN = true; // 예시: 사용자가 로그인했다고 가정
@@ -190,6 +191,22 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
 
   return (
     <div className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
+
+      <div className="container mx-auto flex items-center space-x-4">
+        <motion.div 
+          className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 via-violet-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-500/25"
+          whileHover={{ rotate: 5, scale: 1.05 }}
+        >
+          <MessageSquare className="w-6 h-6 text-white" /> {/* 💬 통일된 아이콘 */}
+        </motion.div>
+        <div>
+          <h2 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 bg-clip-text text-transparent">
+            💬 커뮤니티
+          </h2>
+          <p className="text-gray-600 font-medium text-sm">소통과 나눔의 공간</p>
+        </div>
+      </div>
+
       {!isDetailView ? (
         <div className="min-h-[calc(100vh-4rem)]">
           <div className="container mx-auto py-6">
@@ -218,8 +235,7 @@ const PeerSpaceCommunitySection: React.FC<PeerSpaceCommunitySectionProps> = ({
                 </div>
               </div>
             </div>
-          </div>
-
+            </div>
           {selectedPost && (
             <div className="max-w-4xl mx-auto px-6 py-8">
               <div className="bg-white rounded-xl shadow-sm overflow-hidden">

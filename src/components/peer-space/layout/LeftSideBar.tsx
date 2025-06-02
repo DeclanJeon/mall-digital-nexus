@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
-import { Home, Package, MessageSquare, Users, Mail, Settings, Sparkles, Star, Calendar, Menu, X, Map } from 'lucide-react'; // 🗺️ Map 아이콘 추가
+import { 
+  Home, Package, MessageSquare, Users, Mail, Settings, Sparkles, Star, Calendar, 
+  Menu, X, Map, ShoppingBag, Globe, Navigation, Compass, MapPin, Heart
+} from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { SectionType } from '@/types/space';
 import { PeerSpaceHomeProps } from '@/types/space';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // SectionType에서 사용할 값들
 const SECTIONS = {
@@ -24,7 +28,9 @@ interface MenuItem {
   path: string;
   onClick: () => void;
   isActive?: boolean;
-  color: string;
+  gradient: string;
+  description: string;
+  emoji: string;
 }
 
 interface LeftSideBarProps {
@@ -54,6 +60,62 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
   const [config, setConfig] = useState(null);
   const [activeSection, setActiveSection] = useState('space');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // 🎯 화면 높이 계산을 위한 상태
+  const [headerHeight, setHeaderHeight] = useState(64); // 기본 헤더 높이
+  const [mobileNavHeight, setMobileNavHeight] = useState(80); // 기본 모바일 네비 높이
+  const [viewportHeight, setViewportHeight] = useState(0);
+
+  // 🎯 뷰포트 높이 및 헤더 높이 계산
+  useEffect(() => {
+    const calculateHeights = () => {
+      // 뷰포트 높이 계산 (모바일 주소창 고려)
+      const vh = window.innerHeight;
+      setViewportHeight(vh);
+      
+      // 헤더 높이 동적 계산
+      const header = document.querySelector('header') || document.querySelector('[data-header]');
+      if (header) {
+        setHeaderHeight(header.getBoundingClientRect().height);
+      }
+      
+      // 모바일 네비게이션 높이 계산
+      const mobileNav = document.querySelector('[data-mobile-nav]');
+      if (mobileNav) {
+        setMobileNavHeight(mobileNav.getBoundingClientRect().height);
+      }
+    };
+
+    // 초기 계산
+    calculateHeights();
+    
+    // 리사이즈 시 재계산
+    const handleResize = () => {
+      calculateHeights();
+    };
+    
+    // 오리엔테이션 변경 시 재계산 (모바일)
+    const handleOrientationChange = () => {
+      setTimeout(calculateHeights, 100); // 오리엔테이션 변경 후 약간의 지연
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleOrientationChange);
+    
+    // DOM 로드 후 재계산
+    const timer = setTimeout(calculateHeights, 100);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+      clearTimeout(timer);
+    };
+  }, []);
+
+  // 🎯 계산된 높이 값들
+  const sidebarHeight = `calc(100vh - ${headerHeight}px)`;
+  const mobileContentHeight = `calc(100vh - ${headerHeight}px - ${mobileNavHeight}px)`;
+  const mobileModalMaxHeight = `calc(100vh - 120px)`; // 상하 여백 고려
 
   // 🎯 URL에서 현재 섹션 파악
   useEffect(() => {
@@ -92,15 +154,17 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
     loadPeerMallConfig();
   }, [address]);
 
-  // 🎯 기본 메뉴 아이템들 - 피어맵 아이콘 수정
+  // 🎨 아이콘 통일된 기본 메뉴 아이템들
   const defaultMenuItems: MenuItem[] = [
     {
       id: SECTIONS.PRODUCTS,
-      label: '제품 갤러리',
-      icon: Package,
-      path: `/space/${address}/products?mk=${peerMallKey}`, // 🔧 URL 수정
+      label: '상품',
+      icon: ShoppingBag,
+      path: `/space/${address}/products?mk=${peerMallKey}`,
       onClick: () => handleNavigation(SECTIONS.PRODUCTS),
-      color: 'bg-gradient-to-r from-green-500 to-green-600'
+      gradient: 'from-emerald-500 via-green-500 to-teal-500',
+      description: '멋진 상품들을 만나보세요',
+      emoji: '🛍️'
     },
     {
       id: SECTIONS.COMMUNITY,
@@ -108,35 +172,36 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
       icon: MessageSquare,
       path: `/space/${address}/community?mk=${peerMallKey}`,
       onClick: () => handleNavigation(SECTIONS.COMMUNITY),
-      color: 'bg-gradient-to-r from-purple-500 to-purple-600'
+      gradient: 'from-purple-500 via-violet-500 to-indigo-500',
+      description: '소통과 나눔의 공간',
+      emoji: '💬'
     },
     {
       id: SECTIONS.MAP,
       label: '피어맵',
-      icon: Map, // 🗺️ 올바른 아이콘 사용
+      icon: Globe,
       path: `/space/${address}/peermap?mk=${peerMallKey}`,
       onClick: () => handleNavigation(SECTIONS.MAP),
-      color: 'bg-gradient-to-r from-blue-500 to-indigo-600' // 🎨 색상 변경
+      gradient: 'from-blue-500 via-cyan-500 to-sky-500',
+      description: '전 세계 피어몰 탐험',
+      emoji: '🗺️'
     }
   ];
 
   // 🎯 네비게이션 처리
   const handleNavigation = (section: SectionValue) => {
-    console.log('🚀 네비게이션:', section); // 디버깅용
+    console.log('🚀 네비게이션:', section);
     setActiveSection(section);
     setIsMobileMenuOpen(false);
     
-    // 🎯 부모 컴포넌트에 섹션 변경 알림
     if (onNavigateToSection) {
       onNavigateToSection(section as SectionType);
     }
     
-    // 🎯 커스텀 이벤트 발송
     window.dispatchEvent(new CustomEvent('peerSpaceNavigation', {
       detail: { section, address, peerMallKey }
     }));
 
-    // 🎯 URL 업데이트
     if (section === 'space') {
       navigate(`/space/${address}${peerMallKey ? `?mk=${peerMallKey}` : ''}`);
     } else {
@@ -204,29 +269,36 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
   if (!config) {
     return (
       <>
-        {/* 데스크톱 스켈레톤 */}
-        <aside className="hidden lg:block w-64 bg-white border-r border-gray-200 h-screen sticky top-16 overflow-y-auto">
+        {/* 🖥️ 데스크톱 스켈레톤 - 정확한 높이 계산 */}
+        <aside 
+          className="hidden lg:block w-72 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 border-r border-gray-200/60 sticky top-0 overflow-y-auto"
+          style={{ height: sidebarHeight }}
+        >
           <div className="p-6 animate-pulse">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="w-12 h-12 bg-gray-200 rounded-xl"></div>
+            <div className="flex items-center space-x-4 mb-8">
+              <div className="w-14 h-14 bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl"></div>
               <div className="flex-1">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-20"></div>
+                <div className="h-5 bg-gray-200 rounded-lg mb-3"></div>
+                <div className="h-4 bg-gray-200 rounded-lg w-24"></div>
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {[1, 2, 3].map(i => (
-                <div key={i} className="h-12 bg-gray-200 rounded-xl"></div>
+                <div key={i} className="h-16 bg-gray-200 rounded-2xl"></div>
               ))}
             </div>
           </div>
         </aside>
         
-        {/* 모바일 스켈레톤 */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
-          <div className="flex justify-around py-2 animate-pulse">
+        {/* 📱 모바일 스켈레톤 - 정확한 높이 계산 */}
+        <div 
+          className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-200/60 z-50"
+          data-mobile-nav
+          style={{ height: `${mobileNavHeight}px` }}
+        >
+          <div className="flex justify-around py-3 animate-pulse">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="w-12 h-12 bg-gray-200 rounded-xl"></div>
+              <div key={i} className="w-14 h-14 bg-gray-200 rounded-2xl"></div>
             ))}
           </div>
         </div>
@@ -236,234 +308,458 @@ const LeftSideBar: React.FC<LeftSideBarProps> = ({
 
   return (
     <>
-      {/* 🖥️ 데스크톱 사이드바 - **🎯 Flexbox로 레이아웃 개선** */}
-      <aside className={cn("hidden lg:flex lg:flex-col w-64 bg-white border-r border-gray-200 h-screen sticky top-16", className)}>
-        {/* **🎯 메인 콘텐츠 영역 (flex-1로 남은 공간 차지)** */}
-        <div className="flex-1 p-6 overflow-y-auto">
-          {/* 메인 네비게이션 */}
-          <nav className="space-y-2 mb-8">
-            {showDefaultMenus && defaultMenuItems.map((item) => {
+      {/* 🖥️ 데스크톱 사이드바 - 정확한 높이 계산 */}
+      <aside 
+        className={cn(
+          "hidden lg:flex lg:flex-col w-72 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 border-r border-gray-200/60 sticky top-0 backdrop-blur-xl h-full overflow-hidden",
+          className
+        )}
+        style={{ height: sidebarHeight }}
+      >
+        {/* 🎯 메인 네비게이션 - 정확한 스크롤 영역 계산 */}
+        <div className="flex-1 p-6 overflow-y-auto min-h-0">
+          <nav className="space-y-3">
+            {showDefaultMenus && defaultMenuItems.map((item, index) => {
               const isActive = activeSection === item.id;
               return (
-                <button
+                <motion.button
                   key={item.id}
                   onClick={item.onClick}
                   className={cn(
-                    "w-full flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 hover:bg-gray-50 hover:scale-[1.02]",
-                    isActive && "bg-blue-50 text-blue-600 border border-blue-200 shadow-sm"
+                    "w-full group relative overflow-hidden rounded-2xl transition-all duration-300",
+                    isActive 
+                      ? "bg-white shadow-lg shadow-gray-200/60 border border-gray-200/60" 
+                      : "hover:bg-white/60 hover:shadow-md hover:shadow-gray-200/40"
                   )}
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
                 >
-                  <div className={cn("p-2 rounded-lg shadow-sm", item.color)}>
-                    <item.icon className="h-4 w-4 text-white" />
+                  {/* 배경 그라데이션 */}
+                  <div className={cn(
+                    "absolute inset-0 bg-gradient-to-r transition-opacity duration-300",
+                    item.gradient,
+                    isActive ? "opacity-5" : "opacity-0 group-hover:opacity-5"
+                  )} />
+                  
+                  <div className="relative flex items-center space-x-4 p-4">
+                    <motion.div 
+                      className={cn(
+                        "p-3 rounded-xl shadow-sm transition-all duration-300",
+                        isActive 
+                          ? `bg-gradient-to-r ${item.gradient} shadow-lg` 
+                          : `bg-gradient-to-r ${item.gradient} opacity-80 group-hover:opacity-100 group-hover:shadow-md`
+                      )}
+                      whileHover={{ rotate: 5 }}
+                    >
+                      <item.icon className="w-5 h-5 text-white" />
+                    </motion.div>
+                    
+                    <div className="flex-1 text-left">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-semibold text-gray-900 group-hover:text-gray-800 transition-colors">
+                          {item.label}
+                        </span>
+                        <span className="text-lg">{item.emoji}</span>
+                      </div>
+                      <p className="text-xs text-gray-600 group-hover:text-gray-700 transition-colors font-medium">
+                        {item.description}
+                      </p>
+                    </div>
+                    
+                    {isActive && (
+                      <motion.div
+                        className="w-2 h-8 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"
+                        layoutId="activeIndicator"
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      />
+                    )}
                   </div>
-                  <span className="font-medium">{item.label}</span>
-                </button>
+                </motion.button>
               );
             })}
 
             {/* 커스텀 메뉴들 */}
             {customMenuItems.map((item, index) => (
-              <button
+              <motion.button
                 key={`custom-${index}`}
                 onClick={item.onClick}
                 className={cn(
-                  "w-full flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 hover:bg-gray-50 hover:scale-[1.02]",
-                  item.isActive && "bg-blue-50 text-blue-600 border border-blue-200 shadow-sm"
+                  "w-full group relative overflow-hidden rounded-2xl transition-all duration-300",
+                  item.isActive 
+                    ? "bg-white shadow-lg shadow-gray-200/60 border border-gray-200/60" 
+                    : "hover:bg-white/60 hover:shadow-md hover:shadow-gray-200/40"
                 )}
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <div className={cn("p-2 rounded-lg shadow-sm", item.color)}>
-                  <item.icon className="h-4 w-4 text-white" />
+                <div className="relative flex items-center space-x-4 p-4">
+                  <motion.div 
+                    className={cn("p-3 rounded-xl shadow-sm", item.gradient)}
+                    whileHover={{ rotate: 5 }}
+                  >
+                    <item.icon className="w-5 h-5 text-white" />
+                  </motion.div>
+                  <span className="font-semibold text-gray-900">{item.label}</span>
                 </div>
-                <span className="font-medium">{item.label}</span>
-              </button>
+              </motion.button>
             ))}
           </nav>
 
           {/* 설정/메시지 영역 */}
           {showSettingsMenu && (
-            <div className="border-t pt-4">
+            <div className="mt-8 pt-6 border-t border-gray-200/60">
               {isOwner ? (
-                <button 
+                <motion.button 
                   onClick={handleSettings}
-                  className="w-full flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-gray-50 transition-all duration-200 hover:scale-[1.02]"
+                  className="w-full group relative overflow-hidden rounded-2xl hover:bg-white/60 hover:shadow-md hover:shadow-gray-200/40 transition-all duration-300"
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <div className="p-2 rounded-lg bg-gradient-to-r from-gray-500 to-gray-600 shadow-sm">
-                    <Settings className="h-4 w-4 text-white" />
+                  <div className="relative flex items-center space-x-4 p-4">
+                    <motion.div 
+                      className="p-3 rounded-xl bg-gradient-to-r from-gray-500 to-slate-600 shadow-sm"
+                      whileHover={{ rotate: 5 }}
+                    >
+                      <Settings className="w-5 h-5 text-white" />
+                    </motion.div>
+                    <div className="flex-1 text-left">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-semibold text-gray-900">피어몰 관리</span>
+                        <span className="text-lg">⚙️</span>
+                      </div>
+                      <p className="text-xs text-gray-600 font-medium">설정과 관리 도구</p>
+                    </div>
                   </div>
-                  <span className="font-medium">피어몰 관리</span>
-                </button>
+                </motion.button>
               ) : (
-                <button 
+                <motion.button 
                   onClick={handleMessage}
-                  className="w-full flex items-center space-x-3 px-3 py-3 rounded-xl hover:bg-gray-50 transition-all duration-200 hover:scale-[1.02]"
+                  className="w-full group relative overflow-hidden rounded-2xl hover:bg-white/60 hover:shadow-md hover:shadow-gray-200/40 transition-all duration-300"
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <div className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 shadow-sm">
-                    <Mail className="h-4 w-4 text-white" />
+                  <div className="relative flex items-center space-x-4 p-4">
+                    <motion.div 
+                      className="p-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 shadow-sm"
+                      whileHover={{ rotate: 5 }}
+                    >
+                      <Mail className="w-5 h-5 text-white" />
+                    </motion.div>
+                    <div className="flex-1 text-left">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-semibold text-gray-900">메시지 보내기</span>
+                        <span className="text-lg">💌</span>
+                      </div>
+                      <p className="text-xs text-gray-600 font-medium">소통해보세요</p>
+                    </div>
                   </div>
-                  <span className="font-medium">메시지 보내기</span>
-                </button>
+                </motion.button>
               )}
             </div>
           )}
         </div>
 
-        {/* **🎯 하단 고정 홈 버튼 영역** */}
+        {/* 🎯 하단 고정 홈 버튼 영역 - 정확한 높이 계산 */}
         {showHomeButton && (
-          <div className="border-t border-gray-200 p-4 bg-gray-50/50">
-            <button 
+          <div className="border-t border-gray-200/60 p-4 bg-gradient-to-r from-slate-50/80 to-gray-50/80 flex-shrink-0">
+            <motion.button 
               onClick={handleGoHome}
-              className="w-full flex items-center justify-center space-x-3 px-4 py-4 text-gray-600 hover:text-gray-800 hover:bg-white rounded-xl transition-all duration-200 hover:scale-[1.02] hover:shadow-sm border border-transparent hover:border-gray-200 group"
+              className="w-full group relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-4 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300"
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <div className="p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 shadow-sm group-hover:shadow-md transition-all duration-200">
-                <Home className="w-5 h-5 text-white" />
+              <div className="relative flex items-center justify-center space-x-3">
+                <motion.div 
+                  className="p-2 rounded-xl bg-white/20 backdrop-blur-sm"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <Home className="w-6 h-6 text-white" />
+                </motion.div>
+                <div className="text-left">
+                  <span className="text-lg font-bold text-white block">메인으로</span>
+                  <span className="text-xs text-white/80 font-medium">홈페이지로 돌아가기 🏠</span>
+                </div>
               </div>
-              <span className="text-base font-semibold">메인으로</span> {/* **🎯 폰트 크기 증가: text-sm -> text-base, font-medium -> font-semibold** */}
-            </button>
+              
+              {/* 반짝이는 효과 */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                initial={{ x: "-100%" }}
+                animate={{ x: "100%" }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 2,
+                  ease: "linear",
+                }}
+              />
+            </motion.button>
           </div>
         )}
       </aside>
 
-      {/* 📱 모바일 하단 네비게이션 바 */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200 z-50 safe-area-pb">
-        <div className="flex justify-around items-center py-2 px-2">
-          {/* 메인 네비게이션 아이템들 (최대 4개만 표시) */}
-          {showDefaultMenus && defaultMenuItems.slice(0, 3).map((item) => {
+      {/* 📱 모바일 하단 네비게이션 바 - 정확한 높이 계산 */}
+      <div 
+        className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-200/60 z-50 safe-area-pb"
+        data-mobile-nav
+      >
+        <div className="flex justify-around items-center py-3 px-2">
+          {/* 메인 네비게이션 아이템들 (최대 3개만 표시) */}
+          {showDefaultMenus && defaultMenuItems.slice(0, 3).map((item, index) => {
             const isActive = activeSection === item.id;
             return (
-              <button
+              <motion.button
                 key={item.id}
                 onClick={item.onClick}
-                className={cn(
-                  "flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 min-w-[60px]",
-                  isActive ? "text-blue-600" : "text-gray-500"
-                )}
+                className="flex flex-col items-center justify-center p-2 rounded-2xl transition-all duration-300 min-w-[70px]"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
               >
-                <div className={cn(
-                  "p-2 rounded-lg transition-all duration-200",
-                  isActive 
-                    ? `${item.color} shadow-lg scale-110` 
-                    : "bg-gray-100"
-                )}>
+                <motion.div 
+                  className={cn(
+                    "p-3 rounded-xl transition-all duration-300 shadow-sm",
+                    isActive 
+                      ? `bg-gradient-to-r ${item.gradient} shadow-lg scale-110` 
+                      : "bg-gray-100"
+                  )}
+                  whileHover={{ rotate: 5 }}
+                >
                   <item.icon className={cn(
-                    "h-5 w-5 transition-colors duration-200",
+                    "w-5 h-5 transition-colors duration-300",
                     isActive ? "text-white" : "text-gray-600"
                   )} />
-                </div>
+                </motion.div>
                 <span className={cn(
-                  "text-xs font-medium mt-1 transition-colors duration-200",
-                  isActive ? "text-blue-600" : "text-gray-500"
+                  "text-xs font-semibold mt-1 transition-colors duration-300",
+                  isActive ? "text-gray-900" : "text-gray-500"
                 )}>
                   {item.label.length > 4 ? item.label.slice(0, 4) : item.label}
                 </span>
-              </button>
+                <span className="text-xs">{item.emoji}</span>
+              </motion.button>
             );
           })}
 
           {/* 더보기 메뉴 버튼 */}
-          <button
+          <motion.button
             onClick={toggleMobileMenu}
-            className="flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 min-w-[60px] text-gray-500"
+            className="flex flex-col items-center justify-center p-2 rounded-2xl transition-all duration-300 min-w-[70px]"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <div className="p-2 rounded-lg bg-gray-100 transition-all duration-200">
-              <Menu className="h-5 w-5 text-gray-600" />
-            </div>
-            <span className="text-xs font-medium mt-1">더보기</span>
-          </button>
+            <motion.div 
+              className="p-3 rounded-xl bg-gradient-to-r from-gray-400 to-gray-500 shadow-sm"
+              whileHover={{ rotate: 180 }}
+            >
+              <Menu className="w-5 h-5 text-white" />
+            </motion.div>
+            <span className="text-xs font-semibold mt-1 text-gray-500">더보기</span>
+            <span className="text-xs">📋</span>
+          </motion.button>
         </div>
       </div>
 
-      {/* 📱 모바일 전체 메뉴 오버레이 */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={toggleMobileMenu}>
-          <div 
-            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[80vh] overflow-hidden flex flex-col" /* **🎯 flex-col 추가** */
-            onClick={(e) => e.stopPropagation()}
+      {/* 📱 모바일 전체 메뉴 오버레이 - 정확한 높이 계산 */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div 
+            className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50" 
+            onClick={toggleMobileMenu}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ 
+              paddingTop: `${headerHeight}px`,
+              paddingBottom: `${mobileNavHeight}px`
+            }}
           >
-            {/* 헤더 */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0"> {/* **🎯 flex-shrink-0 추가** */}
-              <h3 className="text-lg font-bold text-gray-900">메뉴</h3>
-              <button 
-                onClick={toggleMobileMenu}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-              >
-                <X className="h-5 w-5 text-gray-500" />
-              </button>
-            </div>
-
-            {/* **🎯 메뉴 콘텐츠 - 스크롤 가능한 영역** */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-6 space-y-4">
-                {/* 모든 네비게이션 아이템들 */}
-                {showDefaultMenus && defaultMenuItems.map((item) => {
-                  const isActive = activeSection === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={item.onClick}
-                      className={cn(
-                        "w-full flex items-center space-x-4 p-4 rounded-xl transition-all duration-200",
-                        isActive 
-                          ? "bg-blue-50 text-blue-600 border border-blue-200" 
-                          : "hover:bg-gray-50"
-                      )}
-                    >
-                      <div className={cn("p-3 rounded-xl shadow-sm", item.color)}>
-                        <item.icon className="h-5 w-5 text-white" />
-                      </div>
-                      <span className="font-medium text-lg">{item.label}</span>
-                    </button>
-                  );
-                })}
-
-                {/* 구분선 */}
-                <div className="border-t border-gray-200 my-4"></div>
-
-                {/* 설정/메시지 */}
-                {showSettingsMenu && (
-                  <div className="space-y-3">
-                    {isOwner ? (
-                      <button 
-                        onClick={handleSettings}
-                        className="w-full flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-all duration-200"
-                      >
-                        <div className="p-3 rounded-xl bg-gradient-to-r from-gray-500 to-gray-600 shadow-sm">
-                          <Settings className="h-5 w-5 text-white" />
-                        </div>
-                        <span className="font-medium text-lg">피어몰 관리</span>
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={handleMessage}
-                        className="w-full flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-all duration-200"
-                      >
-                        <div className="p-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 shadow-sm">
-                          <Mail className="h-5 w-5 text-white" />
-                        </div>
-                        <span className="font-medium text-lg">메시지 보내기</span>
-                      </button>
-                    )}
+            <motion.div 
+              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              style={{ maxHeight: mobileModalMaxHeight }}
+            >
+              {/* 헤더 */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200/60 flex-shrink-0 bg-gradient-to-r from-indigo-50/80 via-purple-50/80 to-pink-50/80">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center">
+                    <span className="text-white font-bold">📱</span>
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* **🎯 하단 고정 홈 버튼 영역 (모바일)** */}
-            {showHomeButton && (
-              <div className="border-t border-gray-200 p-4 bg-gray-50/80 flex-shrink-0"> {/* **🎯 flex-shrink-0으로 고정** */}
-                <button 
-                  onClick={handleGoHome}
-                  className="w-full flex items-center justify-center space-x-4 p-4 text-gray-600 hover:text-gray-800 hover:bg-white rounded-xl transition-all duration-200 hover:scale-[1.02] hover:shadow-sm border border-transparent hover:border-gray-200 group"
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">메뉴</h3>
+                    <p className="text-sm text-gray-600">원하는 섹션을 선택하세요</p>
+                  </div>
+                </div>
+                <motion.button 
+                  onClick={toggleMobileMenu}
+                  className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  whileHover={{ rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
                 >
-                  <div className="p-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 shadow-sm group-hover:shadow-md transition-all duration-200">
-                    <Home className="w-6 h-6 text-white" /> {/* **🎯 모바일에서 아이콘 크기 증가** */}
-                  </div>
-                  <span className="font-bold text-xl">메인으로</span> {/* **🎯 모바일에서 폰트 크기 더 크게: text-lg -> text-xl, font-medium -> font-bold** */}
-                </button>
+                  <X className="h-5 w-5 text-gray-500" />
+                </motion.button>
               </div>
-            )}
-          </div>
-        </div>
-      )}
+
+              {/* 메뉴 콘텐츠 - 정확한 스크롤 영역 */}
+              <div className="flex-1 overflow-y-auto min-h-0">
+                <div className="p-6 space-y-4">
+                  {/* 모든 네비게이션 아이템들 */}
+                  {showDefaultMenus && defaultMenuItems.map((item, index) => {
+                    const isActive = activeSection === item.id;
+                    return (
+                      <motion.button
+                        key={item.id}
+                        onClick={item.onClick}
+                        className={cn(
+                          "w-full group relative overflow-hidden rounded-2xl transition-all duration-300",
+                          isActive 
+                            ? "bg-gradient-to-r from-white to-blue-50/30 border-2 border-blue-200/60 shadow-lg" 
+                            : "bg-gray-50/80 hover:bg-white hover:shadow-md"
+                        )}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <div className="relative flex items-center space-x-4 p-4">
+                          <motion.div 
+                            className={cn(
+                              "p-3 rounded-xl shadow-sm",
+                              `bg-gradient-to-r ${item.gradient}`
+                            )}
+                            whileHover={{ rotate: 5 }}
+                          >
+                            <item.icon className="w-6 h-6 text-white" />
+                          </motion.div>
+                          <div className="flex-1 text-left">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-bold text-lg text-gray-900">{item.label}</span>
+                              <span className="text-xl">{item.emoji}</span>
+                            </div>
+                            <p className="text-sm text-gray-600 font-medium">{item.description}</p>
+                          </div>
+                          
+                          {isActive && (
+                            <motion.div
+                              className="w-3 h-12 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"
+                              layoutId="mobileActiveIndicator"
+                              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            />
+                          )}
+                        </div>
+                      </motion.button>
+                    );
+                  })}
+
+                  {/* 구분선 */}
+                  <div className="border-t border-gray-200/60 my-6"></div>
+
+                  {/* 설정/메시지 */}
+                  {showSettingsMenu && (
+                    <div className="space-y-4">
+                      {isOwner ? (
+                        <motion.button 
+                          onClick={handleSettings}
+                          className="w-full group relative overflow-hidden rounded-2xl bg-gray-50/80 hover:bg-white hover:shadow-md transition-all duration-300"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className="relative flex items-center space-x-4 p-4">
+                            <motion.div 
+                              className="p-3 rounded-xl bg-gradient-to-r from-gray-500 to-slate-600 shadow-sm"
+                              whileHover={{ rotate: 5 }}
+                            >
+                              <Settings className="w-6 h-6 text-white" />
+                            </motion.div>
+                            <div className="flex-1 text-left">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-bold text-lg text-gray-900">피어몰 관리</span>
+                                <span className="text-xl">⚙️</span>
+                              </div>
+                              <p className="text-sm text-gray-600 font-medium">설정과 관리 도구</p>
+                            </div>
+                          </div>
+                        </motion.button>
+                      ) : (
+                        <motion.button 
+                          onClick={handleMessage}
+                          className="w-full group relative overflow-hidden rounded-2xl bg-gray-50/80 hover:bg-white hover:shadow-md transition-all duration-300"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className="relative flex items-center space-x-4 p-4">
+                            <motion.div 
+                              className="p-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 shadow-sm"
+                              whileHover={{ rotate: 5 }}
+                            >
+                              <Mail className="w-6 h-6 text-white" />
+                            </motion.div>
+                            <div className="flex-1 text-left">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-bold text-lg text-gray-900">메시지 보내기</span>
+                                <span className="text-xl">💌</span>
+                              </div>
+                              <p className="text-sm text-gray-600 font-medium">소통해보세요</p>
+                            </div>
+                          </div>
+                        </motion.button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 하단 고정 홈 버튼 영역 (모바일) - 정확한 높이 계산 */}
+              {showHomeButton && (
+                <div className="border-t border-gray-200/60 p-4 bg-gradient-to-r from-slate-50/80 to-gray-50/80 flex-shrink-0">
+                  <motion.button 
+                    onClick={handleGoHome}
+                    className="w-full group relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-4 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="relative flex items-center justify-center space-x-4">
+                      <motion.div 
+                        className="p-3 rounded-xl bg-white/20 backdrop-blur-sm"
+                        whileHover={{ rotate: 360 }}
+                        transition={{ duration: 0.6 }}
+                      >
+                        <Home className="w-7 h-7 text-white" />
+                      </motion.div>
+                      <div className="text-left">
+                        <span className="font-bold text-xl text-white block">메인으로</span>
+                        <span className="text-sm text-white/80 font-medium">홈페이지로 돌아가기 🏠</span>
+                      </div>
+                    </div>
+                    
+                    {/* 반짝이는 효과 */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                      initial={{ x: "-100%" }}
+                      animate={{ x: "100%" }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 2,
+                        ease: "linear",
+                      }}
+                    />
+                  </motion.button>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

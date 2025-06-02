@@ -482,7 +482,7 @@ const Index = () => {
 
   // 🎨 섹션별 뷰어 모드 상태 관리
   const [sectionViewModes, setSectionViewModes] = useState<SectionViewModes>({
-    newMalls: 'cards',
+    newMalls: 'grid',
     allMalls: 'grid',
     products: 'cards'
   });
@@ -613,7 +613,7 @@ const Index = () => {
     
     if (savedNewMallsMode || savedAllMallsMode || savedProductsMode) {
       setSectionViewModes({
-        newMalls: savedNewMallsMode || 'cards',
+        newMalls: savedNewMallsMode || 'grid',
         allMalls: savedAllMallsMode || 'grid',
         products: savedProductsMode || 'cards'
       });

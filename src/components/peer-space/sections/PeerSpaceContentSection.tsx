@@ -8,7 +8,8 @@ import { useAuth } from '@/hooks/useAuth';
 
 import { 
   Grid2X2, List, Grid3X3, LayoutGrid, Rows3, Eye, Filter, 
-  SlidersHorizontal, Plus, Search, Star, Download, Sparkles 
+  SlidersHorizontal, Plus, Search, Star, Download, Sparkles, 
+  ShoppingBag
 } from 'lucide-react';
 import { Content, PeerMallConfig } from '@/types/space';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -108,26 +109,27 @@ const PeerSpaceContentSection: React.FC<PeerSpaceContentSectionProps> = ({
     <div className="p-6 max-w-7xl mx-auto">
       {/* 헤더 영역 - 원본 Products 스타일 */}
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-2 rounded-xl">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-            제품 갤러리
-          </h1>
-          <p className="text-gray-600">
-            {config.peerMallName}의 멋진 제품들을 만나보세요 ({filteredProducts.length}개)
-          </p>
-        </div>
-        {isAuthenticated && (
-          <Button 
-            onClick={handleShowProductForm}
-            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+        <div className="flex items-center space-x-4">
+          <motion.div 
+            className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25"
+            whileHover={{ rotate: 5, scale: 1.05 }}
           >
-            <Plus className="h-4 w-4 mr-2" />
-            새 제품 등록
-          </Button>
-        )}
+            <ShoppingBag className="w-6 h-6 text-white" /> {/* 🛍️ 통일된 아이콘 */}
+          </motion.div>
+          <div>
+            <h2 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 bg-clip-text text-transparent">
+              🛍️ 상품 갤러리
+            </h2>
+            <p className="text-gray-600 font-medium text-sm">멋진 상품들을 만나보세요</p>
+          </div>
+        </div>
+        <Button 
+          onClick={handleShowProductForm}
+          className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          새 제품 등록
+        </Button>
       </div>
 
       {/* 검색 및 필터 영역 - 원본 Products의 CustomCard 스타일 */}
