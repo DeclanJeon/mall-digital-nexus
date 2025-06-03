@@ -430,7 +430,7 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-4 pt-6 border-t border-[#cccccc] bg-[#f5f5f5] rounded-b-lg">
-            <div className="text-sm text-[#5c5c5c] text-center w-full leading-relaxed">
+            {/* <div className="text-sm text-[#5c5c5c] text-center w-full leading-relaxed">
               로그인하시면 PeerMall의{" "}
               <a href="#" className="text-[#2196F3] hover:text-[#003f8f] hover:underline transition-colors">
                 이용약관
@@ -440,7 +440,7 @@ const Login: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 개인정보처리방침
               </a>
               에 동의하게 됩니다.
-            </div>
+            </div> */}
             
             {/* 관리자 힌트 */}
             {/* <div className="text-center">

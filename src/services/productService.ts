@@ -73,6 +73,21 @@ export const productService = {
     }
   },
 
+  async getRelatedProductList(peerMallName: string, peerMallKey: string, productKey: string): Promise<any> {
+    try {
+      const response = await api.get('/relatedProductList', {
+        params: { peerMallName, peerMallKey, productKey }
+      });
+      if (response.status === 200 && response.data.success) {
+        return response.data.relatedProductList;
+      }
+      return { success: false };
+    } catch (error) {
+      console.error('Error sending verification code:', error);
+      return { success: false };
+    }
+  },
+
   // Add product to wishlist
   async addToWishlist(productId: string | number): Promise<boolean> {
     try {

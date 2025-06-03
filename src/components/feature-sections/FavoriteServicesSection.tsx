@@ -26,6 +26,7 @@ interface FavoriteService {
   lastUsed?: Date;
   addedAt?: Date;
   ogData?: OpenGraphData;
+  og_image?: string;
   serviceLink: string;
   serviceName: string;
 }
@@ -43,7 +44,7 @@ interface OpenGraphData {
 
 const extractOpenGraphData = async (url: string): Promise<OpenGraphData> => {
   try {
-    const response = await fetch('/api/extract-opengraph', {
+    const response = await fetch('http://localhost:9393/v1/peerMalls/extractMetadata', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -104,6 +105,7 @@ const FavoriteServicesSection: React.FC = () => {
     const loadServices = async () => {
       try {
         const favoriteService = await getMyFavoriteService();
+        console.log(favoriteService)
         setServices(Array.isArray(favoriteService) ? favoriteService : []);
       } catch (error) {
         console.error('서비스 로드 실패:', error);
@@ -182,9 +184,8 @@ const FavoriteServicesSection: React.FC = () => {
 
   const handleServiceClick = (service: FavoriteService, e: React.MouseEvent) => {
     e.preventDefault();
-    
-    if (service.link) {
-      window.open(service.link, '_blank', 'noopener,noreferrer');
+    if (service.serviceLink) {
+      window.open(service.serviceLink, '_blank', 'noopener,noreferrer');
     }
     
     setServices(prev => prev.map(s => 
@@ -201,29 +202,50 @@ const FavoriteServicesSection: React.FC = () => {
     try {
       const ogData = await extractOpenGraphData(link);
       const domain = new URL(link).hostname;
-
-      const newService: FavoriteService = {
-        id: Date.now(),
-        name: name || ogData.title || domain,
-        link,
-        description: ogData.description || `${domain}에서 제공하는 서비스`,
-        iconUrl: ogData.favicon || `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
-        thumbnailUrl: ogData.image,
+      
+      // API 호출용 데이터 구성
+      const serviceData = {
+        serviceName: name || ogData.title || domain,
+        serviceLink: link,
         domain: domain,
+        description: ogData.description || `${domain}에서 제공하는 서비스`,
+        favicon: ogData.favicon || `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+        thumbnailUrl: ogData.image,
+        ogData: {
+          title: ogData.title,
+          description: ogData.description,
+          image: ogData.image,
+          favicon: ogData.favicon
+        }
+      };
+
+      const result = await registerMyFavoriteService(serviceData);
+      
+      // 성공 시 로컬 상태 업데이트
+      const newService: FavoriteService = {
+        id: result.serviceId || Date.now(),
+        name: serviceData.serviceName,
+        link: serviceData.serviceLink,
+        description: serviceData.description,
+        iconUrl: serviceData.favicon,
+        thumbnailUrl: serviceData.thumbnailUrl,
+        domain: serviceData.domain,
         usageCount: 0,
         lastUsed: new Date(),
         addedAt: new Date(),
-        ogData: ogData,
-        serviceLink: ogData.image || '',
-        serviceName: name || ogData.title || domain,
+        ogData: serviceData.ogData,
+        serviceLink: serviceData.serviceLink,
+        serviceName: serviceData.serviceName,
       };
 
-      await registerMyFavoriteService(newService);
+      console.log(newService)
+
       setServices(prev => [...prev, newService]);
       
     } catch (error) {
       console.error('서비스 추가 실패:', error);
       
+      // 에러 발생 시 fallback 처리
       const domain = new URL(link).hostname;
       const fallbackService: FavoriteService = {
         id: Date.now(),
@@ -235,11 +257,15 @@ const FavoriteServicesSection: React.FC = () => {
         usageCount: 0,
         lastUsed: new Date(),
         addedAt: new Date(),
-        serviceLink: '',
+        serviceLink: link,
         serviceName: name || domain
       };
       
+      // 에러 시에도 로컬에만 추가 (서버 저장은 실패)
       setServices(prev => [...prev, fallbackService]);
+      
+      // 사용자에게 에러 알림
+      alert('서비스 등록에 실패했지만 임시로 추가되었습니다.');
     } finally {
       setLoadingServices(prev => {
         const newSet = new Set(prev);
@@ -248,6 +274,7 @@ const FavoriteServicesSection: React.FC = () => {
       });
     }
   };
+
 
   const handleAddInternalServices = (serviceIds: string[]) => {
     const newInternalServices: FavoriteService[] = serviceIds.map((id, index) => ({
@@ -382,7 +409,7 @@ const FavoriteServicesSection: React.FC = () => {
             }}
           >
             {/* 서비스 카드들 - 미니멀 사이즈 */}
-            {services.map((service) => {
+            {services.map((service: FavoriteService) => {
               const popularityBadge = getPopularityBadge(service.usageCount || 0);
               
               return (
@@ -403,7 +430,7 @@ const FavoriteServicesSection: React.FC = () => {
                       >
                         {service.serviceLink ? (
                           <img 
-                            src={service.serviceLink}
+                            src={service.og_image}
                             alt={service.serviceName}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             onError={(e) => {

@@ -113,6 +113,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import productService from '@/services/productService';
+import userService from '@/services/userService';
 
 // **🎯 새로운 미니멀 디자인 토큰**
 const modernTokens = {
@@ -151,9 +153,16 @@ type TabType = 'details' | 'related' | 'qna';
 
 // **🎯 연관 상품 타입**
 interface RelatedProduct {
+  productKey: string;
   id: string;
   name: string;
   price: number;
+  manufacturer: string;
+  distributor: string;
+  description: string;
+  createdAt: string;
+  owner: string;
+  contact: string;
   discountPrice?: number;
   imageUrl: string;
   email: string;
@@ -363,6 +372,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [relatedProducts, setRelatedProducts] = useState<RelatedProduct | []>([]);
   
   // **🎯 탭 상태 관리**
   const [activeTab, setActiveTab] = useState<TabType>('details');
@@ -403,80 +413,21 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
     return ['/placeholder-product.jpg'];
   }, [product.imageUrl]);
 
+  const loadRelatedProductList = async () => {
+    const relatedProducts = await productService.getRelatedProductList(peerMallName, peerMallKey, product['productKey']);
+    setRelatedProducts(relatedProducts);
+  }
+
   useEffect(() => {
     const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
     setIsLoggedIn(userLoggedIn);
-  }, [])
 
-  // **🎯 연관 상품 목 데이터**
-  const relatedProducts: RelatedProduct[] = React.useMemo(() => [
-    {
-      id: '1',
-      name: '화이트 클래식 스니커즈 프리미엄',
-      price: 89000,
-      discountPrice: 69000,
-      imageUrl: productImages[0],
-      rating: 4.8,
-      reviewCount: 324,
-      isNew: true,
-      discount: 22
-    },
-    {
-      id: '2', 
-      name: '블랙 레더 캐주얼 슈즈',
-      price: 125000,
-      discountPrice: 99000,
-      imageUrl: productImages[0],
-      rating: 4.6,
-      reviewCount: 156,
-      isBestSeller: true,
-      discount: 21
-    },
-    {
-      id: '3',
-      name: '그레이 런닝화 에어쿠션',
-      price: 159000,
-      imageUrl: productImages[0],
-      rating: 4.9,
-      reviewCount: 89,
-      isNew: true
-    },
-    {
-      id: '4',
-      name: '네이비 하이탑 스니커즈',
-      price: 79000,
-      discountPrice: 59000,
-      imageUrl: productImages[0],
-      rating: 4.5,
-      reviewCount: 267,
-      discount: 25
-    },
-    {
-      id: '5',
-      name: '브라운 부츠 빈티지',
-      price: 189000,
-      discountPrice: 149000,
-      imageUrl: productImages[0],
-      rating: 4.7,
-      reviewCount: 98,
-      isBestSeller: true,
-      discount: 21
-    },
-    {
-      id: '6',
-      name: '화이트 미니멀 슬립온',
-      price: 65000,
-      imageUrl: productImages[0],
-      rating: 4.4,
-      reviewCount: 234,
-      isNew: true
-    }
-  ], [productImages]);
+    loadRelatedProductList();
+  }, [])
 
   // **🎯 연관 상품 필터링 및 정렬**
   const filteredRelatedProducts = React.useMemo(() => {
     let filtered = [...relatedProducts];
-    
     // 필터링
     switch (relatedFilter) {
       case 'discount':
@@ -508,7 +459,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
         filtered.sort((a, b) => b.reviewCount - a.reviewCount);
         break;
     }
-    
+
     return filtered;
   }, [relatedProducts, relatedFilter, relatedSort]);
 
@@ -677,7 +628,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
     // }
     if (!consultationSubject.trim()) {
       toast({
-        title: "제목목을 입력해주세요",
+        title: "제목을 입력해주세요",
         description: "상담 제목을 모두 입력해주세요.",
         variant: "destructive"
       });
@@ -697,12 +648,15 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
         timestamp: new Date().toISOString()
       };
 
-      console.log('📧 상담 신청 데이터:', consultationData);
+      const url = `https://peerterra.com/one/channel/${callModalData.owner}?mk=${peerMallKey}&pk=${product.productKey}`;
+      await userService.requestCall(callModalData.email, url);
 
       toast({
         title: "상담 신청이 완료되었습니다! 🎉",
-        description: "판매자에게 이메일이 전송되었습니다. 빠른 시일 내에 답변드리겠습니다.",
+        description: "판매자에게 이메일이 전송되었습니다.",
       });
+
+      window.open(url, '_blank');
 
       setIsConsultationModalOpen(false);
       setSelectedTemplate('');
@@ -762,6 +716,11 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
       });
     }
   };
+
+  const handleDetailView = (relatedProduct) => {
+    const url = `https://peermall.com/space/${peerMallName}?mk=${peerMallKey}&pk=${relatedProduct.productKey}`;
+    window.open(url, '_blank');
+  }
 
   // **🎯 탭 컨텐츠 렌더링 함수들**
   const renderDetailsTab = () => (
@@ -924,7 +883,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
                 <Grid3X3 className="h-5 w-5 text-blue-600" />
-                {product.name} 내에서 판매중인 다른 상품들
+                피어몰몰 내에서 판매중인 다른 상품들
               </h3>
               <Badge variant="secondary" className="bg-slate-100 text-slate-700">
                 {filteredRelatedProducts.length}개
@@ -1022,7 +981,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
 
                     {/* 액션 버튼들 */}
                     <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <Button
+                      {/* <Button
                         variant="ghost"
                         size="icon"
                         className="w-8 h-8 bg-white/90 hover:bg-white text-slate-700 hover:text-red-500 shadow-sm"
@@ -1035,16 +994,16 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
                         className="w-8 h-8 bg-white/90 hover:bg-white text-slate-700 hover:text-blue-500 shadow-sm"
                       >
                         <Eye className="h-4 w-4" />
-                      </Button>
+                      </Button> */}
                     </div>
 
                     {/* 빠른 구매 버튼 */}
                     <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                      <Button 
+                      <Button
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 text-sm shadow-lg"
+                        onClick={() => handleDetailView(relatedProduct)}
                       >
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        장바구니
+                        상세보기
                       </Button>
                     </div>
                   </div>
@@ -1078,15 +1037,14 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                         <span className="text-sm font-medium text-slate-700">
-                          {relatedProduct.rating}
+                          판매자: 
                         </span>
-                        <span className="text-xs text-slate-500">
-                          ({relatedProduct.reviewCount})
+                        <span className="text-sm text-slate-700">
+                          {relatedProduct.owner}
                         </span>
                       </div>
                       <div className="flex items-center gap-1 text-xs text-slate-500">
-                        <TrendingUp className="h-3 w-3" />
-                        <span>인기</span>
+                        <span>{relatedProduct.createdAt}</span>
                       </div>
                     </div>
                   </div>
@@ -1797,7 +1755,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
               },
               { 
                 key: 'related', 
-                label: `${product.name} 내에서 판매중인 다른 상품들`, 
+                label: `피어몰 내에서 판매중인 다른 상품들`, 
                 icon: Grid3X3,
                 description: '추천 상품 보기'
               }

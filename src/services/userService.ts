@@ -35,11 +35,15 @@ const requestCall = async (
   try {
     accessToken = getAccessToken();
 
-    const response = await api.post('/requestCall', { ownerEmail, url }, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
-      },
-    });
+    const response = await api.post(
+      '/requestCall',
+      { ownerEmail, url },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
     if (response.status === 200 && response.data.success) {
       return { success: true };
     }
@@ -77,7 +81,7 @@ const getUserInfo = async (): Promise<any> => {
 
     const response = await api.get(`/userInfo`, {
       headers: {
-        'Authorization': `Bearer ${accessToken}`
+        Authorization: `Bearer ${accessToken}`,
       },
     });
     return response.data;
@@ -89,7 +93,7 @@ const getUserInfo = async (): Promise<any> => {
 
 const updateUserInfo = async (userInfo: Object): Promise<any> => {
   try {
-    const response = await api.post(`/updateUserInfo`, { userInfo } );
+    const response = await api.post(`/updateUserInfo`, { userInfo });
     return response.data;
   } catch (error) {
     console.error('Error logging in:', error);
@@ -99,14 +103,14 @@ const updateUserInfo = async (userInfo: Object): Promise<any> => {
 
 const getAccessToken = (): string | null => {
   return localStorage.getItem('accessToken');
-}
+};
 const userService = {
   sendNumber,
   login,
   getUserInfo,
   updateUserInfo,
   getAccessToken,
-  requestCall
+  requestCall,
 };
 
 export default userService;
