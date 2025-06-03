@@ -54,20 +54,16 @@ const CallModal: React.FC<CallModalProps> = ({
     // 실제 통화 연결 시뮬레이션
     const timerId = setTimeout(async () => {
       setCallStatus('connected');
-      
-      // 🚀 여기서 새 창 열기 - 사용자가 실제 통화 버튼을 눌렀을 때만!
-      const url = `https://peerterra.com/one/channel/${owner}?mk=${peerMallKey}`;
-      window.open(url, '_blank');
-      
-      // 통화 시간 카운터 시작
-      const timer = setInterval(() => {
-        setCallDuration(prev => prev + 1);
-      }, 1000);
 
       await userService.requestCall(location.email, url);
 
       // 새 창에서 통화 페이지 열기
       const childWindow = window.open(url, '_blank');
+
+      // 통화 시간 카운터 시작
+      const timer = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
 
       if (childWindow) {
         // 주기적으로 자식 창의 닫힘 여부 확인
