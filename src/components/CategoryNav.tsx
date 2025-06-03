@@ -1,29 +1,27 @@
 
 import React from 'react';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { CategoryNavProps } from '@/types/category';
 
-interface CategoryNavProps {
-  categories: { id: string; name: string }[];
-  activeCategory: string;
-  onCategoryChange: (category: string) => void;
-}
 
-const CategoryNav: React.FC<CategoryNavProps> = ({ 
-  categories, 
-  activeCategory, 
-  onCategoryChange 
-}) => {
+const CategoryNav: React.FC<CategoryNavProps> = ({ categories, activeId }) => {
   return (
-    <div className="overflow-x-auto py-2">
-      <Tabs value={activeCategory} onValueChange={onCategoryChange} className="w-full">
-        <TabsList className="w-full justify-start">
-          {categories.map(category => (
-            <TabsTrigger key={category.id} value={category.id}>
-              {category.name}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+    <div className="flex overflow-x-auto py-2 gap-2 scrollbar-hide">
+      {categories.map((category) => (
+        <Button
+          key={category.id}
+          variant={activeId === category.id ? "default" : "outline"}
+          size="sm"
+          className="whitespace-nowrap"
+          asChild
+        >
+          <Link to={category.url}>
+            {category.icon && <span className="mr-2">{category.icon}</span>}
+            {category.name}
+          </Link>
+        </Button>
+      ))}
     </div>
   );
 };

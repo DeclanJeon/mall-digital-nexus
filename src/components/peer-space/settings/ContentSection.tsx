@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import AdminDashboardSection from "@/components/peer-space/AdminDashboardSection";
-import BasicInfoSection from "@/components/peer-space/BasicInfoSection";
-import DesignSettingsSection from "@/components/peer-space/DesignSettingsSection";
-import ContentManagementSection from "@/components/peer-space/ContentManagementSection";
-import ProductManagementSection from "@/components/peer-space/ProductManagementSection";
+// import AdminDashboardSection from "@/components/peer-space/AdminDashboardSection";
+// import BasicInfoSection from "@/components/peer-space/BasicInfoSection";
+// import DesignSettingsSection from "@/components/peer-space/DesignSettingsSection";
+// import ContentManagementSection from "@/components/peer-space/ContentManagementSection";
+// import ProductManagementSection from "@/components/peer-space/ProductManagementSection";
 import CommunityManagementSection from './CommunityManagementSection';
 import QRCodeManagementSection from './QRCodeManagementSection';
 import RelationshipManagementSection from './RelationshipManagementSection';
@@ -20,19 +20,31 @@ import CustomerSupportSection from './CustomerSupportSection';
 import AdvertisementSection from './AdvertisementSection';
 import GamificationSection from './GamificationSection';
 import ReferralSystemSection from './ReferralSystemSection';
+import ProductManagementSection from '../sections/ProductManagementSection';
+import ContentManagementSection from '../content/ContentManagementSection';
+import DesignSettingsSection from '../sections/DesignSettingsSection';
+import BasicInfoSection from '../sections/BasicInfoSection';
+import AdminDashboardSection from '../sections/AdminDashboardSection';
+import { PeerMallConfig } from '@/types/space';
 
 interface ContentSectionProps {
   activeSection: string;
   saved: boolean;
   onSave: () => void;
   address: string;
+  config: PeerMallConfig;
+  peermall?: any; // 실제 타입으로 대체하세요
+  isLoading?: boolean;
 }
 
 const ContentSection: React.FC<ContentSectionProps> = ({ 
   activeSection, 
   saved, 
   onSave,
-  address
+  address,
+  config,
+  peermall,
+  isLoading = false
 }) => {
   const getSectionTitle = () => {
     switch(activeSection) {
@@ -71,7 +83,13 @@ const ContentSection: React.FC<ContentSectionProps> = ({
       </div>
       
       {activeSection === 'dashboard' && <AdminDashboardSection />}
-      {activeSection === 'basic-info' && <BasicInfoSection />}
+      {activeSection === 'basic-info' && (
+        <BasicInfoSection 
+          config={config} 
+          peermall={peermall} 
+          isLoading={isLoading} 
+        />
+      )}
       {activeSection === 'design' && <DesignSettingsSection />}
       {activeSection === 'content' && <ContentManagementSection />}
       {activeSection === 'products' && <ProductManagementSection />}

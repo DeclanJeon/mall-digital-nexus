@@ -1,0 +1,152 @@
+{
+  "tasks": [
+    {
+      "id": "9426ff7f-81cb-41bd-b375-2736cd95c9e7",
+      "name": "BasicInfoSection 컴포넌트 Props 정의 및 초기 탭 활성화",
+      "description": "`BasicInfoSection.tsx`에 `PeerMallConfig` 타입의 `config` prop을 추가하고, `PeerSpaceHome.tsx`에서 `BasicInfoSection` 컴포넌트를 사용할 때 `config` prop을 전달하도록 수정합니다. 주석 처리된 탭(`authentication`, `legal`, `relationships`)을 활성화합니다.",
+      "status": "進行中",
+      "dependencies": [],
+      "createdAt": "2025-05-22T08:42:48.313Z",
+      "updatedAt": "2025-05-22T08:42:59.652Z",
+      "relatedFiles": [
+        {
+          "path": "src/components/peer-space/sections/BasicInfoSection.tsx",
+          "type": "TO_MODIFY",
+          "description": "BasicInfoSection 컴포넌트 파일"
+        },
+        {
+          "path": "src/components/peer-space/PeerSpaceHome.tsx",
+          "type": "TO_MODIFY",
+          "description": "BasicInfoSection 컴포넌트를 사용하는 PeerSpaceHome 컴포넌트 파일"
+        }
+      ],
+      "implementationGuide": "1. `src/components/peer-space/sections/BasicInfoSection.tsx` 파일을 수정하여 `BasicInfoSection` 컴포넌트가 `config: PeerMallConfig` prop을 받도록 정의합니다.\n2. `src/components/peer-space/PeerSpaceHome.tsx` 파일을 수정하여 `BasicInfoSection` 컴포넌트를 렌더링하는 부분에 `config={config}` prop을 전달하도록 합니다.\n3. `BasicInfoSection.tsx` 파일에서 주석 처리된 `TabsTrigger`들을 활성화합니다.",
+      "verificationCriteria": "- `BasicInfoSection` 컴포넌트가 `config` prop을 성공적으로 받는지 확인합니다.\n- '인증 및 상태', '법적 고지', '관계 설정' 탭이 UI에 정상적으로 표시되는지 확인합니다.",
+      "analysisResult": "사용자 요청에 따라 'src/components/peer-space/sections/BasicInfoSection.tsx' 파일을 'documents/피어몰_정책사항_v1.2_개정.md', 'src/components/peer-space/PeerSpaceHome.tsx', 'src/components/peermall-features/CreatePeermallModal.tsx' 파일을 참고하여 수정, 보완, 개선합니다. 주요 목표는 `BasicInfoSection` 컴포넌트의 탭 구조를 확장하고, 각 탭에 실제 피어몰 설정 데이터를 동적으로 연동하여 표시하며, UI/UX를 개선하는 것입니다."
+    },
+    {
+      "id": "58855727-738f-4dfb-9c30-cc1bb4505d3d",
+      "name": "'사이트 정보' 탭 데이터 연동 및 보완",
+      "description": "`BasicInfoSection.tsx`의 '사이트 정보' 탭에서 피어몰 이름, 슬로건, 고유 ID, 설명, 대표 카테고리, 검색 태그를 `config` prop에서 받아와 동적으로 표시하도록 수정합니다. `CreatePeermallModal.tsx`의 `hashtags` 필드를 `BasicInfoSection`의 검색 태그에 연동합니다.",
+      "status": "進行中",
+      "dependencies": [],
+      "createdAt": "2025-05-22T08:42:48.313Z",
+      "updatedAt": "2025-05-22T08:50:47.592Z",
+      "relatedFiles": [
+        {
+          "path": "src/components/peer-space/sections/BasicInfoSection.tsx",
+          "type": "TO_MODIFY",
+          "description": "BasicInfoSection 컴포넌트 파일"
+        }
+      ],
+      "implementationGuide": "1. `BasicInfoSection.tsx`의 '사이트 정보' 탭 내의 하드코딩된 데이터를 `config.title`, `config.slogan`, `config.address`, `config.description`, `config.category`, `config.tags` 등으로 대체합니다.\n2. `config.tags`가 배열이므로 `map` 함수를 사용하여 태그들을 렌더링합니다.",
+      "verificationCriteria": "- '사이트 정보' 탭의 모든 필드가 `config` prop의 데이터로 올바르게 표시되는지 확인합니다.\n- 검색 태그가 배열 형태로 올바르게 렌더링되는지 확인합니다.",
+      "analysisResult": "사용자 요청에 따라 'src/components/peer-space/sections/BasicInfoSection.tsx' 파일을 'documents/피어몰_정책사항_v1.2_개정.md', 'src/components/peer-space/PeerSpaceHome.tsx', 'src/components/peermall-features/CreatePeermallModal.tsx' 파일을 참고하여 수정, 보완, 개선합니다. 주요 목표는 `BasicInfoSection` 컴포넌트의 탭 구조를 확장하고, 각 탭에 실제 피어몰 설정 데이터를 동적으로 연동하여 표시하며, UI/UX를 개선하는 것입니다."
+    },
+    {
+      "id": "564c38ec-9f7a-40e6-b053-070b7c41528e",
+      "name": "'연락처' 탭 데이터 연동 및 보완",
+      "description": "`BasicInfoSection.tsx`의 '연락처' 탭에서 대표자명, 이메일, 전화번호, 피어넘버, 사업장 주소를 `config` prop에서 받아와 동적으로 표시하도록 수정합니다. `CreatePeermallModal.tsx`의 `representativeName`, `email`, `mapAddress` 필드를 연동합니다.",
+      "status": "進行中",
+      "dependencies": [],
+      "createdAt": "2025-05-22T08:42:48.313Z",
+      "updatedAt": "2025-05-22T08:53:38.829Z",
+      "relatedFiles": [
+        {
+          "path": "src/components/peer-space/sections/BasicInfoSection.tsx",
+          "type": "TO_MODIFY",
+          "description": "BasicInfoSection 컴포넌트 파일"
+        }
+      ],
+      "implementationGuide": "1. `BasicInfoSection.tsx`의 '연락처' 탭 내의 하드코딩된 데이터를 `config.owner`, `config.email`, `config.phoneNumber`, `config.peerNumber`, `config.location.address` 등으로 대체합니다.\n2. 전화번호와 피어넘버는 현재 `PeerMallConfig`에 없으므로, 임시로 더미 데이터를 사용하거나 `PeerMallConfig` 타입에 추가를 고려합니다.",
+      "verificationCriteria": "- '연락처' 탭의 모든 필드가 `config` prop의 데이터로 올바르게 표시되는지 확인합니다.",
+      "analysisResult": "사용자 요청에 따라 'src/components/peer-space/sections/BasicInfoSection.tsx' 파일을 'documents/피어몰_정책사항_v1.2_개정.md', 'src/components/peer-space/PeerSpaceHome.tsx', 'src/components/peermall-features/CreatePeermallModal.tsx' 파일을 참고하여 수정, 보완, 개선합니다. 주요 목표는 `BasicInfoSection` 컴포넌트의 탭 구조를 확장하고, 각 탭에 실제 피어몰 설정 데이터를 동적으로 연동하여 표시하며, UI/UX를 개선하는 것입니다."
+    },
+    {
+      "id": "ace00704-38f6-43b1-9301-9845b445de87",
+      "name": "'인증 및 상태' 탭 구현",
+      "description": "`BasicInfoSection.tsx`에 '인증 및 상태' 탭의 UI를 구현합니다. 인증 상태(사업자 등록, 통신판매업, 본인 인증)를 `config` prop의 `requestCertification` 필드와 연동하여 표시합니다. 피어몰 상태(공개 상태, 신뢰도 점수, 계정 등급)를 `config` prop에서 받아와 표시합니다. `visibility` 필드를 활용하여 공개 상태를 표시합니다. 뱃지 시스템을 `config.badges`와 연동하여 표시합니다.",
+      "status": "進行中",
+      "dependencies": [],
+      "createdAt": "2025-05-22T08:42:48.313Z",
+      "updatedAt": "2025-05-22T08:59:41.337Z",
+      "relatedFiles": [
+        {
+          "path": "src/components/peer-space/sections/BasicInfoSection.tsx",
+          "type": "TO_MODIFY",
+          "description": "BasicInfoSection 컴포넌트 파일"
+        }
+      ],
+      "implementationGuide": "1. `BasicInfoSection.tsx`의 '인증 및 상태' 탭에 인증 상태(사업자 등록, 통신판매업, 본인 인증)를 `config.requestCertification` 값에 따라 '인증 완료' 또는 '미인증' 등으로 표시합니다.\n2. 피어몰 상태(공개 상태, 신뢰도 점수, 계정 등급)를 `config.visibility`, `config.trustScore`, `config.accountLevel` 등에서 받아와 표시합니다. (필요시 `PeerMallConfig` 타입에 필드 추가)\n3. `config.badges` 배열을 `map` 함수로 렌더링하여 뱃지를 표시합니다.",
+      "verificationCriteria": "- '인증 및 상태' 탭의 UI가 올바르게 렌더링되는지 확인합니다.\n- 인증 상태, 피어몰 상태, 뱃지 정보가 `config` prop의 데이터로 올바르게 표시되는지 확인합니다.",
+      "analysisResult": "사용자 요청에 따라 'src/components/peer-space/sections/BasicInfoSection.tsx' 파일을 'documents/피어몰_정책사항_v1.2_개정.md', 'src/components/peer-space/PeerSpaceHome.tsx', 'src/components/peermall-features/CreatePeermallModal.tsx' 파일을 참고하여 수정, 보완, 개선합니다. 주요 목표는 `BasicInfoSection` 컴포넌트의 탭 구조를 확장하고, 각 탭에 실제 피어몰 설정 데이터를 동적으로 연동하여 표시하며, UI/UX를 개선하는 것입니다."
+    },
+    {
+      "id": "69119540-d8b9-4218-a9a6-945545a72a5c",
+      "name": "'법적 고지' 탭 구현",
+      "description": "`BasicInfoSection.tsx`에 '법적 고지' 탭의 UI를 구현합니다. 개인정보 처리방침 및 이용약관의 마지막 업데이트 날짜와 내용을 더미 데이터 또는 정책 문서에서 발췌한 내용으로 표시합니다.",
+      "status": "進行中",
+      "dependencies": [],
+      "createdAt": "2025-05-22T08:42:48.313Z",
+      "updatedAt": "2025-05-22T09:03:54.627Z",
+      "relatedFiles": [
+        {
+          "path": "src/components/peer-space/sections/BasicInfoSection.tsx",
+          "type": "TO_MODIFY",
+          "description": "BasicInfoSection 컴포넌트 파일"
+        },
+        {
+          "path": "documents/피어몰_정책사항_v1.2_개정.md",
+          "type": "REFERENCE",
+          "description": "피어몰 정책사항 문서 (법적 고지 내용 참고)"
+        }
+      ],
+      "implementationGuide": "1. `BasicInfoSection.tsx`의 '법적 고지' 탭에 개인정보 처리방침과 이용약관 섹션을 구현합니다.\n2. 각 섹션에 '마지막 업데이트' 날짜와 내용을 표시합니다. 내용은 `documents/피어몰_정책사항_v1.2_개정.md`에서 관련 부분을 발췌하여 더미 데이터로 사용하거나, 임시 텍스트를 사용합니다.",
+      "verificationCriteria": "- '법적 고지' 탭의 UI가 올바르게 렌더링되는지 확인합니다.\n- 개인정보 처리방침 및 이용약관 내용이 적절하게 표시되는지 확인합니다.",
+      "analysisResult": "사용자 요청에 따라 'src/components/peer-space/sections/BasicInfoSection.tsx' 파일을 'documents/피어몰_정책사항_v1.2_개정.md', 'src/components/peer-space/PeerSpaceHome.tsx', 'src/components/peermall-features/CreatePeermallModal.tsx' 파일을 참고하여 수정, 보완, 개선합니다. 주요 목표는 `BasicInfoSection` 컴포넌트의 탭 구조를 확장하고, 각 탭에 실제 피어몰 설정 데이터를 동적으로 연동하여 표시하며, UI/UX를 개선하는 것입니다."
+    },
+    {
+      "id": "e3129e83-8d81-49a6-bd76-ad61b938eb7d",
+      "name": "'관계 설정' 탭 구현",
+      "description": "`BasicInfoSection.tsx`에 '관계 설정' 탭의 UI를 구현합니다. 스폰서(패밀리 멤버) 및 에이전트 정보를 `config` prop의 `familyMember` 필드와 연동하여 표시합니다.",
+      "status": "進行中",
+      "dependencies": [],
+      "createdAt": "2025-05-22T08:42:48.313Z",
+      "updatedAt": "2025-05-22T09:05:48.518Z",
+      "relatedFiles": [
+        {
+          "path": "src/components/peer-space/sections/BasicInfoSection.tsx",
+          "type": "TO_MODIFY",
+          "description": "BasicInfoSection 컴포넌트 파일"
+        }
+      ],
+      "implementationGuide": "1. `BasicInfoSection.tsx`의 '관계 설정' 탭에 스폰서와 에이전트 섹션을 구현합니다.\n2. 스폰서 정보는 `config.familyMember`를 활용하여 표시하고, 에이전트 정보는 현재 `PeerMallConfig`에 없으므로 임시 더미 데이터를 사용합니다.\n3. 각 정보에 대한 '상세 보기' 또는 '변경 요청' 버튼을 추가합니다.",
+      "verificationCriteria": "- '관계 설정' 탭의 UI가 올바르게 렌더링되는지 확인합니다.\n- 스폰서 정보가 `config` prop의 데이터로 올바르게 표시되는지 확인합니다.",
+      "analysisResult": "사용자 요청에 따라 'src/components/peer-space/sections/BasicInfoSection.tsx' 파일을 'documents/피어몰_정책사항_v1.2_개정.md', 'src/components/peer-space/PeerSpaceHome.tsx', 'src/components/peermall-features/CreatePeermallModal.tsx' 파일을 참고하여 수정, 보완, 개선합니다. 주요 목표는 `BasicInfoSection` 컴포넌트의 탭 구조를 확장하고, 각 탭에 실제 피어몰 설정 데이터를 동적으로 연동하여 표시하며, UI/UX를 개선하는 것입니다."
+    },
+    {
+      "id": "780684a2-6b60-4708-82b4-c717a1ea996d",
+      "name": "불필요한 주석 제거 및 코드 정리",
+      "description": "모든 탭이 활성화된 후, `BasicInfoSection.tsx` 파일 내의 불필요한 주석 처리된 탭 관련 코드를 제거합니다. 전반적인 코드 스타일을 `coding_rules.md`에 따라 정리합니다.",
+      "status": "待處理",
+      "dependencies": [],
+      "createdAt": "2025-05-22T08:42:48.313Z",
+      "updatedAt": "2025-05-22T08:42:48.313Z",
+      "relatedFiles": [
+        {
+          "path": "src/components/peer-space/sections/BasicInfoSection.tsx",
+          "type": "TO_MODIFY",
+          "description": "BasicInfoSection 컴포넌트 파일"
+        },
+        {
+          "path": ".clinerules/coding_rules.md",
+          "type": "REFERENCE",
+          "description": "프로젝트 코딩 규칙 문서"
+        }
+      ],
+      "implementationGuide": "1. `BasicInfoSection.tsx` 파일에서 더 이상 필요 없는 주석 처리된 `TabsTrigger` 및 관련 주석을 제거합니다.\n2. `coding_rules.md`에 명시된 코딩 규칙(예: ESLint, Prettier)에 따라 파일 전체의 코드 스타일을 정리합니다.",
+      "verificationCriteria": "- `BasicInfoSection.tsx` 파일에서 불필요한 주석이 모두 제거되었는지 확인합니다.\n- 코드 스타일이 일관되고 가독성이 높은지 확인합니다.",
+      "analysisResult": "사용자 요청에 따라 'src/components/peer-space/sections/BasicInfoSection.tsx' 파일을 'documents/피어몰_정책사항_v1.2_개정.md', 'src/components/peer-space/PeerSpaceHome.tsx', 'src/components/peermall-features/CreatePeermallModal.tsx' 파일을 참고하여 수정, 보완, 개선합니다. 주요 목표는 `BasicInfoSection` 컴포넌트의 탭 구조를 확장하고, 각 탭에 실제 피어몰 설정 데이터를 동적으로 연동하여 표시하며, UI/UX를 개선하는 것입니다."
+    }
+  ]
+}

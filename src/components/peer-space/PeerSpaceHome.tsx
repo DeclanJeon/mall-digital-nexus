@@ -1,539 +1,438 @@
-
 import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { Content, PeerMallConfig, SectionType } from './types';
-import { Heart, MessageSquare, Share2, QrCode, Award, ThumbsUp, Settings } from 'lucide-react';
-import { getPeerSpaceContents, savePeerSpaceContents } from '@/utils/peerSpaceStorage';
-import PeerSpaceHeader from './PeerSpaceHeader';
-import PeerSpaceHero from './PeerSpaceHero';
-import PeerSpaceContentSection from './PeerSpaceContentSection';
-import PeerSpaceCommunitySection from './PeerSpaceCommunitySection';
-import PeerSpaceEventsSection from './PeerSpaceEventsSection';
-import PeerSpaceInfoHub from './PeerSpaceInfoHub';
-import PeerSpaceReviewSection from './PeerSpaceReviewSection';
-import PeerSpaceMapSection from './PeerSpaceMapSection';
-import PeerSpaceTrustSection from './PeerSpaceTrustSection';
-import PeerSpaceRelatedMallsSection from './PeerSpaceRelatedMallsSection';
-import PeerSpaceActivityFeed from './PeerSpaceActivityFeed';
-import PeerSpaceLiveCollaboration from './PeerSpaceLiveCollaboration';
-import PeerSpaceFooter from './PeerSpaceFooter';
-import EmptyState from './EmptyState';
-import ProductRegistrationForm from './ProductRegistrationForm';
-import BadgeSelector from './BadgeSelector';
-import { ContentFormValues } from './AddContentForm';
+import { Content, PeerMallConfig, SectionType } from '@/types/space';
+import { Peermall } from '@/types/peermall';
+import { MapLocation } from '@/types/map';
+import ProductDetailComponent from '@/components/shopping/products/ProductDetailComponent';
+import { 
+  MessageSquare, 
+  Share2, 
+  QrCode, 
+} from 'lucide-react';
+import { ContentFormValues } from './forms/AddContentForm';
 import { usePeerSpaceTabs } from '@/hooks/usePeerSpaceTabs';
-import PeerSpaceTabs from './PeerSpaceTabs';
-import GuestbookSection from './GuestbookSection';
-import QuestEventSection from './QuestEventSection';
-import { Link } from 'react-router-dom';
+import EmptyState from './ui/EmptyState';
+import BadgeSelector from './ui/BadgeSelector';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import BasicInfoSection from './sections/BasicInfoSection';
+import PeerSpaceQRModal from './modals/PeerSpaceQRModal';
+import PeerSpaceProductFormModal from './modals/PeerSpaceProductFormModal';
+import PeerSpaceSettingsModal from './modals/PeerSpaceSettingsModal';
+import PeerSpaceMapModal from './modals/PeerSpaceMapModal';
+import PeerSpaceHomeSection from './sections/PeerSpaceHomeSection';
+import PeerSpaceContentSection from './sections/PeerSpaceContentSection';
+import PeerSpaceCommunitySection from './sections/PeerSpaceCommunitySection';
+import PeerSpaceFollowingSection from './sections/PeerSpaceFollowingSection';
+import PeerSpaceGuestbookSection from './sections/PeerSpaceGuestbookSection';
+import { 
+  generateMockProducts, 
+  generateMockPosts, 
+  guestbookData, 
+  notificationsData, 
+  alertsData, 
+  sponsorsData, 
+  heroSlides, 
+  followingPeermalls 
+} from './data/homeMockData';
+import { saveSectionOrder, getSectionOrder, getSectionDisplayName } from './utils/peerSpaceUtils';
+import { peermallStorage } from '@/services/storage/peermallStorage';
+import productService from '@/services/productService';
+import { Product } from '@/types/product';
+import { Post } from '@/types/post';
+import { PeerSpaceHomeProps } from '@/types/space';
+import PeerSpaceHeader from '@/components/peer-space/layout/PeerSpaceHeader';
+import LeftSideBar from '@/components/peer-space/layout/LeftSideBar';
+import RightSideBar from '@/components/peer-space/layout/RightSideBar';
+import RightSidebar from '@/components/peer-space/layout/RightSideBar';
+import { cn } from '@/lib/utils';
+import PeerSpaceMapSection from './sections/PeerSpaceMapSection';
+import EcosystemMap from '../EcosystemMap';
 
-interface PeerSpaceHomeProps {
-  isOwner: boolean;
-  address: string;
-  config: PeerMallConfig;
-  onUpdateConfig: (updatedConfig: PeerMallConfig) => void;
-}
-
-// Save section order to localStorage
-const saveSectionOrder = (address: string, sections: SectionType[]) => {
-  try {
-    localStorage.setItem(`peer_space_${address}_sections`, JSON.stringify(sections));
-  } catch (error) {
-    console.error("Error saving section order:", error);
-  }
-};
-
-// Get section order from localStorage
-const getSectionOrder = (address: string, defaultSections: SectionType[]): SectionType[] => {
-  try {
-    const stored = localStorage.getItem(`peer_space_${address}_sections`);
-    return stored ? JSON.parse(stored) : defaultSections;
-  } catch (error) {
-    console.error("Error loading section order:", error);
-    return defaultSections;
-  }
-};
+// 🎯 데이터 변환 함수
+const transformApiProductToProduct = (apiProduct: any, address: string, config: PeerMallConfig, peerMallKey: string): Product => ({
+  productId: apiProduct.productKey || '',
+  productKey: apiProduct.productKey || '',
+  id: apiProduct.productKey || '',
+  name: apiProduct.name || '',
+  title: apiProduct.name || '',
+  owner: address,
+  description: apiProduct.description || '',
+  price: apiProduct.price || 0,
+  currency: 'KRW',
+  discountPrice: apiProduct.discountPrice || null,
+  distributor: apiProduct.distributor || '',
+  manufacturer: apiProduct.manufacturer || '',
+  imageUrl: apiProduct.imageUrl || '',
+  rating: apiProduct.rating || 4.5,
+  reviewCount: apiProduct.reviewCount || 10,
+  peerMallName: config.peerMallName,
+  peerMallKey: peerMallKey || '',
+  category: apiProduct.category || '기타',
+  tags: apiProduct.tags ? apiProduct.tags.split(',') : [],
+  isBestSeller: apiProduct.isBestSeller || false,
+  isNew: apiProduct.isNew || false,
+  isRecommended: apiProduct.isRecommended || false,
+  isCertified: apiProduct.isCertified || false,
+  saleUrl: apiProduct.saleUrl || '',
+  create_date: apiProduct.create_date || new Date().toISOString(),
+  update_date: apiProduct.update_date || new Date().toISOString(),
+  type: 'Product',
+  peerSpaceAddress: address,
+  date: apiProduct.create_date || new Date().toISOString(),
+  likes: apiProduct.likes || 0,
+  comments: apiProduct.comments || 0,
+  views: apiProduct.views || 0,
+  saves: apiProduct.saves || 0
+});
 
 const PeerSpaceHome: React.FC<PeerSpaceHomeProps> = ({ 
   isOwner, 
   address,
   config,
-  onUpdateConfig 
+  peermall,
+  onUpdateConfig,
+  activeSection,
+  onNavigateToSection,
+  onDetailView
 }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [showQRModal, setShowQRModal] = useState(false);
   const [contents, setContents] = useState<Content[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [posts, setPosts] = useState<Content[]>([]);
+  const [showProductDetail, setShowProductDetail] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const [currentView, setCurrentView] = useState<'list' | 'blog' | 'grid-small' | 'grid-medium' | 'grid-large' | 'masonry'>('list');
   const [sections, setSections] = useState<SectionType[]>(
     getSectionOrder(address, config.sections)
   );
   const [hiddenSections, setHiddenSections] = useState<SectionType[]>(
     JSON.parse(localStorage.getItem(`peer_space_${address}_hidden_sections`) || '[]')
   );
-  const { activeTab, handleTabChange, filterContentByTab } = usePeerSpaceTabs('featured');
+  const { activeTab, handleTabChange } = usePeerSpaceTabs('product');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
+  const [showWidgets, setShowWidgets] = useState(true);
+  const [showMapModal, setShowMapModal] = useState(false);
+  const [searchParams] = useSearchParams();
+  const peerMallKey = searchParams.get('mk');
 
+  // 🎯 데이터 로딩
   useEffect(() => {
-    if (address) {
-      // Load contents from localStorage based on the address
-      const loadedContents = getPeerSpaceContents(address);
-      setContents(loadedContents);
+    const loadAllData = async () => {
+      if (!address) return;
       
-      // Load section order from localStorage
-      const storedSections = getSectionOrder(address, config.sections);
-      setSections(storedSections);
-      
-      // Load hidden sections from localStorage
-      const storedHiddenSections = localStorage.getItem(`peer_space_${address}_hidden_sections`);
-      if (storedHiddenSections) {
-        setHiddenSections(JSON.parse(storedHiddenSections));
+      try {
+        const loadedProductsResponse = await productService.getProductList(address, peerMallKey);
+        
+        if (loadedProductsResponse && loadedProductsResponse.productList) {
+          const transformedProducts = loadedProductsResponse.productList.map((apiProduct: any) => 
+            transformApiProductToProduct(apiProduct, address, config, peerMallKey || '')
+          );
+          
+          setProducts(transformedProducts);
+        } else {
+          setProducts([]);
+        }
+      } catch (error) {
+        setProducts([]);
       }
-    }
+    };
+
+    loadAllData();
   }, [address, config.sections]);
 
-  // Persist hidden sections to localStorage whenever they change
-  useEffect(() => {
-    if (address) {
-      localStorage.setItem(`peer_space_${address}_hidden_sections`, JSON.stringify(hiddenSections));
-    }
-  }, [hiddenSections, address]);
-
-  const handleAddContent = (formValues: ContentFormValues) => {
-    if (!address) return;
-
-    const now = new Date().toISOString();
-    
-    // Create a new content object
-    const newContent: Content = {
-      id: `content-${Date.now()}`,
-      title: formValues.title,
-      description: formValues.description,
-      imageUrl: formValues.imageUrl,
-      type: formValues.type,
-      date: now,
-      price: formValues.price,
-      likes: 0,
-      comments: 0,
-      views: 0,
-      saves: 0,
-    };
-    
-    // Add the new content and update state
-    const updatedContents = [...contents, newContent];
-    setContents(updatedContents);
-    
-    // Save to localStorage
-    savePeerSpaceContents(address, updatedContents);
-    
-    toast({
-      title: "콘텐츠 추가 완료",
-      description: "새로운 콘텐츠가 성공적으로 등록되었습니다.",
-    });
-  };
-
-  const handleProductAdded = (product: Content) => {
-    // Add the product and update state
-    const updatedContents = [...contents, product];
-    setContents(updatedContents);
-    
-    // Close product form dialog
-    setShowProductForm(false);
-  };
-
-  const handleToggleSectionVisibility = (section: SectionType) => {
-    if (hiddenSections.includes(section)) {
-      setHiddenSections(hiddenSections.filter(s => s !== section));
-      toast({
-        title: "섹션 표시",
-        description: `${getSectionDisplayName(section)} 섹션이 표시됩니다.`,
-      });
-    } else {
-      setHiddenSections([...hiddenSections, section]);
-      toast({
-        title: "섹션 숨김",
-        description: `${getSectionDisplayName(section)} 섹션이 숨겨졌습니다.`,
-      });
+  // 🎯 이벤트 핸들러들
+  const handleProductDetailView = (productKey: string | number) => {
+    const product = products.find(p => p.productKey === productKey || p.id === productKey);
+    if (product) {
+      setSelectedProduct(product);
+      setShowProductDetail(true);
     }
   };
 
-  const handleMoveSectionUp = (index: number) => {
-    if (index <= 0) return;
-    const newSections = [...sections];
-    const temp = newSections[index];
-    newSections[index] = newSections[index - 1];
-    newSections[index - 1] = temp;
-    setSections(newSections);
-    saveSectionOrder(address, newSections);
-  };
-  
-  const handleMoveSectionDown = (index: number) => {
-    if (index >= sections.length - 1) return;
-    const newSections = [...sections];
-    const temp = newSections[index];
-    newSections[index] = newSections[index + 1];
-    newSections[index + 1] = temp;
-    setSections(newSections);
-    saveSectionOrder(address, newSections);
-  };
-
-  const getSectionDisplayName = (sectionType: SectionType): string => {
-    const sectionNames: Record<SectionType, string> = {
-      'hero': '히어로',
-      'content': '콘텐츠/상품',
-      'community': '커뮤니티',
-      'liveCollaboration': '실시간 연결',
-      'livestream': '라이브 스트리밍',
-      'infoHub': '정보 허브',
-      'map': '지도',
-      'introduction': '소개',
-      'advertising': '광고',
-      'reviews': '리뷰',
-      'quests': '퀘스트',
-      'events': '이벤트',
-      'guestbook': '방명록',
-      'trust': '신뢰도',
-      'qrCodeList': 'QR 코드',
-      'support': '고객 지원',
-      'relatedMalls': '관련 피어몰',
-      'activityFeed': '활동 피드'
-    };
-    
-    return sectionNames[sectionType] || sectionType;
-  };
-
-  const handleShare = () => {
-    // Copy current URL to clipboard
-    navigator.clipboard.writeText(window.location.href);
-    
-    toast({
-      title: "공유하기",
-      description: "링크가 클립보드에 복사되었습니다.",
-    });
-  };
-
-  const handleFollow = () => {
-    // Update followers count in the config
-    const updatedConfig = {
-      ...config,
-      followers: config.followers + 1
-    };
-    
-    // Save the updated config
-    onUpdateConfig(updatedConfig);
-    
-    toast({
-      title: "팔로우 완료",
-      description: `${config.owner}님을 팔로우합니다.`,
-    });
-  };
-
-  const handleAddRecommendation = () => {
-    // Update recommendations count in the config
-    const updatedConfig = {
-      ...config,
-      recommendations: config.recommendations + 1
-    };
-    
-    // Save the updated config
-    onUpdateConfig(updatedConfig);
-    
-    toast({
-      title: "추천 완료",
-      description: "해당 피어스페이스를 추천하였습니다.",
-    });
-  };
-
-  const handleAddBadge = (badge: string) => {
-    // Don't add duplicate badges
-    if (config.badges.includes(badge)) {
-      toast({
-        title: "이미 추가된 뱃지",
-        description: "이미 추가한 뱃지입니다.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Add badge to config
-    const updatedConfig = {
-      ...config,
-      badges: [...config.badges, badge]
-    };
-    
-    // Save the updated config
-    onUpdateConfig(updatedConfig);
-    
-    toast({
-      title: "뱃지 추가 완료",
-      description: "뱃지가 성공적으로 추가되었습니다.",
-    });
+  const handleBackFromDetail = () => {
+    setShowProductDetail(false);
+    setSelectedProduct(null);
   };
 
   const handleMessage = () => {
-    toast({
-      title: "메시지 보내기",
-      description: "메시지 창이 열렸습니다.",
-    });
-  };
-
-  const handleQRGenerate = () => {
-    setShowQRModal(true);
-  };
-
-  const handleShowProductForm = () => {
-    setShowProductForm(true);
+    toast({ title: "메시지 보내기", description: "메시지 창이 열렸습니다." });
   };
   
+  const handleOpenMap = () => {
+    setShowMapModal(true);
+  };
+
+  const handleLocationSelect = (location: MapLocation) => {
+    setSearchQuery(location.title);
+    setShowMapModal(false); // Close map modal after selection
+    // Optionally navigate to a section or trigger a search
+  };
+
+  const handleQRGenerate = () => setShowQRModal(true);
+  const handleShowProductForm = () => setShowProductForm(true);
   const handleShowSettings = () => {
     setShowSettingsModal(true);
   };
-  
-  const handleContentClick = (content: Content) => {
-    console.log('Content clicked:', content);
-    // Implement content click functionality here
+
+  const handleShare = () => {
+    const currentUrl = window.location.href;
+    
+    navigator.clipboard.writeText(currentUrl)
+      .then(() => {
+        toast({
+          title: '링크가 클립보드에 복사되었습니다.',
+          description: '이 링크를 공유하세요.',
+        });
+      })
+      .catch((error) => {
+        console.error('링크 복사 실패:', error);
+        toast({
+          title: '링크 복사에 실패했습니다.',
+          description: '다시 시도해주세요.',
+          variant: 'destructive',
+        });
+      });
   };
 
-  // Modal for QR codes
-  const renderQRModal = () => (
-    <Dialog open={showQRModal} onOpenChange={setShowQRModal}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">내 스페이스 QR 코드</DialogTitle>
-        </DialogHeader>
-        <div className="p-4 flex justify-center">
-          <div className="w-48 h-48 bg-gray-200 flex items-center justify-center text-sm text-gray-500">
-            QR 코드 영역
-          </div>
-        </div>
-        <div className="text-center text-xs mt-2 bg-gray-50 p-2 rounded border">
-          {`https://peermall.com/space/${address}`}
-        </div>
-        <Button className="w-full mt-2">이미지 다운로드</Button>
-      </DialogContent>
-    </Dialog>
+  const filteredPosts = posts.filter(post => 
+    post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    post.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // Product registration modal
-  const renderProductFormModal = () => (
-    <Dialog open={showProductForm} onOpenChange={setShowProductForm}>
-      <DialogContent className="max-w-5xl h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">제품 등록</DialogTitle>
-        </DialogHeader>
-        <ProductRegistrationForm 
-          onProductAdded={handleProductAdded} 
-          address={address}
-          onClose={() => setShowProductForm(false)}
-        />
-      </DialogContent>
-    </Dialog>
-  );
-
-  // Settings modal for section management
-  const renderSettingsModal = () => (
-    <Dialog open={showSettingsModal} onOpenChange={setShowSettingsModal}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">섹션 관리</DialogTitle>
-        </DialogHeader>
-        <div className="max-h-[60vh] overflow-y-auto">
-          <p className="text-sm text-gray-500 mb-4">섹션의 순서를 변경하거나 표시 여부를 설정하세요.</p>
-          <ul className="space-y-3">
-            {sections.map((section, index) => (
-              <li key={section} className="flex items-center justify-between p-3 border rounded-md">
-                <span className="font-medium">{getSectionDisplayName(section)}</span>
-                <div className="flex items-center space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    disabled={index === 0}
-                    onClick={() => handleMoveSectionUp(index)}
-                  >
-                    ↑
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    disabled={index === sections.length - 1}
-                    onClick={() => handleMoveSectionDown(index)}
-                  >
-                    ↓
-                  </Button>
-                  <Button 
-                    variant={hiddenSections.includes(section) ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleToggleSectionVisibility(section)}
-                  >
-                    {hiddenSections.includes(section) ? "표시" : "숨김"}
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-
-  // Helper function to render sections
-  const renderSection = (sectionType: SectionType) => {
-    // Skip rendering if the section is hidden
-    if (hiddenSections.includes(sectionType)) {
-      return null;
-    }
-
-    switch(sectionType) {
-      case 'hero':
-        return (
-          <PeerSpaceHero 
-            config={config} 
-            isOwner={isOwner} 
-            onAddBadge={handleAddBadge}
-            onAddRecommendation={handleAddRecommendation}
-            onFollow={handleFollow}
-          />
-        );
-      case 'content':
-        return (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-3">
-              <PeerSpaceTabs
-                activeTab={activeTab}
-                onTabChange={handleTabChange}
-                featuredContent={contents}
-                isOwner={isOwner}
-                onAddContent={handleShowProductForm}
-                onContentClick={handleContentClick}
-              />
-            </div>
-            {!hiddenSections.includes('activityFeed') && (
-              <div className="lg:col-span-1">
-                <PeerSpaceActivityFeed />
-              </div>
-            )}
-          </div>
-        );
-      case 'community':
-        return (
-          <div className="mb-10">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">커뮤니티</h2>
-              <Link to="/community">
-                <Button variant="outline">
-                  모든 게시글 보기
-                </Button>
-              </Link>
-            </div>
-            <PeerSpaceCommunitySection config={config} isOwner={isOwner} />
-          </div>
-        );
-      case 'events':
-        return (
-          <QuestEventSection
-            peerAddress={address}
-            isOwner={isOwner}
-          />
-        );
-      case 'infoHub':
-        return <PeerSpaceInfoHub config={config} />;
-      case 'reviews':
-        return (
-          <GuestbookSection
-            peerAddress={address}
-            isOwner={isOwner}
-          />
-        );
-      case 'map':
-        return config.location ? 
-          <PeerSpaceMapSection 
-            location={config.location} 
-            title={config.title} 
-          /> : null;
-      case 'trust':
-        return <PeerSpaceTrustSection config={config} />;
-      case 'relatedMalls':
-        return <PeerSpaceRelatedMallsSection />;
-      case 'activityFeed':
-        return null; // Handled within content section
-      case 'liveCollaboration':
-        return <PeerSpaceLiveCollaboration />;
-      default:
-        return null;
-    }
-  };
 
   if (!address) {
     return (
       <div className="container mx-auto p-6">
         <EmptyState 
-          title="404 - 피어스페이스를 찾을 수 없습니다"
-          description="올바른 피어스페이스 주소인지 확인해주세요."
+          title="404 - 피어몰을 찾을 수 없습니다" 
+          description="올바른 피어몰 주소인지 확인해주세요." 
         />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-      <PeerSpaceHeader 
-        config={config} 
-        isOwner={isOwner} 
-        onAddContent={handleAddContent} 
-        onAddProduct={handleShowProductForm}
+    <div className="min-h-screen bg-gray-50 text-gray-900">
+      {/* 🎯 레이아웃 컨테이너 */}
+      <div className="flex min-h-screen">
+        {/* 🎯 메인 콘텐츠 영역 */}
+        <main className={cn(
+          "flex-1 transition-all duration-300",
+          "lg:ml-0", // 데스크톱에서는 사이드바가 이미 공간을 차지함
+          "pb-20 lg:pb-0" // 모바일에서는 하단 네비게이션 공간 확보
+        )}>
+          {/* 📱 모바일 헤더 */}
+          <div className="lg:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-200">
+            <div className="flex items-center justify-between p-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">
+                    {config.peerMallName?.charAt(0) || 'P'}
+                  </span>
+                </div>
+                <div>
+                  <h1 className="font-bold text-gray-900 text-sm">
+                    {config.peerMallName}
+                  </h1>
+                  <p className="text-xs text-gray-500">
+                    {address?.slice(0, 8)}...
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleShare}
+                  className="p-2"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleQRGenerate}
+                  className="p-2"
+                >
+                  <QrCode className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* 🎯 콘텐츠 영역 */}
+          <div className="flex-1">
+            <div className="p-4 lg:p-6">
+              <div className="max-w-full">
+                {showProductDetail && selectedProduct ? (
+                  <ProductDetailComponent
+                    product={selectedProduct}
+                    peerMallName={config.peerMallName}
+                    peerMallKey={peerMallKey || ''}
+                    onBack={handleBackFromDetail}
+                    isOwner={isOwner}
+                  />
+                ) : (
+                  <div className="space-y-6">
+                    {activeSection === 'space' && (
+                      <PeerSpaceHomeSection
+                        isOwner={isOwner}
+                        address={address}
+                        products={products}
+                        config={config}
+                        onNavigateToSection={onNavigateToSection}
+                        posts={posts}
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
+                        currentView={currentView}
+                        setCurrentView={setCurrentView}
+                        handleShowProductForm={handleShowProductForm}
+                        activeSection={activeSection}
+                        onDetailView={handleProductDetailView}
+                      />
+                    )}
+                    
+                    {activeSection === 'products' && (
+                      <PeerSpaceContentSection
+                        isOwner={isOwner}
+                        address={address}
+                        config={config}
+                        products={products}
+                        currentView={currentView}
+                        setCurrentView={setCurrentView}
+                        handleShowProductForm={handleShowProductForm}
+                        onDetailView={handleProductDetailView}
+                      />
+                    )}
+                    
+                    {activeSection === 'community' && 
+                    (
+                      <PeerSpaceCommunitySection
+                        isOwner={isOwner}
+                        config={config}
+                        posts={posts}
+                        filteredPosts={filteredPosts}
+                      />
+                      )}
+                      
+                      {activeSection === 'peermap' && (
+                    <div className="space-y-6 lg:space-y-8">
+                      <div className="bg-white rounded-2xl shadow-lg border border-gray-200/60 overflow-hidden">
+                        {/* 🎨 피어맵 헤더 */}
+                        <div className="p-6 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-gray-200/60">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+                                <span className="text-2xl">🗺️</span>
+                              </div>
+                              <div>
+                                <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                                  피어맵
+                                </h2>
+                                <p className="text-gray-600 font-medium">
+                                  전 세계 피어몰을 지도에서 탐험해보세요 ✨
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 🗺️ 피어맵 컴포넌트 */}
+                        <div className="h-[600px] lg:h-[700px] relative">
+                          <EcosystemMap 
+                            onLocationSelect={handleLocationSelect}
+                            isFullscreen={false}
+                          />
+                        </div>
+
+                        {/* 🎯 하단 정보 */}
+                        <div className="p-4 bg-gradient-to-r from-slate-50 to-gray-50 border-t border-gray-200/60">
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center space-x-4 text-gray-600">
+                              <div className="flex items-center space-x-1">
+                                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+                                <span className="font-medium">실시간 업데이트</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                                <span className="font-medium">인증된 피어몰</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                                <span className="font-medium">추천 피어몰</span>
+                              </div>
+                            </div>
+                            
+                            <div className="text-gray-500 font-medium">
+                              🎯 클릭하여 피어몰 상세보기
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+    </div>
+        )}
+                    
+                    {activeSection === 'following' && (
+                      <PeerSpaceFollowingSection />
+                    )}
+                    
+                    {activeSection === 'guestbook' && (
+                      <PeerSpaceGuestbookSection />
+                    )}
+                    
+                    {activeSection === 'settings' && (
+                      <BasicInfoSection
+                        config={config}
+                        peermall={peermall}
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+      
+      {/* 🎯 모달들 */}
+      <PeerSpaceQRModal 
+        showQRModal={showQRModal} 
+        setShowQRModal={setShowQRModal} 
+        address={address} 
       />
       
-      <main className="container mx-auto px-4 py-6">
-        {/* Quick action buttons */}
-        <div className="flex mb-6 gap-2 flex-wrap items-center">
-          {!isOwner && (
-            <>
-              <Button onClick={handleFollow} className="flex-1">
-                <Heart className="mr-1 h-4 w-4" /> 팔로우
-              </Button>
-              <Button onClick={handleAddRecommendation} variant="outline" className="flex-1">
-                <ThumbsUp className="mr-1 h-4 w-4" /> 추천하기
-              </Button>
-              <BadgeSelector 
-                onBadgeAdd={handleAddBadge} 
-                currentBadges={config.badges} 
-              />
-              <Button onClick={handleMessage} variant="outline" className="flex-1">
-                <MessageSquare className="mr-1 h-4 w-4" /> 메시지
-              </Button>
-            </>
-          )}
-          
-          <Button onClick={handleShare} variant="outline" className="flex-1">
-            <Share2 className="mr-1 h-4 w-4" /> 공유
-          </Button>
-          <Button onClick={handleQRGenerate} variant="outline">
-            <QrCode className="h-4 w-4" />
-          </Button>
-          
-          {isOwner && (
-            <Button onClick={handleShowSettings} variant="outline" className="ml-auto">
-              <Settings className="h-4 w-4 mr-1" /> 섹션 관리
-            </Button>
-          )}
-        </div>
-
-        {/* Render sections based on config */}
-        <div className="space-y-10">
-          {sections.map((section) => (
-            <div key={section}>
-              {renderSection(section)}
-            </div>
-          ))}
-        </div>
-      </main>
+      <PeerSpaceProductFormModal 
+        showProductForm={showProductForm} 
+        setShowProductForm={setShowProductForm} 
+        address={address} 
+        setProducts={setProducts} 
+        setContents={setContents} 
+        products={products} 
+        contents={contents} 
+      />
       
-      <PeerSpaceFooter config={config} />
+      {isOwner && (
+        <PeerSpaceSettingsModal 
+          showSettingsModal={showSettingsModal} 
+          setShowSettingsModal={setShowSettingsModal} 
+          address={address} 
+          sections={sections} 
+          setSections={setSections} 
+          hiddenSections={hiddenSections} 
+          setHiddenSections={setHiddenSections} 
+        />
+      )}
       
-      {/* Modals */}
-      {renderQRModal()}
-      {renderProductFormModal()}
-      {isOwner && renderSettingsModal()}
     </div>
   );
 };

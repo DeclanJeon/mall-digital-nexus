@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink, Building, User, ShoppingBag } from 'lucide-react';
 
-import { PeerMallConfig } from './types';
+import { PeerMallConfig } from '@/types/space';
 
 interface PeerSpaceInfoHubProps {
   config: PeerMallConfig;

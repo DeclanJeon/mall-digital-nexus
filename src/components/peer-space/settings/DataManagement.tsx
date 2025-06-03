@@ -21,7 +21,7 @@ export const DataManagement = ({ onSave }: DataManagementProps) => {
             <div className="flex justify-between items-center p-3 border rounded-md">
               <div>
                 <div className="font-medium">전체 데이터 내보내기</div>
-                <div className="text-xs text-gray-500">모든 피어스페이스 데이터를 내보냅니다.</div>
+                <div className="text-xs text-gray-500">모든 피어몰 데이터를 내보냅니다.</div>
               </div>
               <Button variant="outline" size="sm" className="flex items-center gap-2">
                 <Download className="h-4 w-4" />

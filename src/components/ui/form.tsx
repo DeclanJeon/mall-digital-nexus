@@ -1,13 +1,15 @@
+"use client"
+
 import * as React from "react"
 import * as LabelPrimitive from "@radix-ui/react-label"
 import { Slot } from "@radix-ui/react-slot"
 import {
   Controller,
-  ControllerProps,
-  FieldPath,
-  FieldValues,
   FormProvider,
   useFormContext,
+  type ControllerProps,
+  type FieldPath,
+  type FieldValues,
 } from "react-hook-form"
 
 import { cn } from "@/lib/utils"
@@ -107,6 +109,12 @@ const FormControl = React.forwardRef<
 >(({ ...props }, ref) => {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
 
+  // Filter out any undefined or null props to prevent React warnings
+  const { children, ...restProps } = props;
+  const filteredProps = Object.fromEntries(
+    Object.entries(restProps).filter(([_, value]) => value !== undefined && value !== null)
+  )
+
   return (
     <Slot
       ref={ref}
@@ -117,8 +125,10 @@ const FormControl = React.forwardRef<
           : `${formDescriptionId} ${formMessageId}`
       }
       aria-invalid={!!error}
-      {...props}
-    />
+      {...filteredProps}
+    >
+      {children}
+    </Slot>
   )
 })
 FormControl.displayName = "FormControl"
@@ -145,7 +155,7 @@ const FormMessage = React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
   const { error, formMessageId } = useFormField()
-  const body = error ? String(error?.message) : children
+  const body = error ? String(error?.message ?? "") : children
 
   if (!body) {
     return null

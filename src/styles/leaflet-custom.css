@@ -1,0 +1,405 @@
+/* Custom Leaflet Styles - 성능 최적화 버전 */
+
+/* Essential Leaflet styles */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  backface-visibility: hidden; /* 성능 최적화 */
+}
+
+/* 마커 그림자 최적화 */
+.leaflet-marker-shadow {
+  z-index: 0;
+  will-change: transform; /* 성능 최적화 */
+}
+
+/* Control positioning */
+.leaflet-control-container .leaflet-top,
+.leaflet-control-container .leaflet-bottom {
+  z-index: 10;
+}
+
+/* 컨트롤 버튼 간 간격 개선 */
+.leaflet-control {
+  margin: 10px !important;
+  clear: none !important;
+}
+
+.leaflet-bottom .leaflet-control {
+  margin-bottom: 15px !important;
+}
+
+/* 위치 버튼과 SOS 버튼 정렬 */
+.leaflet-bottom.leaflet-left .leaflet-control {
+  float: left;
+  margin-left: 10px !important;
+  clear: none !important;
+}
+
+/* SOS 컨트롤 스타일 개선 */
+.sos-control {
+  margin-left: 5px !important;
+}
+
+.sos-notification-button.active {
+  animation: sosPulse 2s infinite;
+  will-change: box-shadow; /* 성능 최적화 */
+}
+
+/* 최적화된 마커 애니메이션 */
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.custom-marker {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.2s ease-in-out;
+  will-change: transform; /* 성능 최적화 */
+}
+
+.custom-marker:hover {
+  transform: scale(1.05); /* 호버 효과 약간 감소 */
+}
+
+/* 날씨 효과 최적화 */
+.weather-effect {
+  pointer-events: none;
+  will-change: transform; /* 성능 최적화 */
+}
+
+.weather-effect.rain div {
+  position: absolute;
+  pointer-events: none;
+  will-change: transform; /* 성능 최적화 */
+}
+
+/* Map wrapper */
+.map-wrapper {
+  height: 100%;
+  width: 100%;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  contain: content; /* 성능 최적화: 렌더링 영역 제한 */
+}
+
+/* 애니메이션 최적화: 모바일과 데스크톱에 다른 효율성 적용 */
+@media (min-width: 769px) {
+  /* 데스크톱용 계절 애니메이션 */
+  @keyframes fallingSlow {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.8;
+    }
+    90% {
+      opacity: 0.8;
+    }
+    100% {
+      transform: translateY(1000%) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes fallingWithSwing {
+    0% {
+      transform: translateY(0) rotate(0deg) translateX(0);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.8;
+    }
+    25% {
+      transform: translateY(250%) rotate(90deg) translateX(20px);
+    }
+    50% {
+      transform: translateY(500%) rotate(180deg) translateX(-20px);
+    }
+    75% {
+      transform: translateY(750%) rotate(270deg) translateX(20px);
+    }
+    90% {
+      opacity: 0.8;
+    }
+    100% {
+      transform: translateY(1000%) rotate(360deg) translateX(0);
+      opacity: 0;
+    }
+  }
+
+  @keyframes snowfall {
+    0% {
+      transform: translateY(0) translateX(0);
+      opacity: 0.7;
+    }
+    50% {
+      transform: translateY(50vh) translateX(20px);
+    }
+    100% {
+      transform: translateY(100vh) translateX(0);
+      opacity: 0.3;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  /* 모바일용 단순화된 애니메이션 */
+  @keyframes fallingSlow {
+    0% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(1000%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes fallingWithSwing {
+    0% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(1000%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes snowfall {
+    0% {
+      transform: translateY(0);
+      opacity: 0.7;
+    }
+    100% {
+      transform: translateY(100vh);
+      opacity: 0.3;
+    }
+  }
+}
+
+/* SOS pulse animation - 성능 및 시각성 개선 */
+@keyframes sosPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+    background-color: #ff4444;
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(255, 0, 0, 0);
+    background-color: #ff6666;
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+    background-color: #ff4444;
+  }
+}
+
+/* 계절 애니메이션 최적화 */
+@keyframes pulseSunlight {
+  0% {
+    opacity: 0.3;
+    transform: translate(50%, -50%) scale(0.9);
+  }
+  100% {
+    opacity: 0.5;
+    transform: translate(50%, -50%) scale(1.1);
+  }
+}
+
+@keyframes heatWave {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes fogDrift {
+  0% {
+    transform: translateX(0);
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.25;
+  }
+  100% {
+    transform: translateX(30px);
+    opacity: 0.15;
+  }
+}
+
+/* 위치 마커 애니메이션 최적화 및 시각성 개선 */
+@keyframes locationPing {
+  0% {
+    box-shadow: 0 0 0 0 rgba(51, 136, 255, 0.7);
+    transform: scale(1);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(51, 136, 255, 0);
+    transform: scale(1.1);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(51, 136, 255, 0);
+    transform: scale(1);
+  }
+}
+
+.user-location-marker {
+  animation: locationPing 2s infinite;
+  will-change: transform, box-shadow; /* 성능 최적화 */
+  z-index: 1000 !important;
+}
+
+/* 마커 클러스터 최적화 */
+.marker-cluster {
+  background-color: rgba(126, 105, 171, 0.6);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  will-change: transform; /* 성능 최적화 */
+}
+
+.marker-cluster div {
+  background-color: rgba(126, 105, 171, 0.8);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80%;
+  height: 80%;
+  color: white;
+  font-weight: bold;
+}
+
+/* 계절별 스타일링 최적화 */
+.season-봄,
+.season-여름,
+.season-가을,
+.season-겨울 {
+  transition: opacity 0.8s ease;
+  will-change: opacity; /* 성능 최적화 */
+}
+
+/* UI 애니메이션 최적화 */
+.fade-enter {
+  opacity: 0;
+  will-change: opacity; /* 성능 최적화 */
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transition: opacity 300ms;
+}
+
+.fade-exit {
+  opacity: 1;
+  will-change: opacity; /* 성능 최적화 */
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transition: opacity 300ms;
+}
+
+/* 위치 검색 반경 최적화 */
+.location-search-radius {
+  transition: all 0.5s ease;
+  will-change: opacity; /* 성능 최적화 */
+}
+
+.location-search-radius:hover {
+  opacity: 0.5;
+}
+
+/* 로딩 인디케이터 최적화 */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #3388ff;
+  animation: spin 0.8s linear infinite;
+  will-change: transform; /* 성능 최적화 */
+}
+
+/* 맵 컨트롤 버튼 스타일링 개선 */
+.leaflet-bar a {
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  will-change: background-color;
+}
+
+/* 타일 렌더링 최적화 */
+.leaflet-tile-container {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* 지도 패닝 및 줌 최적화 */
+.leaflet-map-pane {
+  will-change: transform;
+}
+
+/* 맵 전환 효과 최적화 */
+.leaflet-fade-anim .leaflet-tile {
+  will-change: opacity;
+}
+
+/* 팬 애니메이션 최적화 */
+.leaflet-pan-anim .leaflet-tile {
+  transition: none;
+}
+
+/* 줌 애니메이션 최적화 */
+.leaflet-zoom-animated {
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 모바일에서는 애니메이션 효과 감소 */
+@media (max-width: 768px) {
+  .custom-marker:hover {
+    transform: none;
+  }
+
+  .user-location-marker {
+    animation: locationPing 3s infinite;
+  }
+
+  .weather-effect.rain div {
+    display: none;
+  }
+
+  .weather-effect.fog {
+    background: rgba(200, 200, 200, 0.3);
+    backdrop-filter: none;
+  }
+
+  /* 모바일에서 버튼 크기 증가 - 더 쉽게 탭할 수 있도록 */
+  .leaflet-bar a {
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+  }
+}

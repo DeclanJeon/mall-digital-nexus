@@ -1,145 +1,179 @@
-
 import React, { useState, useEffect } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
-import PeerSpaceHome from '@/components/peer-space/PeerSpaceHome';
+import { useLocation, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
-import { PeerMallConfig } from '@/components/peer-space/types';
+import { PeerMallConfig, SectionType } from '@/types/space';
+import { Peermall } from '@/types/peermall';
+import { Product } from '@/types/product';
+import PeerSpaceHome from '@/components/peer-space/PeerSpaceHome';
+import { Loader2 } from 'lucide-react';
+import { peermallStorage } from '@/services/storage/peermallStorage';
+import { storage } from '@/utils/storage/storage';
+import { STORAGE_KEYS } from '@/utils/storage/constants';
+import ProductDetailPage from '@/components/peer-space/products/ProductDetailPage';
+import { getProductById } from '@/services/storage/productStorage';
+import { getPeerMallData } from '@/services/peerMallService';
 
-// Function to get PeerSpace configuration from localStorage
+// Peermall 타입을 다시 export하여 컴포넌트 전체에서 일관되게 사용
+export type { Peermall } from '@/types/peermall';
+
+// Function to get PeerSpace configuration from storage
 const getPeerSpaceConfig = (address: string): PeerMallConfig | null => {
   try {
     const key = `peer_space_${address}_config`;
-    const stored = localStorage.getItem(key);
-    if (stored) {
-      return JSON.parse(stored) as PeerMallConfig;
-    }
-    return null;
+    return storage.get<PeerMallConfig>(key as any) || null;
   } catch (error) {
     console.error("Error loading peer space config:", error);
     return null;
   }
 };
 
-// Function to get peermall details from localStorage
-const getPeermallDetails = (address: string) => {
+// Function to get peermall details from storage
+const getPeermallDetails = (address: string): Peermall | null => {
   try {
-    const peermalls = localStorage.getItem('peermalls');
-    if (peermalls) {
-      const parsedPeermalls = JSON.parse(peermalls);
-      return parsedPeermalls.find((peermall: any) => peermall.id === address);
-    }
-    return null;
+    return peermallStorage.getById(address) || null;
   } catch (error) {
     console.error("Error loading peermall details:", error);
     return null;
   }
 };
 
-// Function to save PeerSpace configuration to localStorage
+// Function to save PeerSpace configuration to storage
 const savePeerSpaceConfig = (address: string, config: PeerMallConfig): void => {
   try {
     const key = `peer_space_${address}_config`;
-    localStorage.setItem(key, JSON.stringify(config));
+    storage.set<PeerMallConfig>(key as any, config);
   } catch (error) {
     console.error("Error saving peer space config:", error);
+    throw error; // 에러를 상위로 전파하여 호출한 쪽에서 처리할 수 있도록 함
   }
 };
 
 const PeerSpace = () => {
+  const params = useParams<{ address: string }>();
   const location = useLocation();
-  const { address } = useParams<{ address: string }>();
+  const navigate = useNavigate();
+  const address = params.address || '';
+
   const [isLoading, setIsLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(true); // In reality, this would be based on authentication
   const [config, setConfig] = useState<PeerMallConfig | null>(null);
+  const [peermall, setPeermall] = useState<Peermall | null>(null);
+  const [activeSection, setActiveSection] = useState<SectionType>('space');
+
+  // 모달 관련 상태
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<string | number | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [ searchParams ] = useSearchParams();
+  const peerMallKey = searchParams.get('mk');
+
+  // selectedProductId가 변경될 때마다 제품 데이터 로드
+  useEffect(() => {
+    if (selectedProductId) {
+      const product = getProductById(selectedProductId.toString()); // id가 string이므로 toString() 사용
+      setSelectedProduct(product || null);
+    } else {
+      setSelectedProduct(null);
+    }
+  }, [selectedProductId]);
 
   useEffect(() => {
-    // Simulate data loading and fetch configuration
-    const timer = setTimeout(() => {
-      if (address) {
-        const storedConfig = getPeerSpaceConfig(address);
-        
-        if (storedConfig) {
-          setConfig(storedConfig);
-        } else {
-          // If config doesn't exist, try to load from peermall details
-          const peermallDetails = getPeermallDetails(address);
-          
-          if (peermallDetails) {
-            // Create a default config from peermall details
-            const defaultConfig: PeerMallConfig = {
-              id: address,
-              title: peermallDetails.title || '내 피어스페이스',
-              description: peermallDetails.description || '나만의 공간을 구성해보세요',
-              owner: peermallDetails.owner || '나',
-              peerNumber: `P-${Math.floor(10000 + Math.random() * 90000)}-${Math.floor(1000 + Math.random() * 9000)}`,
-              profileImage: peermallDetails.imageUrl || 'https://api.dicebear.com/7.x/personas/svg?seed=' + address,
-              badges: [],
-              followers: 0,
-              recommendations: 0,
-              level: 1,
-              experience: 0,
-              nextLevelExperience: 100,
-              isVerified: false,
-              skin: 'default',
-              sections: ['hero', 'content', 'community', 'events', 'reviews', 'infoHub', 'map', 'trust', 'relatedMalls', 'activityFeed', 'liveCollaboration'],
-              customizations: {
-                primaryColor: '#71c4ef',
-                secondaryColor: '#3B82F6',
-                showChat: true,
-                allowComments: true,
-                showBadges: true,
-              },
-              location: peermallDetails.location || {
-                lat: 37.5665,
-                lng: 126.9780,
-                address: 'Seoul, South Korea'
-              }
-            };
-            
-            setConfig(defaultConfig);
-            savePeerSpaceConfig(address, defaultConfig);
-          } else {
-            // If no details found, create a completely new default config
-            const defaultConfig: PeerMallConfig = {
-              id: address,
-              title: '내 피어스페이스',
-              description: '나만의 공간을 구성해보세요',
-              owner: '나',
-              peerNumber: `P-${Math.floor(10000 + Math.random() * 90000)}-${Math.floor(1000 + Math.random() * 9000)}`,
-              profileImage: 'https://api.dicebear.com/7.x/personas/svg?seed=' + address,
-              badges: [],
-              followers: 0,
-              recommendations: 0,
-              level: 1,
-              experience: 0,
-              nextLevelExperience: 100,
-              isVerified: false,
-              skin: 'default',
-              sections: ['hero', 'content', 'community', 'events', 'reviews', 'infoHub', 'map', 'trust', 'relatedMalls', 'activityFeed', 'liveCollaboration'],
-              customizations: {
-                primaryColor: '#71c4ef',
-                secondaryColor: '#3B82F6',
-                showChat: true,
-                allowComments: true,
-                showBadges: true,
-              },
-              location: {
-                lat: 37.5665,
-                lng: 126.9780,
-                address: 'Seoul, South Korea'
-              }
-            };
-            
-            setConfig(defaultConfig);
-            savePeerSpaceConfig(address, defaultConfig);
-          }
+    const loadPeermallData = async () => {
+      if (!address) return;
+
+      setIsLoading(true);
+      try {
+        const peermallData = await getPeerMallData(address, peerMallKey);
+
+        if (!peermallData) {
+          toast({
+            title: '피어몰을 찾을 수 없습니다',
+            description: '요청하신 피어몰이 존재하지 않거나 삭제되었습니다.',
+            variant: 'destructive',
+          });
+          navigate('/');
+          return;
         }
+        
+        // 🔥 수정: 피어몰 데이터를 기반으로 PeerSpace 설정 생성
+        const defaultConfig: PeerMallConfig = {
+          id: peermallData.id,
+          name: peermallData.title,
+          type: 'personal',
+          title: peermallData.title,
+          owner: peermallData.owner,
+          description: peermallData.description,
+          profileImage: peermallData.imageUrl,
+          peerNumber: peermallData.id,
+          location: peermallData.location || '위치 정보 없음',
+          followers: peermallData.followers || 0,
+          recommendations: peermallData.likes || 0,
+          badges: [],
+          sections: [activeSection],
+          createdAt: peermallData.createdAt,
+          peerMallKey: peermallData.peerMallKey,
+          peerMallName: peermallData.peerMallName,
+          peerMallAddress: peermallData.peerMallAddress,
+          ownerName: peermallData.ownerName,
+        };
+
+        setPeermall(peermallData);
+        savePeerSpaceConfig(address, defaultConfig);
+        setConfig(defaultConfig);
+
+        // 3. Listen for peermall updates
+        const handlePeermallUpdate = (peermalls: Peermall[]) => {
+          const updatedPeermall = peermalls.find(p => p.id === address);
+
+          if (updatedPeermall) {
+            setPeermall(updatedPeermall);
+          }
+        };
+
+        // Subscribe to storage updates
+        const unsubscribe = peermallStorage.addEventListener(handlePeermallUpdate);
+
+        // Initial load in case there are updates since we first loaded
+        const currentPeermalls = peermallStorage.getAll();
+        handlePeermallUpdate(currentPeermalls);
+
+        return () => {
+          // Unsubscribe when component unmounts
+          unsubscribe();
+        };
+      } catch (error) {
+        console.error('Error loading peermall data:', error);
+        toast({
+          title: '오류 발생',
+          description: '피어몰 정보를 불러오는 중 오류가 발생했습니다.',
+          variant: 'destructive',
+        });
+        navigate('/');
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, [address]);
+    };
+
+    loadPeermallData();
+  }, [address, navigate]);
+
+  useEffect(() => {
+    // Determine active section from URL
+    const path = location.pathname;
+    if (path.includes('/product')) {
+      setActiveSection('products');
+    } else if (path.includes('/community')) {
+      setActiveSection('community');
+    } else if (path.includes('/peermap')) {
+      setActiveSection('peermap');
+    } else if (path.includes('/following')) {
+      setActiveSection('following');
+    } else if (path.includes('/guestbook')) {
+      setActiveSection('guestbook');
+    } else if (path.includes("/space")){
+      setActiveSection('space');
+    }
+  }, [location.pathname]);
 
   // Handle recommendations and badges updates
   const handleUpdateConfig = (updatedConfig: PeerMallConfig) => {
@@ -147,27 +181,63 @@ const PeerSpace = () => {
       setConfig(updatedConfig);
       savePeerSpaceConfig(address, updatedConfig);
       toast({
-        title: "피어스페이스가 업데이트되었습니다",
+        title: "피어몰이 업데이트되었습니다",
         description: "변경사항이 성공적으로 저장되었습니다.",
       });
     }
   };
 
+  // Handle section navigation
+  const handleNavigateToSection = (section: SectionType) => {
+    setActiveSection(section);
+
+    // Update URL but don't reload the page
+    let path = `/space/${address}`;
+    if (section !== 'home') {
+      path += `/${section}?mk=${peerMallKey}`;
+    }
+    navigate(path, { replace: true });
+  };
+
+  // ProductCard의 onDetailView prop으로 전달될 함수
+  const handleDetailView = (productKey: string | number) => {
+    navigate(`/space/${address}/product?mk=${peerMallKey}&pk=${productKey}`);
+  };
+
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-blue-300"></div>
+          <div className="h-4 w-32 bg-blue-300 rounded"></div>
+          <p className="text-gray-500">로딩 중...</p>
+        </div>
+      </div>
+    );
   }
 
-  if (!address || !config) {
-    return <div className="min-h-screen flex items-center justify-center">피어스페이스를 찾을 수 없습니다.</div>;
+  if (!config || !peermall) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p>피어몰 정보를 불러오는데 실패했습니다.</p>
+      </div>
+    );
   }
 
   return (
-    <PeerSpaceHome 
-      isOwner={isOwner} 
-      address={address} 
-      config={config}
-      onUpdateConfig={handleUpdateConfig}
-    />
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+      {/* PeerSpaceHome 컴포넌트에 onDetailView prop 전달 필요 */}
+      <PeerSpaceHome
+        isOwner={isOwner}
+        address={address}
+        config={config}
+        peermall={peermall}
+        activeSection={activeSection}
+        onUpdateConfig={handleUpdateConfig}
+        onNavigateToSection={handleNavigateToSection}
+        onDetailView={handleDetailView} // ProductCard에 전달될 onDetailView prop
+      />
+    </div>
   );
 };
 

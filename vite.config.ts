@@ -1,4 +1,3 @@
-
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
@@ -10,6 +9,11 @@ export default defineConfig(({ mode }) => ({
     host: '::',
     port: 8080,
     allowedHosts: ["2e2f1706-c6a1-48a6-ae32-e81be4d39721.lovableproject.com"]
+  },
+  preview: {
+    host: '::',
+    port: 4173,
+    allowedHosts: ["peermall.com"]
   },
   plugins: [react(), mode === 'development' && componentTagger()].filter(
     Boolean

@@ -1,5 +1,34 @@
-
 import { Review } from '@/components/peer-space/types';
+
+interface ReviewHelperOptions {
+  includeImages?: boolean;
+  includeAuthorInfo?: boolean;
+  formatDate?: boolean;
+}
+
+// Generate a dummy review for testing
+export const generateDummyReview = (overrides?: Partial<Review>): Review => {
+  const id = `review-${Math.floor(Math.random() * 10000)}`;
+  
+  return {
+    id,
+    title: overrides?.title || "Great experience with this product!",
+    content: overrides?.content || "I really enjoyed using this product. It exceeded my expectations in many ways...",
+    author: overrides?.author || "Jane Doe",
+    authorId: overrides?.authorId || `user-${Math.floor(Math.random() * 10000)}`,
+    date: overrides?.date || new Date().toISOString(),
+    rating: overrides?.rating || 4.5,
+    likes: overrides?.likes || Math.floor(Math.random() * 50),
+    replies: overrides?.replies || Math.floor(Math.random() * 10),
+    verified: overrides?.verified !== undefined ? overrides.verified : true,
+    helpful: overrides?.helpful || Math.floor(Math.random() * 30),
+    images: overrides?.images || [],
+    // Add the userName and text properties to match what's used in the components
+    userName: overrides?.userName || overrides?.author || "Jane Doe",
+    text: overrides?.text || overrides?.content || "I really enjoyed using this product. It exceeded my expectations in many ways...",
+    ...overrides
+  };
+};
 
 /**
  * Generates random reviews for a content item
@@ -35,15 +64,27 @@ export const generateRandomReviews = (contentId: string, count: number = 5): Rev
     const date = new Date();
     date.setDate(date.getDate() - randomDaysAgo);
     
+    const reviewContent = reviewContents[randomContentIndex];
+    const reviewAuthor = names[randomNameIndex];
+    
     reviews.push({
       id: `review-${contentId}-${i}`,
-      author: names[randomNameIndex],
-      authorImage: `https://api.dicebear.com/7.x/personas/svg?seed=${names[randomNameIndex]}`,
-      content: reviewContents[randomContentIndex],
+      title: `Review by ${reviewAuthor}`,
+      contentId: contentId,
+      userId: `user-${i}`,
+      userName: reviewAuthor,
+      author: reviewAuthor,
+      authorId: `user-${i}`,
+      authorImage: `https://api.dicebear.com/7.x/personas/svg?seed=${reviewAuthor}`,
+      text: reviewContent,
+      content: reviewContent,
       rating: randomRating,
       date: date.toISOString(),
       source: 'internal',
       likes: Math.floor(Math.random() * 10),
+      replies: Math.floor(Math.random() * 5),
+      verified: true,
+      helpful: Math.floor(Math.random() * 8),
       peerMall: {
         id: 'demo-mall',
         name: '데모 피어몰',
