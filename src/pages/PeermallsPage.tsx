@@ -250,14 +250,14 @@ const PeerMallPage = () => {
                   <Grid className="h-4 w-4" />
                 </Button>
                 
-                <Button
+                {/* <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setViewMode('list')}
                   className={viewMode === 'list' ? 'bg-purple-50 text-purple-600 border-purple-200' : ''}
                 >
                   <LayoutGrid className="h-4 w-4" />
-                </Button>
+                </Button> */}
                 
                 {/* 모바일 필터 버튼 */}
                 <Button 
