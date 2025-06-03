@@ -47,6 +47,9 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
   const handleExternalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (externalServiceName.trim() && externalServiceLink.trim()) {
+
+      console.log(externalServiceName, externalServiceLink)
+
       onAddExternalService(externalServiceName, externalServiceLink);
       setExternalServiceName('');
       setExternalServiceLink('');
