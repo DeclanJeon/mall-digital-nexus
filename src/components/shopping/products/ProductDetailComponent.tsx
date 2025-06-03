@@ -114,6 +114,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import productService from '@/services/productService';
+import userService from '@/services/userService';
 
 // **🎯 새로운 미니멀 디자인 토큰**
 const modernTokens = {
@@ -627,7 +628,7 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
     // }
     if (!consultationSubject.trim()) {
       toast({
-        title: "제목목을 입력해주세요",
+        title: "제목을 입력해주세요",
         description: "상담 제목을 모두 입력해주세요.",
         variant: "destructive"
       });
@@ -647,12 +648,15 @@ const ProductDetailComponent: React.FC<ProductDetailComponentProps> = ({
         timestamp: new Date().toISOString()
       };
 
-      console.log('📧 상담 신청 데이터:', consultationData);
+      const url = `https://peerterra.com/one/channel/${callModalData.owner}?mk=${peerMallKey}&pk=${product.productKey}`;
+      await userService.requestCall(callModalData.email, url);
 
       toast({
         title: "상담 신청이 완료되었습니다! 🎉",
-        description: "판매자에게 이메일이 전송되었습니다. 빠른 시일 내에 답변드리겠습니다.",
+        description: "판매자에게 이메일이 전송되었습니다.",
       });
+
+      window.open(url, '_blank');
 
       setIsConsultationModalOpen(false);
       setSelectedTemplate('');
