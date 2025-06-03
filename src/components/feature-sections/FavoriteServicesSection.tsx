@@ -44,7 +44,7 @@ interface OpenGraphData {
 
 const extractOpenGraphData = async (url: string): Promise<OpenGraphData> => {
   try {
-    const response = await fetch('http://localhost:9393/v1/peerMalls/extractMetadata', {
+    const response = await fetch('https://api.peermall.com/v1/peerMalls/extractMetadata', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
