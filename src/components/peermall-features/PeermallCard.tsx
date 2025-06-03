@@ -343,7 +343,7 @@ const PeermallCard: React.FC<PeermallCardProps> = memo(({
         setMessageModalOpen={handleMessageModalClose} // 🔥 새로운 핸들러 사용
         owner={owner}
         email={email}
-        title={title}
+        title={peerMallName}
         displayImageUrl={displayImageUrl}
         imageError={imageError}
       />

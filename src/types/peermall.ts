@@ -10,10 +10,10 @@ export interface Peermall {
   phone?: string; // 전화번호 필드 추가
   type?: string; // 'peermall'과 같은 타입을 나타내는 필드 추가 (선택적)
 
-    // 추가 설정 정보
+  // 추가 설정 정보
   hashtags?: string; // 쉼표로 구분된 해시태그
   mapAddress?: string; // 피어맵 표시 주소
-  
+
   // 메타데이터
   tags?: string[]; // 선택적
   rating?: number; // 선택적
@@ -23,18 +23,18 @@ export interface Peermall {
   featured?: boolean; // 선택적
   recommended?: boolean; // 선택적
   certified?: boolean; // 선택적
-  
+
   // 위치 정보
   location?: {
     lat: number;
     lng: number;
     address: string;
   };
-  
+
   // 타임스탬프
   createdAt?: string; // 선택적
   updatedAt?: string;
-  
+
   // 추가 필드
   [key: string]: any;
 
@@ -45,12 +45,17 @@ export interface Peermall {
 }
 
 export interface PeermallCardProps extends Peermall {
-  isPopular?: boolean;          // 인기 피어몰
-  isFamilyCertified?: boolean;  // 패밀리 멤버 인증
-  isRecommended?: boolean;      // 추천 피어몰
+  isPopular?: boolean; // 인기 피어몰
+  isFamilyCertified?: boolean; // 패밀리 멤버 인증
+  isRecommended?: boolean; // 추천 피어몰
   className?: string;
   onShowQrCode?: (id: string, title: string) => void;
-  onOpenMap?: (location: { lat: number; lng: number; address: string; title: string }) => void;
+  onOpenMap?: (location: {
+    lat: number;
+    lng: number;
+    address: string;
+    title: string;
+  }) => void;
   type?: string;
 }
 
@@ -58,9 +63,14 @@ export interface PeermallGridProps {
   title: string;
   malls: Peermall[];
   viewMore?: boolean;
-  onOpenMap: (location: { lat: number; lng: number; address: string; title: string }) => void;
-  viewMode: 'grid' | 'list'; 
-  onShowQrCode?: (peermallId: string, peermallTitle: string) => void; 
+  onOpenMap: (location: {
+    lat: number;
+    lng: number;
+    address: string;
+    title: string;
+  }) => void;
+  viewMode: 'grid' | 'list';
+  onShowQrCode?: (peermallId: string, peermallTitle: string) => void;
   isPopularSection?: boolean;
 }
 
@@ -103,9 +113,9 @@ export interface PeermallFilters {
   rating: number;
   status: string[];
   searchQuery: string;
-  location?: any;  // Make optional
-  certified?: boolean;  // Make optional
-  featured?: boolean;  // Make optional
+  location?: any; // Make optional
+  certified?: boolean; // Make optional
+  featured?: boolean; // Make optional
 }
 
 export interface PeermallFiltersProps {

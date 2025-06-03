@@ -25,13 +25,20 @@ import PeerSpaceLayout from "@/components/peer-space/layout/PeerSpaceLayout";
 
 // Features
 import QRCodeGenerator from "@/components/feature-sections/QRCodeGenerator";
+import { Peermall } from "@/types/peermall";
+import ProductDetailComponent from "./components/shopping/products/ProductDetailComponent";
 
 const queryClient = new QueryClient();
+// const { address } = useParams<{ address: string }>();
+// const [ searchParams ] = useSearchParams();
+// const peerMallKey = searchParams.get('mk');
+// const productKey = searchParams.get('pk');
+
 /**
  * 라우트 분기 컴포넌트
  */
 const AppContent = () => {
-  return (
+    return (
     <Routes>
       <Route path="/space/:address/settings/*" element={
         <PeerSpaceLayout>
@@ -43,7 +50,7 @@ const AppContent = () => {
           <PeerSpace />
         </PeerSpaceLayout>
       } />
-      
+
       <Route path="/*" element={
         <MainLayout>
           <Routes>
