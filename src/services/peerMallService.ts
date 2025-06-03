@@ -145,6 +145,7 @@ export const getMyFavoriteService = async (): Promise<any> => {
     });
 
     if (response.status === 200 && response.data.success) {
+      console.log(response);
       return response.data.myFavoriteService;
     }
     return { success: false };

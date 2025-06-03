@@ -132,233 +132,344 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  const [showPlaceholder, setShowPlaceholder] = useState(true);
+  const [isEmpty, setIsEmpty] = useState(true);
 
-  // **🎯 붙여넣기 이벤트 핸들러 - 서식 유지**
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    
-    const htmlData = e.clipboardData.getData('text/html');
-    const textData = e.clipboardData.getData('text/plain');
-    
-    if (htmlData) {
-      const cleanedHtml = sanitizeHtml(htmlData);
-      insertHtmlAtCursor(cleanedHtml);
-    } else if (textData) {
-      insertTextAtCursor(textData);
+  // 🎯 초기화 및 값 설정
+  useEffect(() => {
+    if (editorRef.current && !editorRef.current.innerHTML && value) {
+      editorRef.current.innerHTML = value;
     }
-    
-    updateValue();
-  };
+    setIsEmpty(!value || value.trim() === '');
+  }, []);
 
-  // **🎯 HTML 정리 함수**
-  const sanitizeHtml = (html: string): string => {
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = html;
-    
-    const scripts = tempDiv.querySelectorAll('script');
-    scripts.forEach(script => script.remove());
-    
-    return tempDiv.innerHTML;
-  };
-
-  // **🎯 커서 위치에 HTML 삽입**
-  const insertHtmlAtCursor = (html: string) => {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      range.deleteContents();
-      
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = html;
-      
-      const fragment = document.createDocumentFragment();
-      while (tempDiv.firstChild) {
-        fragment.appendChild(tempDiv.firstChild);
-      }
-      
-      range.insertNode(fragment);
-      range.collapse(false);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
-  };
-
-  // **🎯 커서 위치에 텍스트 삽입**
-  const insertTextAtCursor = (text: string) => {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      range.deleteContents();
-      range.insertNode(document.createTextNode(text));
-      range.collapse(false);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
-  };
-
-  // **🎯 에디터 내용 업데이트**
+  // 🎯 에디터 내용 업데이트 (수정됨)
   const updateValue = () => {
     if (editorRef.current) {
       const content = editorRef.current.innerHTML;
+      const textContent = editorRef.current.textContent || '';
+      
+      setIsEmpty(textContent.trim() === '');
       onChange(content);
-      setShowPlaceholder(content === '');
     }
   };
 
-  // **🎯 서식 적용 함수들**
-  const applyFormat = (command: string, value?: string) => {
-    document.execCommand(command, false, value);
+  // **🎯 붙여넣기 이벤트 핸들러 - 서식 완벽 유지**
+  const handlePaste = (
+    e: React.ClipboardEvent,
+    editorRef: React.RefObject<HTMLDivElement>
+  ) => {
+    e.preventDefault();
+
+    const clipboardData = e.clipboardData;
+    if (!clipboardData) return;
+
+    // 🎯 HTML 데이터 우선 처리 (서식 유지)
+    const htmlData = clipboardData.getData('text/html');
+    const textData = clipboardData.getData('text/plain');
+    const rtfData = clipboardData.getData('text/rtf');
+
+    console.log('📋 붙여넣기 데이터:', {
+      htmlData: !!htmlData,
+      textData: !!textData,
+      rtfData: !!rtfData,
+    });
+
+    if (htmlData) {
+      // HTML 서식이 있는 경우 - 서식 유지하면서 정리
+      const cleanedHtml = sanitizeAndPreserveHtml(htmlData);
+      insertHtmlAtCursor(cleanedHtml);
+    } else if (textData) {
+      // 텍스트만 있는 경우 - 줄바꿈 보존
+      const formattedText = preserveTextFormatting(textData);
+      insertTextAtCursor(formattedText);
+    }
+
     updateValue();
   };
 
-  // **🎯 이미지 삽입**
-  const insertImage = () => {
-    const url = prompt('이미지 URL을 입력하세요:');
-    if (url) {
-      applyFormat('insertImage', url);
+  // **🧹 HTML 정리하면서 서식 보존**
+  const sanitizeAndPreserveHtml = (html: string): string => {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+
+    // 🚨 위험한 요소들 제거
+    const dangerousElements = tempDiv.querySelectorAll(
+      'script, object, embed, applet, form, input, button, iframe'
+    );
+    dangerousElements.forEach(el => el.remove());
+
+    // 🎯 스타일 속성 정리 (중요한 서식만 보존)
+    const allElements = tempDiv.querySelectorAll('*');
+    allElements.forEach(el => {
+      const element = el as HTMLElement;
+
+      // 위험한 속성들 제거
+      element.removeAttribute('onclick');
+      element.removeAttribute('onload');
+      element.removeAttribute('onerror');
+      element.removeAttribute('onmouseover');
+      element.removeAttribute('id');
+      element.removeAttribute('class');
+
+      // 🎨 중요한 스타일 속성들만 보존
+      const style = element.style;
+      const preservedStyles: { [key: string]: string } = {};
+
+      // 텍스트 서식
+      if (style.fontWeight) preservedStyles.fontWeight = style.fontWeight;
+      if (style.fontStyle) preservedStyles.fontStyle = style.fontStyle;
+      if (style.textDecoration)
+        preservedStyles.textDecoration = style.textDecoration;
+      if (style.fontSize) preservedStyles.fontSize = style.fontSize;
+      if (style.fontFamily) preservedStyles.fontFamily = style.fontFamily;
+      if (style.color) preservedStyles.color = style.color;
+      if (style.backgroundColor)
+        preservedStyles.backgroundColor = style.backgroundColor;
+
+      // 레이아웃
+      if (style.textAlign) preservedStyles.textAlign = style.textAlign;
+      if (style.lineHeight) preservedStyles.lineHeight = style.lineHeight;
+      if (style.margin) preservedStyles.margin = style.margin;
+      if (style.padding) preservedStyles.padding = style.padding;
+      if (style.borderLeft) preservedStyles.borderLeft = style.borderLeft; // 인용구용
+
+      // 스타일 재적용
+      element.removeAttribute('style');
+      Object.entries(preservedStyles).forEach(([key, value]) => {
+        element.style.setProperty(key, value);
+      });
+    });
+
+    // 🎯 특별한 요소들 처리
+    processSpecialElements(tempDiv);
+
+    return tempDiv.innerHTML;
+  };
+
+  // **🎨 특별한 요소들 처리 (표, 리스트, 인용구 등)**
+  const processSpecialElements = (container: HTMLElement) => {
+    // 📊 표 스타일 개선
+    const tables = container.querySelectorAll('table');
+    tables.forEach(table => {
+      table.style.borderCollapse = 'collapse';
+      table.style.width = '100%';
+      table.style.border = '1px solid #e5e7eb';
+      table.style.marginTop = '1rem';
+      table.style.marginBottom = '1rem';
+
+      // 테이블 셀 스타일
+      const cells = table.querySelectorAll('td, th');
+      cells.forEach(cell => {
+        const cellElement = cell as HTMLElement;
+        cellElement.style.border = '1px solid #e5e7eb';
+        cellElement.style.padding = '8px 12px';
+        if (cell.tagName === 'TH') {
+          cellElement.style.backgroundColor = '#f9fafb';
+          cellElement.style.fontWeight = 'bold';
+        }
+      });
+    });
+
+    // 📝 리스트 스타일 개선
+    const lists = container.querySelectorAll('ul, ol');
+    lists.forEach(list => {
+      const listElement = list as HTMLElement;
+      listElement.style.paddingLeft = '1.5rem';
+      listElement.style.marginTop = '0.5rem';
+      listElement.style.marginBottom = '0.5rem';
+    });
+
+    // 💬 인용구 스타일 개선
+    const blockquotes = container.querySelectorAll('blockquote');
+    blockquotes.forEach(quote => {
+      const quoteElement = quote as HTMLElement;
+      quoteElement.style.borderLeft = '4px solid #3b82f6';
+      quoteElement.style.paddingLeft = '1rem';
+      quoteElement.style.margin = '1rem 0';
+      quoteElement.style.backgroundColor = '#f8fafc';
+      quoteElement.style.fontStyle = 'italic';
+    });
+
+    // 🖼️ 이미지 처리
+    const images = container.querySelectorAll('img');
+    images.forEach(img => {
+      const imgElement = img as HTMLElement;
+      imgElement.style.maxWidth = '100%';
+      imgElement.style.height = 'auto';
+      imgElement.style.borderRadius = '8px';
+      imgElement.style.margin = '0.5rem 0';
+    });
+
+    // 🔗 링크 스타일
+    const links = container.querySelectorAll('a');
+    links.forEach(link => {
+      const linkElement = link as HTMLElement;
+      linkElement.style.color = '#3b82f6';
+      linkElement.style.textDecoration = 'underline';
+      // 보안을 위해 target과 rel 설정
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noopener noreferrer');
+    });
+
+    // 📄 제목 태그들 스타일 개선
+    const headings = container.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    headings.forEach(heading => {
+      const headingElement = heading as HTMLElement;
+      headingElement.style.fontWeight = 'bold';
+      headingElement.style.marginTop = '1.5rem';
+      headingElement.style.marginBottom = '0.75rem';
+
+      switch (heading.tagName) {
+        case 'H1':
+          headingElement.style.fontSize = '2rem';
+          break;
+        case 'H2':
+          headingElement.style.fontSize = '1.75rem';
+          break;
+        case 'H3':
+          headingElement.style.fontSize = '1.5rem';
+          break;
+        case 'H4':
+          headingElement.style.fontSize = '1.25rem';
+          break;
+        default:
+          headingElement.style.fontSize = '1.125rem';
+      }
+    });
+  };
+
+  // **📝 텍스트 서식 보존 (줄바꿈, 공백 등)**
+  const preserveTextFormatting = (text: string): string => {
+    return text
+      .replace(/\r\n/g, '\n') // Windows 줄바꿈 통일
+      .replace(/\r/g, '\n') // Mac 줄바꿈 통일
+      .split('\n')
+      .map(line => {
+        // 빈 줄은 <br>로, 내용이 있는 줄은 <p>로 감싸기
+        if (line.trim() === '') {
+          return '<br>';
+        } else {
+          // HTML 특수문자 이스케이프
+          const escapedLine = line
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#x27;');
+          return `<p>${escapedLine}</p>`;
+        }
+      })
+      .join('');
+  };
+
+  // **🎯 커서 위치에 HTML 삽입 (개선된 버전)**
+  const insertHtmlAtCursor = (html: string) => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      // 커서가 없으면 에디터 끝에 추가
+      if (editorRef.current) {
+        editorRef.current.innerHTML += html;
+      }
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    range.deleteContents();
+
+    // HTML을 DocumentFragment로 변환
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+
+    const fragment = document.createDocumentFragment();
+    while (tempDiv.firstChild) {
+      fragment.appendChild(tempDiv.firstChild);
+    }
+
+    range.insertNode(fragment);
+
+    // 커서를 삽입된 내용 뒤로 이동
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    // 포커스 유지
+    if (editorRef.current) {
+      editorRef.current.focus();
     }
   };
 
-  // **🎯 링크 삽입**
-  const insertLink = () => {
-    const url = prompt('링크 URL을 입력하세요:');
-    if (url) {
-      applyFormat('createLink', url);
+  // **📝 커서 위치에 텍스트 삽입 (개선된 버전)**
+  const insertTextAtCursor = (text: string) => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      if (editorRef.current) {
+        editorRef.current.innerHTML += text;
+      }
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    range.deleteContents();
+
+    // HTML 형태로 삽입
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = text;
+
+    const fragment = document.createDocumentFragment();
+    while (tempDiv.firstChild) {
+      fragment.appendChild(tempDiv.firstChild);
+    }
+
+    range.insertNode(fragment);
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    if (editorRef.current) {
+      editorRef.current.focus();
     }
   };
 
-  // **🎯 툴바 버튼 컴포넌트**
-  const ToolbarButton: React.FC<{
-    onClick: () => void;
-    icon: React.ReactNode;
-    title: string;
-    isActive?: boolean;
-  }> = ({ onClick, icon, title, isActive = false }) => (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant={isActive ? "default" : "ghost"}
-            size="sm"
-            onClick={onClick}
-            className={`h-8 w-8 p-0 ${isActive ? 'bg-purple-100 text-purple-600' : ''}`}
-          >
-            {icon}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{title}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
 
+
+  // 🎯 포커스 핸들러 (수정됨)
   const handleFocus = () => {
-    setShowPlaceholder(false);
+    setIsEmpty(false);
+    // 에디터가 비어있으면 커서를 맨 앞으로
+    if (editorRef.current && editorRef.current.textContent?.trim() === '') {
+      const range = document.createRange();
+      const selection = window.getSelection();
+      range.setStart(editorRef.current, 0);
+      range.collapse(true);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    }
   };
 
+  // 🎯 블러 핸들러 (수정됨)
   const handleBlur = () => {
-    if (editorRef.current && editorRef.current.innerHTML === '') {
-      setShowPlaceholder(true);
+    if (editorRef.current) {
+      const textContent = editorRef.current.textContent || '';
+      setIsEmpty(textContent.trim() === '');
+    }
+  };
+
+  // 🎯 키보드 입력 핸들러 추가
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Enter 키 처리
+    if (e.key === 'Enter') {
+      if (e.shiftKey) {
+        // Shift+Enter: 줄바꿈
+        e.preventDefault();
+        document.execCommand('insertHTML', false, '<br>');
+        updateValue();
+      }
+      // 일반 Enter는 기본 동작 허용 (새 문단)
     }
   };
 
   return (
     <div className={`border rounded-lg overflow-hidden ${className}`}>
-      {/* **🎯 에디터 툴바** */}
-      {/* <div className="border-b bg-gray-50 p-2 flex items-center gap-1 flex-wrap">
-        <div className="flex items-center gap-1 mr-2">
-          <ToolbarButton
-            onClick={() => applyFormat('bold')}
-            icon={<Bold className="h-4 w-4" />}
-            title="굵게 (Ctrl+B)"
-          />
-          <ToolbarButton
-            onClick={() => applyFormat('italic')}
-            icon={<Italic className="h-4 w-4" />}
-            title="기울임 (Ctrl+I)"
-          />
-          <ToolbarButton
-            onClick={() => applyFormat('underline')}
-            icon={<Underline className="h-4 w-4" />}
-            title="밑줄 (Ctrl+U)"
-          />
-        </div>
-
-        <Separator orientation="vertical" className="h-6 mx-1" />
-
-        <div className="flex items-center gap-1 mr-2">
-          <ToolbarButton
-            onClick={() => applyFormat('justifyLeft')}
-            icon={<AlignLeft className="h-4 w-4" />}
-            title="왼쪽 정렬"
-          />
-          <ToolbarButton
-            onClick={() => applyFormat('justifyCenter')}
-            icon={<AlignCenter className="h-4 w-4" />}
-            title="가운데 정렬"
-          />
-          <ToolbarButton
-            onClick={() => applyFormat('justifyRight')}
-            icon={<AlignRight className="h-4 w-4" />}
-            title="오른쪽 정렬"
-          />
-        </div>
-
-        <Separator orientation="vertical" className="h-6 mx-1" />
-
-        <div className="flex items-center gap-1 mr-2">
-          <ToolbarButton
-            onClick={() => applyFormat('insertUnorderedList')}
-            icon={<List className="h-4 w-4" />}
-            title="글머리 기호"
-          />
-          <ToolbarButton
-            onClick={() => applyFormat('insertOrderedList')}
-            icon={<ListOrdered className="h-4 w-4" />}
-            title="번호 매기기"
-          />
-          <ToolbarButton
-            onClick={() => applyFormat('formatBlock', 'blockquote')}
-            icon={<Quote className="h-4 w-4" />}
-            title="인용구"
-          />
-        </div>
-
-        <Separator orientation="vertical" className="h-6 mx-1" />
-
-        <div className="flex items-center gap-1 mr-2">
-          <ToolbarButton
-            onClick={insertLink}
-            icon={<Link2 className="h-4 w-4" />}
-            title="링크 삽입"
-          />
-          <ToolbarButton
-            onClick={insertImage}
-            icon={<ImageIcon className="h-4 w-4" />}
-            title="이미지 삽입"
-          />
-        </div>
-
-        <Separator orientation="vertical" className="h-6 mx-1" />
-
-        <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant={isPreviewMode ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setIsPreviewMode(!isPreviewMode)}
-            className="h-8 px-3"
-          >
-            {isPreviewMode ? <Edit3 className="h-4 w-4 mr-1" /> : <Eye className="h-4 w-4 mr-1" />}
-            {isPreviewMode ? "편집" : "미리보기"}
-          </Button>
-        </div>
-      </div> */}
-
-      {/* **🎯 에디터 영역** */}
       {isPreviewMode ? (
         <div className="p-4 min-h-[200px] bg-white">
           <div 
@@ -372,40 +483,33 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             ref={editorRef}
             contentEditable
             suppressContentEditableWarning
-            className="p-4 min-h-[200px] focus:outline-none bg-white"
+            className="p-4 min-h-[200px] focus:outline-none bg-white relative"
             style={{ 
               fontFamily: "'Inter', sans-serif",
               lineHeight: '1.6'
             }}
-            data-placeholder={placeholder}
             onInput={updateValue}
-            onPaste={handlePaste}
+            onPaste={(e) => handlePaste(e, editorRef)}
             onFocus={handleFocus}
             onBlur={handleBlur}
-            dangerouslySetInnerHTML={{ __html: value }}
+            onKeyDown={handleKeyDown}
+            data-placeholder={placeholder}
+            // 🚨 dangerouslySetInnerHTML 제거!
           />
-          {showPlaceholder && (
-            <div className="absolute top-4 left-4 pointer-events-none text-gray-400">
+          {isEmpty && (
+            <div 
+              className="absolute top-4 left-4 pointer-events-none text-gray-400 select-none"
+              style={{ zIndex: 1 }}
+            >
               {placeholder}
             </div>
           )}
         </div>
       )}
-
-      {/* **🎯 에디터 하단 정보** */}
-      {/* <div className="border-t bg-gray-50 px-4 py-2 text-xs text-gray-500 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <span>✨ 다른 곳에서 복사한 서식이 그대로 유지됩니다</span>
-          <span>📋 Ctrl+V로 붙여넣기</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-3 w-3" />
-          <span>Rich Text Editor</span>
-        </div>
-      </div> */}
     </div>
   );
 };
+
 
 // **🎯 카테고리 정의**
 const PRODUCT_CATEGORIES = [
