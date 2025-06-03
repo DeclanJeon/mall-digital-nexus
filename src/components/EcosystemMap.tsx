@@ -274,6 +274,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
             peerMallKey: peermall.peerMallKey,
             lat: lat,
             lng: lng,
+            title: peermall.peerMallName,
             peerMallName: peermall.peerMallName || '피어몰',
             address: peermall.address ?? '주소 정보 없음',
             email: extractedEmail,
@@ -1028,8 +1029,8 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
           responseTime: '',
           isOnline: false
         }} 
-        owner={''} 
-        peerMallKey={''}      
+        owner={selectedLocationForAction && selectedLocationForAction.owner} 
+        peerMallKey={selectedLocationForAction && selectedLocationForAction.peerMallKey}      
       />
 
       {/* 💬 개선된 메시지 모달 */}
@@ -1038,7 +1039,7 @@ const EcosystemMap: React.FC<EcosystemMapProps> = React.memo(({
           messageModalOpen={messageModalOpen}
           setMessageModalOpen={setMessageModalOpen}
           owner={selectedLocationForAction.owner || '운영자'}
-          title={selectedLocationForAction.title}
+          title={selectedLocationForAction.peerMallName}
           email={selectedLocationForAction.email}
           displayImageUrl={selectedLocationForAction.imageUrl}
           imageError={false}
